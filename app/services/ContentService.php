@@ -91,7 +91,87 @@ class ContentService {
             mkdir($dir, 0755, true);
         }
         $jsonRaw = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        return file_put_contents($this->filePath, $jsonRaw) !== false;
+        if ($jsonRaw === false) {
+            am_log('ContentService::saveAll — json_encode falló', 'ERROR');
+            return false;
+        }
+
+        $written = @file_put_contents($this->filePath, $jsonRaw, LOCK_EX);
+        if ($written === false) {
+            am_log(
+                'ContentService::saveAll — no se pudo escribir ' . $this->filePath
+                . ' (revisar permisos: chown www-data storage/site_data.json)',
+                'ERROR'
+            );
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Añade un mensaje de contacto Seminuevos con bloqueo de archivo (evita pérdidas por escrituras concurrentes).
+     *
+     * @param array<string, mixed> $message
+     */
+    public function appendSeminuevosContactMessage(array $message): bool
+    {
+        $dir = dirname($this->filePath);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        if (!file_exists($this->filePath)) {
+            $this->saveAll($this->getAll());
+        }
+
+        $fp = @fopen($this->filePath, 'c+');
+        if ($fp === false) {
+            am_log('appendSeminuevosContactMessage — no se pudo abrir site_data.json', 'ERROR');
+            return false;
+        }
+
+        if (!flock($fp, LOCK_EX)) {
+            fclose($fp);
+            am_log('appendSeminuevosContactMessage — flock falló', 'ERROR');
+            return false;
+        }
+
+        $size = filesize($this->filePath);
+        $raw = $size > 0 ? fread($fp, $size) : '';
+        $data = json_decode($raw ?: '{}', true);
+        if (!is_array($data)) {
+            flock($fp, LOCK_UN);
+            fclose($fp);
+            am_log('appendSeminuevosContactMessage — site_data.json con JSON inválido', 'ERROR');
+            return false;
+        }
+        if (!isset($data['seminuevos']) || !is_array($data['seminuevos'])) {
+            $data['seminuevos'] = [];
+        }
+        if (!isset($data['seminuevos']['contact_messages']) || !is_array($data['seminuevos']['contact_messages'])) {
+            $data['seminuevos']['contact_messages'] = [];
+        }
+
+        $data['seminuevos']['contact_messages'][] = $message;
+
+        $jsonRaw = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($jsonRaw === false) {
+            flock($fp, LOCK_UN);
+            fclose($fp);
+            return false;
+        }
+
+        rewind($fp);
+        ftruncate($fp, 0);
+        $ok = fwrite($fp, $jsonRaw) !== false;
+        fflush($fp);
+        flock($fp, LOCK_UN);
+        fclose($fp);
+
+        if (!$ok) {
+            am_log('appendSeminuevosContactMessage — fwrite falló', 'ERROR');
+        }
+
+        return $ok;
     }
 
     /**

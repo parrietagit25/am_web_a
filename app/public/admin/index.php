@@ -4886,18 +4886,25 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                             <th>Fecha</th>
                                             <th>Cliente</th>
                                             <th>Contacto</th>
+                                            <th>Provincia</th>
                                             <th>Sucursal</th>
-                                            <th>Mensaje</th>
+                                            <th>Auto de interés</th>
+                                            <th>CRM</th>
                                             <th style="width:80px;" class="text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty($semi_contact_messages)): ?>
                                             <tr>
-                                                <td colspan="6" class="text-center py-4 text-muted">No se han recibido mensajes de contacto todavía.</td>
+                                                <td colspan="8" class="text-center py-4 text-muted">No se han recibido mensajes de contacto todavía.</td>
                                             </tr>
                                         <?php else: ?>
                                             <?php foreach (array_reverse($semi_contact_messages) as $msg): ?>
+                                                <?php
+                                                $autoInteres = $msg['auto_interes'] ?? $msg['message'] ?? '';
+                                                $crmData = $msg['crm'] ?? $msg['pipedrive'] ?? null;
+                                                $dealId = is_array($crmData) ? ($crmData['deal_id'] ?? null) : null;
+                                                ?>
                                                 <tr>
                                                     <td class="text-nowrap small text-muted"><?php echo esc($msg['date']); ?></td>
                                                     <td><strong><?php echo esc($msg['name']); ?></strong></td>
@@ -4905,11 +4912,23 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                                         <small class="d-block text-muted"><i class="bi bi-envelope-fill me-1"></i><a href="mailto:<?php echo esc($msg['email']); ?>" class="text-navy text-decoration-none"><?php echo esc($msg['email']); ?></a></small>
                                                         <small class="d-block text-muted"><i class="bi bi-telephone-fill me-1"></i><?php echo esc($msg['phone'] ?? ''); ?></small>
                                                     </td>
+                                                    <td class="small"><?php echo esc($msg['provincia'] ?? '—'); ?></td>
                                                     <td>
-                                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-pill fw-semibold text-uppercase" style="font-size:0.72rem;"><?php echo esc($msg['branch'] ?? 'General'); ?></span>
+                                                        <?php if (!empty($msg['branch'])): ?>
+                                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-pill fw-semibold" style="font-size:0.72rem;"><?php echo esc($msg['branch']); ?></span>
+                                                        <?php else: ?>
+                                                        <span class="text-muted small">—</span>
+                                                        <?php endif; ?>
                                                     </td>
                                                     <td>
-                                                        <div class="text-truncate" style="max-width:240px;"><?php echo esc($msg['message']); ?></div>
+                                                        <div class="text-truncate" style="max-width:200px;" title="<?php echo esc($autoInteres); ?>"><?php echo esc($autoInteres); ?></div>
+                                                    </td>
+                                                    <td class="small text-nowrap">
+                                                        <?php if ($dealId): ?>
+                                                            <span class="badge bg-success-subtle text-success border">Deal #<?php echo esc((string) $dealId); ?></span>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">—</span>
+                                                        <?php endif; ?>
                                                     </td>
                                                     <td class="text-center">
                                                         <div class="d-flex justify-content-center gap-1">
@@ -6639,11 +6658,25 @@ function resetLandingForm() {
 
 function showSemiMessageDetail(msg) {
     document.getElementById('modal-msg-name').innerText = msg.name || '';
-    document.getElementById('modal-msg-email').innerText = msg.email || '';
-    document.getElementById('modal-msg-phone').innerText = msg.phone || '';
+    const emailLink = document.getElementById('modal-msg-email');
+    if (emailLink) {
+        emailLink.innerText = msg.email || '';
+        emailLink.href = msg.email ? ('mailto:' + msg.email) : '#';
+    }
+    document.getElementById('modal-msg-phone').innerText = msg.phone || 'No especificado';
     document.getElementById('modal-msg-date').innerText = msg.date || '';
-    document.getElementById('modal-msg-unit').innerText = msg.branch || msg.unit || 'Venta de Autos';
-    document.getElementById('modal-msg-body').innerText = msg.message || '';
+    const branch = msg.branch ? ('Sucursal: ' + msg.branch) : '';
+    const prov = msg.provincia ? ('Provincia: ' + msg.provincia) : '';
+    document.getElementById('modal-msg-unit').innerText = [branch, prov].filter(Boolean).join(' · ') || 'Venta de Autos';
+    const auto = msg.auto_interes || msg.message || '';
+    const crm = msg.crm || msg.pipedrive || {};
+    let body = 'Auto de interés:\n' + auto;
+    if (crm.deal_id) {
+        body += '\n\nCRM (Pipedrive)\nDeal #' + crm.deal_id;
+        if (crm.deal_title) body += '\n' + crm.deal_title;
+        if (crm.person_source) body += '\nContacto: ' + crm.person_source;
+    }
+    document.getElementById('modal-msg-body').innerText = body;
     const modal = new bootstrap.Modal(document.getElementById('messageDetailModal'));
     modal.show();
 }

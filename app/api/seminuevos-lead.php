@@ -93,14 +93,13 @@ $newMessage = [
     'provincia' => $provincia,
     'unit' => 'Seminuevos',
     'branch' => $branch,
-    'pipedrive' => $n8nResult['data'] ?? null,
+    'crm' => $n8nResult['data'] ?? null,
 ];
 
-if (!isset($siteData['seminuevos']['contact_messages'])) {
-    $siteData['seminuevos']['contact_messages'] = [];
+$saved = $contentService->appendSeminuevosContactMessage($newMessage);
+if ($saved) {
+    $siteData = $contentService->getAll();
 }
-$siteData['seminuevos']['contact_messages'][] = $newMessage;
-$saved = $contentService->saveAll($siteData);
 
 am_log(
     'Seminuevos contacto: ' . $name . ' | n8n HTTP ' . $n8nResult['http_code']
