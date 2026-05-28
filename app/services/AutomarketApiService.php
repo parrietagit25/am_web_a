@@ -1,155 +1,245 @@
 <?php
 /**
- * Automarket API integration service
+ * Automarket partner availability API (handoff contract).
  */
 
 class AutomarketApiService {
-    private $apiUrl;
+    private $endpointUrl;
     private $user;
     private $pass;
+    private $imageBase;
 
     public function __construct() {
-        $this->apiUrl = defined('AUTOMARKET_API_URL') ? AUTOMARKET_API_URL : '';
         $this->user = defined('AUTOMARKET_PARTNER_USER') ? AUTOMARKET_PARTNER_USER : '';
         $this->pass = defined('AUTOMARKET_PARTNER_PASS') ? AUTOMARKET_PARTNER_PASS : '';
+        $this->imageBase = BranchDataService::partnerImageBaseUrl();
+        $this->endpointUrl = $this->resolveEndpointUrl();
+    }
+
+    private function resolveEndpointUrl(): string {
+        if (defined('AUTOMARKET_API_BASE_URL') && AUTOMARKET_API_BASE_URL !== '') {
+            return rtrim(AUTOMARKET_API_BASE_URL, '/') . '/api/partner/availability';
+        }
+        $url = defined('AUTOMARKET_API_URL') ? AUTOMARKET_API_URL : '';
+        if ($url !== '' && stripos($url, '/api/partner/availability') === false) {
+            return rtrim($url, '/') . '/api/partner/availability';
+        }
+        return $url;
+    }
+
+    public function isConfigured(): bool {
+        return $this->endpointUrl !== ''
+            && $this->user !== ''
+            && $this->pass !== ''
+            && strpos($this->user, 'TU_') !== 0;
     }
 
     /**
-     * Check vehicle availability
-     * 
      * @param array $params
-     * @return array
+     * @return array Normalized API response for frontend
      */
-    public function getAvailability(array $params) {
-        am_log("Requesting live availability: " . json_encode($params), "INFO");
+    public function getAvailability(array $params): array {
+        if (!$this->isConfigured()) {
+            am_log('Partner API not configured', 'ERROR');
+            return $this->errorResponse('El servicio de disponibilidad no está configurado. Contacte al administrador.');
+        }
 
-        // Structured payload validator
+        $age = (string) ($params['age'] ?? '25');
+        if (!in_array($age, ['23', '25'], true)) {
+            return $this->errorResponse('Edad del conductor no válida. Solo se admiten 23-24 o 25+ años en línea.');
+        }
+
         $payload = [
-            "locationCode" => $params['locationCode'] ?? 'PTY',
-            "returnLocationCode" => empty($params['returnLocationCode']) ? ($params['locationCode'] ?? 'PTY') : $params['returnLocationCode'],
-            "pickupDate" => $params['pickupDate'] ?? '',
-            "pickupTime" => $params['pickupTime'] ?? '',
-            "returnDate" => $params['returnDate'] ?? '',
-            "returnTime" => $params['returnTime'] ?? '',
-            "age" => $params['age'] ?? '25',
-            "promoCode" => $params['promoCode'] ?? ''
+            'locationCode' => strtoupper(trim($params['locationCode'] ?? 'PTY')),
+            'returnLocationCode' => strtoupper(trim($params['returnLocationCode'] ?? $params['locationCode'] ?? 'PTY')),
+            'pickupDate' => $params['pickupDate'] ?? '',
+            'pickupTime' => $params['pickupTime'] ?? '10:00',
+            'returnDate' => $params['returnDate'] ?? '',
+            'returnTime' => $params['returnTime'] ?? '10:00',
+            'age' => $age,
+            'promoCode' => trim($params['promoCode'] ?? ''),
         ];
 
-        $ch = curl_init($this->apiUrl);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        
-        // Track response headers (e.g. X-Cache)
-        $responseHeaders = [];
-        curl_setopt($ch, CURLOPT_HEADERFUNCTION, function($curl, $headerLine) use (&$responseHeaders) {
-            $len = strlen($headerLine);
-            $parts = explode(':', $headerLine, 2);
-            if (count($parts) === 2) {
-                $name = strtolower(trim($parts[0]));
-                $value = trim($parts[1]);
-                $responseHeaders[$name] = $value;
-            }
-            return $len;
-        });
+        if ($payload['returnLocationCode'] === '') {
+            $payload['returnLocationCode'] = $payload['locationCode'];
+        }
 
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Authorization: Basic ' . base64_encode($this->user . ':' . $this->pass)
+        $cacheKey = $this->buildCacheKey($payload);
+        $cached = $this->readCache($cacheKey, $payload);
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        am_log('Partner availability request: ' . json_encode($payload), 'INFO');
+
+        $responseHeaders = [];
+        $ch = curl_init($this->endpointUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
+            CURLOPT_USERPWD => $this->user . ':' . $this->pass,
+            CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Accept: application/json',
+            ],
+            CURLOPT_TIMEOUT => 35,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_HEADERFUNCTION => function ($curl, $headerLine) use (&$responseHeaders) {
+                $len = strlen($headerLine);
+                $parts = explode(':', $headerLine, 2);
+                if (count($parts) === 2) {
+                    $responseHeaders[strtolower(trim($parts[0]))] = trim($parts[1]);
+                }
+                return $len;
+            },
         ]);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
 
         $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
 
-        if ($error || $httpCode !== 200) {
-            am_log("API Error (HTTP $httpCode): " . ($error ? $error : $response), "ERROR");
-            return [
-                'success' => false,
-                'source' => 'ERROR-FALLBACK',
-                'xCache' => 'BYPASS',
-                'vehicles' => $this->getMockVehicles()
-            ];
+        if ($response === false) {
+            am_log('Partner API cURL error: ' . $curlError, 'ERROR');
+            return $this->errorResponse('No se pudo conectar con el sistema de búsqueda. Intente de nuevo en unos minutos.');
         }
 
         $decoded = json_decode($response, true);
-        if (!$decoded) {
-            am_log("API Error decoding response: " . $response, "ERROR");
-            return [
-                'success' => false,
-                'source' => 'DECODE-FALLBACK',
-                'xCache' => 'BYPASS',
-                'vehicles' => $this->getMockVehicles()
-            ];
+        if (!is_array($decoded)) {
+            am_log("Partner API invalid JSON (HTTP $httpCode): " . substr((string) $response, 0, 300), 'ERROR');
+            return $this->errorResponse('Respuesta inválida del sistema de búsqueda.');
+        }
+
+        if ($httpCode === 401) {
+            return $this->errorResponse('Credenciales del partner API inválidas.');
+        }
+        if ($httpCode >= 400) {
+            $msg = $decoded['error'] ?? "Error del servidor ($httpCode)";
+            return $this->errorResponse($msg);
+        }
+
+        $result = $this->normalizeResponse($decoded, $responseHeaders);
+        $this->writeCache($cacheKey, $payload, $result);
+        return $result;
+    }
+
+    private function normalizeResponse(array $decoded, array $headers): array {
+        $vehicles = $decoded['vehicles'] ?? [];
+        if (is_array($vehicles)) {
+            foreach ($vehicles as $i => $v) {
+                $vehicles[$i] = $this->normalizeVehicle($v);
+            }
+        } else {
+            $vehicles = [];
+        }
+
+        $fallback = $decoded['catalogFallback'] ?? [];
+        if (is_array($fallback)) {
+            foreach ($fallback as $i => $v) {
+                $fallback[$i] = $this->normalizeVehicle($v, true);
+            }
+        } else {
+            $fallback = [];
         }
 
         return [
             'success' => true,
-            'source' => $decoded['source'] ?? ($responseHeaders['x-source'] ?? 'API'),
-            'xCache' => $responseHeaders['x-cache'] ?? 'MISS',
-            'vehicles' => $decoded['vehicles'] ?? []
+            'source' => $decoded['source'] ?? ($headers['x-source'] ?? 'API'),
+            'xCache' => $headers['x-cache'] ?? 'unknown',
+            'vehicles' => $vehicles,
+            'miss' => !empty($decoded['miss']),
+            'reason' => $decoded['reason'] ?? null,
+            'catalogFallback' => $fallback,
+            'rateCodes' => $decoded['rateCodes'] ?? [],
+            'message' => null,
         ];
     }
 
-    /**
-     * Provide list of mock vehicles matching layout card structures
-     * 
-     * @return array
-     */
-    public function getMockVehicles() {
+    private function normalizeVehicle(array $v, bool $isFallback = false): array {
+        if (!empty($v['image']) && is_string($v['image'])) {
+            $img = $v['image'];
+            if (!preg_match('#^https?://#i', $img) && strpos($img, '/api/img') !== 0) {
+                $v['image'] = (strpos($img, '/') === 0)
+                    ? $this->imageBase . $img
+                    : $this->imageBase . '/' . $img;
+            } elseif (strpos($img, '/api/img') === 0) {
+                $v['image'] = $this->imageBase . $img;
+            }
+        }
+        $v['_isFallback'] = $isFallback;
+        return $v;
+    }
+
+    private function errorResponse(string $message): array {
         return [
-            [
-                'id' => 1,
-                'name' => 'Toyota Hilux 4x4 Double Cab',
-                'category' => 'Pick Up',
-                'passengers' => 5,
-                'ac' => true,
-                'transmission' => 'Manual',
-                'price' => 55.00,
-                'img' => 'hilux.jpg'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Hyundai Accent',
-                'category' => 'Sedanes',
-                'passengers' => 5,
-                'ac' => true,
-                'transmission' => 'Automática',
-                'price' => 29.99,
-                'img' => 'accent.jpg'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Toyota RAV4 AWD',
-                'category' => 'SUV',
-                'passengers' => 5,
-                'ac' => true,
-                'transmission' => 'Automática',
-                'price' => 45.50,
-                'img' => 'rav4.jpg'
-            ],
-            [
-                'id' => 4,
-                'name' => 'Hyundai H1 Panel',
-                'category' => 'Comerciales',
-                'passengers' => 3,
-                'ac' => true,
-                'transmission' => 'Manual',
-                'price' => 60.00,
-                'img' => 'h1.jpg'
-            ],
-            [
-                'id' => 5,
-                'name' => 'Kia Picanto',
-                'category' => 'Promociones',
-                'passengers' => 4,
-                'ac' => true,
-                'transmission' => 'Manual',
-                'price' => 19.99,
-                'img' => 'picanto.jpg'
-            ]
+            'success' => false,
+            'source' => 'ERROR',
+            'xCache' => 'BYPASS',
+            'vehicles' => [],
+            'miss' => false,
+            'reason' => null,
+            'catalogFallback' => [],
+            'rateCodes' => [],
+            'message' => $message,
         ];
+    }
+
+    private function buildCacheKey(array $payload): string {
+        return implode('|', [
+            $payload['locationCode'],
+            $payload['returnLocationCode'],
+            $payload['pickupDate'],
+            $payload['pickupTime'],
+            $payload['returnDate'],
+            $payload['returnTime'],
+            $payload['age'],
+            $payload['promoCode'] ?? '',
+        ]);
+    }
+
+    private function cacheFilePath(string $key): string {
+        $dir = __DIR__ . '/../storage/cache/rac_availability';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        return $dir . '/' . hash('sha256', $key) . '.json';
+    }
+
+    private function readCache(string $key, array $payload): ?array {
+        $path = $this->cacheFilePath($key);
+        if (!is_file($path)) {
+            return null;
+        }
+        $raw = @file_get_contents($path);
+        if ($raw === false) {
+            return null;
+        }
+        $data = json_decode($raw, true);
+        if (!is_array($data) || empty($data['expires_at']) || empty($data['body'])) {
+            return null;
+        }
+        if (time() > (int) $data['expires_at']) {
+            @unlink($path);
+            return null;
+        }
+        $body = $data['body'];
+        $body['xCache'] = ($body['xCache'] ?? '') . '+LOCAL';
+        return $body;
+    }
+
+    private function writeCache(string $key, array $payload, array $result): void {
+        if (!$result['success'] || !empty($result['miss'])) {
+            return;
+        }
+        $ttl = empty($result['vehicles']) ? 45 : 300;
+        $path = $this->cacheFilePath($key);
+        file_put_contents($path, json_encode([
+            'expires_at' => time() + $ttl,
+            'body' => $result,
+        ], JSON_UNESCAPED_UNICODE));
     }
 }

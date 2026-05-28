@@ -1,0 +1,32 @@
+{
+  "_comment": "Días de la semana (0=Sun..6=Sat) en los que cada sucursal NO acepta devoluciones. Distinto del horario de operación: una sucursal puede estar abierta al público un día pero no aceptar returns ese día (regla operacional staffing/logística). BARS devuelve Warning 214 cuando se intenta devolver en uno de estos días. Solo las sucursales con restricción aparecen aquí; las demás aceptan returns todos los días que están abiertas.",
+  "TCP": [
+    5,
+    6,
+    0
+  ],
+  "CASCO": [
+    5,
+    0
+  ],
+  "ATRIOMALL": [
+    5,
+    0
+  ],
+  "CHIRIQUI": [
+    5,
+    0
+  ],
+  "BOQUETE": [
+    5,
+    0
+  ],
+  "PENONOME": [
+    5,
+    0
+  ],
+  "SANTIAGO": [
+    5,
+    0
+  ]
+}

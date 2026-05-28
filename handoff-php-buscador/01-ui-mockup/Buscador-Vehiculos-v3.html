@@ -1,0 +1,1481 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Automarket - Buscar Vehículos</title>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:#f3f4f6;color:#1a1a2e;-webkit-font-smoothing:antialiased;}
+:root{
+  --red:#be1c28;--red-dark:#9a1620;--navy:#1a2346;
+  --tab-venta:#1e3866;--tab-leasing:#d4503a;--tab-renting:#6b7fa3;--tab-taller:#7c6fa0;
+  --gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;
+  --gray-300:#d1d5db;--gray-400:#9ca3af;--gray-500:#6b7280;--gray-600:#4b5563;--gray-700:#374151;
+  --green:#059669;
+}
+select,input{font-family:inherit;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef} = React;
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accentColor": "#c41e2a"
+}/*EDITMODE-END*/;
+
+/* Sucursales agrupadas por región */
+const SUCURSALES_GRUPOS = [
+  {
+    label: 'Ciudad de Panamá',
+    items: [
+      "Aeropuerto Internacional de Tocumen T1",
+      "Aeropuerto de Albrook",
+      "Tocumen Commercial Park",
+      "Hotel Torres de Alba",
+      "Tumba Muerto",
+      "Casco Antiguo",
+      "Vía Israel",
+      "Panamá Pacífico",
+    ]
+  },
+  {
+    label: 'Interior',
+    items: [
+      "Chorrera",
+      "Penonomé",
+      "Santiago",
+      "Atriomall",
+      "Chitré",
+      "David",
+      "Boquete",
+      "Aeropuerto Enrique Malek - David",
+    ]
+  },
+  {
+    label: 'Playa',
+    items: [
+      "Río Hato",
+      "Playa Venao",
+    ]
+  },
+];
+const SUCURSALES = SUCURSALES_GRUPOS.flatMap(g => g.items);
+
+/* Horas cada 15 min (5:00 am - 11:00 pm) */
+const HORAS = (() => {
+  const list = [];
+  for (let h = 5; h <= 23; h++) {
+    for (let m = 0; m < 60; m += 15) {
+      const period = h < 12 ? 'a.m.' : 'p.m.';
+      const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+      list.push(`${h12}:${m.toString().padStart(2,'0')} ${period}`);
+    }
+  }
+  return list;
+})();
+
+const EDADES = ["23-24 años","+25 años"];
+const TABS = [
+  {label:"RENT A CAR", color:"var(--red)"},
+  {label:"VENTA DE AUTOS", color:"var(--tab-venta)"},
+  {label:"LEASING OPERATIVO", color:"var(--tab-leasing)"},
+  {label:"RENTING", color:"var(--tab-renting)"},
+  {label:"TALLER", color:"var(--tab-taller)"},
+];
+
+const Icon = ({type,size=16,color='currentColor'}) => {
+  const icons = {
+    calendar:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+    map:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>,
+    clock:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+    user:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+    search:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+    tag:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
+    star:<svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke={color} strokeWidth="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+  };
+  return icons[type]||null;
+};
+
+// Shared field label
+function FieldLabel({icon, label}) {
+  return (
+    <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}>
+      <span style={{color:'var(--red)'}}><Icon type={icon} size={14}/></span>
+      <span style={{fontSize:11,fontWeight:600,color:'var(--gray-500)',textTransform:'uppercase',letterSpacing:'.5px'}}>{label}</span>
+    </div>
+  );
+}
+
+const inputStyle = {
+  width:'100%',padding:'10px 14px',borderRadius:10,
+  border:'2px solid var(--gray-200)',fontSize:13,color:'var(--navy)',
+  background:'#fff',appearance:'none',outline:'none',transition:'border-color .2s',cursor:'pointer'
+};
+
+function SelectField({icon,label,value,onChange,options,groups,placeholder}) {
+  const [focused,setFocused]=useState(false);
+  return (
+    <div style={{flex:1,minWidth:0}}>
+      <FieldLabel icon={icon} label={label}/>
+      <div style={{position:'relative'}}>
+        <select value={value} onChange={e=>onChange(e.target.value)}
+          onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)}
+          style={{...inputStyle,borderColor:focused?'var(--red)':'var(--gray-200)',
+            backgroundImage:`url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+            backgroundRepeat:'no-repeat',backgroundPosition:'right 12px center',paddingRight:32
+          }}>
+          <option value="">{placeholder}</option>
+          {groups ? groups.map(g => (
+            <optgroup key={g.label} label={g.label}>
+              {g.items.map(o => <option key={o} value={o}>{o}</option>)}
+            </optgroup>
+          )) : options.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      </div>
+    </div>
+  );
+}
+
+function DateField({icon,label,value,onChange}) {
+  const [focused,setFocused]=useState(false);
+  return (
+    <div style={{flex:1,minWidth:0}}>
+      <FieldLabel icon={icon} label={label}/>
+      <input type="date" value={value} onChange={e=>onChange(e.target.value)}
+        onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)}
+        style={{...inputStyle,borderColor:focused?'var(--red)':'var(--gray-200)'}}
+      />
+    </div>
+  );
+}
+
+// Feature pills for bottom trust bar
+function TrustPill({icon,text}) {
+  return (
+    <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 16px',background:'#fff',borderRadius:10,boxShadow:'0 1px 3px rgba(0,0,0,.06)'}}>
+      <span style={{color:'var(--red)'}}><Icon type={icon} size={16}/></span>
+      <span style={{fontSize:13,fontWeight:500,color:'var(--gray-600)'}}>{text}</span>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════
+// HERO BANNER — Verano Mode ON
+// ═════════════════════════════════════════
+function HeroBanner() {
+  return (
+    <div style={{margin:'32px 0 48px',position:'relative',borderRadius:20,overflow:'hidden',boxShadow:'0 8px 32px rgba(26,35,70,.15)'}}>
+      <img src="assets/banners/banner-verano.webp" alt="Verano Mode ON — Automarket"
+        style={{width:'100%',height:'auto',display:'block',aspectRatio:'1920/600',objectFit:'cover'}}/>
+      {/* Bottom gradient + CTA */}
+      <div style={{position:'absolute',inset:'auto 0 0 0',padding:'60px 40px 28px',
+        background:'linear-gradient(to top, rgba(26,35,70,.65) 0%, rgba(26,35,70,0) 100%)',
+        display:'flex',alignItems:'flex-end',justifyContent:'space-between',gap:20,flexWrap:'wrap'}}>
+        <div style={{color:'#fff',textShadow:'0 2px 12px rgba(0,0,0,.4)'}}>
+          <div style={{fontSize:11,fontWeight:700,letterSpacing:2,opacity:.9,textTransform:'uppercase',marginBottom:6}}>Temporada de Verano</div>
+          <div style={{fontSize:22,fontWeight:800,lineHeight:1.2}}>Vive Panamá con la mejor flota</div>
+        </div>
+        <a href="#flota" style={{padding:'12px 28px',background:'#fff',color:'var(--navy)',borderRadius:10,fontSize:14,fontWeight:700,textDecoration:'none',display:'inline-flex',alignItems:'center',gap:8,boxShadow:'0 6px 20px rgba(0,0,0,.2)',transition:'transform .2s'}}
+          onMouseEnter={e=>e.currentTarget.style.transform='translateY(-2px)'}
+          onMouseLeave={e=>e.currentTarget.style.transform='translateY(0)'}>
+          Ver la flota
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════
+// FLOTA SECTION — tabs por categoría + cards
+// ═════════════════════════════════════════
+const FLOTA = {
+  'SUV Mini': [
+    {name:'Kia Picanto', img:'', from:13.88, badge:null, specs:['4 pax','A/C','Auto','Lic. C']},
+    {name:'Hyundai Grand I-10', img:'', from:13.88, badge:null, specs:['4 pax','A/C','Auto','Lic. C']},
+    {name:'Hyundai Venue', img:'', from:18.99, badge:'PROMO', specs:['5 pax','A/C','Auto','Lic. C']},
+  ],
+  'Sedanes': [
+    {name:'Hyundai Accent', img:'', from:21.99, badge:'#PrecioEspecial', specs:['5 pax','A/C','Auto','Lic. C']},
+  ],
+  'SUV': [
+    {name:'Geely GX3 Pro', img:'', from:26.99, badge:'POPULAR', specs:['5 pax','Sunroof','Cuero','Auto']},
+    {name:'Hyundai Creta', img:'assets/cars/hyundaicreta.webp', from:29.99, badge:'NUEVO', specs:['5 pax','A/C','Sunroof','Auto']},
+    {name:'Toyota Corolla Cross', img:'', from:32.99, badge:null, specs:['5 pax','A/C','Auto','Híbrido']},
+    {name:'Hyundai Tucson', img:'', from:34.99, badge:null, specs:['5 pax','A/C','4x4','Auto']},
+    {name:'Toyota Rav-4', img:'', from:38.99, badge:null, specs:['5 pax','A/C','4x4','Auto']},
+    {name:'GAC GS8', img:'', from:41.99, badge:null, specs:['7 pax','Cuero','4x4','Auto']},
+  ],
+  'Familiares': [
+    {name:'Toyota Fortuner', img:'', from:54.99, badge:null, specs:['7 pax','Cuero','4x4','Diesel']},
+    {name:'Toyota Prado', img:'', from:74.99, badge:'TOP', specs:['7 pax','Cuero','4x4','Diesel']},
+    {name:'Toyota Hilux Manual', img:'', from:42.99, badge:null, specs:['5 pax','4x4','Diesel','Manual']},
+    {name:'Toyota Hilux Auto', img:'', from:47.99, badge:null, specs:['5 pax','4x4','Diesel','Auto']},
+  ],
+  'Comerciales': [
+    {name:'Hyundai Staria', img:'assets/cars/carnival_staria.webp', from:64.99, badge:null, specs:['11 pax','A/C','Diesel','Lic. C']},
+    {name:'Toyota Hi-Ace Panel', img:'assets/cars/vans.webp', from:58.99, badge:null, specs:['15 pax','A/C','Manual','Lic. C']},
+    {name:'Toyota Coaster', img:'assets/cars/coaster.webp', from:177.10, badge:'BUS', specs:['30 pax','A/C','Lic. D','Manual']},
+  ],
+};
+
+/* Build "Promociones" dynamically (any vehicle with promo badges) */
+const PROMO_BADGES = new Set(['PROMO','#PrecioEspecial','POPULAR','NUEVO','TOP']);
+function buildPromoList() {
+  return Object.values(FLOTA).flat().filter(v => PROMO_BADGES.has(v.badge));
+}
+
+function FlotaSection() {
+  const [activeCat, setActiveCat] = useState('Promociones');
+  const cats = ['Promociones', ...Object.keys(FLOTA)];
+  const items = activeCat === 'Promociones' ? buildPromoList() : FLOTA[activeCat];
+
+  return (
+    <section id="flota" style={{margin:'0 0 56px',scrollMarginTop:24}}>
+      <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',flexWrap:'wrap',gap:16,marginBottom:24}}>
+        <div>
+          <div style={{fontSize:11,fontWeight:700,letterSpacing:2,color:'var(--red)',textTransform:'uppercase',marginBottom:6}}>Nuestra Flota</div>
+          <h2 style={{fontSize:32,fontWeight:800,color:'var(--navy)',lineHeight:1.1,letterSpacing:-.5}}>Descubre todos<br/>nuestros vehículos</h2>
+        </div>
+        <a href="#" style={{color:'var(--red)',fontSize:14,fontWeight:600,textDecoration:'none',display:'inline-flex',alignItems:'center',gap:6}}>
+          Ver todas las categorías
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+
+      {/* Category tabs */}
+      <div style={{display:'flex',gap:8,marginBottom:24,overflowX:'auto',paddingBottom:4}}>
+        {cats.map(c => {
+          const isActive = activeCat === c;
+          return (
+            <button key={c} onClick={()=>setActiveCat(c)} style={{
+              padding:'10px 22px',borderRadius:24,border:'none',cursor:'pointer',whiteSpace:'nowrap',
+              fontSize:14,fontWeight:isActive?700:600,
+              background:isActive?'var(--navy)':'#fff',
+              color:isActive?'#fff':'var(--gray-600)',
+              boxShadow:isActive?'0 4px 14px rgba(26,35,70,.25)':'0 1px 3px rgba(0,0,0,.04)',
+              transition:'all .2s',
+            }}
+            onMouseEnter={e=>{if(!isActive){e.currentTarget.style.background='var(--gray-100)'}}}
+            onMouseLeave={e=>{if(!isActive){e.currentTarget.style.background='#fff'}}}>
+              {c}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Vehicle grid */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))',gap:20}}>
+        {items.map((v,i) => <FleetCard key={v.name} vehicle={v} index={i}/>)}
+      </div>
+    </section>
+  );
+}
+
+// Generic car silhouette placeholder (when image fails)
+function CarSilhouette() {
+  return (
+    <svg viewBox="0 0 240 110" xmlns="http://www.w3.org/2000/svg" style={{width:'90%',maxWidth:200,position:'relative',zIndex:1,opacity:.45}}>
+      <defs>
+        <linearGradient id="carbody" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="#9ca3af"/>
+          <stop offset="100%" stopColor="#4b5563"/>
+        </linearGradient>
+      </defs>
+      {/* shadow */}
+      <ellipse cx="120" cy="98" rx="100" ry="6" fill="rgba(0,0,0,.15)"/>
+      {/* body */}
+      <path d="M30 75 Q30 60 40 56 L70 50 Q85 30 110 28 L160 28 Q180 30 195 50 L215 56 Q225 60 225 75 L225 88 Q225 92 220 92 L195 92 Q193 100 183 100 Q173 100 171 92 L83 92 Q81 100 71 100 Q61 100 59 92 L35 92 Q30 92 30 88 Z" fill="url(#carbody)"/>
+      {/* windows */}
+      <path d="M88 50 L108 33 L155 33 L175 50 Z" fill="#1a2346" opacity=".55"/>
+      <line x1="130" y1="33" x2="130" y2="50" stroke="rgba(255,255,255,.4)" strokeWidth="1.5"/>
+      {/* wheels */}
+      <circle cx="71" cy="93" r="11" fill="#1f2937"/>
+      <circle cx="71" cy="93" r="5" fill="#d1d5db"/>
+      <circle cx="183" cy="93" r="11" fill="#1f2937"/>
+      <circle cx="183" cy="93" r="5" fill="#d1d5db"/>
+      {/* headlight */}
+      <ellipse cx="218" cy="68" rx="4" ry="3" fill="rgba(255,255,255,.6)"/>
+    </svg>
+  );
+}
+
+function FleetCard({vehicle, index}) {
+  const [hover, setHover] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  return (
+    <div
+      onMouseEnter={()=>setHover(true)}
+      onMouseLeave={()=>setHover(false)}
+      style={{
+        background:'#fff',borderRadius:18,overflow:'hidden',
+        boxShadow:hover?'0 12px 36px rgba(26,35,70,.16)':'0 1px 4px rgba(0,0,0,.06)',
+        transform:hover?'translateY(-4px)':'none',
+        transition:'all .3s cubic-bezier(.2,.8,.2,1)',
+        animation:`fadeInUp .4s ease ${index*60}ms forwards`,
+        cursor:'pointer',position:'relative',
+      }}>
+      {/* Badge */}
+      {vehicle.badge && (
+        <div style={{position:'absolute',top:14,left:14,zIndex:2,
+          background:vehicle.badge==='PROMO' || vehicle.badge==='#PrecioEspecial'?'var(--green)':vehicle.badge==='POPULAR'?'var(--navy)':'var(--red)',
+          color:'#fff',fontSize:10,fontWeight:700,padding:'4px 11px',borderRadius:20,letterSpacing:.5}}>
+          {vehicle.badge}
+        </div>
+      )}
+
+      {/* Image */}
+      <div style={{
+        background:'linear-gradient(160deg, #f8fafc 0%, #eef0f5 100%)',
+        height:180,display:'flex',alignItems:'center',justifyContent:'center',padding:18,
+        position:'relative',overflow:'hidden',
+      }}>
+        {/* Decorative circle */}
+        <div style={{position:'absolute',right:-30,top:-30,width:120,height:120,borderRadius:'50%',background:'rgba(190,28,40,.05)'}}/>
+        {imgError || !vehicle.img ? (
+          <CarSilhouette/>
+        ) : (
+          <img src={vehicle.img} alt={vehicle.name}
+            onError={()=>setImgError(true)}
+            style={{maxWidth:'100%',maxHeight:'100%',objectFit:'contain',position:'relative',zIndex:1,
+              transform:hover?'scale(1.06) translateY(-2px)':'scale(1)',
+              transition:'transform .4s cubic-bezier(.2,.8,.2,1)',
+              filter:'drop-shadow(0 8px 16px rgba(0,0,0,.12))'}}/>
+        )}
+      </div>
+
+      {/* Info */}
+      <div style={{padding:'18px 20px 20px'}}>
+        <div style={{fontSize:17,fontWeight:700,color:'var(--navy)',marginBottom:4,lineHeight:1.2}}>{vehicle.name}</div>
+        <div style={{fontSize:12,color:'var(--gray-400)',marginBottom:14}}>o similar</div>
+
+        <div style={{display:'flex',gap:6,marginBottom:16,flexWrap:'wrap'}}>
+          {vehicle.specs.map((s,i)=>(
+            <span key={i} style={{fontSize:11,fontWeight:600,color:'var(--gray-600)',background:'var(--gray-100)',padding:'3px 9px',borderRadius:6}}>{s}</span>
+          ))}
+        </div>
+
+        <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',gap:10}}>
+          <div>
+            <div style={{fontSize:10,color:'var(--gray-400)',textTransform:'uppercase',letterSpacing:.5,fontWeight:600,marginBottom:3}}>Desde · USD</div>
+            <div style={{fontSize:22,fontWeight:800,color:'var(--navy)',fontVariantNumeric:'tabular-nums',lineHeight:1}}>${vehicle.from.toFixed(2)}<span style={{fontSize:11,fontWeight:500,color:'var(--gray-500)',marginLeft:4}}>/día</span></div>
+          </div>
+          <button style={{
+            background:hover?'var(--red)':'transparent',
+            border:`2px solid var(--red)`,color:hover?'#fff':'var(--red)',
+            padding:'8px 16px',borderRadius:8,fontSize:12,fontWeight:700,cursor:'pointer',
+            transition:'all .2s',display:'inline-flex',alignItems:'center',gap:5,
+          }}>
+            Reservar
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════
+// PROMOS SECTION — full image cards
+// ═════════════════════════════════════════
+const PROMOS = [
+  {img:'assets/banners/promo-amas.webp',title:'AMAS Travel Assistance', sub:'Disfruta de tu aventura sin preocupaciones',cta:'Más información'},
+  {img:'assets/banners/promo-flytrip.webp',title:'Cuando vuelas con FlyTrip', sub:'Tu alquiler tiene beneficios exclusivos',cta:'Ver beneficios'},
+  {img:'assets/banners/promo-holafly.webp',title:'HolaFly + Automarket', sub:'5% de descuento en datos ilimitados',cta:'Usar código AMRAC'},
+];
+
+function PromosSection() {
+  return (
+    <section style={{margin:'0 0 56px'}}>
+      <div style={{marginBottom:24}}>
+        <div style={{fontSize:11,fontWeight:700,letterSpacing:2,color:'var(--red)',textTransform:'uppercase',marginBottom:6}}>Beneficios exclusivos</div>
+        <h2 style={{fontSize:32,fontWeight:800,color:'var(--navy)',lineHeight:1.1,letterSpacing:-.5}}>Promociones y alianzas</h2>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))',gap:20}}>
+        {PROMOS.map((p,i) => <PromoCard key={i} promo={p} index={i}/>)}
+      </div>
+    </section>
+  );
+}
+
+function PromoCard({promo, index}) {
+  const [hover, setHover] = useState(false);
+  return (
+    <div
+      onMouseEnter={()=>setHover(true)}
+      onMouseLeave={()=>setHover(false)}
+      style={{
+        position:'relative',borderRadius:18,overflow:'hidden',cursor:'pointer',
+        boxShadow:hover?'0 14px 40px rgba(26,35,70,.18)':'0 2px 8px rgba(0,0,0,.08)',
+        transform:hover?'translateY(-3px)':'none',
+        transition:'all .35s cubic-bezier(.2,.8,.2,1)',
+        animation:`fadeInUp .4s ease ${index*70}ms forwards`,
+        aspectRatio:'16/10',
+      }}>
+      <img src={promo.img} alt={promo.title}
+        style={{width:'100%',height:'100%',objectFit:'cover',display:'block',
+          transform:hover?'scale(1.06)':'scale(1)',transition:'transform .5s cubic-bezier(.2,.8,.2,1)'}}/>
+      {/* Gradient overlay */}
+      <div style={{position:'absolute',inset:0,
+        background:'linear-gradient(to top, rgba(0,0,0,.7) 0%, rgba(0,0,0,.0) 55%)'}}/>
+      {/* Content */}
+      <div style={{position:'absolute',inset:'auto 0 0 0',padding:'20px 22px',color:'#fff'}}>
+        <div style={{fontSize:17,fontWeight:800,lineHeight:1.2,marginBottom:4,textShadow:'0 2px 8px rgba(0,0,0,.4)'}}>{promo.title}</div>
+        <div style={{fontSize:12,opacity:.85,marginBottom:12,lineHeight:1.4,textShadow:'0 1px 4px rgba(0,0,0,.4)'}}>{promo.sub}</div>
+        <span style={{
+          display:'inline-flex',alignItems:'center',gap:6,
+          padding:'7px 14px',borderRadius:20,
+          background:hover?'var(--red)':'rgba(255,255,255,.18)',
+          backdropFilter:'blur(8px)',
+          color:'#fff',fontSize:12,fontWeight:700,
+          border:`1px solid ${hover?'var(--red)':'rgba(255,255,255,.3)'}`,
+          transition:'all .25s',
+        }}>
+          {promo.cta}
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════
+// STICKY SEARCH BAR — aparece al scroll
+// ═════════════════════════════════════════
+function StickySearchBar({visible, sucursal, fechaRec, horaRec, fechaDev, horaDev, onSearch}) {
+  const sucursalText = sucursal || 'Aeropuerto Tocumen';
+  const dateLabel = (d) => {
+    if (!d) return '';
+    const [y,m,dd] = d.split('-');
+    return `${dd}/${m}`;
+  };
+
+  return (
+    <div style={{
+      position:'fixed',top:0,left:0,right:0,zIndex:50,
+      background:'rgba(255,255,255,.96)',backdropFilter:'blur(14px)',
+      borderBottom:'1px solid rgba(0,0,0,.06)',
+      boxShadow: visible?'0 4px 24px rgba(0,0,0,.08)':'none',
+      transform: visible?'translateY(0)':'translateY(-100%)',
+      transition:'transform .35s cubic-bezier(.2,.8,.2,1)',
+      padding:'10px 24px',
+    }}>
+      <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',gap:14,flexWrap:'wrap'}}>
+        {/* Logo small */}
+        <img src="assets/logo-automarket.png" alt="Automarket" style={{height:34,flexShrink:0}}/>
+        <div style={{width:1,height:32,background:'var(--gray-200)',flexShrink:0}}/>
+
+        {/* Compact summary */}
+        <div style={{display:'flex',alignItems:'center',gap:18,flex:1,flexWrap:'wrap',minWidth:0}}>
+          <div style={{display:'flex',alignItems:'center',gap:7,minWidth:0}}>
+            <span style={{color:'var(--red)',flexShrink:0}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </span>
+            <div style={{minWidth:0}}>
+              <div style={{fontSize:9,fontWeight:700,color:'var(--gray-400)',textTransform:'uppercase',letterSpacing:.5}}>Sucursal</div>
+              <div style={{fontSize:13,fontWeight:600,color:'var(--navy)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:220}}>{sucursalText}</div>
+            </div>
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:7}}>
+            <span style={{color:'var(--red)',flexShrink:0}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </span>
+            <div>
+              <div style={{fontSize:9,fontWeight:700,color:'var(--gray-400)',textTransform:'uppercase',letterSpacing:.5}}>Recogida</div>
+              <div style={{fontSize:13,fontWeight:600,color:'var(--navy)',whiteSpace:'nowrap'}}>{dateLabel(fechaRec)} · {horaRec.replace('.m.','m')}</div>
+            </div>
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:7}}>
+            <span style={{color:'var(--red)',flexShrink:0}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </span>
+            <div>
+              <div style={{fontSize:9,fontWeight:700,color:'var(--gray-400)',textTransform:'uppercase',letterSpacing:.5}}>Devolución</div>
+              <div style={{fontSize:13,fontWeight:600,color:'var(--navy)',whiteSpace:'nowrap'}}>{dateLabel(fechaDev)} · {horaDev.replace('.m.','m')}</div>
+            </div>
+          </div>
+          <button onClick={()=>window.scrollTo({top:0,behavior:'smooth'})}
+            style={{
+              padding:'5px 12px',borderRadius:8,border:'1.5px solid var(--gray-200)',
+              background:'#fff',color:'var(--gray-600)',fontSize:11,fontWeight:600,cursor:'pointer',
+              transition:'all .15s',
+            }}
+            onMouseEnter={e=>e.currentTarget.style.borderColor='var(--gray-400)'}
+            onMouseLeave={e=>e.currentTarget.style.borderColor='var(--gray-200)'}>
+            Modificar
+          </button>
+        </div>
+
+        {/* CTA */}
+        <button onClick={onSearch} style={{
+          padding:'10px 24px',borderRadius:10,border:'none',
+          background:'var(--red)',color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer',
+          display:'flex',alignItems:'center',gap:7,
+          boxShadow:'0 4px 14px rgba(190,28,40,.3)',
+          flexShrink:0,
+        }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Buscar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════
+// TOP BAR — marquee promos + contacto
+// ═════════════════════════════════════════
+const TOPBAR_PROMOS = [
+  {dot:'var(--red)', text:'¡Precios especiales todos los miércoles!'},
+  {dot:'#fbbf24', text:'Horario especial para días feriados'},
+  {dot:'#22c55e', text:'¿Tienes empresa? Pregunta por alquileres corporativos'},
+  {dot:'var(--red)', text:'Verano mode ON · Aprovecha nuestra temporada'},
+];
+
+function TopBar() {
+  const [idx, setIdx] = useState(0);
+  useEffect(()=>{
+    const t = setInterval(()=>setIdx(i => (i+1) % TOPBAR_PROMOS.length), 4500);
+    return ()=>clearInterval(t);
+  }, []);
+
+  return (
+    <div style={{background:'var(--navy)',color:'rgba(255,255,255,.9)',fontSize:12,padding:'8px 24px',borderBottom:'1px solid rgba(255,255,255,.06)',overflow:'hidden'}}>
+      <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',gap:16,flexWrap:'wrap'}}>
+        {/* Rotating promo */}
+        <div style={{display:'flex',alignItems:'center',gap:10,minHeight:18,flex:1,minWidth:0,overflow:'hidden',position:'relative'}}>
+          {TOPBAR_PROMOS.map((p, i) => (
+            <div key={i} style={{
+              position: i===0?'relative':'absolute',
+              top:0,left:0,
+              display:'flex',alignItems:'center',gap:8,
+              opacity: i===idx ? 1 : 0,
+              transform: i===idx ? 'translateY(0)' : i < idx ? 'translateY(-14px)' : 'translateY(14px)',
+              transition:'all .5s cubic-bezier(.2,.8,.2,1)',
+              whiteSpace:'nowrap',
+            }}>
+              <span style={{width:6,height:6,borderRadius:'50%',background:p.dot,display:'inline-block',flexShrink:0,boxShadow:`0 0 0 3px ${p.dot}22`}}/>
+              <span style={{color:'rgba(255,255,255,.92)',fontWeight:500}}>{p.text}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Contact + user */}
+        <div style={{display:'flex',alignItems:'center',gap:16,fontSize:11.5,flexShrink:0}}>
+          <a href="tel:5072792700" style={{color:'#fff',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:5,fontWeight:600}}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.63A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            (507) 279-2700
+          </a>
+          <a href="mailto:info@automarketpanama.com" style={{color:'rgba(255,255,255,.85)',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:5,fontWeight:500}}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            info@automarketpanama.com
+          </a>
+          <span style={{color:'rgba(255,255,255,.3)'}}>·</span>
+          <a href="#" style={{color:'rgba(255,255,255,.85)',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:5}}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Usuario
+          </a>
+          <a href="#" style={{color:'rgba(255,255,255,.85)',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:5}}>
+            <span style={{display:'inline-block',width:16,height:11,borderRadius:2,overflow:'hidden',boxShadow:'0 0 0 1px rgba(255,255,255,.2)'}}>
+              <span style={{display:'block',width:'100%',height:'33.3%',background:'#aa151b'}}/>
+              <span style={{display:'block',width:'100%',height:'33.3%',background:'#f1bf00'}}/>
+              <span style={{display:'block',width:'100%',height:'33.3%',background:'#aa151b'}}/>
+            </span>
+            ES
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════
+// REVEAL ON SCROLL — fade-in-up when visible
+// ═════════════════════════════════════════
+function Reveal({children, delay=0, ...rest}) {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(()=>{
+    if (!ref.current) return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); }});
+    }, {threshold: 0.12, rootMargin:'0px 0px -60px 0px'});
+    obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <div ref={ref} {...rest} style={{
+      ...(rest.style||{}),
+      opacity: visible?1:0,
+      transform: visible?'translateY(0)':'translateY(28px)',
+      transition: `opacity .7s cubic-bezier(.2,.8,.2,1) ${delay}ms, transform .7s cubic-bezier(.2,.8,.2,1) ${delay}ms`,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════
+// STATS COUNTER BAND — animated numbers
+// ═════════════════════════════════════════
+function useCountUp(target, duration=1500, trigger=true) {
+  const [value, setValue] = useState(0);
+  useEffect(()=>{
+    if (!trigger) return;
+    let raf, start;
+    const tick = (ts) => {
+      if (!start) start = ts;
+      const p = Math.min(1, (ts-start)/duration);
+      const eased = 1 - Math.pow(1-p, 3);
+      setValue(Math.round(target * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration, trigger]);
+  return value;
+}
+
+function StatItem({value, suffix='', label, sub, decimal, trigger}) {
+  const target = decimal ? Math.round(value*10) : value;
+  const v = useCountUp(target, 1600, trigger);
+  const display = decimal ? (v/10).toFixed(1) : v.toLocaleString('en-US');
+  return (
+    <div style={{textAlign:'center'}}>
+      <div style={{fontSize:36,fontWeight:800,color:'var(--navy)',letterSpacing:-1,lineHeight:1,marginBottom:6,fontVariantNumeric:'tabular-nums'}}>
+        {display}<span style={{color:'var(--red)'}}>{suffix}</span>
+      </div>
+      <div style={{fontSize:13,fontWeight:600,color:'var(--gray-700)',marginBottom:2}}>{label}</div>
+      {sub && <div style={{fontSize:11,color:'var(--gray-400)'}}>{sub}</div>}
+    </div>
+  );
+}
+
+function StatsBand() {
+  const ref = useRef(null);
+  const [trig, setTrig] = useState(false);
+  useEffect(()=>{
+    const obs = new IntersectionObserver(([e])=>{if(e.isIntersecting){setTrig(true); obs.disconnect();}}, {threshold:.3});
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <div ref={ref} style={{
+      background:'#fff',borderRadius:18,padding:'28px 32px',
+      boxShadow:'0 4px 24px rgba(26,35,70,.06)',
+      margin:'28px 0 40px',
+      display:'grid',gridTemplateColumns:'repeat(4, 1fr)',gap:24,position:'relative',overflow:'hidden',
+    }}>
+      <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse at top right, rgba(190,28,40,.04), transparent 50%)'}}/>
+      <StatItem value={12500} suffix="+" label="Viajeros felices" sub="Reservas completadas" trigger={trig}/>
+      <StatItem value={4.9} decimal suffix="★" label="Calificación promedio" sub="Verificado por Google" trigger={trig}/>
+      <StatItem value={18} label="Sucursales" sub="A nivel nacional" trigger={trig}/>
+      <StatItem value={15} suffix="+" label="Modelos disponibles" sub="Flota renovada 2026" trigger={trig}/>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════
+// BLOG DESTACADO — large feature card
+// ═════════════════════════════════════════
+function BlogDestacado() {
+  const [hover, setHover] = useState(false);
+  return (
+    <section style={{margin:'0 0 56px'}}>
+      <div style={{marginBottom:24}}>
+        <div style={{fontSize:11,fontWeight:700,letterSpacing:2,color:'var(--red)',textTransform:'uppercase',marginBottom:6}}>Blog Destacado</div>
+        <h2 style={{fontSize:32,fontWeight:800,color:'var(--navy)',lineHeight:1.1,letterSpacing:-.5}}>Lo que está pasando</h2>
+      </div>
+      <div onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)}
+        style={{
+          background:'#fff',borderRadius:20,overflow:'hidden',
+          boxShadow:hover?'0 16px 48px rgba(26,35,70,.16)':'0 1px 4px rgba(0,0,0,.06)',
+          transform:hover?'translateY(-3px)':'none',
+          transition:'all .35s cubic-bezier(.2,.8,.2,1)',
+          display:'grid',gridTemplateColumns:'1.1fr 1fr',cursor:'pointer',
+        }}>
+        {/* Image side */}
+        <div style={{position:'relative',overflow:'hidden',minHeight:320,background:'linear-gradient(135deg, var(--navy), #1e3a6e)'}}>
+          {/* Stylized illustration of Feria David */}
+          <svg width="100%" height="100%" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid slice" style={{position:'absolute',inset:0,transform:hover?'scale(1.05)':'scale(1)',transition:'transform .6s cubic-bezier(.2,.8,.2,1)'}}>
+            <defs>
+              <linearGradient id="bgSky" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stopColor="#1e3a6e"/>
+                <stop offset="60%" stopColor="#2563eb"/>
+                <stop offset="100%" stopColor="#fbbf24"/>
+              </linearGradient>
+              <linearGradient id="bgMountain" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stopColor="#0f172a"/>
+                <stop offset="100%" stopColor="#1e293b"/>
+              </linearGradient>
+            </defs>
+            <rect width="600" height="400" fill="url(#bgSky)"/>
+            {/* Sun */}
+            <circle cx="460" cy="180" r="40" fill="#fde68a" opacity=".85"/>
+            {/* Mountains */}
+            <path d="M0 280 L120 200 L200 240 L290 180 L380 230 L470 190 L600 250 L600 400 L0 400 Z" fill="url(#bgMountain)" opacity=".75"/>
+            <path d="M0 320 L80 270 L170 300 L260 260 L340 290 L420 270 L500 300 L600 280 L600 400 L0 400 Z" fill="#0f172a"/>
+            {/* Stand booths */}
+            {[120, 220, 320, 420].map((x,i)=>(
+              <g key={i}>
+                <rect x={x} y={310} width={60} height={50} fill={['#be1c28','#fbbf24','#22c55e','#f97316'][i]} opacity=".9"/>
+                <polygon points={`${x-6},310 ${x+30},290 ${x+66},310`} fill="#fff" opacity=".9"/>
+              </g>
+            ))}
+            {/* Stars */}
+            {[[60,80,2],[150,50,1.5],[250,90,2.5],[380,60,1.8],[520,90,2]].map((s,i)=>(
+              <circle key={i} cx={s[0]} cy={s[1]} r={s[2]} fill="#fff" opacity=".7"/>
+            ))}
+          </svg>
+          {/* Category badge */}
+          <div style={{position:'absolute',top:18,left:18,background:'rgba(255,255,255,.95)',color:'var(--red)',fontSize:11,fontWeight:800,padding:'5px 12px',borderRadius:20,letterSpacing:.5,textTransform:'uppercase',backdropFilter:'blur(6px)'}}>
+            <span style={{display:'inline-block',width:6,height:6,borderRadius:'50%',background:'var(--red)',marginRight:6,verticalAlign:'middle',animation:'pulse 1.5s infinite'}}/>
+            Eventos · Marzo 2026
+          </div>
+        </div>
+        {/* Content side */}
+        <div style={{padding:'40px 36px',display:'flex',flexDirection:'column',justifyContent:'center'}}>
+          <div style={{fontSize:13,fontWeight:600,color:'var(--gray-400)',marginBottom:10,display:'flex',alignItems:'center',gap:8}}>
+            <span style={{width:24,height:1,background:'var(--red)'}}/>
+            5 MIN DE LECTURA
+          </div>
+          <h3 style={{fontSize:28,fontWeight:800,color:'var(--navy)',lineHeight:1.15,letterSpacing:-.5,marginBottom:14}}>
+            Feria Internacional de David 2026
+          </h3>
+          <p style={{fontSize:15,color:'var(--gray-600)',lineHeight:1.6,marginBottom:24}}>
+            Uno de los eventos comerciales, agroindustriales y culturales más importantes de Panamá. Conoce cómo Automarket te lleva a vivir esta experiencia única en Chiriquí — con vehículos disponibles desde nuestra sucursal de David.
+          </p>
+          <div style={{display:'flex',alignItems:'center',gap:14}}>
+            <button style={{
+              padding:'12px 24px',borderRadius:10,border:'none',
+              background:hover?'var(--red-dark)':'var(--red)',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',
+              display:'inline-flex',alignItems:'center',gap:8,
+              boxShadow:'0 4px 14px rgba(190,28,40,.3)',transition:'all .2s',
+            }}>
+              Conoce más
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+            <a href="#" style={{color:'var(--gray-500)',fontSize:13,fontWeight:600,textDecoration:'none'}}>Ver todo el blog →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ═════════════════════════════════════════
+// TESTIMONIOS — auto-rotate carousel
+// ═════════════════════════════════════════
+const TESTIMONIOS = [
+  {name:'Andrés Restrepo', sucursal:'Aeropuerto Tocumen T1', date:'30/01/2026', rating:5, text:'Auto muy limpio y en excelente estado. Nos explicaron bien los peajes del corredor sur y costa del este. El precio de alquiler es mucho menor que en Colombia y manejar en Panamá es muy fácil.', country:'CO'},
+  {name:'Erwin V.', sucursal:'Aeropuerto Tocumen T1', date:'24/11/2025', rating:5, text:'Todo correcto, sin sorpresas. Pólizas obligatorias bien explicadas. Excelente servicio al cliente desde el momento de la reserva online hasta la devolución del vehículo.', country:'NL'},
+  {name:'María González', sucursal:'David, Chiriquí', date:'13/02/2026', rating:5, text:'Cuando llegué para devolverlo en terminal 1, yo salía de la 2 y la persona que recibía el auto muy gentilmente al ver la cantidad de equipaje nos llevó con el mismo auto hasta la terminal. ¡Excelente!', country:'PA'},
+  {name:'Robert Mitchell', sucursal:'Aeropuerto Tocumen T1', date:'08/03/2026', rating:5, text:'Best rental car experience in Central America. Cars are new, staff speaks English, prices unbeatable. Will definitely use again next time I visit Panama.', country:'US'},
+  {name:'Lucía Fernández', sucursal:'Albrook', date:'19/02/2026', rating:5, text:'Reserva online súper rápida, el auto estaba esperándonos a la hora exacta. Personal súper amable. Lo recomiendo 100% para conocer el interior del país.', country:'ES'},
+];
+
+function TestimoniosSection() {
+  const [idx, setIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(()=>{
+    if (paused) return;
+    const t = setInterval(()=>setIdx(i => (i+1) % TESTIMONIOS.length), 5500);
+    return ()=>clearInterval(t);
+  }, [paused]);
+
+  const visibleCount = 3;
+  /* Show 3 cards centered on idx */
+  const visible = [];
+  for (let i=0; i<visibleCount; i++) {
+    visible.push(TESTIMONIOS[(idx + i) % TESTIMONIOS.length]);
+  }
+
+  return (
+    <section style={{margin:'0 0 56px'}}>
+      <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',flexWrap:'wrap',gap:16,marginBottom:24}}>
+        <div>
+          <div style={{fontSize:11,fontWeight:700,letterSpacing:2,color:'var(--red)',textTransform:'uppercase',marginBottom:6}}>★★★★★ Opiniones verificadas</div>
+          <h2 style={{fontSize:32,fontWeight:800,color:'var(--navy)',lineHeight:1.1,letterSpacing:-.5}}>Lo que dicen nuestros clientes</h2>
+        </div>
+        <div style={{display:'flex',gap:10,alignItems:'center'}}>
+          <button onClick={()=>setIdx(i=>(i-1+TESTIMONIOS.length)%TESTIMONIOS.length)}
+            style={{width:42,height:42,borderRadius:'50%',border:'1.5px solid var(--gray-200)',background:'#fff',cursor:'pointer',color:'var(--navy)',display:'flex',alignItems:'center',justifyContent:'center',transition:'all .2s'}}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--red)';e.currentTarget.style.color='var(--red)';}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--gray-200)';e.currentTarget.style.color='var(--navy)';}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button onClick={()=>setIdx(i=>(i+1)%TESTIMONIOS.length)}
+            style={{width:42,height:42,borderRadius:'50%',border:'1.5px solid var(--gray-200)',background:'#fff',cursor:'pointer',color:'var(--navy)',display:'flex',alignItems:'center',justifyContent:'center',transition:'all .2s'}}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--red)';e.currentTarget.style.color='var(--red)';}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--gray-200)';e.currentTarget.style.color='var(--navy)';}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div onMouseEnter={()=>setPaused(true)} onMouseLeave={()=>setPaused(false)}
+        style={{display:'grid',gridTemplateColumns:'repeat(3, 1fr)',gap:18}}>
+        {visible.map((t, i) => (
+          <TestimonioCard key={`${idx}-${i}`} t={t} index={i}/>
+        ))}
+      </div>
+
+      {/* Dots indicator */}
+      <div style={{display:'flex',justifyContent:'center',gap:8,marginTop:24}}>
+        {TESTIMONIOS.map((_,i)=>(
+          <button key={i} onClick={()=>setIdx(i)} style={{
+            width: i===idx ? 22 : 7, height:7, borderRadius:4, border:'none',
+            background: i===idx ? 'var(--red)' : 'var(--gray-300)',
+            cursor:'pointer',transition:'all .3s',padding:0,
+          }} aria-label={`Testimonio ${i+1}`}/>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function TestimonioCard({t, index}) {
+  const initials = t.name.split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase();
+  const palette = [
+    'linear-gradient(135deg, #be1c28, #f87171)',
+    'linear-gradient(135deg, #1a2346, #4f6ba9)',
+    'linear-gradient(135deg, #059669, #34d399)',
+    'linear-gradient(135deg, #f97316, #fbbf24)',
+    'linear-gradient(135deg, #7c5cbf, #c084fc)',
+  ];
+  const grad = palette[t.name.charCodeAt(0) % palette.length];
+
+  return (
+    <div style={{
+      background:'#fff',borderRadius:16,padding:'24px 22px',
+      boxShadow:'0 1px 4px rgba(0,0,0,.06)',
+      display:'flex',flexDirection:'column',gap:14,
+      animation:`fadeInUp .5s ease ${index*100}ms forwards`,
+      opacity:0,position:'relative',
+    }}>
+      {/* Big quote mark */}
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--red)" style={{position:'absolute',top:18,right:20,opacity:.12}}>
+        <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1zm12 0c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c.75 0 1.25.25 1.25 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/>
+      </svg>
+      {/* Stars */}
+      <div style={{display:'flex',gap:2}}>
+        {[...Array(5)].map((_,i)=>(
+          <svg key={i} width="15" height="15" viewBox="0 0 24 24" fill={i < t.rating ? '#fbbf24' : '#e5e7eb'}>
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        ))}
+      </div>
+      {/* Text */}
+      <p style={{fontSize:14,color:'var(--gray-700)',lineHeight:1.55,minHeight:90}}>
+        "{t.text.length > 180 ? t.text.slice(0,180)+'...' : t.text}"
+      </p>
+      {/* Author */}
+      <div style={{display:'flex',alignItems:'center',gap:12,marginTop:'auto',paddingTop:14,borderTop:'1px solid var(--gray-100)'}}>
+        <div style={{
+          width:42,height:42,borderRadius:'50%',background:grad,
+          display:'flex',alignItems:'center',justifyContent:'center',
+          color:'#fff',fontSize:14,fontWeight:700,flexShrink:0
+        }}>{initials}</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:13,fontWeight:700,color:'var(--navy)',display:'flex',alignItems:'center',gap:6}}>
+            {t.name}
+            <span style={{fontSize:9,fontWeight:600,color:'var(--gray-400)',background:'var(--gray-100)',padding:'1px 6px',borderRadius:4,letterSpacing:.3}}>{t.country}</span>
+          </div>
+          <div style={{fontSize:11,color:'var(--gray-500)',marginTop:2}}>{t.sucursal} · {t.date}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════
+// "CONOCE TAMBIÉN" — brand grid for footer
+// ═════════════════════════════════════════
+const BRANDS = [
+  {name:'Rent a Car', sub:'Alquiler de vehículos', color:'#be1c28', icon:'car'},
+  {name:'Seminuevos', sub:'Venta de vehículos', color:'#1e3866', icon:'tag'},
+  {name:'Leasing', sub:'Leasing operativo', color:'#d4503a', icon:'briefcase'},
+  {name:'Renting', sub:'Renting empresarial', color:'#6b7fa3', icon:'building'},
+  {name:'Taller', sub:'Servicio mecánico', color:'#7c6fa0', icon:'wrench'},
+  {name:'Fundación', sub:'Moviendo Vidas', color:'#2e7d32', icon:'heart'},
+];
+
+const BRAND_ICONS = {
+  car: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>,
+  tag: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
+  briefcase: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>,
+  building: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="9" y2="9.01"/><line x1="15" y1="9" x2="15" y2="9.01"/><line x1="9" y1="15" x2="9" y2="15.01"/><line x1="15" y1="15" x2="15" y2="15.01"/></svg>,
+  wrench: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>,
+  heart: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>,
+};
+
+function ConoceTambien() {
+  const [hover, setHover] = useState(null);
+  return (
+    <div style={{borderTop:'1px solid rgba(255,255,255,.08)',background:'rgba(0,0,0,.12)'}}>
+      <div style={{maxWidth:1200,margin:'0 auto',padding:'32px 24px'}}>
+        <div style={{fontSize:11,fontWeight:700,color:'rgba(255,255,255,.5)',textTransform:'uppercase',letterSpacing:1.5,marginBottom:18,textAlign:'center'}}>Conoce también nuestras líneas</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(6, 1fr)',gap:12}}>
+          {BRANDS.map((b,i) => (
+            <a key={b.name} href="#"
+              onMouseEnter={()=>setHover(i)} onMouseLeave={()=>setHover(null)}
+              style={{
+                background:hover===i?'rgba(255,255,255,.08)':'rgba(255,255,255,.04)',
+                border:'1px solid rgba(255,255,255,.08)',
+                borderRadius:12,padding:'18px 12px',
+                textDecoration:'none',color:'#fff',textAlign:'center',
+                transition:'all .25s',transform:hover===i?'translateY(-3px)':'none',
+                display:'flex',flexDirection:'column',alignItems:'center',gap:8,
+              }}>
+              <div style={{
+                width:42,height:42,borderRadius:10,background:b.color,
+                display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',
+                boxShadow:hover===i?`0 6px 20px ${b.color}80`:`0 4px 12px ${b.color}50`,
+                transition:'all .25s',
+              }}>
+                {BRAND_ICONS[b.icon]}
+              </div>
+              <div>
+                <div style={{fontSize:13,fontWeight:700,color:'#fff',marginBottom:2}}>{b.name}</div>
+                <div style={{fontSize:10,color:'rgba(255,255,255,.55)',lineHeight:1.3}}>{b.sub}</div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════
+// NAV DROPDOWN — Alquileres submenu
+// ═════════════════════════════════════════
+const ALQUILERES_MENU = [
+  {label:'Nuestra Flota', sub:'15+ modelos disponibles', icon:'car', href:'#flota'},
+  {label:'Sucursales', sub:'18 ubicaciones en Panamá', icon:'map', href:'#'},
+  {label:'Requisitos', sub:'Licencia, edad, depósito', icon:'license', href:'#'},
+  {label:'Términos y condiciones', sub:'Política de alquiler', icon:'clipboard', href:'#'},
+  {label:'Blog', sub:'Noticias y consejos', icon:'tag', href:'#'},
+];
+
+function NavWithDropdown() {
+  const [openMenu, setOpenMenu] = useState(false);
+  const links = ['SUCURSALES','CONTACTOS','PAGA TU RESERVA'];
+
+  return (
+    <div style={{display:'flex',gap:28,alignItems:'center'}}>
+      {/* Alquileres dropdown trigger */}
+      <div
+        onMouseEnter={()=>setOpenMenu(true)}
+        onMouseLeave={()=>setOpenMenu(false)}
+        style={{position:'relative'}}>
+        <a href="#" style={{
+          color: openMenu?'var(--red)':'var(--gray-600)',
+          textDecoration:'none',fontSize:13,fontWeight:600,letterSpacing:'.3px',
+          transition:'color .15s',display:'inline-flex',alignItems:'center',gap:5,
+          padding:'22px 0',
+        }}>
+          ALQUILERES
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            style={{transform:openMenu?'rotate(180deg)':'rotate(0)',transition:'transform .2s'}}>
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </a>
+
+        {/* Dropdown panel */}
+        <div style={{
+          position:'absolute',top:'100%',left:'-12px',
+          background:'#fff',borderRadius:14,padding:8,minWidth:320,
+          boxShadow:'0 12px 40px rgba(26,35,70,.14)',
+          border:'1px solid var(--gray-100)',
+          opacity: openMenu?1:0,
+          transform: openMenu?'translateY(0)':'translateY(-8px)',
+          pointerEvents: openMenu?'auto':'none',
+          transition:'all .2s cubic-bezier(.2,.8,.2,1)',
+          zIndex:60,
+        }}>
+          {ALQUILERES_MENU.map(item => (
+            <a key={item.label} href={item.href}
+              style={{
+                display:'flex',alignItems:'center',gap:14,
+                padding:'12px 14px',borderRadius:10,textDecoration:'none',
+                transition:'background .15s',
+              }}
+              onMouseEnter={e=>e.currentTarget.style.background='var(--gray-50)'}
+              onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+              <div style={{
+                width:36,height:36,borderRadius:9,background:'rgba(190,28,40,.08)',
+                color:'var(--red)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,
+              }}>
+                <Icon type={item.icon} size={17} color="var(--red)"/>
+              </div>
+              <div>
+                <div style={{fontSize:13,fontWeight:700,color:'var(--navy)'}}>{item.label}</div>
+                <div style={{fontSize:11,color:'var(--gray-500)',marginTop:1}}>{item.sub}</div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {links.map(l=>(
+        <a key={l} href="#" style={{color:'var(--gray-600)',textDecoration:'none',fontSize:13,fontWeight:600,letterSpacing:'.3px',transition:'color .15s'}}
+          onMouseEnter={e=>e.target.style.color='var(--red)'}
+          onMouseLeave={e=>e.target.style.color='var(--gray-600)'}
+        >{l}</a>
+      ))}
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════
+// WHATSAPP FLOATING BUTTON
+// ═════════════════════════════════════════
+function WhatsAppButton() {
+  const [hover, setHover] = useState(false);
+  return (
+    <a href="https://wa.me/50767470070" target="_blank" rel="noopener"
+      onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)}
+      style={{
+        position:'fixed',bottom:24,right:24,zIndex:99,
+        width:60,height:60,borderRadius:'50%',
+        background:'#25D366',
+        display:'flex',alignItems:'center',justifyContent:'center',
+        boxShadow:hover?'0 12px 32px rgba(37,211,102,.5)':'0 8px 24px rgba(37,211,102,.35)',
+        transform:hover?'scale(1.08)':'scale(1)',
+        transition:'all .2s cubic-bezier(.2,.8,.2,1)',
+        textDecoration:'none',cursor:'pointer',
+      }}>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="#fff"><path d="M17.498 14.382c-.301-.15-1.767-.867-2.04-.966-.273-.101-.473-.15-.673.15-.197.295-.771.964-.944 1.162-.175.195-.349.21-.646.075-.3-.15-1.263-.465-2.403-1.485-.888-.795-1.484-1.77-1.66-2.07-.174-.3-.019-.465.13-.615.136-.135.301-.345.451-.523.146-.181.194-.301.297-.496.1-.21.049-.375-.025-.524-.075-.15-.672-1.62-.922-2.206-.24-.584-.487-.51-.672-.51-.172-.015-.371-.015-.571-.015-.2 0-.523.074-.797.359-.273.3-1.045 1.02-1.045 2.475s1.07 2.865 1.219 3.075c.149.195 2.105 3.195 5.1 4.485.714.3 1.27.48 1.704.629.714.227 1.365.195 1.88.121.574-.091 1.767-.721 2.016-1.426.255-.705.255-1.29.18-1.425-.074-.135-.27-.21-.57-.345m-5.446 7.443h-.016c-1.77 0-3.524-.48-5.055-1.38l-.36-.214-3.75.975 1.005-3.645-.239-.375a9.869 9.869 0 01-1.516-5.26c.022-5.45 4.434-9.884 9.879-9.884 2.641 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.885-9.879 9.885M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.334.101 11.893c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652a12.062 12.062 0 005.71 1.447h.006c6.585 0 11.946-5.336 11.949-11.896 0-3.176-1.24-6.165-3.495-8.411z"/></svg>
+      {hover && (
+        <div style={{
+          position:'absolute',right:72,top:'50%',transform:'translateY(-50%)',
+          background:'var(--navy)',color:'#fff',padding:'8px 14px',borderRadius:10,
+          fontSize:13,fontWeight:600,whiteSpace:'nowrap',
+          boxShadow:'0 6px 20px rgba(0,0,0,.18)',
+        }}>
+          ¿Necesitas ayuda? Escríbenos
+          <span style={{position:'absolute',right:-6,top:'50%',transform:'translateY(-50%) rotate(45deg)',width:12,height:12,background:'var(--navy)'}}/>
+        </div>
+      )}
+    </a>
+  );
+}
+
+// ═════════════════════════════════════════
+// FOOTER — profesional
+// ═════════════════════════════════════════
+function Footer() {
+  const [hover, setHover] = useState(null);
+  const sucursalesPopular = [
+    'Aeropuerto Tocumen', 'Albrook', 'Casco Antiguo',
+    'David', 'Chitré', 'Boquete',
+  ];
+  const alquileres = ['Económico','Sedán','SUV','Pickup','Comercial','Premium'];
+  const sobreNosotros = ['Nuestra historia','Fundación Moviendo Vidas','Blog','Contacto','Trabaja con nosotros'];
+  const legales = ['Términos y Condiciones','Política de Privacidad','Política de Reembolso','Política de Cookies'];
+
+  return (
+    <footer style={{background:'var(--navy)',color:'#fff',marginTop:48}}>
+      {/* Top wide section */}
+      <div style={{maxWidth:1200,margin:'0 auto',padding:'48px 24px 32px'}}>
+        <div style={{display:'grid',gridTemplateColumns:'1.4fr 1fr 1fr 1fr 1fr',gap:36}} className="footer-grid">
+          {/* Brand column */}
+          <div>
+            <div style={{background:'#fff',borderRadius:10,padding:'10px 18px',display:'inline-block',marginBottom:18}}>
+              <img src="assets/logo-automarket.png" alt="Automarket" style={{height:48,display:'block'}}/>
+            </div>
+            <div style={{fontSize:13,lineHeight:1.6,color:'rgba(255,255,255,.6)',marginBottom:20}}>
+              Juntos transformamos movilidad en satisfacción. Una empresa de <strong style={{color:'rgba(255,255,255,.85)'}}>Grupo Panama Car Rental</strong>.
+            </div>
+            <div style={{fontSize:12,color:'rgba(255,255,255,.5)',lineHeight:1.7}}>
+              <div>Tocumen Commercial Park, Local 17</div>
+              <div>Edificio Automarket, Ciudad de Panamá</div>
+              <div style={{marginTop:10,fontSize:13,color:'rgba(255,255,255,.9)',fontWeight:600}}>
+                <div>(507) 279-2700</div>
+                <div style={{color:'rgba(255,255,255,.6)',fontWeight:400,fontSize:12,marginTop:2}}>USA: 1-866-700-9904</div>
+                <div style={{color:'rgba(255,255,255,.6)',fontWeight:400,fontSize:12}}>WhatsApp: (507) 6747-0070</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sucursales */}
+          <FooterCol title="Sucursales" items={sucursalesPopular} hover={hover} setHover={setHover} more="Ver todas (18)"/>
+          {/* Alquileres */}
+          <FooterCol title="Alquileres" items={alquileres} hover={hover} setHover={setHover}/>
+          {/* Sobre nosotros */}
+          <FooterCol title="Sobre nosotros" items={sobreNosotros} hover={hover} setHover={setHover}/>
+          {/* Legales */}
+          <FooterCol title="Información" items={legales} hover={hover} setHover={setHover}/>
+        </div>
+      </div>
+
+      {/* ════ CONOCE TAMBIÉN ════ */}
+      <ConoceTambien/>
+
+      {/* Middle band — payments + socials */}
+      <div style={{borderTop:'1px solid rgba(255,255,255,.08)'}}>
+        <div style={{maxWidth:1200,margin:'0 auto',padding:'22px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:20}}>
+          {/* Payments */}
+          <div style={{display:'flex',alignItems:'center',gap:14,flexWrap:'wrap'}}>
+            <span style={{fontSize:11,color:'rgba(255,255,255,.5)',textTransform:'uppercase',letterSpacing:1,fontWeight:600}}>Aceptamos pagos seguros con</span>
+            <div style={{display:'flex',gap:8,alignItems:'center'}}>
+              {/* Visa */}
+              <div style={{background:'#fff',borderRadius:6,padding:'6px 10px',display:'flex',alignItems:'center'}}>
+                <svg width="36" height="14" viewBox="0 0 36 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <text x="0" y="11" fontFamily="Arial Black, sans-serif" fontSize="11" fontWeight="900" fill="#1A1F71" fontStyle="italic">VISA</text>
+                </svg>
+              </div>
+              {/* Mastercard */}
+              <div style={{background:'#fff',borderRadius:6,padding:'5px 10px',display:'flex',alignItems:'center',gap:0}}>
+                <span style={{width:18,height:18,borderRadius:'50%',background:'#EB001B',display:'inline-block'}}/>
+                <span style={{width:18,height:18,borderRadius:'50%',background:'#F79E1B',display:'inline-block',marginLeft:-7,mixBlendMode:'multiply'}}/>
+              </div>
+              {/* Amex */}
+              <div style={{background:'#006FCF',borderRadius:6,padding:'6px 10px',color:'#fff',fontSize:9,fontWeight:800,letterSpacing:.5}}>AMEX</div>
+            </div>
+          </div>
+          {/* Socials */}
+          <div style={{display:'flex',alignItems:'center',gap:12}}>
+            <span style={{fontSize:11,color:'rgba(255,255,255,.5)',textTransform:'uppercase',letterSpacing:1,fontWeight:600,marginRight:4}}>Síguenos</span>
+            {[
+              {name:'instagram', svg:<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>},
+              {name:'facebook', svg:<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>},
+              {name:'tiktok', svg:<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005.8 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1.84-.1z"/></svg>},
+              {name:'youtube', svg:<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>},
+            ].map((s,i)=>(
+              <a key={s.name} href="#" onMouseEnter={()=>setHover('s'+i)} onMouseLeave={()=>setHover(null)}
+                style={{
+                  width:36,height:36,borderRadius:8,
+                  background:hover==='s'+i?'var(--red)':'rgba(255,255,255,.08)',
+                  display:'flex',alignItems:'center',justifyContent:'center',
+                  color:'#fff',textDecoration:'none',transition:'all .2s',
+                  transform:hover==='s'+i?'translateY(-2px)':'none',
+                }}>
+                {s.svg}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom band — copyright */}
+      <div style={{background:'rgba(0,0,0,.2)'}}>
+        <div style={{maxWidth:1200,margin:'0 auto',padding:'16px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:10}}>
+          <div style={{fontSize:11,color:'rgba(255,255,255,.5)'}}>
+            © 2026 Panama Car Rental, S.A. · Todos los derechos reservados.
+          </div>
+          <div style={{fontSize:11,color:'rgba(255,255,255,.4)'}}>
+            Sitio web desarrollado por <span style={{color:'rgba(255,255,255,.65)',fontWeight:500}}>Grupo PCR Digital</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+function FooterCol({title, items, more, hover, setHover}) {
+  return (
+    <div>
+      <div style={{fontSize:12,fontWeight:700,color:'#fff',textTransform:'uppercase',letterSpacing:1,marginBottom:16}}>{title}</div>
+      <div style={{display:'flex',flexDirection:'column',gap:9}}>
+        {items.map(it => (
+          <a key={it} href="#" onMouseEnter={()=>setHover(title+it)} onMouseLeave={()=>setHover(null)}
+            style={{
+              color:hover===title+it?'#fff':'rgba(255,255,255,.55)',
+              textDecoration:'none',fontSize:13,fontWeight:500,
+              transition:'color .15s',display:'inline-flex',alignItems:'center',gap:6
+            }}>
+            <span style={{
+              width:hover===title+it?10:0,height:1,background:'var(--red)',
+              transition:'width .25s'
+            }}/>
+            {it}
+          </a>
+        ))}
+        {more && (
+          <a href="#" style={{color:'var(--red)',fontSize:12,fontWeight:600,textDecoration:'none',marginTop:6,display:'inline-flex',alignItems:'center',gap:5}}>
+            {more}
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════
+// FEATURES — Por qué Automarket (KEPT but UNUSED in JSX)
+// ═════════════════════════════════════════
+function FeaturesSection() {
+  const items = [
+    {icon:'map',title:'8 sucursales en Panamá', desc:'Recoge y devuelve donde más te convenga'},
+    {icon:'tag',title:'Mejor precio garantizado', desc:'Reservando online obtienes el mejor precio'},
+    {icon:'calendar',title:'Cancelación flexible', desc:'Modifica tu reserva sin cargos extra'},
+    {icon:'star',title:'Atención 24/7', desc:'Soporte en español por WhatsApp y teléfono'},
+  ];
+  return (
+    <section style={{margin:'0 0 48px',background:'linear-gradient(135deg, var(--navy) 0%, #243366 100%)',borderRadius:20,padding:'40px 32px',position:'relative',overflow:'hidden'}}>
+      {/* Decorative shapes */}
+      <div style={{position:'absolute',top:-80,right:-60,width:280,height:280,borderRadius:'50%',background:'rgba(190,28,40,.08)'}}/>
+      <div style={{position:'absolute',bottom:-100,left:-40,width:240,height:240,borderRadius:'50%',background:'rgba(255,255,255,.03)'}}/>
+
+      <div style={{position:'relative',zIndex:1,marginBottom:28}}>
+        <div style={{fontSize:11,fontWeight:700,letterSpacing:2,color:'#fff',opacity:.6,textTransform:'uppercase',marginBottom:6}}>¿Por qué elegirnos?</div>
+        <h2 style={{fontSize:28,fontWeight:800,color:'#fff',lineHeight:1.1,letterSpacing:-.5}}>La experiencia Automarket</h2>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))',gap:16,position:'relative',zIndex:1}}>
+        {items.map((it,i)=>(
+          <div key={i} style={{background:'rgba(255,255,255,.06)',backdropFilter:'blur(10px)',
+            border:'1px solid rgba(255,255,255,.08)',
+            borderRadius:14,padding:'20px 22px'}}>
+            <div style={{
+              width:42,height:42,borderRadius:10,background:'var(--red)',
+              display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',marginBottom:14,
+              boxShadow:'0 6px 18px rgba(190,28,40,.4)'
+            }}>
+              <Icon type={it.icon} size={20} color="#fff"/>
+            </div>
+            <div style={{fontSize:15,fontWeight:700,color:'#fff',marginBottom:6}}>{it.title}</div>
+            <div style={{fontSize:13,color:'rgba(255,255,255,.65)',lineHeight:1.5}}>{it.desc}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function App() {
+  const [activeTab,setActiveTab]=useState(0);
+  const [sucursal,setSucursal]=useState('');
+  const [sucursalDev,setSucursalDev]=useState('');
+  const [fechaRec,setFechaRec]=useState('2026-04-23');
+  const [horaRec,setHoraRec]=useState('10:00 a.m.');
+  const [fechaDev,setFechaDev]=useState('2026-04-25');
+  const [horaDev,setHoraDev]=useState('10:00 a.m.');
+  const [edad,setEdad]=useState('');
+  const [devOtra,setDevOtra]=useState(false);
+  const [promo,setPromo]=useState(false);
+  const [codigoPromo,setCodigoPromo]=useState('');
+  const [searching,setSearching]=useState(false);
+  const [tweaks,setTweaks]=useState(TWEAK_DEFAULTS);
+  const [stickyVisible, setStickyVisible] = useState(false);
+
+  /* Sticky search effect on scroll */
+  useEffect(()=>{
+    const handleScroll = () => {
+      const formEl = document.getElementById('search-form-card');
+      if (!formEl) return;
+      const rect = formEl.getBoundingClientRect();
+      // Show sticky bar when original form is scrolled out of view
+      setStickyVisible(rect.bottom < 0);
+    };
+    window.addEventListener('scroll', handleScroll, {passive:true});
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleSearch=()=>{
+    setSearching(true);
+    setTimeout(()=>{ window.location.href='Seleccion Vehiculos.html'; },700);
+  };
+
+  useEffect(()=>{
+    const handler=(e)=>{
+      if(e.data?.type==='__activate_edit_mode') document.getElementById('tweaks-panel').style.display='block';
+      if(e.data?.type==='__deactivate_edit_mode') document.getElementById('tweaks-panel').style.display='none';
+    };
+    window.addEventListener('message',handler);
+    window.parent.postMessage({type:'__edit_mode_available'},'*');
+    return ()=>window.removeEventListener('message',handler);
+  },[]);
+
+  return (
+    <div style={{minHeight:'100vh',background:'var(--gray-100)'}}>
+
+      {/* ════ TOP BAR ════ */}
+      <TopBar/>
+
+      {/* ════ STICKY SEARCH (aparece al scroll) ════ */}
+      <StickySearchBar
+        visible={stickyVisible}
+        sucursal={sucursal}
+        fechaRec={fechaRec} horaRec={horaRec}
+        fechaDev={fechaDev} horaDev={horaDev}
+        onSearch={handleSearch}
+      />
+
+      {/* Service tabs */}
+      <div style={{background:'var(--navy)'}}>
+        <div style={{maxWidth:1200,margin:'0 auto',display:'flex'}}>
+          {TABS.map((t,i)=>(
+            <button key={i} onClick={()=>setActiveTab(i)} style={{
+              flex:1,padding:'11px 8px',border:'none',cursor:'pointer',fontSize:12,fontWeight:700,
+              letterSpacing:'.5px',color:'#fff',transition:'all .2s',
+              background: i===activeTab ? t.color : 'transparent',
+              borderBottom: i===activeTab ? '3px solid rgba(255,255,255,.3)' : '3px solid transparent',
+              opacity: i===activeTab ? 1 : .6,
+            }}>{t.label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Nav */}
+      <div style={{background:'#fff',boxShadow:'0 1px 3px rgba(0,0,0,.06)',padding:'0 24px'}}>
+        <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',height:64}}>
+          <div style={{display:'flex',alignItems:'center'}}>
+            <img src='assets/logo-automarket.png' alt='Automarket' style={{height:52,objectFit:'contain'}}/>
+          </div>
+          <NavWithDropdown/>
+        </div>
+      </div>
+
+      {/* Search form card */}
+      <div style={{maxWidth:1200,margin:'0 auto',padding:'32px 24px 0'}}>
+        <div id="search-form-card" style={{background:'#fff',borderRadius:20,boxShadow:'0 1px 3px rgba(0,0,0,.06)',overflow:'hidden'}}>
+
+          {/* Card header */}
+          <div style={{background:'var(--navy)',padding:'20px 28px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            <div>
+              <h2 style={{color:'#fff',fontSize:18,fontWeight:700}}>Reserva tu vehículo</h2>
+              <p style={{color:'rgba(255,255,255,.5)',fontSize:13,marginTop:3}}>Completa los datos para ver disponibilidad</p>
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:6,background:'rgba(255,255,255,.1)',padding:'8px 16px',borderRadius:20}}>
+              <Icon type="tag" size={14} color="var(--red)"/>
+              <span style={{color:'#fff',fontSize:12,fontWeight:600}}>Precio especial web</span>
+            </div>
+          </div>
+
+          {/* Form body */}
+          <div style={{padding:28}}>
+
+            {/* Row 1 */}
+            <div style={{display:'grid',gridTemplateColumns:'2fr 1fr .9fr 1fr .9fr 1fr',gap:14,marginBottom:16}}>
+              <SelectField icon="map" label="Sucursal de recogida" value={sucursal} onChange={setSucursal} groups={SUCURSALES_GRUPOS} placeholder="Seleccione una sucursal"/>
+              <DateField icon="calendar" label="Fecha recogida" value={fechaRec} onChange={setFechaRec}/>
+              <SelectField icon="clock" label="Hora" value={horaRec} onChange={setHoraRec} options={HORAS} placeholder="Hora"/>
+              <DateField icon="calendar" label="Fecha devolución" value={fechaDev} onChange={setFechaDev}/>
+              <SelectField icon="clock" label="Hora" value={horaDev} onChange={setHoraDev} options={HORAS} placeholder="Hora"/>
+              <SelectField icon="user" label="Edad conductor" value={edad} onChange={setEdad} options={EDADES} placeholder="Seleccione"/>
+            </div>
+
+            {/* Row 2: extra sucursal */}
+            {devOtra && (
+              <div style={{marginBottom:16,maxWidth:400,animation:'fadeInUp .3s ease'}}>
+                <SelectField icon="map" label="Sucursal de devolución" value={sucursalDev} onChange={setSucursalDev} groups={SUCURSALES_GRUPOS} placeholder="Seleccione sucursal de devolución"/>
+              </div>
+            )}
+
+            {/* Row 3: checkboxes + promo + button */}
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12,paddingTop:16,borderTop:'1px solid var(--gray-100)'}}>
+              <div style={{display:'flex',gap:24,flexWrap:'wrap',alignItems:'center'}}>
+                {[
+                  {label:'Devolver el auto en otra sucursal', val:devOtra, set:setDevOtra},
+                  {label:'¿Tienes un código promocional?', val:promo, set:setPromo},
+                ].map(({label,val,set},i)=>(
+                  <label key={i} style={{display:'flex',alignItems:'center',gap:8,fontSize:13,color:'var(--gray-600)',cursor:'pointer',userSelect:'none'}}>
+                    <div onClick={()=>set(!val)} style={{
+                      width:18,height:18,borderRadius:5,border:`2px solid ${val?'var(--red)':'var(--gray-300)'}`,
+                      background: val?'var(--red)':'#fff',
+                      display:'flex',alignItems:'center',justifyContent:'center',
+                      transition:'all .15s',cursor:'pointer',flexShrink:0
+                    }}>
+                      {val && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                    </div>
+                    {label}
+                  </label>
+                ))}
+                {promo && (
+                  <input type="text" placeholder="Ingresa tu código" value={codigoPromo} onChange={e=>setCodigoPromo(e.target.value)}
+                    style={{...inputStyle,width:180,padding:'8px 12px',borderColor:'var(--gray-200)'}}
+                  />
+                )}
+              </div>
+
+              <button onClick={handleSearch} disabled={searching} style={{
+                padding:'12px 36px',borderRadius:12,border:'none',
+                background: searching?'var(--gray-400)':'var(--red)',
+                color:'#fff',fontSize:14,fontWeight:700,cursor:searching?'wait':'pointer',
+                display:'flex',alignItems:'center',gap:8,flexShrink:0,
+                boxShadow:'0 4px 16px rgba(190,28,40,.3)',
+                transition:'all .2s',transform:searching?'scale(.97)':'scale(1)'
+              }}
+              onMouseEnter={e=>{if(!searching){e.currentTarget.style.background='var(--red-dark)';e.currentTarget.style.boxShadow='0 6px 20px rgba(190,28,40,.4)';}}}
+              onMouseLeave={e=>{e.currentTarget.style.background=searching?'var(--gray-400)':'var(--red)';e.currentTarget.style.boxShadow='0 4px 16px rgba(190,28,40,.3)';}}>
+                {searching
+                  ? <><span style={{width:16,height:16,border:'2px solid rgba(255,255,255,.3)',borderTopColor:'#fff',borderRadius:'50%',display:'inline-block',animation:'spin .6s linear infinite'}}/>Buscando...</>
+                  : <><Icon type="search" size={16} color="#fff"/>Buscar vehículos</>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ════ HERO BANNER ════ */}
+        <Reveal><HeroBanner/></Reveal>
+
+        {/* ════ STATS COUNTER ════ */}
+        <Reveal delay={80}><StatsBand/></Reveal>
+
+        {/* ════ FLOTA ════ */}
+        <Reveal><FlotaSection/></Reveal>
+
+        {/* ════ BLOG DESTACADO ════ */}
+        <Reveal><BlogDestacado/></Reveal>
+
+        {/* ════ PROMOS ════ */}
+        <Reveal><PromosSection/></Reveal>
+
+        {/* ════ TESTIMONIOS ════ */}
+        <Reveal><TestimoniosSection/></Reveal>
+
+        {/* ════ POR QUÉ AUTOMARKET ════ */}
+        {/* Removed — el footer cubre esto */}
+      </div>
+
+      {/* ════ FOOTER ════ */}
+      <Footer/>
+
+      {/* WhatsApp floating button */}
+      <WhatsAppButton/>
+
+      {/* Tweaks */}
+      <div id="tweaks-panel" style={{display:'none',position:'fixed',bottom:20,right:20,width:260,background:'#fff',borderRadius:16,boxShadow:'0 8px 40px rgba(0,0,0,.15)',padding:20,zIndex:999}}>
+        <h4 style={{fontSize:14,fontWeight:700,marginBottom:12,color:'var(--navy)'}}>Tweaks</h4>
+        <label style={{fontSize:12,color:'var(--gray-500)',display:'block',marginBottom:6}}>Color de acento</label>
+        <div style={{display:'flex',gap:8}}>
+          {['#c41e2a','#1a1a2e','#2563eb','#7c3aed','#059669'].map(c=>(
+            <div key={c} onClick={()=>{
+              setTweaks(t=>({...t,accentColor:c}));
+              document.documentElement.style.setProperty('--red',c);
+              window.parent.postMessage({type:'__edit_mode_set_keys',edits:{accentColor:c}},'*');
+            }} style={{
+              width:30,height:30,borderRadius:8,background:c,cursor:'pointer',
+              border: tweaks.accentColor===c?'3px solid var(--navy)':'3px solid transparent',
+              outline: tweaks.accentColor===c?'2px solid #fff':'none',
+              transition:'all .15s'
+            }}/>
+          ))}
+        </div>
+      </div>
+
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

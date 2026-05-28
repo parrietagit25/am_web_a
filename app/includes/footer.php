@@ -121,6 +121,9 @@ usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b[
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Custom Web Controller JavaScript -->
+    <?php if (!empty($activeUnit) && $activeUnit === 'rentacar'): ?>
+    <script src="/assets/js/rac-search.js?v=1"></script>
+    <?php endif; ?>
     <script src="/assets/js/main.js"></script>
     <script src="/assets/js/dropdown-fix.js?v=3"></script>
 </body>

@@ -2428,6 +2428,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../../includes/admin-renting-actions.php';
     require __DIR__ . '/../../includes/admin-taller-actions.php';
     require __DIR__ . '/../../includes/admin-footer-actions.php';
+    require __DIR__ . '/../../includes/admin-rac-actions.php';
 }
 
 // Reload site data for rendering
@@ -2711,6 +2712,9 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                     </button>
                     <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-payments-nav" data-bs-toggle="pill" data-bs-target="#tab-payments" type="button" role="tab" aria-controls="tab-payments" aria-selected="false">
                         <i class="bi bi-credit-card-fill me-2"></i> Pagos Recibidos
+                    </button>
+                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-rac-reservations-nav" data-bs-toggle="pill" data-bs-target="#tab-rac-reservations" type="button" role="tab" aria-controls="tab-rac-reservations" aria-selected="false">
+                        <i class="bi bi-calendar2-check-fill me-2"></i> Reservas RAC
                     </button>
                 </div>
                 
@@ -3859,6 +3863,8 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                             </div>
                         </div>
                     </div>
+
+                    <?php require_once __DIR__ . '/../../includes/admin-rac-tab.php'; ?>
 
                     <!-- TAB 8: TERMS AND CONDITIONS -->
                     <div class="tab-pane fade" id="tab-terms" role="tabpanel" aria-labelledby="tab-terms-nav">

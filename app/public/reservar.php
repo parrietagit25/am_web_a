@@ -52,9 +52,11 @@ require_once __DIR__ . '/../includes/header.php';
             <i class="bi bi-check-circle-fill" style="font-size: 5rem;"></i>
         </div>
         <h2 class="fw-bold text-navy font-montserrat">¡Reserva Registrada con Éxito!</h2>
-        <p class="text-muted font-poppins fs-5 max-width-600 mx-auto mt-2 mb-4">
-            Hemos registrado tu reserva simulada. Un asesor de Automarket se pondrá en contacto contigo a la brevedad para finalizar el proceso.
+        <p class="text-muted font-poppins fs-5 max-width-600 mx-auto mt-2 mb-2">
+            Tu solicitud fue registrada correctamente.
         </p>
+        <p id="successReservationCode" class="fw-bold text-navy fs-4 font-montserrat mb-4"></p>
+        <p class="text-muted font-poppins mb-4">Un asesor de Automarket se pondrá en contacto contigo para confirmar los detalles.</p>
         <div class="border-top pt-4">
             <a href="/rent-a-car.php" class="btn btn-theme px-5 py-3 rounded-pill fw-bold text-white shadow-sm text-uppercase">
                 Nueva Búsqueda
@@ -68,7 +70,10 @@ require_once __DIR__ . '/../includes/header.php';
         <!-- Left Column: Checkout Form -->
         <div class="col-lg-7 col-12">
             <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
-                <h3 class="fw-bold text-navy mb-4 font-montserrat"><i class="bi bi-person-fill text-danger me-2"></i>Tus Datos Personales</h3>
+                <h3 class="fw-bold text-navy mb-3 font-montserrat"><i class="bi bi-shield-check text-danger me-2"></i>Protección y extras</h3>
+                <div id="coverageOptions" class="mb-4 d-flex flex-column gap-2"></div>
+
+                <h3 class="fw-bold text-navy mb-4 font-montserrat mt-2"><i class="bi bi-person-fill text-danger me-2"></i>Tus Datos Personales</h3>
                 
                 <form id="checkoutBookingForm" class="needs-validation" novalidate onsubmit="submitCheckoutBooking(event)">
                     <div class="row g-3">
@@ -263,6 +268,29 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('checkoutSafRate').innerText = `$${parseFloat(safVal).toFixed(2)}`;
     document.getElementById('checkoutItbmsRate').innerText = `$${parseFloat(itbmsVal).toFixed(2)}`;
     document.getElementById('checkoutTotalRate').innerText = `$${parseFloat(totalVal).toFixed(2)}`;
+
+    const rateType = sessionStorage.getItem('selectedRateType') || vehicle._selectedRateType || 'web';
+    const coverageWrap = document.getElementById('coverageOptions');
+    const packages = pricing.coveragePackages || vehicle.availableCoverages || [];
+    const defaultCode = (packages.find(p => p.isDefault) || packages[0])?.code || 'BASIC';
+
+    if (coverageWrap && packages.length) {
+        packages.forEach((pkg, i) => {
+            const code = pkg.code || pkg.coverageType || ('cov_' + i);
+            const id = 'cov_' + code;
+            const checked = (pkg.isDefault || code === defaultCode) ? 'checked' : '';
+            coverageWrap.insertAdjacentHTML('beforeend', `
+                <label class="border rounded-3 p-3 d-flex gap-3 align-items-start cursor-pointer ${checked ? 'border-danger' : ''}">
+                    <input type="radio" name="coverage_code" class="form-check-input mt-1" value="${code}" id="${id}" ${checked}>
+                    <div>
+                        <span class="fw-bold text-navy d-block">${pkg.name || pkg.description || code}</span>
+                        <small class="text-muted">$${parseFloat(pkg.amountTotal || pkg.pricePerDay || 0).toFixed(2)} total · Deducible $${parseFloat(pkg.deductible || 0).toFixed(0)}</small>
+                    </div>
+                </label>`);
+        });
+    } else if (coverageWrap) {
+        coverageWrap.innerHTML = '<p class="text-muted text-sm">La protección se confirmará con su asesor al validar la reserva.</p>';
+    }
 });
 
 /**
@@ -289,16 +317,19 @@ function submitCheckoutBooking(e) {
     const vehicle = JSON.parse(sessionStorage.getItem('selectedVehicle'));
     const criteria = JSON.parse(sessionStorage.getItem('searchCriteria'));
     
+    const coverageEl = document.querySelector('input[name="coverage_code"]:checked');
+    const rateType = sessionStorage.getItem('selectedRateType') || vehicle._selectedRateType || 'web';
+
     const payload = {
-        name: name,
-        phone: phone,
-        email: email,
-        interest: `Renta de Vehículo: ${vehicle.name} (Retiro: ${criteria.locationCode} del ${criteria.pickupDate} al ${criteria.returnDate})`,
-        estimated_value: vehicle.priceTotalEstimated || vehicle.priceTotal || 0,
-        comments: comments
+        customer_name: name,
+        customer_phone: phone,
+        customer_email: email,
+        customer_comments: comments,
+        coverage_code: coverageEl ? coverageEl.value : '',
+        rate_type: rateType,
+        search: criteria,
+        vehicle: vehicle
     };
-    
-    console.log('Sending checkout lead to Pipedrive CRM API:', payload);
     
     // Show full screen spinner
     let loader = document.createElement('div');
@@ -311,26 +342,32 @@ function submitCheckoutBooking(e) {
             <span class="visually-hidden">Procesando...</span>
         </div>
         <h3 class="mt-4 fw-bold font-montserrat">Procesando tu Reserva</h3>
-        <p class="text-secondary-light font-poppins text-sm text-center">Registrando oportunidad en nuestro sistema de atención...</p>
+        <p class="text-secondary-light font-poppins text-sm text-center">Guardando su reserva...</p>
     `;
     document.body.appendChild(loader);
     
-    // Call CRM Pipedrive endpoint
-    fetch('/api/enviar-pipedrive.php', {
+    fetch('/api/rac-reservation.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
     })
-    .then(res => res.json())
-    .then(data => {
+    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+    .then(({ ok, data }) => {
         if (loader) loader.remove();
+        if (!ok || !data.success) {
+            alert(data.message || 'No se pudo registrar la reserva.');
+            return;
+        }
         
-        // Hide form checkout layout grid and show success screen
         document.getElementById('checkoutGrid').classList.add('d-none');
         document.getElementById('successPanel').classList.remove('d-none');
+        const codeEl = document.getElementById('successReservationCode');
+        if (codeEl && data.reservation_code) {
+            codeEl.textContent = 'Código de reserva: ' + data.reservation_code;
+        }
         
-        // Clear sessionStorage to keep workflow clean
         sessionStorage.removeItem('selectedVehicle');
+        sessionStorage.removeItem('selectedRateType');
         sessionStorage.removeItem('searchResults');
         sessionStorage.removeItem('searchCriteria');
     })

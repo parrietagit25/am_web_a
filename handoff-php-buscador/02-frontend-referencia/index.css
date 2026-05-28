@@ -1,0 +1,381 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --red: #be1c28;
+  --red-dark: #9a1620;
+  --navy: #1a2346;
+  --blue: #16213e;
+  --tab-venta: #1e3866;
+  --tab-leasing: #d4503a;
+  --tab-renting: #6b7fa3;
+  --tab-taller: #7c6fa0;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --green: #059669;
+  --green-light: #ecfdf5;
+  --text-primary: #1a2346;
+  --amber: #92400e;
+  --amber-bg: rgba(146, 64, 14, .08);
+  --amber-dark: #78350f;
+  --amber-bg-light: #fef3c7;
+  --amber-surface: rgba(234,179,8,.08);
+  --amber-border: rgba(234,179,8,.25);
+
+  /* Red alpha scale */
+  --red-04:  rgba(190,28,40,.04);
+  --red-06:  rgba(190,28,40,.06);
+  --red-08:  rgba(190,28,40,.08);
+  --red-10:  rgba(190,28,40,.10);
+  --red-15:  rgba(190,28,40,.15);
+  --red-25:  rgba(190,28,40,.25);
+  --red-30:  rgba(190,28,40,.30);
+  --red-35:  rgba(190,28,40,.35);
+  --red-40:  rgba(190,28,40,.40);
+
+  /* Green alpha */
+  --green-08: rgba(5,150,105,.08);
+
+  /* Surface tokens */
+  --surface-image: linear-gradient(135deg, #f8f9fa, #eef0f2);
+  --surface-page: #f8fafc;
+  --confirm-green-bg: #dcfce7;
+  --confirm-green-stroke: #16a34a;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-display: 'DM Sans', system-ui, sans-serif;
+  --surface-base: #fff;
+
+  /* Radius scale (Guia de Estilo Automarket) */
+  --radius-sm:  8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  /* Shadow scale */
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.08);
+  --shadow-lg:  0 8px 24px rgba(0,0,0,.10);
+}
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--surface-page);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+select, input {
+  font-family: inherit;
+}
+
+/* Hide native clear button on search inputs — we render our own X */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Skip-to-content — visually hidden until focused */
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 16px;
+  z-index: 9999;
+  padding: 10px 20px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 8px 8px;
+  transform: translateY(-100%);
+  transition: transform .15s;
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes pulseRed {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: .55; }
+}
+
+/* Leaflet attribution overrides — más sutil */
+.leaflet-control-attribution {
+  font-size: 10px !important;
+  background: rgba(255, 255, 255, .82) !important;
+  padding: 1px 6px !important;
+}
+.leaflet-control-attribution a { color: var(--gray-600) !important; }
+.r-branch-marker { background: transparent !important; border: none !important; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes progressSlide {
+  0%   { transform: translateX(-100%) scaleX(0.6); }
+  50%  { transform: translateX(30%)   scaleX(1.0); }
+  100% { transform: translateX(200%)  scaleX(0.6); }
+}
+
+/* =====================================================
+   RESPONSIVE LAYOUT CLASSES
+   ===================================================== */
+
+/* Page content wrappers */
+.r-page-content { padding: 32px 24px 0; }
+.r-inner-pad    { padding: 0 24px; }
+
+/* Search form grid (BuscadorVehiculos) */
+.r-search-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr .9fr 1fr .9fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+/* Card body / header padding */
+.r-card-header { padding: 20px 28px; }
+.r-card-body   { padding: 28px; }
+
+/* Trust bar (4 pills) */
+.r-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 20px 0 32px;
+}
+
+/* Vehicle-selection two-column layout */
+.r-results-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 28px;
+  align-items: start;
+}
+
+/* VehicleCard inner row */
+.r-vehicle-inner { display: flex; flex-wrap: wrap; }
+
+/* VehicleCard image column */
+.r-vehicle-image-wrap {
+  flex: 0 0 280px;
+  min-height: 200px;
+}
+
+/* BookingSummary sidebar */
+.r-booking-sidebar { position: sticky; top: 24px; }
+
+/* Nav: desktop links / hamburger */
+.r-nav-links  { display: flex; gap: 22px; align-items: center; }
+.r-hamburger  { display: none; }
+
+/* ---- Tablet 768 – 1023px ---- */
+@media (max-width: 1023px) {
+  .r-results-grid {
+    grid-template-columns: 1fr;
+  }
+  .r-booking-sidebar {
+    position: static;
+    order: -1;
+    margin-bottom: 20px;
+  }
+  /* Search: 3 cols, location spans full row */
+  .r-search-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .r-search-grid > *:first-child { grid-column: 1 / -1; }
+}
+
+/* ---- Mobile < 768px ---- */
+@media (max-width: 767px) {
+  .r-page-content { padding: 20px 16px 0; }
+  .r-inner-pad    { padding: 0 16px; }
+
+  /* Search: 2-col, location + age full-width */
+  .r-search-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .r-search-grid > *:first-child { grid-column: 1 / -1; }
+  .r-search-grid > *:last-child  { grid-column: 1 / -1; }
+
+  .r-card-header { padding: 16px 20px; }
+  .r-card-body   { padding: 16px; }
+
+  /* Trust: 2-col */
+  .r-trust-grid { grid-template-columns: 1fr 1fr; }
+
+  /* Vehicle card stacks vertically */
+  .r-vehicle-inner { flex-direction: column; }
+  .r-vehicle-image-wrap {
+    flex: none;
+    width: 100%;
+    min-height: 180px;
+    max-height: 220px;
+  }
+
+  /* TopBar — esconder email para que no se desborde la fila */
+  .r-topbar-email { display: none; }
+
+  /* BlogDestacado colapsa a 1 columna */
+  .r-blog-grid { grid-template-columns: 1fr !important; }
+  .r-blog-grid > div:first-child { min-height: 220px !important; }
+
+  /* StatsBand 4 → 2 columnas en mobile */
+  .r-stats-band { grid-template-columns: repeat(2, 1fr) !important; padding: 24px 20px !important; }
+
+  /* Hero responsive: form ocupa más del banner en mobile */
+  .r-hero-form-wrap { padding: 12px 16px 0 !important; }
+  .r-hero-form-wrap #search-form-card { border-radius: 12px !important; }
+  .r-hero-form-wrap .r-card-body { padding: 14px !important; }
+
+  /* Mi Reserva: grid 2-col -> stack en mobile, ayuda primero */
+  .r-mi-reserva-grid { grid-template-columns: 1fr !important; }
+
+  /* Footer principal: 2-col -> 1-col en mobile */
+  .r-footer-main { grid-template-columns: 1fr !important; gap: 28px !important; }
+  /* Conoce también: 2-col -> 2-col más compacto en mobile */
+  .r-conoce-grid { gap: 4px 8px !important; }
+
+  /* Contactos: form + aside stack en mobile */
+  .r-contactos-grid { grid-template-columns: 1fr !important; }
+
+  /* Sucursales: list + sidebar stack en mobile */
+  .r-sucursales-grid { grid-template-columns: 1fr !important; }
+
+  /* Pago Seguro: form + aside stack en mobile */
+  .r-pago-grid { grid-template-columns: 1fr !important; }
+  .r-pago-banner { margin: -16px -16px 18px !important; }
+
+  /* Blog: list + sidebar stack en mobile */
+  .r-blog-layout { grid-template-columns: 1fr !important; }
+  .r-blog-grid { grid-template-columns: 1fr !important; }
+
+  /* StickySearch: en mobile esconde wrapper + form para no dejar franja vacía */
+  .r-sticky-search-bar  { display: none !important; }
+  .r-sticky-search-form { display: none !important; }
+
+  /* Blog featured card: stack image + body en mobile */
+  .r-blog-featured { grid-template-columns: 1fr !important; }
+  .r-blog-featured > div:first-child { min-height: 220px !important; }
+
+  /* WhatsApp tooltip: ocultar en mobile (touch no debería disparar) */
+  .r-wa-tooltip { display: none !important; }
+
+  /* Nav */
+  .r-nav-links { display: none; }
+  .r-hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    color: var(--navy);
+    border-radius: 8px;
+    min-width: 44px;
+    min-height: 44px;
+    transition: background .15s;
+  }
+  .r-hamburger:hover   { background: var(--gray-100); }
+  .r-hamburger:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+}
+
+
+/* ---- Small mobile < 480px ---- */
+@media (max-width: 479px) {
+  .r-search-grid {
+    grid-template-columns: 1fr;
+  }
+  /* Reset column spans — all full-width anyway */
+  .r-search-grid > *:first-child,
+  .r-search-grid > *:last-child { grid-column: auto; }
+
+  .r-trust-grid { grid-template-columns: 1fr 1fr; }
+
+  /* Vehicle card info panel: tighter padding on small phones */
+  .r-vehicle-info { padding: 16px 18px !important; }
+}
+
+/* Nav mobile drawer */
+.r-nav-drawer {
+  border-top: 1px solid var(--gray-100);
+  animation: fadeInUp .2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Stepper: fade-out right edge as scroll hint on mobile */
+.stepper-scroll {
+  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  mask-image: linear-gradient(to right, black 85%, transparent 100%);
+}
+
+/* Global focus indicator (Tailwind preflight removes browser defaults) */
+*:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Hide scrollbar on tabs row and fleet carousel (webkit) */
+.tabs-row::-webkit-scrollbar { display: none; }
+.fleet-carousel::-webkit-scrollbar { display: none; }
+
+/* BackLink — full label on desktop, abbreviated on small screens */
+@media (max-width: 479px) {
+  .r-backlink-desktop { display: none !important; }
+  .r-backlink-mobile  { display: inline !important; }
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Fleet carousel — responsive slide widths */
+.fleet-slide { flex: 0 0 20%; box-sizing: border-box; }
+@media (max-width: 900px)  { .fleet-slide { flex: 0 0 25%; } }
+@media (max-width: 767px)  { .fleet-slide { flex: 0 0 33.333%; } }
+@media (max-width: 479px)  { .fleet-slide { flex: 0 0 50%; } }

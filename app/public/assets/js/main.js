@@ -89,8 +89,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 3. Handle Reservation Form Submission & Simulated API Connect
-    if (reservationForm) {
+    // 3. RAC search handled by rac-search.js when present
+    if (reservationForm && !window.RAC_SEARCH_HANDLED) {
         reservationForm.addEventListener('submit', function(e) {
             e.preventDefault();
             

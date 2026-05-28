@@ -1,64 +1,73 @@
 <?php
 /**
- * API Endpoint: Vehicle Availability
+ * API Endpoint: Vehicle Availability (partner handoff).
  */
 
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+header('Content-Type: application/json; charset=UTF-8');
 
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../services/BranchDataService.php';
 require_once __DIR__ . '/../services/AutomarketApiService.php';
 
-// Only handle POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode([
-        "status" => "error",
-        "message" => "Método no permitido. Solo se acepta POST."
+        'success' => false,
+        'message' => 'Método no permitido. Solo se acepta POST.',
     ]);
     exit;
 }
 
-// Read raw input
-$inputRaw = file_get_contents("php://input");
-$input = json_decode($inputRaw, true);
-
-if (!$input) {
+$input = json_decode(file_get_contents('php://input'), true);
+if (!is_array($input)) {
     http_response_code(400);
     echo json_encode([
-        "status" => "error",
-        "message" => "Cuerpo de solicitud inválido o JSON mal formado."
+        'success' => false,
+        'message' => 'Cuerpo de solicitud inválido o JSON mal formado.',
     ]);
     exit;
 }
 
-// Basic server-side input validation and sanitization
-$pickupLocation = filter_var($input['locationCode'] ?? '', FILTER_DEFAULT);
-$returnLocation = filter_var($input['returnLocationCode'] ?? '', FILTER_DEFAULT);
-$pickupDate = filter_var($input['pickupDate'] ?? '', FILTER_DEFAULT);
-$pickupTime = filter_var($input['pickupTime'] ?? '10:00', FILTER_DEFAULT);
-$returnDate = filter_var($input['returnDate'] ?? '', FILTER_DEFAULT);
-$returnTime = filter_var($input['returnTime'] ?? '10:00', FILTER_DEFAULT);
-$age = filter_var($input['age'] ?? '25', FILTER_DEFAULT);
-$promoCode = filter_var($input['promoCode'] ?? '', FILTER_DEFAULT);
+$pickupLocation = strtoupper(trim($input['locationCode'] ?? ''));
+$returnLocation = strtoupper(trim($input['returnLocationCode'] ?? ''));
+$pickupDate = trim($input['pickupDate'] ?? '');
+$pickupTime = trim($input['pickupTime'] ?? '10:00');
+$returnDate = trim($input['returnDate'] ?? '');
+$returnTime = trim($input['returnTime'] ?? '10:00');
+$age = trim((string) ($input['age'] ?? '25'));
+$promoCode = trim($input['promoCode'] ?? '');
 
-if (empty($returnLocation)) {
+if ($returnLocation === '') {
     $returnLocation = $pickupLocation;
 }
 
-if (empty($pickupLocation) || empty($pickupDate) || empty($returnDate)) {
+if ($pickupLocation === '' || $pickupDate === '' || $returnDate === '') {
     http_response_code(422);
     echo json_encode([
-        "success" => false,
-        "status" => "error",
-        "message" => "Faltan campos obligatorios: locationCode, pickupDate, returnDate."
+        'success' => false,
+        'message' => 'Faltan campos obligatorios: locationCode, pickupDate, returnDate.',
     ]);
     exit;
 }
 
-// Call Service API
+if (!in_array($age, ['23', '25'], true)) {
+    http_response_code(422);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Edad no válida. Seleccione 23-24 años o 25+ años.',
+    ]);
+    exit;
+}
+
+if ($pickupDate >= $returnDate) {
+    http_response_code(422);
+    echo json_encode([
+        'success' => false,
+        'message' => 'La fecha de devolución debe ser posterior al retiro.',
+    ]);
+    exit;
+}
+
 $apiService = new AutomarketApiService();
 $result = $apiService->getAvailability([
     'locationCode' => $pickupLocation,
@@ -68,9 +77,13 @@ $result = $apiService->getAvailability([
     'returnDate' => $returnDate,
     'returnTime' => $returnTime,
     'age' => $age,
-    'promoCode' => $promoCode
+    'promoCode' => $promoCode,
 ]);
 
-// Return formatted JSON
-http_response_code(200);
-echo json_encode($result);
+$branch = BranchDataService::findByCode($returnLocation);
+if ($branch && !empty($branch['note']) && empty($result['vehicles']) && empty($result['miss'])) {
+    $result['branchNote'] = $branch['note'];
+}
+
+http_response_code($result['success'] ? 200 : 502);
+echo json_encode($result, JSON_UNESCAPED_UNICODE);

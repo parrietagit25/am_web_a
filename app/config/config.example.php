@@ -17,9 +17,14 @@ require_once __DIR__ . '/../includes/i18n.php';
 
 date_default_timezone_set('America/Panama');
 
-define('AUTOMARKET_API_URL', 'https://tu-api.ejemplo.com/api/partner/availability');
+// Base URL del backend Rent-a-Car (handoff partner API)
+define('AUTOMARKET_API_BASE_URL', 'https://automarket-rentacar-fme3z.ondigitalocean.app');
+// Alternativa legacy: URL completa del endpoint availability
+// define('AUTOMARKET_API_URL', 'https://automarket-rentacar-fme3z.ondigitalocean.app/api/partner/availability');
 define('AUTOMARKET_PARTNER_USER', 'TU_USUARIO');
 define('AUTOMARKET_PARTNER_PASS', 'TU_PASSWORD');
+// Opcional: base para imágenes de vehículos (por defecto se deduce del API)
+// define('AUTOMARKET_PARTNER_IMAGE_BASE', 'https://automarket-rentacar-fme3z.ondigitalocean.app');
 
 define('PIPEDRIVE_API_TOKEN', 'TU_TOKEN_PIPEDRIVE');
 define('PIPEDRIVE_COMPANY_DOMAIN', 'tu-dominio');

@@ -1,0 +1,762 @@
+[
+  {
+    "code": "PTY",
+    "name": "Aeropuerto Internacional de Tocumen T1",
+    "shortName": "Aeropuerto PTY",
+    "address": "Av. Domingo Díaz, Terminal 1, Aeropuerto Tocumen",
+    "city": "Ciudad de Panamá",
+    "hours": "5:00 a.m. – 11:30 p.m.",
+    "phone": "+507 236-6785",
+    "lat": 9.066325,
+    "lng": -79.387593,
+    "note": null,
+    "dailyHours": {
+      "sunday": {
+        "open": "05:00",
+        "close": "23:30"
+      },
+      "monday": {
+        "open": "05:00",
+        "close": "23:30"
+      },
+      "tuesday": {
+        "open": "05:00",
+        "close": "23:30"
+      },
+      "wednesday": {
+        "open": "05:00",
+        "close": "23:30"
+      },
+      "thursday": {
+        "open": "05:00",
+        "close": "23:30"
+      },
+      "friday": {
+        "open": "05:00",
+        "close": "23:30"
+      },
+      "saturday": {
+        "open": "05:00",
+        "close": "23:30"
+      }
+    },
+    "closedReturnDays": []
+  },
+  {
+    "code": "TCP",
+    "name": "Tocumen Commercial Park",
+    "shortName": "Tocumen Comm. Park",
+    "address": "Tocumen Commercial Park, Ciudad de Panamá",
+    "city": "Ciudad de Panamá",
+    "hours": "Lun–Vie: 7:00 a.m. – 4:00 p.m. | Sáb: 7:00 a.m. – 3:00 p.m.",
+    "phone": "+507 279-2746",
+    "lat": 9.073709,
+    "lng": -79.408213,
+    "note": null,
+    "dailyHours": {
+      "sunday": null,
+      "monday": {
+        "open": "07:00",
+        "close": "16:00"
+      },
+      "tuesday": {
+        "open": "07:00",
+        "close": "16:00"
+      },
+      "wednesday": {
+        "open": "07:00",
+        "close": "16:00"
+      },
+      "thursday": {
+        "open": "07:00",
+        "close": "16:00"
+      },
+      "friday": {
+        "open": "07:00",
+        "close": "16:00"
+      },
+      "saturday": {
+        "open": "07:00",
+        "close": "15:00"
+      }
+    },
+    "closedReturnDays": [
+      5,
+      6,
+      0
+    ]
+  },
+  {
+    "code": "TBM",
+    "name": "Tumba Muerto",
+    "shortName": "Tumba Muerto",
+    "address": "Vía Ricardo J. Alfaro, Villa de las Fuentes 2, Ciudad de Panamá",
+    "city": "Ciudad de Panamá",
+    "hours": "Lun–Sáb: 7:00 a.m. – 8:00 p.m. | Dom: 9:00 a.m. – 6:00 p.m.",
+    "phone": "+507 279-2734",
+    "lat": 9.017653,
+    "lng": -79.535533,
+    "note": null,
+    "dailyHours": {
+      "sunday": {
+        "open": "09:00",
+        "close": "18:00"
+      },
+      "monday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "tuesday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "wednesday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "thursday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "friday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "saturday": {
+        "open": "07:00",
+        "close": "20:00"
+      }
+    },
+    "closedReturnDays": []
+  },
+  {
+    "code": "TDA",
+    "name": "Hotel Torres de Alba",
+    "shortName": "Torres de Alba",
+    "address": "Av. Eusebio A. Morales, El Cangrejo, Ciudad de Panamá",
+    "city": "Ciudad de Panamá",
+    "hours": "7:00 a.m. – 8:00 p.m.",
+    "phone": "+507 279-5730",
+    "lat": 8.984545,
+    "lng": -79.528875,
+    "note": null,
+    "dailyHours": {
+      "sunday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "monday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "tuesday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "wednesday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "thursday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "friday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "saturday": {
+        "open": "07:00",
+        "close": "20:00"
+      }
+    },
+    "closedReturnDays": []
+  },
+  {
+    "code": "ATRIOMALL",
+    "name": "Atrio Mall (Costa del Este)",
+    "shortName": "Atrio Mall",
+    "address": "Av. Marina del Norte, Atrio Mall, Costa del Este",
+    "city": "Ciudad de Panamá",
+    "hours": "Lun–Vie: 9:00 a.m. – 5:00 p.m. | Sáb: 8:00 a.m. – 3:00 p.m.",
+    "phone": "+507 279-5767",
+    "lat": 9.022001,
+    "lng": -79.462593,
+    "note": "Disponibilidad limitada en línea. Si no encuentras vehículos, llama al +507 279-5767.",
+    "dailyHours": {
+      "sunday": null,
+      "monday": {
+        "open": "09:00",
+        "close": "17:00"
+      },
+      "tuesday": {
+        "open": "09:00",
+        "close": "17:00"
+      },
+      "wednesday": {
+        "open": "09:00",
+        "close": "17:00"
+      },
+      "thursday": {
+        "open": "09:00",
+        "close": "17:00"
+      },
+      "friday": {
+        "open": "09:00",
+        "close": "17:00"
+      },
+      "saturday": {
+        "open": "08:00",
+        "close": "15:00"
+      }
+    },
+    "closedReturnDays": [
+      5,
+      0
+    ]
+  },
+  {
+    "code": "VIS",
+    "name": "Vía Israel",
+    "shortName": "Vía Israel",
+    "address": "Vía Israel, Calle 73, San Francisco, Ciudad de Panamá",
+    "city": "Ciudad de Panamá",
+    "hours": "Lun–Sáb: 8:00 a.m. – 4:00 p.m.",
+    "phone": "+507 279-5710",
+    "lat": 8.987686,
+    "lng": -79.505422,
+    "note": null,
+    "dailyHours": {
+      "sunday": null,
+      "monday": {
+        "open": "08:00",
+        "close": "16:00"
+      },
+      "tuesday": {
+        "open": "08:00",
+        "close": "16:00"
+      },
+      "wednesday": {
+        "open": "08:00",
+        "close": "16:00"
+      },
+      "thursday": {
+        "open": "08:00",
+        "close": "16:00"
+      },
+      "friday": {
+        "open": "08:00",
+        "close": "16:00"
+      },
+      "saturday": {
+        "open": "08:00",
+        "close": "16:00"
+      }
+    },
+    "closedReturnDays": []
+  },
+  {
+    "code": "ALBROOK",
+    "name": "Aeropuerto de Albrook",
+    "shortName": "Albrook",
+    "address": "Aeropuerto Marcos A. Gelabert, Albrook, Ciudad de Panamá",
+    "city": "Ciudad de Panamá",
+    "hours": "Lun–Sáb: 7:30 a.m. – 3:00 p.m.",
+    "phone": "+507 279-5749",
+    "lat": 8.970674,
+    "lng": -79.559839,
+    "note": null,
+    "dailyHours": {
+      "sunday": null,
+      "monday": {
+        "open": "07:30",
+        "close": "15:00"
+      },
+      "tuesday": {
+        "open": "07:30",
+        "close": "15:00"
+      },
+      "wednesday": {
+        "open": "07:30",
+        "close": "15:00"
+      },
+      "thursday": {
+        "open": "07:30",
+        "close": "15:00"
+      },
+      "friday": {
+        "open": "07:30",
+        "close": "15:00"
+      },
+      "saturday": {
+        "open": "07:30",
+        "close": "15:00"
+      }
+    },
+    "closedReturnDays": []
+  },
+  {
+    "code": "CASCO",
+    "name": "Casco Antiguo",
+    "shortName": "Casco Antiguo",
+    "address": "Teatro Aurora, Calle B, Casco Antiguo (San Felipe)",
+    "city": "Ciudad de Panamá",
+    "hours": "Lun–Sáb: 8:00 a.m. – 4:00 p.m.",
+    "phone": "+507 279-5769",
+    "lat": 8.952,
+    "lng": -79.5349,
+    "note": "Disponibilidad limitada en línea. Prueba fechas distintas o llama al +507 279-5769.",
+    "dailyHours": {
+      "sunday": null,
+      "monday": {
+        "open": "08:00",
+        "close": "16:00"
+      },
+      "tuesday": {
+        "open": "08:00",
+        "close": "16:00"
+      },
+      "wednesday": {
+        "open": "08:00",
+        "close": "16:00"
+      },
+      "thursday": {
+        "open": "08:00",
+        "close": "16:00"
+      },
+      "friday": {
+        "open": "08:00",
+        "close": "16:00"
+      },
+      "saturday": {
+        "open": "08:00",
+        "close": "16:00"
+      }
+    },
+    "closedReturnDays": [
+      5,
+      0
+    ]
+  },
+  {
+    "code": "CHORRERA",
+    "name": "La Chorrera",
+    "shortName": "La Chorrera",
+    "address": "Boulevard Costa Verde, La Chorrera",
+    "city": "La Chorrera",
+    "hours": "Lun–Vie: 7:00 a.m. – 7:00 p.m. | Sáb–Dom: 8:00 a.m. – 4:00 p.m.",
+    "phone": "+507 279-5762",
+    "lat": 8.89564,
+    "lng": -79.753511,
+    "note": null,
+    "dailyHours": {
+      "sunday": {
+        "open": "08:00",
+        "close": "16:00"
+      },
+      "monday": {
+        "open": "07:00",
+        "close": "19:00"
+      },
+      "tuesday": {
+        "open": "07:00",
+        "close": "19:00"
+      },
+      "wednesday": {
+        "open": "07:00",
+        "close": "19:00"
+      },
+      "thursday": {
+        "open": "07:00",
+        "close": "19:00"
+      },
+      "friday": {
+        "open": "07:00",
+        "close": "19:00"
+      },
+      "saturday": {
+        "open": "08:00",
+        "close": "16:00"
+      }
+    },
+    "closedReturnDays": []
+  },
+  {
+    "code": "PANPACIFIC",
+    "name": "Panamá Pacífico",
+    "shortName": "Panamá Pacífico",
+    "address": "Aeropuerto de Panamá Pacífico BLB, Ciudad de Panamá",
+    "city": "Ciudad de Panamá",
+    "hours": "Lun–Sáb: 7:00 a.m. – 3:00 p.m.",
+    "phone": "+507 279-5733",
+    "lat": 8.919292,
+    "lng": -79.594273,
+    "note": null,
+    "dailyHours": {
+      "sunday": null,
+      "monday": {
+        "open": "07:00",
+        "close": "15:00"
+      },
+      "tuesday": {
+        "open": "07:00",
+        "close": "15:00"
+      },
+      "wednesday": {
+        "open": "07:00",
+        "close": "15:00"
+      },
+      "thursday": {
+        "open": "07:00",
+        "close": "15:00"
+      },
+      "friday": {
+        "open": "07:00",
+        "close": "15:00"
+      },
+      "saturday": {
+        "open": "07:00",
+        "close": "15:00"
+      }
+    },
+    "closedReturnDays": []
+  },
+  {
+    "code": "MALEK",
+    "name": "Aeropuerto Enrique Malek (David)",
+    "shortName": "Aeropuerto David",
+    "address": "Aeropuerto Internacional Enrique Malek, David, Chiriquí",
+    "city": "David, Chiriquí",
+    "hours": "Lun–Sáb: 7:00 a.m. – 8:00 p.m. | Dom: 8:00 a.m. – 5:00 p.m.",
+    "phone": "+507 279-5740",
+    "lat": 8.391571,
+    "lng": -82.431466,
+    "note": null,
+    "dailyHours": {
+      "sunday": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "monday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "tuesday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "wednesday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "thursday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "friday": {
+        "open": "07:00",
+        "close": "20:00"
+      },
+      "saturday": {
+        "open": "07:00",
+        "close": "20:00"
+      }
+    },
+    "closedReturnDays": []
+  },
+  {
+    "code": "CHIRIQUI",
+    "name": "David – Chiriquí",
+    "shortName": "David",
+    "address": "Carretera Panamericana, frente a Cochez, David, Chiriquí",
+    "city": "David, Chiriquí",
+    "hours": "Lun–Sáb: 8:00 a.m. – 5:00 p.m.",
+    "phone": "+507 279-5745",
+    "lat": 8.43391,
+    "lng": -82.441282,
+    "note": null,
+    "dailyHours": {
+      "sunday": null,
+      "monday": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "tuesday": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "wednesday": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "thursday": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "friday": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "saturday": {
+        "open": "08:00",
+        "close": "17:00"
+      }
+    },
+    "closedReturnDays": [
+      5,
+      0
+    ]
+  },
+  {
+    "code": "BOQUETE",
+    "name": "Boquete",
+    "shortName": "Boquete",
+    "address": "Av. Central, Bajo Boquete, Chiriquí",
+    "city": "Boquete, Chiriquí",
+    "hours": "Lun–Sáb: 7:00 a.m. – 3:00 p.m.",
+    "phone": "+507 279-2700",
+    "lat": 8.770191,
+    "lng": -82.432994,
+    "note": "Disponibilidad limitada en línea. Si no encuentras vehículos, llama al +507 279-2700.",
+    "dailyHours": {
+      "sunday": null,
+      "monday": {
+        "open": "07:00",
+        "close": "15:00"
+      },
+      "tuesday": {
+        "open": "07:00",
+        "close": "15:00"
+      },
+      "wednesday": {
+        "open": "07:00",
+        "close": "15:00"
+      },
+      "thursday": {
+        "open": "07:00",
+        "close": "15:00"
+      },
+      "friday": {
+        "open": "07:00",
+        "close": "15:00"
+      },
+      "saturday": {
+        "open": "07:00",
+        "close": "15:00"
+      }
+    },
+    "closedReturnDays": [
+      5,
+      0
+    ]
+  },
+  {
+    "code": "CHITRE",
+    "name": "Chitré",
+    "shortName": "Chitré",
+    "address": "Aeropuerto Capitán Alonso Valderrama, Chitré, Herrera",
+    "city": "Chitré, Herrera",
+    "hours": "Lun–Sáb: 8:00 a.m. – 3:00 p.m.",
+    "phone": "+507 236-6785",
+    "lat": 7.980989,
+    "lng": -80.410774,
+    "note": null,
+    "dailyHours": {
+      "sunday": null,
+      "monday": {
+        "open": "08:00",
+        "close": "15:00"
+      },
+      "tuesday": {
+        "open": "08:00",
+        "close": "15:00"
+      },
+      "wednesday": {
+        "open": "08:00",
+        "close": "15:00"
+      },
+      "thursday": {
+        "open": "08:00",
+        "close": "15:00"
+      },
+      "friday": {
+        "open": "08:00",
+        "close": "15:00"
+      },
+      "saturday": {
+        "open": "08:00",
+        "close": "15:00"
+      }
+    },
+    "closedReturnDays": []
+  },
+  {
+    "code": "PENONOME",
+    "name": "Penonomé",
+    "shortName": "Penonomé",
+    "address": "Carretera Panamericana, al lado de Super Pisos, Penonomé",
+    "city": "Penonomé, Coclé",
+    "hours": "Lun–Vie: 8:00 a.m. – 5:00 p.m. | Sáb: 8:00 a.m. – 4:00 p.m.",
+    "phone": "+507 279-5760",
+    "lat": 8.512313,
+    "lng": -80.346268,
+    "note": null,
+    "dailyHours": {
+      "sunday": null,
+      "monday": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "tuesday": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "wednesday": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "thursday": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "friday": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "saturday": {
+        "open": "08:00",
+        "close": "16:00"
+      }
+    },
+    "closedReturnDays": [
+      5,
+      0
+    ]
+  },
+  {
+    "code": "SANTIAGO",
+    "name": "Santiago",
+    "shortName": "Santiago",
+    "address": "Hotel Mykonos, Santiago de Veraguas",
+    "city": "Santiago, Veraguas",
+    "hours": "Lun–Vie: 7:00 a.m. – 4:00 p.m. | Sáb: 7:00 a.m. – 3:00 p.m.",
+    "phone": "+507 279-5750",
+    "lat": 8.093668,
+    "lng": -80.946284,
+    "note": "Disponibilidad limitada en línea. Si no encuentras vehículos, llama al +507 279-5750.",
+    "dailyHours": {
+      "sunday": null,
+      "monday": {
+        "open": "07:00",
+        "close": "16:00"
+      },
+      "tuesday": {
+        "open": "07:00",
+        "close": "16:00"
+      },
+      "wednesday": {
+        "open": "07:00",
+        "close": "16:00"
+      },
+      "thursday": {
+        "open": "07:00",
+        "close": "16:00"
+      },
+      "friday": {
+        "open": "07:00",
+        "close": "16:00"
+      },
+      "saturday": {
+        "open": "07:00",
+        "close": "15:00"
+      }
+    },
+    "closedReturnDays": [
+      5,
+      0
+    ]
+  },
+  {
+    "code": "RIOHATO",
+    "name": "Río Hato",
+    "shortName": "Río Hato",
+    "address": "Mareas Mall, Río Hato, Coclé",
+    "city": "Río Hato, Coclé",
+    "hours": "Lun–Vie: 9:00 a.m. – 4:00 p.m. | Sáb–Dom: 9:00 a.m. – 3:00 p.m.",
+    "phone": "+507 279-5725",
+    "lat": 8.373892,
+    "lng": -80.154426,
+    "note": null,
+    "dailyHours": {
+      "sunday": {
+        "open": "09:00",
+        "close": "15:00"
+      },
+      "monday": {
+        "open": "09:00",
+        "close": "16:00"
+      },
+      "tuesday": {
+        "open": "09:00",
+        "close": "16:00"
+      },
+      "wednesday": {
+        "open": "09:00",
+        "close": "16:00"
+      },
+      "thursday": {
+        "open": "09:00",
+        "close": "16:00"
+      },
+      "friday": {
+        "open": "09:00",
+        "close": "16:00"
+      },
+      "saturday": {
+        "open": "09:00",
+        "close": "15:00"
+      }
+    },
+    "closedReturnDays": []
+  },
+  {
+    "code": "VENAO",
+    "name": "Playa Venao",
+    "shortName": "Playa Venao",
+    "address": "Playa Venao, Pedasí, Los Santos",
+    "city": "Playa Venao, Los Santos",
+    "hours": "Mar–Dom: 2:00 p.m. – 6:00 p.m.",
+    "phone": "+507 270-0355",
+    "lat": 7.432683,
+    "lng": -80.190164,
+    "note": null,
+    "dailyHours": {
+      "sunday": {
+        "open": "14:00",
+        "close": "18:00"
+      },
+      "monday": null,
+      "tuesday": {
+        "open": "14:00",
+        "close": "18:00"
+      },
+      "wednesday": {
+        "open": "14:00",
+        "close": "18:00"
+      },
+      "thursday": {
+        "open": "14:00",
+        "close": "18:00"
+      },
+      "friday": {
+        "open": "14:00",
+        "close": "18:00"
+      },
+      "saturday": {
+        "open": "14:00",
+        "close": "18:00"
+      }
+    },
+    "closedReturnDays": []
+  }
+]

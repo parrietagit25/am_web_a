@@ -1,0 +1,145 @@
+{
+  "_comment_": "Ejemplo del JSON que devuelve POST /api/partner/availability. Shape real — los precios y SIPPs disponibles varían según sucursal, fecha y stock. El header HTTP X-Cache acompaña la respuesta con uno de: HIT|DB-HIT|STALE|NEG-HIT|MISS|LIVE|MULTI.",
+
+  "vehicles": [
+    {
+      "id": 1,
+      "sippCode": "CXAR",
+      "name": "Hyundai Accent",
+      "category": "Compacto",
+      "image": "/images/vehicles/hyundai-accent.webp",
+      "description": "Sedán económico ideal para ciudad. Ágil, eficiente y con buen rendimiento de combustible.",
+      "passengers": 5,
+      "ac": true,
+      "transmission": "Automática",
+      "traction": "Delantera",
+      "licenseType": "B",
+      "bagsLarge": 2,
+      "bagsSmall": 1,
+
+      "priceWeb": 6.41,
+      "priceCounter": 6.86,
+      "priceTotal": 12.82,
+      "priceTotalEstimated": 15.90,
+      "currency": "USD",
+
+      "rateDescription": "WEB-CXAR",
+      "vehAvailCoreCode": "VA-CXAR-001",
+      "vendorRateId": "36501",
+      "rateCode": "WEB",
+      "unlimitedMileage": true,
+      "minimumAge": 23,
+      "minimumDays": 1,
+      "promo": false,
+
+      "mandatoryCharges": [
+        { "code": "SAF", "description": "Cargo Administrativo y Servicios (SAF)", "amountTotal": 2.18, "includedInEstimate": true }
+      ],
+      "optionalCharges": [],
+
+      "availableEquipment": [
+        { "code": "PPASS", "description": "PanaPass (Peajes Electrónicos)", "icon": "road",   "amountTotal": 6.00,  "pricePerDay": 3.00, "unitName": "day", "required": false },
+        { "code": "SILLA", "description": "Silla de Bebé",                  "icon": "person", "amountTotal": 10.00, "pricePerDay": 5.00, "unitName": "day", "required": false }
+      ],
+
+      "availableCoverages": [
+        { "code": "BASIC",    "coverageType": "BASIC",    "description": "Protección Básica",   "group": "paquete",    "icon": "shield", "amountTotal": 40.00, "pricePerDay": 20.00, "unitName": "day", "deductible": 2000.00 },
+        { "code": "STANDARD", "coverageType": "STANDARD", "description": "Protección Estándar", "group": "paquete",    "icon": "shield", "amountTotal": 60.00, "pricePerDay": 30.00, "unitName": "day", "deductible": 1000.00 },
+        { "code": "PREMIUM",  "coverageType": "PREMIUM",  "description": "Protección Premium",  "group": "paquete",    "icon": "shield", "amountTotal": 84.00, "pricePerDay": 42.00, "unitName": "day", "deductible": 0.00 },
+        { "code": "AMAS",     "coverageType": "AMAS",     "description": "Asistencia en Carretera", "group": "asistencia", "icon": "road", "amountTotal": 10.00, "pricePerDay": 5.00, "unitName": "day", "deductible": null }
+      ],
+
+      "pricing": {
+        "rateBase": 12.82,
+        "rateBasePerDay": 6.41,
+        "saf": 2.18,
+        "itbms": 0.90,
+        "itbmsSource": "extracted",
+        "coveragePackages": [
+          { "code": "BASIC",    "name": "Protección Básica",   "pricePerDay": 20.00, "amountTotal": 40.00, "deductible": 2000.00, "description": "Protección Básica",   "isDefault": true  },
+          { "code": "STANDARD", "name": "Protección Estándar", "pricePerDay": 30.00, "amountTotal": 60.00, "deductible": 1000.00, "description": "Protección Estándar", "isDefault": false },
+          { "code": "PREMIUM",  "name": "Protección Premium",  "pricePerDay": 42.00, "amountTotal": 84.00, "deductible": 0.00,    "description": "Protección Premium",  "isDefault": false }
+        ],
+        "totalWithDefaultCoverage": 55.90,
+        "reference": null,
+        "quoteToken": "36501"
+      },
+
+      "rates": [
+        { "rateCode": "WEB", "vendorRateId": "36501", "pricePerDay": 6.41, "priceTotal": 12.82, "priceTotalEstimated": 15.90, "available": true }
+      ]
+    },
+
+    {
+      "id": 2,
+      "sippCode": "CFAR",
+      "name": "Hyundai Creta",
+      "category": "SUV",
+      "image": "/images/vehicles/hyundai-creta.webp",
+      "description": "SUV compacta perfecta para viajes urbanos y carreteras. Cómoda y versátil.",
+      "passengers": 5,
+      "ac": true,
+      "transmission": "Automática",
+      "traction": "Delantera",
+      "licenseType": "B",
+      "bagsLarge": 2,
+      "bagsSmall": 2,
+
+      "priceWeb": 8.88,
+      "priceCounter": 9.50,
+      "priceTotal": 17.76,
+      "priceTotalEstimated": 21.18,
+      "currency": "USD",
+
+      "rateDescription": "WEB-CFAR",
+      "vehAvailCoreCode": "VA-CFAR-002",
+      "vendorRateId": "36502",
+      "rateCode": "WEB",
+      "unlimitedMileage": true,
+      "minimumAge": 23,
+      "minimumDays": 1,
+      "promo": false,
+
+      "mandatoryCharges": [
+        { "code": "SAF", "description": "Cargo Administrativo y Servicios (SAF)", "amountTotal": 2.18, "includedInEstimate": true }
+      ],
+      "optionalCharges": [],
+
+      "availableEquipment": [
+        { "code": "PPASS",    "description": "PanaPass (Peajes Electrónicos)",   "icon": "road",   "amountTotal": 6.00,  "pricePerDay": 3.00, "unitName": "day", "required": false },
+        { "code": "SILLA",    "description": "Silla de Bebé",                    "icon": "person", "amountTotal": 10.00, "pricePerDay": 5.00, "unitName": "day", "required": false },
+        { "code": "DELIVERY", "description": "Entrega en Zona Metropolitana",    "icon": "map",    "amountTotal": 25.00, "pricePerDay": null, "unitName": "period", "required": false }
+      ],
+
+      "availableCoverages": [
+        { "code": "BASIC",    "coverageType": "BASIC",    "description": "Protección Básica",      "group": "paquete",    "icon": "shield", "amountTotal": 40.00, "pricePerDay": 20.00, "unitName": "day", "deductible": 2000.00 },
+        { "code": "STANDARD", "coverageType": "STANDARD", "description": "Protección Estándar",    "group": "paquete",    "icon": "shield", "amountTotal": 64.00, "pricePerDay": 32.00, "unitName": "day", "deductible": 1000.00 },
+        { "code": "PREMIUM",  "coverageType": "PREMIUM",  "description": "Protección Premium",     "group": "paquete",    "icon": "shield", "amountTotal": 94.00, "pricePerDay": 47.00, "unitName": "day", "deductible": 0.00 },
+        { "code": "AMAS",     "coverageType": "AMAS",     "description": "Asistencia en Carretera","group": "asistencia", "icon": "road",   "amountTotal": 10.00, "pricePerDay": 5.00,  "unitName": "day", "deductible": null }
+      ],
+
+      "pricing": {
+        "rateBase": 17.76,
+        "rateBasePerDay": 8.88,
+        "saf": 2.18,
+        "itbms": 1.24,
+        "itbmsSource": "extracted",
+        "coveragePackages": [
+          { "code": "BASIC",    "name": "Protección Básica",   "pricePerDay": 20.00, "amountTotal": 40.00, "deductible": 2000.00, "description": "Protección Básica",   "isDefault": true  },
+          { "code": "STANDARD", "name": "Protección Estándar", "pricePerDay": 32.00, "amountTotal": 64.00, "deductible": 1000.00, "description": "Protección Estándar", "isDefault": false },
+          { "code": "PREMIUM",  "name": "Protección Premium",  "pricePerDay": 47.00, "amountTotal": 94.00, "deductible": 0.00,    "description": "Protección Premium",  "isDefault": false }
+        ],
+        "totalWithDefaultCoverage": 61.18,
+        "reference": null,
+        "quoteToken": "36502"
+      },
+
+      "rates": [
+        { "rateCode": "WEB", "vendorRateId": "36502", "pricePerDay": 8.88, "priceTotal": 17.76, "priceTotalEstimated": 21.18, "available": true }
+      ]
+    }
+  ],
+
+  "rateCodes": ["WEB"],
+  "source": "HIT"
+}

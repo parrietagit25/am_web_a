@@ -1,0 +1,10 @@
+{
+  "locationCode":       "PTY",
+  "returnLocationCode": "PTY",
+  "pickupDate":         "2026-06-01",
+  "pickupTime":         "10:00",
+  "returnDate":         "2026-06-03",
+  "returnTime":         "10:00",
+  "age":                "25",
+  "promoCode":          ""
+}
