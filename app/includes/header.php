@@ -128,7 +128,6 @@ $themeRgb = "$r, $g, $b";
                         </li>
                     </ul>
                 </div>
-                <a href="#login" class="btn btn-sm btn-light px-3 fw-bold rounded-pill text-navy shadow-sm"><i class="bi bi-person-fill me-1"></i> <?php echo esc(t('topbar.login')); ?></a>
             </div>
         </div>
     </div>
