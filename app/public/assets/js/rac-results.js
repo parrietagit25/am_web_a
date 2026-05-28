@@ -75,7 +75,7 @@
             <div class="card vehicle-card border-0 shadow-sm rounded-4 w-100 overflow-hidden position-relative">
                 ${badge}
                 <span class="category-badge position-absolute bg-white px-3 py-1 text-navy rounded-pill fw-bold shadow-sm top-3 start-3 text-uppercase z-index-2">${vehicle.category || 'General'}</span>
-                <div class="card-image-wrapper bg-light-gray p-4 text-center d-flex align-items-center justify-content-center" style="height:180px">${img}</div>
+                <div class="card-image-wrapper bg-white p-4 text-center d-flex align-items-center justify-content-center" style="height:180px;background-color:#fff !important;">${img}</div>
                 <div class="card-body px-4 py-4 d-flex flex-column">
                     <h4 class="fw-bold text-navy fs-5 mb-2">${vehicle.name || 'Vehículo'}</h4>
                     <p class="text-muted text-sm mb-3">${vehicle.description ? vehicle.description.substring(0, 90) + '…' : ''}</p>

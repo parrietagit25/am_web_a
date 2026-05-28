@@ -49,7 +49,7 @@ require_once __DIR__ . '/../includes/header.php';
             <h2 class="fw-bold mb-1 font-montserrat fs-3">Elige tu Vehículo</h2>
             <p id="searchSummaryText" class="opacity-80 font-poppins text-sm mb-0">Cargando criterios de búsqueda...</p>
         </div>
-        <a href="/rent-a-car.php" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold" style="z-index: 2;">
+        <a href="/rent-a-car.php" class="btn btn-theme rounded-pill px-4 py-2 fw-semibold text-white shadow-sm" style="z-index: 2;">
             <i class="bi bi-pencil-square me-2"></i>Modificar Búsqueda
         </a>
         <div class="position-absolute end-0 bottom-0 opacity-10" style="font-size: 8rem; transform: translate(20px, 30px); pointer-events: none; z-index: 1;">
@@ -101,6 +101,6 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </section>
 
-<script src="/assets/js/rac-results.js"></script>
+<script src="/assets/js/rac-results.js?v=2"></script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
