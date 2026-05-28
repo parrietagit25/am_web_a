@@ -31,6 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $siteData['global']['footer_copyright'] = trim($_POST['footer_copyright'] ?? '');
         $siteData['global']['whatsapp_number'] = preg_replace('/\D/', '', $_POST['whatsapp_number'] ?? '');
         $siteData['global']['whatsapp_label'] = trim($_POST['whatsapp_label'] ?? '');
+        $siteData['global']['tracking_codes'] = [
+            'head_html' => trim($_POST['tracking_head_html'] ?? ''),
+            'body_start_html' => trim($_POST['tracking_body_start_html'] ?? ''),
+            'body_end_html' => trim($_POST['tracking_body_end_html'] ?? ''),
+        ];
 
         // Update business units labels and colors
         if (isset($_POST['business_units']) && is_array($_POST['business_units'])) {
@@ -108,6 +113,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $successMsg = 'Diccionario de traducciones guardado correctamente.';
         } else {
             $errorMsg = 'Error al guardar el diccionario de traducciones.';
+        }
+    }
+    elseif ($action === 'save_seo_global') {
+        if (!isset($siteData['seo'])) {
+            $siteData['seo'] = [];
+        }
+        $siteData['seo']['global'] = [
+            'site_name' => trim($_POST['seo_site_name'] ?? 'Automarket'),
+            'title_suffix' => trim($_POST['seo_title_suffix'] ?? '| Automarket'),
+            'default_description' => trim($_POST['seo_default_description'] ?? ''),
+            'default_og_image' => trim($_POST['seo_default_og_image'] ?? ''),
+            'default_robots' => trim($_POST['seo_default_robots'] ?? 'index,follow'),
+            'canonical_base_url' => trim($_POST['seo_canonical_base_url'] ?? ''),
+        ];
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'SEO global guardado correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar SEO global.';
+        }
+    }
+    elseif ($action === 'save_seo_page') {
+        $pageKey = trim($_POST['seo_page_key'] ?? '');
+        if ($pageKey === '') {
+            $errorMsg = 'Debe seleccionar una página.';
+        } else {
+            if (!isset($siteData['seo'])) {
+                $siteData['seo'] = [];
+            }
+            if (!isset($siteData['seo']['pages'])) {
+                $siteData['seo']['pages'] = [];
+            }
+            $siteData['seo']['pages'][$pageKey] = [
+                'title' => trim($_POST['seo_page_title'] ?? ''),
+                'description' => trim($_POST['seo_page_description'] ?? ''),
+                'keywords' => trim($_POST['seo_page_keywords'] ?? ''),
+                'canonical_url' => trim($_POST['seo_page_canonical_url'] ?? ''),
+                'robots' => trim($_POST['seo_page_robots'] ?? ''),
+                'og_title' => trim($_POST['seo_page_og_title'] ?? ''),
+                'og_description' => trim($_POST['seo_page_og_description'] ?? ''),
+                'og_image' => trim($_POST['seo_page_og_image'] ?? ''),
+            ];
+            if ($contentService->saveAll($siteData)) {
+                $successMsg = 'SEO por página guardado correctamente.';
+            } else {
+                $errorMsg = 'Error al guardar SEO por página.';
+            }
         }
     }
 
@@ -2218,6 +2269,161 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errorMsg = 'Error al eliminar el mensaje de contacto de Leasing.';
         }
     }
+    elseif ($action === 'add_landing_page') {
+        if (!isset($siteData['landings']) || !is_array($siteData['landings'])) {
+            $siteData['landings'] = [];
+        }
+        $title = trim($_POST['landing_title'] ?? '');
+        $slugInput = trim($_POST['landing_slug'] ?? '');
+        $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $slugInput));
+        $slug = trim($slug, '-');
+        if ($slug === '') {
+            $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $title));
+            $slug = trim($slug, '-');
+        }
+        if ($slug === '') {
+            $slug = 'landing-' . time();
+        }
+
+        $slugExists = false;
+        foreach ($siteData['landings'] as $it) {
+            if (($it['slug'] ?? '') === $slug) {
+                $slugExists = true;
+                break;
+            }
+        }
+        if ($slugExists) {
+            $errorMsg = 'El slug ya existe. Usa uno diferente.';
+        } elseif ($title === '') {
+            $errorMsg = 'El título de la landing es obligatorio.';
+        } else {
+            $imageUrl = trim($_POST['landing_image_url'] ?? '');
+            if (isset($_FILES['landing_image']) && $_FILES['landing_image']['error'] === UPLOAD_ERR_OK) {
+                $uploadedPath = $contentService->uploadImage($_FILES['landing_image'], 'landing_');
+                if ($uploadedPath) {
+                    $imageUrl = $uploadedPath;
+                }
+            }
+            $siteData['landings'][] = [
+                'id' => time() . '_' . rand(100, 999),
+                'title' => $title,
+                'slug' => $slug,
+                'excerpt' => trim($_POST['landing_excerpt'] ?? ''),
+                'content_html' => trim($_POST['landing_content_html'] ?? ''),
+                'image_url' => $imageUrl,
+                'cta_text' => trim($_POST['landing_cta_text'] ?? ''),
+                'cta_url' => trim($_POST['landing_cta_url'] ?? ''),
+                'sort_order' => intval($_POST['landing_sort_order'] ?? 99),
+                'active' => isset($_POST['landing_active']) && $_POST['landing_active'] == '1',
+                'seo' => [
+                    'title' => trim($_POST['landing_seo_title'] ?? ''),
+                    'description' => trim($_POST['landing_seo_description'] ?? ''),
+                    'keywords' => trim($_POST['landing_seo_keywords'] ?? ''),
+                    'robots' => trim($_POST['landing_seo_robots'] ?? ''),
+                    'canonical_url' => trim($_POST['landing_seo_canonical'] ?? ''),
+                    'og_title' => trim($_POST['landing_og_title'] ?? ''),
+                    'og_description' => trim($_POST['landing_og_description'] ?? ''),
+                    'og_image' => trim($_POST['landing_og_image'] ?? ''),
+                ],
+            ];
+            if ($contentService->saveAll($siteData)) {
+                $successMsg = 'Landing page creada correctamente.';
+            } else {
+                $errorMsg = 'Error al guardar la landing page.';
+            }
+        }
+    }
+    elseif ($action === 'edit_landing_page') {
+        if (!isset($siteData['landings']) || !is_array($siteData['landings'])) {
+            $siteData['landings'] = [];
+        }
+        $id = trim($_POST['landing_id'] ?? '');
+        $foundIdx = -1;
+        foreach ($siteData['landings'] as $idx => $it) {
+            if (($it['id'] ?? '') === $id) {
+                $foundIdx = $idx;
+                break;
+            }
+        }
+        if ($foundIdx === -1) {
+            $errorMsg = 'Landing no encontrada.';
+        } else {
+            $title = trim($_POST['landing_title'] ?? '');
+            $slugInput = trim($_POST['landing_slug'] ?? '');
+            $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $slugInput));
+            $slug = trim($slug, '-');
+            if ($slug === '') {
+                $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $title));
+                $slug = trim($slug, '-');
+            }
+            if ($slug === '') {
+                $slug = 'landing-' . time();
+            }
+
+            foreach ($siteData['landings'] as $i => $it) {
+                if ($i !== $foundIdx && ($it['slug'] ?? '') === $slug) {
+                    $errorMsg = 'El slug ya existe. Usa uno diferente.';
+                    break;
+                }
+            }
+
+            if ($title === '') {
+                $errorMsg = 'El título de la landing es obligatorio.';
+            }
+
+            if (empty($errorMsg)) {
+                $existing = $siteData['landings'][$foundIdx];
+                $imageUrl = trim($_POST['landing_image_url'] ?? ($existing['image_url'] ?? ''));
+                if (isset($_FILES['landing_image']) && $_FILES['landing_image']['error'] === UPLOAD_ERR_OK) {
+                    $uploadedPath = $contentService->uploadImage($_FILES['landing_image'], 'landing_');
+                    if ($uploadedPath) {
+                        $imageUrl = $uploadedPath;
+                    }
+                }
+                $siteData['landings'][$foundIdx] = [
+                    'id' => $existing['id'],
+                    'title' => $title,
+                    'slug' => $slug,
+                    'excerpt' => trim($_POST['landing_excerpt'] ?? ''),
+                    'content_html' => trim($_POST['landing_content_html'] ?? ''),
+                    'image_url' => $imageUrl,
+                    'cta_text' => trim($_POST['landing_cta_text'] ?? ''),
+                    'cta_url' => trim($_POST['landing_cta_url'] ?? ''),
+                    'sort_order' => intval($_POST['landing_sort_order'] ?? 99),
+                    'active' => isset($_POST['landing_active']) && $_POST['landing_active'] == '1',
+                    'seo' => [
+                        'title' => trim($_POST['landing_seo_title'] ?? ''),
+                        'description' => trim($_POST['landing_seo_description'] ?? ''),
+                        'keywords' => trim($_POST['landing_seo_keywords'] ?? ''),
+                        'robots' => trim($_POST['landing_seo_robots'] ?? ''),
+                        'canonical_url' => trim($_POST['landing_seo_canonical'] ?? ''),
+                        'og_title' => trim($_POST['landing_og_title'] ?? ''),
+                        'og_description' => trim($_POST['landing_og_description'] ?? ''),
+                        'og_image' => trim($_POST['landing_og_image'] ?? ''),
+                    ],
+                ];
+                if ($contentService->saveAll($siteData)) {
+                    $successMsg = 'Landing page actualizada correctamente.';
+                } else {
+                    $errorMsg = 'Error al actualizar la landing page.';
+                }
+            }
+        }
+    }
+    elseif ($action === 'delete_landing_page') {
+        if (!isset($siteData['landings']) || !is_array($siteData['landings'])) {
+            $siteData['landings'] = [];
+        }
+        $id = trim($_POST['landing_id'] ?? '');
+        $siteData['landings'] = array_values(array_filter($siteData['landings'], function ($it) use ($id) {
+            return ($it['id'] ?? '') !== $id;
+        }));
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Landing page eliminada correctamente.';
+        } else {
+            $errorMsg = 'Error al eliminar la landing page.';
+        }
+    }
 
     require __DIR__ . '/../../includes/admin-renting-actions.php';
     require __DIR__ . '/../../includes/admin-taller-actions.php';
@@ -2227,6 +2433,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $siteData = $contentService->getAll();
 $global = $siteData['global'];
 $homepage = $siteData['homepage'];
+$landingPages = $siteData['landings'] ?? [];
+usort($landingPages, function ($a, $b) {
+    return intval($a['sort_order'] ?? 99) <=> intval($b['sort_order'] ?? 99);
+});
 $seminuevos = $siteData['seminuevos'] ?? [];
 $leasing = $siteData['leasing'] ?? [];
 $leasing_sucursales = $leasing['sucursales'] ?? [];
@@ -2285,6 +2495,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
     
     <style>
         :root {
@@ -2455,6 +2666,12 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                 </button>
                 <button class="nav-link text-start" id="tab-translations-nav" data-bs-toggle="pill" data-bs-target="#tab-translations" type="button" role="tab" aria-controls="tab-translations" aria-selected="false">
                     <i class="bi bi-translate me-2"></i> Traducciones (ES / EN)
+                </button>
+                <button class="nav-link text-start" id="tab-seo-nav" data-bs-toggle="pill" data-bs-target="#tab-seo" type="button" role="tab" aria-controls="tab-seo" aria-selected="false">
+                    <i class="bi bi-search me-2"></i> SEO (Global / Página)
+                </button>
+                <button class="nav-link text-start" id="tab-landings-nav" data-bs-toggle="pill" data-bs-target="#tab-landings" type="button" role="tab" aria-controls="tab-landings" aria-selected="false">
+                    <i class="bi bi-bullseye me-2"></i> Landing Pages
                 </button>
                 
                 <!-- Rent A Car Collapsible Accordion -->
@@ -2685,6 +2902,22 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                         <label for="footer_copyright" class="form-label">Texto de Copyright (Pie de página)</label>
                                         <input type="text" id="footer_copyright" name="footer_copyright" class="form-control form-control-premium" value="<?php echo esc($global['footer_copyright'] ?? 'Automarket. Todos los derechos reservados.'); ?>" required>
                                     </div>
+                                    <div class="col-12 mt-3">
+                                        <h6 class="fw-bold mb-2 text-navy-light"><i class="bi bi-megaphone-fill me-1"></i>Códigos de Publicidad / Tracking</h6>
+                                        <p class="small text-muted mb-3">Pegue aquí scripts de Meta Pixel, Google Ads, GTM, etc. Se imprimen tal cual en el sitio público.</p>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="tracking_head_html" class="form-label">Código en &lt;head&gt;</label>
+                                        <textarea id="tracking_head_html" name="tracking_head_html" rows="5" class="form-control form-control-premium font-monospace" placeholder="<!-- Meta Pixel / Google tag (gtag.js) en head -->"><?php echo esc($global['tracking_codes']['head_html'] ?? ''); ?></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="tracking_body_start_html" class="form-label">Código al inicio de &lt;body&gt;</label>
+                                        <textarea id="tracking_body_start_html" name="tracking_body_start_html" rows="4" class="form-control form-control-premium font-monospace" placeholder="<!-- GTM noscript o pixel fallback -->"><?php echo esc($global['tracking_codes']['body_start_html'] ?? ''); ?></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="tracking_body_end_html" class="form-label">Código antes de &lt;/body&gt;</label>
+                                        <textarea id="tracking_body_end_html" name="tracking_body_end_html" rows="4" class="form-control form-control-premium font-monospace" placeholder="<!-- Eventos/trackings al final -->"><?php echo esc($global['tracking_codes']['body_end_html'] ?? ''); ?></textarea>
+                                    </div>
                                 </div>
 
                                 <h5 class="fw-bold mt-5 mb-4 font-montserrat border-bottom pb-2 text-navy"><i class="bi bi-list-stars me-2 text-danger"></i>Menú y Sub-títulos de Unidades de Negocio</h5>
@@ -2765,6 +2998,8 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                     </div>
 
                     <?php require_once __DIR__ . '/../../includes/admin-translations-tab.php'; ?>
+                    <?php require_once __DIR__ . '/../../includes/admin-seo-tab.php'; ?>
+                    <?php require_once __DIR__ . '/../../includes/admin-landings-tab.php'; ?>
                     
                     <!-- TAB 2: HOMEPAGE HERO & FEATURED BANNER -->
                     <div class="tab-pane fade" id="tab-hero" role="tabpanel" aria-labelledby="tab-hero-nav">
@@ -5493,6 +5728,8 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
 </div>
 
 <!-- Bootstrap 5 JS Bundle -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
@@ -6348,6 +6585,58 @@ function resetSemiSucursalForm() {
     document.getElementById('semiSucSubmitBtn').querySelector('i').className = 'bi bi-plus-lg';
 }
 
+function initEditLanding(landing) {
+    document.getElementById('landingFormAction').value = 'edit_landing_page';
+    document.getElementById('landingId').value = landing.id || '';
+    document.getElementById('landing_title').value = landing.title || '';
+    document.getElementById('landing_slug').value = landing.slug || '';
+    document.getElementById('landing_excerpt').value = landing.excerpt || '';
+    document.getElementById('landing_image_url').value = landing.image_url || '';
+    document.getElementById('landing_cta_text').value = landing.cta_text || '';
+    document.getElementById('landing_cta_url').value = landing.cta_url || '';
+    document.getElementById('landing_sort_order').value = landing.sort_order || 99;
+    document.getElementById('landing_active').checked = (landing.active === true || landing.active == 1 || landing.active === '1');
+
+    const seo = landing.seo || {};
+    document.getElementById('landing_seo_title').value = seo.title || '';
+    document.getElementById('landing_seo_description').value = seo.description || '';
+    document.getElementById('landing_seo_keywords').value = seo.keywords || '';
+    document.getElementById('landing_seo_robots').value = seo.robots || '';
+    document.getElementById('landing_seo_canonical').value = seo.canonical_url || '';
+    document.getElementById('landing_og_title').value = seo.og_title || '';
+    document.getElementById('landing_og_description').value = seo.og_description || '';
+    document.getElementById('landing_og_image').value = seo.og_image || '';
+
+    if (window.jQuery && jQuery('#landing_content_html').next('.note-editor').length) {
+        jQuery('#landing_content_html').summernote('code', landing.content_html || '');
+    } else {
+        document.getElementById('landing_content_html').value = landing.content_html || '';
+    }
+
+    document.getElementById('landingImageHelp').innerHTML = (landing.image_url ? ('Imagen actual: <code>' + landing.image_url + '</code>') : 'Opcional. Puedes subir imagen o usar URL.');
+    document.getElementById('landingCancelBtn').classList.remove('d-none');
+    document.getElementById('landingSubmitBtn').className = 'btn btn-primary d-inline-flex align-items-center gap-2';
+    document.getElementById('landingSubmitText').innerText = 'Guardar landing';
+    document.getElementById('landingForm').scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetLandingForm() {
+    document.getElementById('landingForm').reset();
+    document.getElementById('landingFormAction').value = 'add_landing_page';
+    document.getElementById('landingId').value = '';
+    document.getElementById('landing_active').checked = true;
+    document.getElementById('landing_sort_order').value = 99;
+    document.getElementById('landingImageHelp').innerHTML = 'Opcional. Puedes subir imagen o usar URL.';
+    if (window.jQuery && jQuery('#landing_content_html').next('.note-editor').length) {
+        jQuery('#landing_content_html').summernote('code', '');
+    } else {
+        document.getElementById('landing_content_html').value = '';
+    }
+    document.getElementById('landingCancelBtn').classList.add('d-none');
+    document.getElementById('landingSubmitBtn').className = 'btn btn-premium d-inline-flex align-items-center gap-2';
+    document.getElementById('landingSubmitText').innerText = 'Crear landing';
+}
+
 function showSemiMessageDetail(msg) {
     document.getElementById('modal-msg-name').innerText = msg.name || '';
     document.getElementById('modal-msg-email').innerText = msg.email || '';
@@ -6362,6 +6651,20 @@ function showSemiMessageDetail(msg) {
 
 // On page load, check URL parameter 'tab' to activate the correct tab
 document.addEventListener('DOMContentLoaded', function () {
+    if (window.jQuery && jQuery.fn && jQuery.fn.summernote) {
+        jQuery('.js-summernote-mini').summernote({
+            height: 240,
+            placeholder: 'Escribe el contenido de la landing...',
+            toolbar: [
+                ['style', ['bold', 'italic', 'underline', 'clear']],
+                ['font', ['fontsize', 'color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['insert', ['link', 'picture', 'video']],
+                ['view', ['codeview']]
+            ]
+        });
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const tabName = urlParams.get('tab');
     if (tabName) {

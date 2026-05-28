@@ -4,9 +4,11 @@
  */
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/ContentService.php';
+require_once __DIR__ . '/../services/SeoService.php';
 
 $contentService = new ContentService();
 $siteGlobal = $contentService->get('global');
+$trackingCodes = $siteGlobal['tracking_codes'] ?? [];
 $businessUnits = $siteGlobal['business_units'] ?? require __DIR__ . '/../config/business-units.php';
 
 // Determine the active business unit
@@ -14,6 +16,18 @@ if (!isset($activeUnit) || !array_key_exists($activeUnit, $businessUnits)) {
     $activeUnit = 'rentacar';
 }
 $currentUnit = $businessUnits[$activeUnit];
+$seoService = new SeoService($contentService);
+$seo = $seoService->resolveForRequest(
+    (string)($currentUnit['heroTitle'] ?? 'Automarket'),
+    (string)($currentUnit['heroSubtitle'] ?? 'Innovando la movilidad en Panamá.')
+);
+if (isset($seoOverride) && is_array($seoOverride)) {
+    foreach (['title', 'description', 'keywords', 'robots', 'canonical', 'og_title', 'og_description', 'og_image'] as $seoKey) {
+        if (!empty($seoOverride[$seoKey])) {
+            $seo[$seoKey] = trim((string)$seoOverride[$seoKey]);
+        }
+    }
+}
 
 // Parse hex color to RGB for transparency usage in styling
 list($r, $g, $b) = sscanf($currentUnit['color'], "#%02x%02x%02x");
@@ -24,10 +38,31 @@ $themeRgb = "$r, $g, $b";
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo esc($currentUnit['heroTitle']); ?> | Automarket</title>
-    
-    <!-- Meta SEO -->
-    <meta name="description" content="<?php echo esc($currentUnit['heroSubtitle']); ?> - Innovando la movilidad en Panamá.">
+    <title><?php echo esc($seo['title']); ?></title>
+    <meta name="description" content="<?php echo esc($seo['description']); ?>">
+    <?php if (!empty($seo['keywords'])): ?>
+    <meta name="keywords" content="<?php echo esc($seo['keywords']); ?>">
+    <?php endif; ?>
+    <meta name="robots" content="<?php echo esc($seo['robots']); ?>">
+    <?php if (!empty($seo['canonical'])): ?>
+    <link rel="canonical" href="<?php echo esc($seo['canonical']); ?>">
+    <?php endif; ?>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="<?php echo esc($seo['site_name']); ?>">
+    <meta property="og:title" content="<?php echo esc($seo['og_title']); ?>">
+    <meta property="og:description" content="<?php echo esc($seo['og_description']); ?>">
+    <?php if (!empty($seo['canonical'])): ?>
+    <meta property="og:url" content="<?php echo esc($seo['canonical']); ?>">
+    <?php endif; ?>
+    <?php if (!empty($seo['og_image'])): ?>
+    <meta property="og:image" content="<?php echo esc($seo['og_image']); ?>">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="<?php echo esc($seo['og_image']); ?>">
+    <?php else: ?>
+    <meta name="twitter:card" content="summary">
+    <?php endif; ?>
+    <meta name="twitter:title" content="<?php echo esc($seo['og_title']); ?>">
+    <meta name="twitter:description" content="<?php echo esc($seo['og_description']); ?>">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,8 +83,14 @@ $themeRgb = "$r, $g, $b";
             --theme-primary-rgb: <?php echo $themeRgb; ?>;
         }
     </style>
+    <?php if (!empty(trim((string)($trackingCodes['head_html'] ?? '')))): ?>
+    <?php echo $trackingCodes['head_html']; ?>
+    <?php endif; ?>
 </head>
 <body class="theme-<?php echo esc($currentUnit['key']); ?>">
+<?php if (!empty(trim((string)($trackingCodes['body_start_html'] ?? '')))): ?>
+<?php echo $trackingCodes['body_start_html']; ?>
+<?php endif; ?>
 
 <div class="site-header-stack">
     <!-- 1. Top Bar (Blue/Navy Premium Theme) -->

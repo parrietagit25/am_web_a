@@ -8,6 +8,7 @@ if (!isset($globalSettings)) {
     }
     $globalSettings = (new ContentService())->get('global');
 }
+$trackingCodes = $globalSettings['tracking_codes'] ?? [];
 ?>
     <!-- Footer Section -->
     <footer class="footer bg-navy text-white pt-5 pb-4 mt-auto">
@@ -97,6 +98,9 @@ if (!isset($globalSettings)) {
         <i class="bi bi-whatsapp"></i>
         <span class="whatsapp-badge"><?php echo esc(t('whatsapp.help', $globalSettings['whatsapp_label'] ?? '')); ?></span>
     </a>
+    <?php if (!empty(trim((string)($trackingCodes['body_end_html'] ?? '')))): ?>
+    <?php echo $trackingCodes['body_end_html']; ?>
+    <?php endif; ?>
 
     <!-- Bootstrap 5 JavaScript Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

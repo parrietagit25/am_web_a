@@ -17,6 +17,8 @@ services:
     container_name: automarket_app
     volumes:
       - ./app:/var/www/html
+      - ./docker/php-fpm-entrypoint.sh:/usr/local/bin/php-fpm-entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/usr/local/bin/php-fpm-entrypoint.sh"]
     networks:
       - automarket-network
 
