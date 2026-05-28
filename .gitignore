@@ -5,6 +5,11 @@ app/config/config.php
 app/storage/site_data.json
 app/storage/site_data.json.bak*
 
+# Base SQLite local (reservas RAC, etc. — cada servidor tiene la suya)
+app/storage/database.sqlite
+app/storage/database.sqlite-*
+app/storage/cache/
+
 # Logs de aplicación
 app/storage/logs/
 *.log
