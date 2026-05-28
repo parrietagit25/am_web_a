@@ -1,0 +1,12 @@
+# Configuración local / secretos (crear en el servidor, no subir a Git)
+app/config/config.php
+
+# Logs de aplicación
+app/storage/logs/
+*.log
+
+# Sistema / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
