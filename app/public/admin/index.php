@@ -6669,6 +6669,29 @@ function resetLandingForm() {
     document.getElementById('landingSubmitText').innerText = 'Crear landing';
 }
 
+function showRentingMessageDetail(msg) {
+    document.getElementById('modal-msg-name').innerText = msg.name || '';
+    const emailLink = document.getElementById('modal-msg-email');
+    if (emailLink) {
+        emailLink.innerText = msg.email || '';
+        emailLink.href = msg.email ? ('mailto:' + msg.email) : '#';
+    }
+    document.getElementById('modal-msg-phone').innerText = msg.phone || 'No especificado';
+    document.getElementById('modal-msg-date').innerText = msg.date || '';
+    document.getElementById('modal-msg-unit').innerText = 'Renting';
+    const crm = msg.crm || {};
+    let body = 'Auto de interés: ' + (msg.auto_interes || msg.message || '—');
+    if (msg.rango_ingresos) body += '\nRango de ingresos: ' + msg.rango_ingresos;
+    if (crm.deal_id) {
+        body += '\n\nCRM (Pipedrive)\nDeal #' + crm.deal_id;
+        if (crm.deal_title) body += '\n' + crm.deal_title;
+        if (crm.person_source) body += '\nContacto: ' + crm.person_source;
+    }
+    document.getElementById('modal-msg-body').innerText = body;
+    const modal = new bootstrap.Modal(document.getElementById('messageDetailModal'));
+    modal.show();
+}
+
 function showLeasingMessageDetail(msg) {
     document.getElementById('modal-msg-name').innerText = msg.name || '';
     const emailLink = document.getElementById('modal-msg-email');

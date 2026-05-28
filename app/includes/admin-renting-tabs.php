@@ -612,17 +612,24 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                             <th>Fecha</th>
                                             <th>Cliente</th>
                                             <th>Contacto</th>
-                                            <th>Mensaje</th>
+                                            <th>Auto de interés</th>
+                                            <th>Rango ingresos</th>
+                                            <th>CRM</th>
                                             <th style="width: 120px;" class="text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty($renting_contact_messages)): ?>
                                             <tr>
-                                                <td colspan="5" class="text-center py-4 text-muted">No hay mensajes de contacto registrados.</td>
+                                                <td colspan="7" class="text-center py-4 text-muted">No hay mensajes de contacto registrados.</td>
                                             </tr>
                                         <?php else: ?>
                                             <?php foreach (array_reverse($renting_contact_messages) as $msg): ?>
+                                            <?php
+                                            $autoInteres = $msg['auto_interes'] ?? $msg['message'] ?? '';
+                                            $crmData = $msg['crm'] ?? null;
+                                            $dealId = is_array($crmData) ? ($crmData['deal_id'] ?? null) : null;
+                                            ?>
                                             <tr>
                                                 <td class="text-nowrap small text-muted"><?php echo esc($msg['date'] ?? ''); ?></td>
                                                 <td><strong><?php echo esc($msg['name'] ?? ''); ?></strong></td>
@@ -631,11 +638,19 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                                     <small class="text-muted"><?php echo esc($msg['phone'] ?? '—'); ?></small>
                                                 </td>
                                                 <td>
-                                                    <div class="text-truncate" style="max-width: 280px;"><?php echo esc($msg['message'] ?? ''); ?></div>
+                                                    <div class="text-truncate" style="max-width: 180px;" title="<?php echo esc($autoInteres); ?>"><?php echo esc($autoInteres); ?></div>
+                                                </td>
+                                                <td class="small"><?php echo esc($msg['rango_ingresos'] ?? '—'); ?></td>
+                                                <td class="small">
+                                                    <?php if ($dealId): ?>
+                                                        <span class="badge bg-success-subtle text-success border">Deal #<?php echo esc((string) $dealId); ?></span>
+                                                    <?php else: ?>
+                                                        <span class="text-muted">—</span>
+                                                    <?php endif; ?>
                                                 </td>
                                                 <td class="text-center">
                                                     <div class="d-flex justify-content-center gap-1">
-                                                        <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='showMessageDetail(<?php echo json_encode($msg, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>)'>
+                                                        <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='showRentingMessageDetail(<?php echo json_encode($msg, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>)'>
                                                             <i class="bi bi-eye-fill"></i>
                                                         </button>
                                                         <form method="POST" action="?tab=renting-contacto" onsubmit="return confirm('¿Eliminar este mensaje?');" style="display:inline;">

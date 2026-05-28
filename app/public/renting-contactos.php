@@ -69,32 +69,44 @@ $contactImageUrl = $contact['contact_image_url'] ?? '';
         <div class="col-lg-7 col-12">
             <div class="renting-contact-form-panel p-4 p-md-5 shadow-sm h-100">
                 <form id="rentingContactForm" novalidate>
-                    <input type="hidden" name="unit" value="Renting">
-
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="rc_first_name" class="form-label fw-semibold text-navy small">Su Nombre <span class="text-danger">*</span></label>
-                            <input type="text" id="rc_first_name" class="form-control py-3" placeholder="Su nombre" required>
+                        <div class="col-12">
+                            <label for="rc_nombre" class="form-label fw-semibold text-navy small">Nombre completo <span class="text-danger">*</span></label>
+                            <input type="text" id="rc_nombre" class="form-control py-3" placeholder="Nombre y apellido" required minlength="3" maxlength="120">
                         </div>
                         <div class="col-md-6">
-                            <label for="rc_last_name" class="form-label fw-semibold text-navy small">Su Apellido <span class="text-danger">*</span></label>
-                            <input type="text" id="rc_last_name" class="form-control py-3" placeholder="Su apellido" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="rc_email" class="form-label fw-semibold text-navy small">E-mail <span class="text-danger">*</span></label>
+                            <label for="rc_email" class="form-label fw-semibold text-navy small">Correo electrónico <span class="text-danger">*</span></label>
                             <input type="email" id="rc_email" class="form-control py-3" placeholder="correo@ejemplo.com" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="rc_phone" class="form-label fw-semibold text-navy small">Teléfono</label>
-                            <input type="text" id="rc_phone" class="form-control py-3" placeholder="xxx-xxxx">
+                            <label for="rc_phone" class="form-label fw-semibold text-navy small">Número telefónico</label>
+                            <input type="tel" id="rc_phone" class="form-control py-3" placeholder="+507 6123-4567" pattern="[0-9+\-() ]+">
                         </div>
                         <div class="col-12">
-                            <label for="rc_message" class="form-label fw-semibold text-navy small">Comentarios <span class="text-danger">*</span></label>
-                            <textarea id="rc_message" class="form-control py-3" rows="5" placeholder="Escriba su mensaje" required></textarea>
+                            <label for="rc_auto_interes" class="form-label fw-semibold text-navy small">Auto de tu interés <span class="text-danger">*</span></label>
+                            <input type="text" id="rc_auto_interes" class="form-control py-3" placeholder="Ej: Toyota Hilux 2026" required maxlength="100">
+                        </div>
+                        <div class="col-12">
+                            <label for="rc_rango_ingresos" class="form-label fw-semibold text-navy small">Rango de ingresos</label>
+                            <select id="rc_rango_ingresos" class="form-select py-3">
+                                <option value="">Selecciona...</option>
+                                <option value="650 a 2499">B/. 650 a 2,499</option>
+                                <option value="2500 a 4000">B/. 2,500 a 4,000</option>
+                                <option value="más de $4000">Más de B/. 4,000</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rc_consent" value="1" required>
+                                <label class="form-check-label font-poppins text-muted small" for="rc_consent">
+                                    He leído y acepto la <a href="#privacidad" class="text-danger">Política de Privacidad</a>.
+                                    Autorizo el tratamiento de mis datos para ser contactado por un asesor comercial.
+                                </label>
+                            </div>
                         </div>
                         <div class="col-12 text-center mt-2">
                             <button type="submit" id="rc_submit" class="btn w-100 py-3 fw-bold text-white text-uppercase font-montserrat" style="background:#0b1f6b; border-radius:4px; max-width: 280px;">
-                                Enviar
+                                Enviar solicitud
                             </button>
                         </div>
                     </div>
@@ -102,7 +114,7 @@ $contactImageUrl = $contact['contact_image_url'] ?? '';
 
                 <div id="rc_success" class="mt-4 p-3 rounded d-none align-items-center gap-2 text-white" style="background:#2b2b2b;">
                     <span class="rounded-circle bg-success d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width:28px;height:28px;"><i class="bi bi-check-lg"></i></span>
-                    <span class="fw-semibold font-poppins">¡Operación exitosa! Mensaje enviado correctamente.</span>
+                    <span id="rc_success_msg" class="fw-semibold font-poppins">¡Gracias! Pronto te contactaremos.</span>
                 </div>
                 <div id="rc_error" class="mt-4 p-3 rounded d-none bg-danger text-white small"></div>
             </div>
@@ -132,13 +144,15 @@ document.addEventListener('DOMContentLoaded', function() {
         ok.classList.remove('d-flex');
         err.classList.add('d-none');
 
-        const firstName = document.getElementById('rc_first_name').value.trim();
-        const lastName = document.getElementById('rc_last_name').value.trim();
-        const email = document.getElementById('rc_email').value.trim();
-        const phone = document.getElementById('rc_phone').value.trim();
-        const message = document.getElementById('rc_message').value.trim();
+        const nombre = document.getElementById('rc_nombre').value.trim();
+        const email = document.getElementById('rc_email').value.trim().toLowerCase();
+        const telefono = document.getElementById('rc_phone').value.trim();
+        const autoInteres = document.getElementById('rc_auto_interes').value.trim();
+        const rangoIngresos = document.getElementById('rc_rango_ingresos').value;
+        const consent = document.getElementById('rc_consent').checked;
+        const okMsg = document.getElementById('rc_success_msg');
 
-        if (!firstName || !lastName || !email || !message) {
+        if (!nombre || !email || !autoInteres) {
             err.textContent = 'Complete todos los campos obligatorios.';
             err.classList.remove('d-none');
             return;
@@ -148,37 +162,50 @@ document.addEventListener('DOMContentLoaded', function() {
             err.classList.remove('d-none');
             return;
         }
+        if (!consent) {
+            err.textContent = 'Debe aceptar el tratamiento de sus datos personales.';
+            err.classList.remove('d-none');
+            return;
+        }
 
         submit.disabled = true;
         submit.textContent = 'ENVIANDO...';
         try {
-            const res = await fetch('/api/contacto.php', {
+            const res = await fetch('/api/renting-lead.php', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({
-                    first_name: firstName,
-                    last_name: lastName,
+                    nombre: nombre,
                     email: email,
-                    phone: phone,
-                    message: message,
-                    unit: 'Renting'
+                    telefono: telefono,
+                    auto_interes: autoInteres,
+                    rango_ingresos: rangoIngresos,
+                    consent: consent
                 })
             });
             const data = await res.json();
-            if (res.ok && data.status === 'success') {
+            if (res.ok && (data.status === 'success' || data.status === 'partial')) {
+                okMsg.textContent = data.message || '¡Gracias! Pronto te contactaremos.';
                 ok.classList.remove('d-none');
                 ok.classList.add('d-flex');
                 form.reset();
+                if (window.dataLayer && data.crm && data.crm.deal_id) {
+                    window.dataLayer.push({
+                        event: 'renting_lead_submitted',
+                        deal_id: data.crm.deal_id,
+                        person_source: data.crm.person_source
+                    });
+                }
             } else {
-                err.textContent = data.message || 'Error al enviar el mensaje.';
+                err.textContent = data.message || data.details || 'Error al enviar el mensaje.';
                 err.classList.remove('d-none');
             }
         } catch (x) {
-            err.textContent = 'Error de red. Intente más tarde.';
+            err.textContent = 'Error de conexión. Verifique su internet e intente de nuevo.';
             err.classList.remove('d-none');
         } finally {
             submit.disabled = false;
-            submit.textContent = 'Enviar';
+            submit.textContent = 'Enviar solicitud';
         }
     });
 });

@@ -64,3 +64,8 @@ define('N8N_AMCORP_WEBHOOK_URL', 'https://n8n.grupopcr.com.pa/webhook/amcorp-lea
 // Si es el mismo secret que Seminuevos, basta con N8N_SEMINUEVOS_JWT_SECRET; o define uno propio:
 define('N8N_AMCORP_JWT_SECRET', 'TU_JWT_SECRET_N8N');
 // define('N8N_AMCORP_JWT_TOKEN', '');
+
+// Webhook n8n — Renting → Pipedrive (Pipeline 7)
+define('N8N_RENTING_WEBHOOK_URL', 'https://n8n.grupopcr.com.pa/webhook/renting');
+define('N8N_RENTING_JWT_SECRET', 'TU_JWT_SECRET_N8N');
+// define('N8N_RENTING_JWT_TOKEN', '');
