@@ -10,9 +10,64 @@ class RacReservationService {
         RacDatabaseSchema::ensure();
     }
 
+    /**
+     * @return array{name: string, amount: ?float, deductible: ?float}
+     */
+    public static function resolveCoverageFromSnapshot(string $code, ?array $vehicle): array {
+        if ($code === '') {
+            return ['name' => '—', 'amount' => null, 'deductible' => null];
+        }
+        $name = $code;
+        $amount = null;
+        $deductible = null;
+        if (!is_array($vehicle)) {
+            return compact('name', 'amount', 'deductible');
+        }
+        $packages = $vehicle['pricing']['coveragePackages'] ?? $vehicle['availableCoverages'] ?? [];
+        foreach ($packages as $pkg) {
+            $pkgCode = $pkg['code'] ?? $pkg['coverageType'] ?? '';
+            if ($pkgCode === $code) {
+                $name = $pkg['name'] ?? $pkg['description'] ?? $code;
+                $amount = isset($pkg['amountTotal']) ? (float) $pkg['amountTotal'] : null;
+                $deductible = isset($pkg['deductible']) ? (float) $pkg['deductible'] : null;
+                break;
+            }
+        }
+        return compact('name', 'amount', 'deductible');
+    }
+
+    /**
+     * Enriquecer fila de reserva con datos de póliza (registros antiguos).
+     */
+    public static function enrichCoverageFields(array $row): array {
+        $code = trim($row['coverage_code'] ?? '');
+        if ($code === '') {
+            return $row;
+        }
+        if (!empty($row['coverage_name']) && $row['coverage_amount'] !== null && $row['coverage_amount'] !== '') {
+            return $row;
+        }
+        $vehicle = json_decode($row['vehicle_snapshot_json'] ?? '', true);
+        $resolved = self::resolveCoverageFromSnapshot($code, is_array($vehicle) ? $vehicle : null);
+        if (empty($row['coverage_name'])) {
+            $row['coverage_name'] = $resolved['name'];
+        }
+        if (($row['coverage_amount'] ?? '') === '' || $row['coverage_amount'] === null) {
+            $row['coverage_amount'] = $resolved['amount'];
+        }
+        if (($row['coverage_deductible'] ?? '') === '' || $row['coverage_deductible'] === null) {
+            $row['coverage_deductible'] = $resolved['deductible'];
+        }
+        return $row;
+    }
+
     public function create(array $data): array {
         $code = $this->generateCode();
         $db = Database::getInstance();
+
+        $vehicleSnap = $data['vehicle_snapshot'] ?? [];
+        $coverageCode = trim($data['coverage_code'] ?? '');
+        $coverageResolved = self::resolveCoverageFromSnapshot($coverageCode, $vehicleSnap);
 
         $sql = "INSERT INTO rac_reservations (
             reservation_code, status, customer_name, customer_email, customer_phone, customer_comments,
@@ -20,14 +75,18 @@ class RacReservationService {
             driver_age, promo_code, sipp_code, vehicle_name, vehicle_category,
             vendor_rate_id, quote_token, rate_type,
             price_web, price_counter, price_total, price_total_estimated,
-            coverage_code, equipment_json, vehicle_snapshot_json, search_snapshot_json
+            coverage_code, coverage_name, coverage_amount, coverage_deductible,
+            price_rental_base, price_saf, price_itbms,
+            equipment_json, vehicle_snapshot_json, search_snapshot_json
         ) VALUES (
             :reservation_code, :status, :customer_name, :customer_email, :customer_phone, :customer_comments,
             :location_code, :return_location_code, :pickup_date, :pickup_time, :return_date, :return_time,
             :driver_age, :promo_code, :sipp_code, :vehicle_name, :vehicle_category,
             :vendor_rate_id, :quote_token, :rate_type,
             :price_web, :price_counter, :price_total, :price_total_estimated,
-            :coverage_code, :equipment_json, :vehicle_snapshot_json, :search_snapshot_json
+            :coverage_code, :coverage_name, :coverage_amount, :coverage_deductible,
+            :price_rental_base, :price_saf, :price_itbms,
+            :equipment_json, :vehicle_snapshot_json, :search_snapshot_json
         )";
 
         $db->execute($sql, [
@@ -55,7 +114,13 @@ class RacReservationService {
             ':price_counter' => $this->decimal($data['price_counter'] ?? null),
             ':price_total' => $this->decimal($data['price_total'] ?? null),
             ':price_total_estimated' => $this->decimal($data['price_total_estimated'] ?? null),
-            ':coverage_code' => trim($data['coverage_code'] ?? ''),
+            ':coverage_code' => $coverageCode,
+            ':coverage_name' => trim($data['coverage_name'] ?? '') ?: $coverageResolved['name'],
+            ':coverage_amount' => $this->decimal($data['coverage_amount'] ?? $coverageResolved['amount']),
+            ':coverage_deductible' => $this->decimal($data['coverage_deductible'] ?? $coverageResolved['deductible']),
+            ':price_rental_base' => $this->decimal($data['price_rental_base'] ?? null),
+            ':price_saf' => $this->decimal($data['price_saf'] ?? null),
+            ':price_itbms' => $this->decimal($data['price_itbms'] ?? null),
             ':equipment_json' => json_encode($data['equipment'] ?? [], JSON_UNESCAPED_UNICODE),
             ':vehicle_snapshot_json' => json_encode($data['vehicle_snapshot'] ?? [], JSON_UNESCAPED_UNICODE),
             ':search_snapshot_json' => json_encode($data['search_snapshot'] ?? [], JSON_UNESCAPED_UNICODE),
@@ -81,9 +146,13 @@ class RacReservationService {
     public function listAll(int $limit = 200): array {
         $db = Database::getInstance();
         $limit = max(1, min(500, $limit));
-        return $db->select(
+        $rows = $db->select(
             "SELECT * FROM rac_reservations ORDER BY created_at DESC LIMIT {$limit}"
         );
+        foreach ($rows as $i => $row) {
+            $rows[$i] = self::enrichCoverageFields($row);
+        }
+        return $rows;
     }
 
     public function updateStatus(int $id, string $status): bool {

@@ -398,12 +398,26 @@ function submitCheckoutBooking(e) {
         || vehicle.priceTotal
         || 0;
 
+    let coverageName = '';
+    let coverageDeductible = null;
+    if (coverageEl && pricingState.packagesByCode && pricingState.packagesByCode[coverageEl.value]) {
+        const pkg = pricingState.packagesByCode[coverageEl.value];
+        coverageName = pkg.name || pkg.description || coverageEl.value;
+        coverageDeductible = pkg.deductible != null ? parseFloat(pkg.deductible) : null;
+    }
+
     const payload = {
         customer_name: name,
         customer_phone: phone,
         customer_email: email,
         customer_comments: comments,
         coverage_code: coverageEl ? coverageEl.value : '',
+        coverage_name: coverageName,
+        coverage_amount: pricingState.currentCoverage ?? 0,
+        coverage_deductible: coverageDeductible,
+        price_rental_base: pricingState.rentalBase ?? null,
+        price_saf: pricingState.saf ?? null,
+        price_itbms: pricingState.currentItbms ?? null,
         rate_type: rateType,
         price_total_estimated: estimatedTotal,
         search: criteria,

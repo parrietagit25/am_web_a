@@ -127,6 +127,9 @@ $statusLabels = [
                                     <td>
                                         <?php echo esc($res['vehicle_name']); ?>
                                         <small class="d-block text-muted"><?php echo esc($res['sipp_code']); ?> · <?php echo esc($res['rate_type']); ?></small>
+                                        <?php if (!empty($res['coverage_name'])): ?>
+                                            <small class="d-block text-danger"><?php echo esc($res['coverage_name']); ?></small>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="small">
                                         <?php echo esc(rac_branch_name($res['location_code'])); ?><br>
@@ -246,11 +249,21 @@ $statusLabels = [
         html += row('Nombre', esc(res.customer_name));
         html += row('Correo', esc(res.customer_email));
         html += row('Teléfono', esc(res.customer_phone));
-        html += row('Cobertura', esc(res.coverage_code));
         html += '</div>';
         if (res.customer_comments) {
-            html += `<p class="mb-0"><span class="text-muted small">Comentarios</span><br>${esc(res.customer_comments)}</p>`;
+            html += `<p class="mb-3"><span class="text-muted small">Comentarios</span><br>${esc(res.customer_comments)}</p>`;
         }
+
+        const covName = res.coverage_name || res.coverage_code || '—';
+        const covAmt = res.coverage_amount != null && res.coverage_amount !== '' ? parseFloat(res.coverage_amount) : null;
+        const covDed = res.coverage_deductible != null && res.coverage_deductible !== '' ? parseFloat(res.coverage_deductible) : null;
+        html += '<hr><h6 class="fw-bold text-navy"><i class="bi bi-shield-check me-1 text-danger"></i> Póliza / protección seleccionada</h6>';
+        html += '<div class="row">';
+        html += row('Póliza', esc(covName));
+        html += row('Código', esc(res.coverage_code || '—'));
+        html += row('Monto protección', covAmt != null && !isNaN(covAmt) ? '<strong class="text-danger">$' + covAmt.toFixed(2) + ' USD</strong>' : '—');
+        html += row('Deducible', covDed != null && !isNaN(covDed) ? '$' + covDed.toFixed(2) + ' USD' : '—');
+        html += '</div>';
         html += '<hr><h6 class="fw-bold text-navy">Vehículo</h6><div class="row">';
         html += row('Nombre', esc(res.vehicle_name));
         html += row('Categoría', esc(res.vehicle_category));
@@ -261,10 +274,27 @@ $statusLabels = [
         html += row('Devolución', esc((branchNames[res.return_location_code] || res.return_location_code) + ' · ' + res.return_date + ' ' + res.return_time));
         html += row('Edad conductor', esc(res.driver_age));
         html += row('Cupón', esc(res.promo_code || '—'));
-        html += '</div><hr><h6 class="fw-bold text-navy">Montos (USD)</h6><div class="row">';
+        html += '</div><hr><h6 class="fw-bold text-navy">Desglose de montos (USD)</h6>';
+        const rentalBase = res.price_rental_base != null && res.price_rental_base !== '' ? parseFloat(res.price_rental_base) : null;
+        const saf = res.price_saf != null && res.price_saf !== '' ? parseFloat(res.price_saf) : null;
+        const itbms = res.price_itbms != null && res.price_itbms !== '' ? parseFloat(res.price_itbms) : null;
+        const totalEst = res.price_total_estimated != null && res.price_total_estimated !== '' ? parseFloat(res.price_total_estimated) : null;
+
+        html += '<table class="table table-sm table-bordered mb-0"><tbody>';
+        html += '<tr><td class="text-muted">Tarifa base alquiler (periodo)</td><td class="text-end fw-semibold">' +
+            (rentalBase != null && !isNaN(rentalBase) ? '$' + rentalBase.toFixed(2) : '—') + '</td></tr>';
+        html += '<tr><td class="text-muted">Cargo SAF</td><td class="text-end fw-semibold">' +
+            (saf != null && !isNaN(saf) ? '$' + saf.toFixed(2) : '—') + '</td></tr>';
+        html += '<tr><td class="text-muted">Protección / póliza</td><td class="text-end fw-semibold text-danger">' +
+            (covAmt != null && !isNaN(covAmt) ? '$' + covAmt.toFixed(2) : '—') + '</td></tr>';
+        html += '<tr><td class="text-muted">ITBMS (7%)</td><td class="text-end fw-semibold">' +
+            (itbms != null && !isNaN(itbms) ? '$' + itbms.toFixed(2) : '—') + '</td></tr>';
+        html += '<tr class="table-light"><td class="fw-bold">Total estimado</td><td class="text-end fw-bold fs-6">' +
+            (totalEst != null && !isNaN(totalEst) ? '$' + totalEst.toFixed(2) : '—') + '</td></tr>';
+        html += '</tbody></table>';
+        html += '<div class="row mt-3 small text-muted">';
         html += row('Tarifa web/día ref.', res.price_web != null ? '$' + parseFloat(res.price_web).toFixed(2) : '—');
-        html += row('Total estimado', res.price_total_estimated != null ? '<strong>$' + parseFloat(res.price_total_estimated).toFixed(2) + '</strong>' : '—');
-        html += row('Total base periodo', res.price_total != null ? '$' + parseFloat(res.price_total).toFixed(2) : '—');
+        html += row('Total base periodo API', res.price_total != null ? '$' + parseFloat(res.price_total).toFixed(2) : '—');
         html += row('Quote token', esc(res.quote_token));
         html += '</div>';
 

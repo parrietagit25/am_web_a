@@ -107,7 +107,12 @@ class RacAlertEmailService {
             <p><strong>Vehículo:</strong> {$esc($r['vehicle_name'] ?? '')} ({$esc($r['sipp_code'] ?? '')})</p>
             <p><strong>Retiro:</strong> {$esc($pickupName)} — {$esc($r['pickup_date'] ?? '')} {$esc($r['pickup_time'] ?? '')}<br>
                <strong>Devolución:</strong> {$esc($returnName)} — {$esc($r['return_date'] ?? '')} {$esc($r['return_time'] ?? '')}</p>
-            <p><strong>Total estimado:</strong> \$" . number_format((float) ($r['price_total_estimated'] ?? 0), 2) . " USD</p>
+            <p><strong>Póliza:</strong> {$esc($r['coverage_name'] ?? $r['coverage_code'] ?? '—')}<br>
+               <strong>Monto protección:</strong> \$" . number_format((float) ($r['coverage_amount'] ?? 0), 2) . " USD</p>
+            <p><strong>Desglose:</strong> Base \$" . number_format((float) ($r['price_rental_base'] ?? 0), 2) .
+               " + SAF \$" . number_format((float) ($r['price_saf'] ?? 0), 2) .
+               " + ITBMS \$" . number_format((float) ($r['price_itbms'] ?? 0), 2) .
+               " = <strong>Total \$" . number_format((float) ($r['price_total_estimated'] ?? 0), 2) . " USD</strong></p>
             <p><strong>Comentarios:</strong><br>" . nl2br($esc($r['customer_comments'] ?? '—')) . "</p>
             <hr>
             <p style='font-size: 12px; color: #666;'>Revise el panel administrativo para gestionar esta reserva.</p>

@@ -81,6 +81,12 @@ try {
             ? (float) $input['price_total_estimated']
             : ($vehicle['priceTotalEstimated'] ?? null),
         'coverage_code' => trim($input['coverage_code'] ?? ''),
+        'coverage_name' => trim($input['coverage_name'] ?? ''),
+        'coverage_amount' => $input['coverage_amount'] ?? null,
+        'coverage_deductible' => $input['coverage_deductible'] ?? null,
+        'price_rental_base' => $input['price_rental_base'] ?? ($pricing['rateBase'] ?? null),
+        'price_saf' => $input['price_saf'] ?? ($pricing['saf'] ?? null),
+        'price_itbms' => $input['price_itbms'] ?? null,
         'equipment' => $input['equipment'] ?? [],
         'vehicle_snapshot' => $vehicle,
         'search_snapshot' => $search,

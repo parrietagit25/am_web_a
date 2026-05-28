@@ -41,6 +41,12 @@ class RacDatabaseSchema {
                 price_total DECIMAL(12,2) NULL,
                 price_total_estimated DECIMAL(12,2) NULL,
                 coverage_code VARCHAR(32) NULL,
+                coverage_name VARCHAR(200) NULL,
+                coverage_amount DECIMAL(12,2) NULL,
+                coverage_deductible DECIMAL(12,2) NULL,
+                price_rental_base DECIMAL(12,2) NULL,
+                price_saf DECIMAL(12,2) NULL,
+                price_itbms DECIMAL(12,2) NULL,
                 equipment_json LONGTEXT NULL,
                 vehicle_snapshot_json LONGTEXT NULL,
                 search_snapshot_json LONGTEXT NULL,
@@ -59,6 +65,8 @@ class RacDatabaseSchema {
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE KEY uq_email (email)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            self::migrateReservationColumns($db, 'mysql');
         } else {
             $db->execute("CREATE TABLE IF NOT EXISTS rac_reservations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,6 +95,12 @@ class RacDatabaseSchema {
                 price_total REAL,
                 price_total_estimated REAL,
                 coverage_code TEXT,
+                coverage_name TEXT,
+                coverage_amount REAL,
+                coverage_deductible REAL,
+                price_rental_base REAL,
+                price_saf REAL,
+                price_itbms REAL,
                 equipment_json TEXT,
                 vehicle_snapshot_json TEXT,
                 search_snapshot_json TEXT,
@@ -101,8 +115,38 @@ class RacDatabaseSchema {
                 is_active INTEGER NOT NULL DEFAULT 1,
                 created_at TEXT NOT NULL DEFAULT (datetime('now'))
             )");
+
+            self::migrateReservationColumns($db, 'sqlite');
         }
 
         self::$ensured = true;
+    }
+
+    private static function migrateReservationColumns(Database $db, string $driver): void {
+        $columns = $driver === 'mysql'
+            ? [
+                'coverage_name' => 'VARCHAR(200) NULL',
+                'coverage_amount' => 'DECIMAL(12,2) NULL',
+                'coverage_deductible' => 'DECIMAL(12,2) NULL',
+                'price_rental_base' => 'DECIMAL(12,2) NULL',
+                'price_saf' => 'DECIMAL(12,2) NULL',
+                'price_itbms' => 'DECIMAL(12,2) NULL',
+            ]
+            : [
+                'coverage_name' => 'TEXT',
+                'coverage_amount' => 'REAL',
+                'coverage_deductible' => 'REAL',
+                'price_rental_base' => 'REAL',
+                'price_saf' => 'REAL',
+                'price_itbms' => 'REAL',
+            ];
+
+        foreach ($columns as $name => $type) {
+            try {
+                $db->execute("ALTER TABLE rac_reservations ADD COLUMN {$name} {$type}");
+            } catch (Exception $e) {
+                // Columna ya existe
+            }
+        }
     }
 }
