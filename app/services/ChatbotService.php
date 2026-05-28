@@ -5,8 +5,10 @@
 
 require_once __DIR__ . '/ContentService.php';
 require_once __DIR__ . '/ChatbotKnowledgeBuilder.php';
+require_once __DIR__ . '/ChatbotSessionService.php';
 
 class ChatbotService {
+    private ?ChatbotSessionService $sessionStore = null;
     private const SESSION_HISTORY = 'chatbot_history';
     private const SESSION_RATE = 'chatbot_rate_times';
     private const MAX_HISTORY_MESSAGES = 24;
@@ -169,6 +171,13 @@ class ChatbotService {
         }
 
         $this->recordRateHit();
+        $dbSessionId = $this->sessions()->resolveActiveSessionId(
+            $lang,
+            $activeUnit,
+            $pageUrl
+        );
+        $this->sessions()->appendMessage($dbSessionId, 'user', $userMessage);
+
         $history = $this->getHistory();
         $history[] = ['role' => 'user', 'content' => $userMessage];
         $history = $this->trimHistory($history);
@@ -195,12 +204,21 @@ class ChatbotService {
 
         $history[] = ['role' => 'assistant', 'content' => $reply];
         $this->saveHistory($this->trimHistory($history));
+        $this->sessions()->appendMessage($dbSessionId, 'assistant', $reply, (string) ($config['model'] ?? ''));
 
         return ['ok' => true, 'reply' => $reply];
     }
 
     public function clearSession(): void {
+        $this->sessions()->endActiveSession();
         unset($_SESSION[self::SESSION_HISTORY], $_SESSION[self::SESSION_RATE]);
+    }
+
+    private function sessions(): ChatbotSessionService {
+        if ($this->sessionStore === null) {
+            $this->sessionStore = new ChatbotSessionService();
+        }
+        return $this->sessionStore;
     }
 
     private function buildSystemPrompt(

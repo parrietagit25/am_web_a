@@ -2441,6 +2441,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../../includes/admin-taller-actions.php';
     require __DIR__ . '/../../includes/admin-footer-actions.php';
     require __DIR__ . '/../../includes/admin-rac-actions.php';
+    require __DIR__ . '/../../includes/admin-chatbot-actions.php';
 }
 
 // Reload site data for rendering
@@ -2699,9 +2700,18 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                 <button class="nav-link text-start" id="tab-seo-nav" data-bs-toggle="pill" data-bs-target="#tab-seo" type="button" role="tab" aria-controls="tab-seo" aria-selected="false">
                     <i class="bi bi-search me-2"></i> SEO (Global / Página)
                 </button>
-                <button class="nav-link text-start" id="tab-chatbot-nav" data-bs-toggle="pill" data-bs-target="#tab-chatbot" type="button" role="tab" aria-controls="tab-chatbot" aria-selected="false">
-                    <i class="bi bi-robot me-2"></i> Chatbot IA
-                </button>
+                <div class="sidebar-heading px-3 py-2 mt-2 text-uppercase text-white-50 fw-bold d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#chatbot-submenu" aria-expanded="false" style="cursor: pointer; font-size: 0.75rem; letter-spacing: 0.5px;">
+                    <span>Chatbot IA</span>
+                    <i class="bi bi-chevron-down" id="chatbot-chevron"></i>
+                </div>
+                <div class="collapse" id="chatbot-submenu">
+                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-chatbot-nav" data-bs-toggle="pill" data-bs-target="#tab-chatbot" type="button" role="tab" aria-controls="tab-chatbot" aria-selected="false">
+                        <i class="bi bi-sliders me-2"></i> Configuración
+                    </button>
+                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-chatbot-sessions-nav" data-bs-toggle="pill" data-bs-target="#tab-chatbot-sessions" type="button" role="tab" aria-controls="tab-chatbot-sessions" aria-selected="false">
+                        <i class="bi bi-chat-left-text-fill me-2"></i> Historial de sesiones
+                    </button>
+                </div>
                 <button class="nav-link text-start" id="tab-landings-nav" data-bs-toggle="pill" data-bs-target="#tab-landings" type="button" role="tab" aria-controls="tab-landings" aria-selected="false">
                     <i class="bi bi-bullseye me-2"></i> Landing Pages
                 </button>
@@ -3038,6 +3048,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                     <?php require_once __DIR__ . '/../../includes/admin-translations-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-seo-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-chatbot-tab.php'; ?>
+                    <?php require_once __DIR__ . '/../../includes/admin-chatbot-sessions-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-landings-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-footer-tab.php'; ?>
                     

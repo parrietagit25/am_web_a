@@ -18,7 +18,7 @@ if (!is_array($suggestionsEn)) {
 <div class="tab-pane fade" id="tab-chatbot" role="tabpanel" aria-labelledby="tab-chatbot-nav">
     <div class="admin-card mb-4">
         <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
-            <i class="bi bi-robot me-2 text-danger"></i>Chatbot de IA
+            <i class="bi bi-sliders me-2 text-danger"></i>Configuración del chatbot
         </h5>
         <p class="text-muted small mb-3">
             Asistente virtual en el sitio público. Las respuestas usan OpenAI con contexto de Automarket (unidades de negocio, contacto y páginas clave).
@@ -112,7 +112,7 @@ if (!is_array($suggestionsEn)) {
     <div class="admin-card">
         <h6 class="fw-bold text-navy mb-3"><i class="bi bi-info-circle me-2 text-danger"></i>Notas técnicas</h6>
         <ul class="small text-muted mb-0">
-            <li>Endpoint: <code>POST /api/chat.php</code> — historial en sesión del visitante (no se guarda en admin).</li>
+            <li>Endpoint: <code>POST /api/chat.php</code> — contexto en sesión PHP; cada mensaje se guarda en BD (ver <strong>Historial de sesiones</strong>).</li>
             <li>Límite: 40 mensajes por hora por sesión; contexto de las últimas 12 interacciones.</li>
             <li>El botón flotante aparece encima del botón de WhatsApp en todas las páginas públicas.</li>
             <li>Recomendado: modelo <strong>GPT-4o mini</strong> por costo y velocidad.</li>
