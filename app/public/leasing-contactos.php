@@ -77,32 +77,63 @@ if (empty($contactImageUrl)) {
         <div class="col-lg-7 col-12">
             <div class="leasing-contact-form-panel p-4 p-md-5 shadow-sm">
                 <form id="contactForm" onsubmit="handleLeasingContactSubmit(event)" novalidate>
-                    <input type="hidden" id="contact_unit" name="unit" value="Leasing Operativo">
-
                     <div class="row g-3">
-                        <div class="col-md-6 col-12">
-                            <label for="first_name" class="form-label text-navy font-poppins fw-semibold" style="font-size: 0.83rem;">Su Nombre <span class="text-danger">*</span></label>
-                            <input type="text" id="first_name" name="first_name" class="form-control py-3 bg-white border-0" placeholder="Su nombre" required>
-                        </div>
-                        <div class="col-md-6 col-12">
-                            <label for="last_name" class="form-label text-navy font-poppins fw-semibold" style="font-size: 0.83rem;">Su Apellido <span class="text-danger">*</span></label>
-                            <input type="text" id="last_name" name="last_name" class="form-control py-3 bg-white border-0" placeholder="Su Apellido" required>
-                        </div>
-                        <div class="col-md-6 col-12">
-                            <label for="email" class="form-label text-navy font-poppins fw-semibold" style="font-size: 0.83rem;">E-mail <span class="text-danger">*</span></label>
-                            <input type="email" id="email" name="email" class="form-control py-3 bg-white border-0" placeholder="E-mail" required>
-                        </div>
-                        <div class="col-md-6 col-12">
-                            <label for="phone" class="form-label text-navy font-poppins fw-semibold" style="font-size: 0.83rem;">Su teléfono</label>
-                            <input type="text" id="phone" name="phone" class="form-control py-3 bg-white border-0" placeholder="xxx-xxxx">
+                        <div class="col-12">
+                            <label for="empresa" class="form-label text-navy font-poppins fw-semibold" style="font-size: 0.83rem;">Empresa <span class="text-danger">*</span></label>
+                            <input type="text" id="empresa" name="empresa" class="form-control py-3 bg-white border-0" placeholder="Razón social o nombre comercial" required minlength="2">
                         </div>
                         <div class="col-12">
-                            <label for="message" class="form-label text-navy font-poppins fw-semibold" style="font-size: 0.83rem;">Comentarios <span class="text-danger">*</span></label>
-                            <textarea id="message" name="message" class="form-control bg-white border-0 py-3" rows="5" placeholder="Comentarios" required></textarea>
+                            <label for="direccion" class="form-label text-navy font-poppins fw-semibold" style="font-size: 0.83rem;">Dirección</label>
+                            <input type="text" id="direccion" name="direccion" class="form-control py-3 bg-white border-0" placeholder="Dirección de la empresa (opcional)">
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label for="nombre" class="form-label text-navy font-poppins fw-semibold" style="font-size: 0.83rem;">Nombre completo <span class="text-danger">*</span></label>
+                            <input type="text" id="nombre" name="nombre" class="form-control py-3 bg-white border-0" placeholder="Nombre y apellido" required minlength="3">
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label for="telefono" class="form-label text-navy font-poppins fw-semibold" style="font-size: 0.83rem;">Teléfono <span class="text-danger">*</span></label>
+                            <input type="tel" id="telefono" name="telefono" class="form-control py-3 bg-white border-0" placeholder="+507 6123-4567" required minlength="7">
+                        </div>
+                        <div class="col-12">
+                            <label for="email" class="form-label text-navy font-poppins fw-semibold" style="font-size: 0.83rem;">E-mail <span class="text-danger">*</span></label>
+                            <input type="email" id="email" name="email" class="form-control py-3 bg-white border-0" placeholder="correo@empresa.com" required>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label for="tipo_vehiculo" class="form-label text-navy font-poppins fw-semibold" style="font-size: 0.83rem;">Tipo de vehículo <span class="text-danger">*</span></label>
+                            <select id="tipo_vehiculo" name="tipo_vehiculo" class="form-select py-3 bg-white border-0" required>
+                                <option value="">Seleccione...</option>
+                                <option value="SUV">SUV</option>
+                                <option value="Sedán">Sedán</option>
+                                <option value="Pickup">Pickup</option>
+                                <option value="Van">Van</option>
+                                <option value="Hatchback">Hatchback</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label for="fecha_alquiler" class="form-label text-navy font-poppins fw-semibold" style="font-size: 0.83rem;">Fecha tentativa de alquiler <span class="text-danger">*</span></label>
+                            <input type="date" id="fecha_alquiler" name="fecha_alquiler" class="form-control py-3 bg-white border-0" required>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="primera_vez" name="primera_vez" value="1">
+                                <label class="form-check-label font-poppins text-muted" style="font-size: 0.82rem;" for="primera_vez">
+                                    ¿Primera vez con Automarket corporativo?
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="consent" name="consent" value="1" required>
+                                <label class="form-check-label font-poppins text-muted" style="font-size: 0.82rem;" for="consent">
+                                    Autorizo el tratamiento de mis datos personales conforme a la
+                                    <a href="#privacidad" class="text-danger">Política de Privacidad</a> de Automarket.
+                                </label>
+                            </div>
                         </div>
                         <div class="col-12 text-center mt-2">
                             <button type="submit" id="submitBtn" class="btn btn-theme px-5 py-3 fw-bold text-uppercase rounded-3 font-montserrat shadow-sm" style="min-width: 180px;">
-                                Enviar
+                                Solicitar cotización
                             </button>
                         </div>
                     </div>
@@ -112,7 +143,7 @@ if (empty($contactImageUrl)) {
                     <div class="rounded-circle bg-success d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px;">
                         <i class="bi bi-check-lg text-white"></i>
                     </div>
-                    <span class="fw-semibold font-poppins">¡Operación exitosa! Mensaje enviado correctamente.</span>
+                    <span id="successMessage" class="fw-semibold font-poppins">¡Gracias! Nos pondremos en contacto en menos de 24 horas.</span>
                 </div>
                 <div id="errorBanner" class="mt-4 p-3 rounded-3 d-none align-items-center gap-2 text-white bg-danger">
                     <i class="bi bi-exclamation-triangle-fill"></i>
@@ -156,6 +187,7 @@ async function handleLeasingContactSubmit(event) {
     var form = document.getElementById('contactForm');
     var submitBtn = document.getElementById('submitBtn');
     var successBanner = document.getElementById('successBanner');
+    var successMessage = document.getElementById('successMessage');
     var errorBanner = document.getElementById('errorBanner');
     var errorMessage = document.getElementById('errorMessage');
 
@@ -164,14 +196,24 @@ async function handleLeasingContactSubmit(event) {
     errorBanner.classList.add('d-none');
     errorBanner.classList.remove('d-flex');
 
-    var firstName = document.getElementById('first_name').value.trim();
-    var lastName = document.getElementById('last_name').value.trim();
+    var empresa = document.getElementById('empresa').value.trim();
+    var direccion = document.getElementById('direccion').value.trim();
+    var nombre = document.getElementById('nombre').value.trim();
+    var telefono = document.getElementById('telefono').value.trim();
     var email = document.getElementById('email').value.trim();
-    var phone = document.getElementById('phone').value.trim();
-    var message = document.getElementById('message').value.trim();
+    var tipoVehiculo = document.getElementById('tipo_vehiculo').value;
+    var fechaAlquiler = document.getElementById('fecha_alquiler').value;
+    var primeraVez = document.getElementById('primera_vez').checked ? 'SI' : 'NO';
+    var consent = document.getElementById('consent').checked;
 
-    if (!firstName || !lastName || !email || !message) {
-        errorMessage.innerText = 'Por favor, llene todos los campos obligatorios.';
+    if (!empresa || !nombre || !telefono || !email || !tipoVehiculo || !fechaAlquiler) {
+        errorMessage.innerText = 'Por favor, complete todos los campos obligatorios.';
+        errorBanner.classList.remove('d-none');
+        errorBanner.classList.add('d-flex');
+        return;
+    }
+    if (telefono.replace(/\D/g, '').length < 7) {
+        errorMessage.innerText = 'El teléfono debe tener al menos 7 dígitos.';
         errorBanner.classList.remove('d-none');
         errorBanner.classList.add('d-flex');
         return;
@@ -182,41 +224,63 @@ async function handleLeasingContactSubmit(event) {
         errorBanner.classList.add('d-flex');
         return;
     }
+    if (!consent) {
+        errorMessage.innerText = 'Debe aceptar el tratamiento de sus datos personales.';
+        errorBanner.classList.remove('d-none');
+        errorBanner.classList.add('d-flex');
+        return;
+    }
 
     submitBtn.disabled = true;
     submitBtn.innerText = 'Enviando...';
 
     try {
-        var response = await fetch('/api/contacto.php', {
+        var response = await fetch('/api/amcorp-lead.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify({
-                first_name: firstName,
-                last_name: lastName,
+                empresa: empresa,
+                direccion: direccion,
+                nombre: nombre,
+                telefono: telefono,
                 email: email,
-                phone: phone,
-                message: message,
-                unit: 'Leasing Operativo'
+                tipo_vehiculo: tipoVehiculo,
+                fecha_alquiler: fechaAlquiler,
+                primera_vez: primeraVez,
+                consent: consent
             })
         });
         var data = await response.json();
-        if (response.ok && data.status === 'success') {
+        if (response.ok && (data.status === 'success' || data.status === 'partial')) {
+            successMessage.innerText = data.message || '¡Gracias! Nos pondremos en contacto en menos de 24 horas.';
             successBanner.classList.remove('d-none');
             successBanner.classList.add('d-flex');
             form.reset();
+            var crm = data.crm && data.crm.data ? data.crm.data : (data.crm || {});
+            if (window.dataLayer && crm.deal_id) {
+                window.dataLayer.push({
+                    event: 'amcorp_lead_submitted',
+                    deal_id: crm.deal_id,
+                    org_source: crm.org_source
+                });
+            }
         } else {
-            errorMessage.innerText = data.message || 'Error al enviar el mensaje.';
+            var errText = data.message || 'Error al enviar el mensaje.';
+            if (data.errores && data.errores.length) {
+                errText = data.errores.join(' · ');
+            }
+            errorMessage.innerText = errText;
             errorBanner.classList.remove('d-none');
             errorBanner.classList.add('d-flex');
         }
     } catch (err) {
         console.error(err);
-        errorMessage.innerText = 'Error de red. Inténtelo más tarde.';
+        errorMessage.innerText = 'Error de conexión. Verifique su internet e intente de nuevo.';
         errorBanner.classList.remove('d-none');
         errorBanner.classList.add('d-flex');
     } finally {
         submitBtn.disabled = false;
-        submitBtn.innerText = 'Enviar';
+        submitBtn.innerText = 'Solicitar cotización';
     }
 }
 </script>

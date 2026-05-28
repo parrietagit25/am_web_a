@@ -175,6 +175,74 @@ class ContentService {
     }
 
     /**
+     * Añade un mensaje de contacto Leasing Operativo (leasing.contact.messages).
+     *
+     * @param array<string, mixed> $message
+     */
+    public function appendLeasingContactMessage(array $message): bool
+    {
+        $dir = dirname($this->filePath);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        if (!file_exists($this->filePath)) {
+            $this->saveAll($this->getAll());
+        }
+
+        $fp = @fopen($this->filePath, 'c+');
+        if ($fp === false) {
+            am_log('appendLeasingContactMessage — no se pudo abrir site_data.json', 'ERROR');
+            return false;
+        }
+
+        if (!flock($fp, LOCK_EX)) {
+            fclose($fp);
+            return false;
+        }
+
+        $size = filesize($this->filePath);
+        $raw = $size > 0 ? fread($fp, $size) : '';
+        $data = json_decode($raw ?: '{}', true);
+        if (!is_array($data)) {
+            flock($fp, LOCK_UN);
+            fclose($fp);
+            am_log('appendLeasingContactMessage — JSON inválido', 'ERROR');
+            return false;
+        }
+        if (!isset($data['leasing']) || !is_array($data['leasing'])) {
+            $data['leasing'] = [];
+        }
+        if (!isset($data['leasing']['contact']) || !is_array($data['leasing']['contact'])) {
+            $data['leasing']['contact'] = ['messages' => []];
+        }
+        if (!isset($data['leasing']['contact']['messages']) || !is_array($data['leasing']['contact']['messages'])) {
+            $data['leasing']['contact']['messages'] = [];
+        }
+
+        $data['leasing']['contact']['messages'][] = $message;
+
+        $jsonRaw = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($jsonRaw === false) {
+            flock($fp, LOCK_UN);
+            fclose($fp);
+            return false;
+        }
+
+        rewind($fp);
+        ftruncate($fp, 0);
+        $ok = fwrite($fp, $jsonRaw) !== false;
+        fflush($fp);
+        flock($fp, LOCK_UN);
+        fclose($fp);
+
+        if (!$ok) {
+            am_log('appendLeasingContactMessage — fwrite falló', 'ERROR');
+        }
+
+        return $ok;
+    }
+
+    /**
      * Retrieve deep values using dot notation
      * 
      * @param string $key e.g., 'homepage.hero.title'

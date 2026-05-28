@@ -5689,32 +5689,45 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                     <thead class="table-light">
                                         <tr>
                                             <th>Fecha</th>
-                                            <th>Cliente</th>
+                                            <th>Empresa</th>
                                             <th>Contacto</th>
-                                            <th>Mensaje</th>
+                                            <th>Vehículo</th>
+                                            <th>Fecha alquiler</th>
+                                            <th>CRM</th>
                                             <th style="width: 120px;" class="text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty($leasing_contact_messages)): ?>
                                             <tr>
-                                                <td colspan="5" class="text-center py-4 text-muted">No se han recibido mensajes de contacto de Leasing todavía.</td>
+                                                <td colspan="7" class="text-center py-4 text-muted">No se han recibido mensajes de contacto de Leasing todavía.</td>
                                             </tr>
                                         <?php else: ?>
                                             <?php foreach (array_reverse($leasing_contact_messages) as $msg): ?>
+                                            <?php
+                                            $crmData = $msg['crm'] ?? null;
+                                            $dealId = is_array($crmData) ? ($crmData['deal_id'] ?? null) : null;
+                                            ?>
                                             <tr>
                                                 <td class="text-nowrap small text-muted"><?php echo esc($msg['date'] ?? ''); ?></td>
-                                                <td><strong><?php echo esc($msg['name'] ?? ''); ?></strong></td>
+                                                <td><strong><?php echo esc($msg['empresa'] ?? '—'); ?></strong></td>
                                                 <td>
-                                                    <small class="d-block text-muted"><strong>Email:</strong> <a href="mailto:<?php echo esc($msg['email'] ?? ''); ?>" class="text-decoration-none text-navy"><?php echo esc($msg['email'] ?? ''); ?></a></small>
-                                                    <small class="d-block text-muted"><strong>Tel:</strong> <?php echo esc($msg['phone'] ?? ''); ?></small>
+                                                    <small class="d-block fw-semibold text-navy"><?php echo esc($msg['name'] ?? ''); ?></small>
+                                                    <small class="d-block text-muted"><a href="mailto:<?php echo esc($msg['email'] ?? ''); ?>" class="text-decoration-none text-navy"><?php echo esc($msg['email'] ?? ''); ?></a></small>
+                                                    <small class="d-block text-muted"><?php echo esc($msg['phone'] ?? ''); ?></small>
                                                 </td>
-                                                <td>
-                                                    <div class="text-truncate" style="max-width: 280px;"><?php echo esc($msg['message'] ?? ''); ?></div>
+                                                <td class="small"><?php echo esc($msg['tipo_vehiculo'] ?? '—'); ?></td>
+                                                <td class="small text-nowrap"><?php echo esc($msg['fecha_alquiler'] ?? '—'); ?></td>
+                                                <td class="small">
+                                                    <?php if ($dealId): ?>
+                                                        <span class="badge bg-success-subtle text-success border">Deal #<?php echo esc((string) $dealId); ?></span>
+                                                    <?php else: ?>
+                                                        <span class="text-muted">—</span>
+                                                    <?php endif; ?>
                                                 </td>
                                                 <td class="text-center">
                                                     <div class="d-flex justify-content-center gap-1">
-                                                        <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='showMessageDetail(<?php echo json_encode($msg, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>)'>
+                                                        <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='showLeasingMessageDetail(<?php echo json_encode($msg, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>)'>
                                                             <i class="bi bi-eye-fill"></i>
                                                         </button>
                                                         <form method="POST" action="?tab=leasing-contacto" onsubmit="return confirm('¿Eliminar este mensaje de contacto de Leasing?');" style="display:inline;">
@@ -6654,6 +6667,32 @@ function resetLandingForm() {
     document.getElementById('landingCancelBtn').classList.add('d-none');
     document.getElementById('landingSubmitBtn').className = 'btn btn-premium d-inline-flex align-items-center gap-2';
     document.getElementById('landingSubmitText').innerText = 'Crear landing';
+}
+
+function showLeasingMessageDetail(msg) {
+    document.getElementById('modal-msg-name').innerText = msg.name || '';
+    const emailLink = document.getElementById('modal-msg-email');
+    if (emailLink) {
+        emailLink.innerText = msg.email || '';
+        emailLink.href = msg.email ? ('mailto:' + msg.email) : '#';
+    }
+    document.getElementById('modal-msg-phone').innerText = msg.phone || 'No especificado';
+    document.getElementById('modal-msg-date').innerText = msg.date || '';
+    document.getElementById('modal-msg-unit').innerText = msg.empresa ? ('Empresa: ' + msg.empresa) : 'Leasing Operativo';
+    const crm = msg.crm || {};
+    let body = '';
+    if (msg.tipo_vehiculo) body += 'Tipo de vehículo: ' + msg.tipo_vehiculo + '\n';
+    if (msg.fecha_alquiler) body += 'Fecha alquiler: ' + msg.fecha_alquiler + '\n';
+    if (msg.primera_vez) body += 'Primera vez corporativo: ' + msg.primera_vez + '\n';
+    if (msg.direccion) body += 'Dirección: ' + msg.direccion + '\n';
+    if (!body && msg.message) body = msg.message;
+    if (crm.deal_id) {
+        body += '\n\nCRM (Pipedrive)\nDeal #' + crm.deal_id;
+        if (crm.deal_title) body += '\n' + crm.deal_title;
+    }
+    document.getElementById('modal-msg-body').innerText = body.trim() || '—';
+    const modal = new bootstrap.Modal(document.getElementById('messageDetailModal'));
+    modal.show();
 }
 
 function showSemiMessageDetail(msg) {

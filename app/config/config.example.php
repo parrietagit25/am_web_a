@@ -58,3 +58,9 @@ define('N8N_SEMINUEVOS_WEBHOOK_URL', 'https://n8n.grupopcr.com.pa/webhook/seminu
 define('N8N_SEMINUEVOS_JWT_SECRET', 'TU_JWT_SECRET_N8N');
 // Opcional: si IT entrega un Bearer fijo, úsalo en lugar de firmar con el secret:
 // define('N8N_SEMINUEVOS_JWT_TOKEN', '');
+
+// Webhook n8n — AMCorp / Leasing Operativo → Pipedrive corporativo
+define('N8N_AMCORP_WEBHOOK_URL', 'https://n8n.grupopcr.com.pa/webhook/amcorp-lead');
+// Si es el mismo secret que Seminuevos, basta con N8N_SEMINUEVOS_JWT_SECRET; o define uno propio:
+define('N8N_AMCORP_JWT_SECRET', 'TU_JWT_SECRET_N8N');
+// define('N8N_AMCORP_JWT_TOKEN', '');
