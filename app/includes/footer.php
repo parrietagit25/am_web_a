@@ -104,6 +104,13 @@ usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b[
         </div>
     </footer>
 
+    <?php
+    $reqPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
+    if (strpos($reqPath, '/admin') !== 0) {
+        require __DIR__ . '/chatbot-widget.php';
+    }
+    ?>
+
     <!-- WhatsApp Floating Button -->
     <a href="https://wa.me/<?php echo preg_replace('/\D/', '', $globalSettings['whatsapp_number'] ?? '5072792700'); ?>" 
        class="whatsapp-float d-flex align-items-center justify-content-center shadow-lg" 

@@ -115,6 +115,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errorMsg = 'Error al guardar el diccionario de traducciones.';
         }
     }
+    elseif ($action === 'save_chatbot') {
+        require_once __DIR__ . '/../../services/ChatbotService.php';
+        if (!isset($siteData['global'])) {
+            $siteData['global'] = [];
+        }
+        $siteData['global']['chatbot'] = ChatbotService::normalizeSavedConfig($_POST);
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Configuración del chatbot guardada correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar la configuración del chatbot.';
+        }
+    }
     elseif ($action === 'save_seo_global') {
         if (!isset($siteData['seo'])) {
             $siteData['seo'] = [];
@@ -2687,6 +2699,9 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                 <button class="nav-link text-start" id="tab-seo-nav" data-bs-toggle="pill" data-bs-target="#tab-seo" type="button" role="tab" aria-controls="tab-seo" aria-selected="false">
                     <i class="bi bi-search me-2"></i> SEO (Global / Página)
                 </button>
+                <button class="nav-link text-start" id="tab-chatbot-nav" data-bs-toggle="pill" data-bs-target="#tab-chatbot" type="button" role="tab" aria-controls="tab-chatbot" aria-selected="false">
+                    <i class="bi bi-robot me-2"></i> Chatbot IA
+                </button>
                 <button class="nav-link text-start" id="tab-landings-nav" data-bs-toggle="pill" data-bs-target="#tab-landings" type="button" role="tab" aria-controls="tab-landings" aria-selected="false">
                     <i class="bi bi-bullseye me-2"></i> Landing Pages
                 </button>
@@ -3022,6 +3037,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
 
                     <?php require_once __DIR__ . '/../../includes/admin-translations-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-seo-tab.php'; ?>
+                    <?php require_once __DIR__ . '/../../includes/admin-chatbot-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-landings-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-footer-tab.php'; ?>
                     
