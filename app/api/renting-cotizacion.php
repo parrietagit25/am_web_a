@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/ContentService.php';
 require_once __DIR__ . '/../services/PipedriveService.php';
+require_once __DIR__ . '/../services/RentingQuoteAlertService.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 if (!$input) {
@@ -55,6 +56,8 @@ $lead = [
 
 $siteData['renting']['quote_leads'][] = $lead;
 $contentService->saveAll($siteData);
+
+RentingQuoteAlertService::notifyNewQuote($lead, $siteData['renting']);
 
 $interest = 'Renting - Cotización';
 if ($carInterest !== '') {

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/renting-posts.php';
+require_once __DIR__ . '/../services/RentingQuoteAlertService.php';
 
 $renting_cars_list = $renting_cars;
 usort($renting_cars_list, function ($a, $b) {
@@ -24,6 +25,11 @@ usort($renting_brands_list, function ($a, $b) {
 $renting_quote_leads_list = $renting_quote_leads;
 usort($renting_quote_leads_list, function ($a, $b) {
     return strcmp($b['date'] ?? '', $a['date'] ?? '');
+});
+
+$renting_quote_alert_emails_list = RentingQuoteAlertService::normalizeList($renting ?? []);
+usort($renting_quote_alert_emails_list, function ($a, $b) {
+    return strcmp($b['created_at'] ?? '', $a['created_at'] ?? '');
 });
 
 $renting_servicios = $renting['servicios'] ?? [];
@@ -671,6 +677,75 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
 
                     <!-- TAB: RENTING COTIZACIONES -->
                     <div class="tab-pane fade" id="tab-renting-cotizaciones" role="tabpanel" aria-labelledby="tab-renting-cotizaciones-nav">
+                        <div class="admin-card mb-4">
+                            <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-envelope-at-fill me-2 text-danger"></i>Correos de alerta (nueva cotización)
+                            </h5>
+                            <p class="text-muted small mb-4">Recibirán un correo cada vez que alguien envíe el formulario «Cotiza tu plan» en la página de Renting.</p>
+
+                            <form method="POST" action="?tab=renting-cotizaciones" class="row g-3 align-items-end mb-4">
+                                <input type="hidden" name="action" value="add_renting_quote_alert_email">
+                                <div class="col-md-5">
+                                    <label for="renting_quote_alert_email" class="form-label">Correo electrónico</label>
+                                    <input type="email" id="renting_quote_alert_email" name="alert_email" class="form-control form-control-premium" placeholder="ventas@empresa.com" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="renting_quote_alert_label" class="form-label">Etiqueta (opcional)</label>
+                                    <input type="text" id="renting_quote_alert_label" name="alert_label" class="form-control form-control-premium" placeholder="Equipo renting">
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="submit" class="btn btn-theme w-100 rounded-pill fw-bold text-white py-2">
+                                        <i class="bi bi-plus-circle me-1"></i> Registrar
+                                    </button>
+                                </div>
+                            </form>
+
+                            <?php if (empty($renting_quote_alert_emails_list)): ?>
+                                <p class="text-muted small mb-0">No hay correos configurados. Agregue al menos uno para recibir alertas.</p>
+                            <?php else: ?>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Correo</th>
+                                                <th>Etiqueta</th>
+                                                <th>Estado</th>
+                                                <th class="text-end">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($renting_quote_alert_emails_list as $alert): ?>
+                                            <tr>
+                                                <td><?php echo esc($alert['email'] ?? ''); ?></td>
+                                                <td><?php echo esc($alert['label'] ?? '—'); ?></td>
+                                                <td>
+                                                    <?php if (!empty($alert['active'])): ?>
+                                                        <span class="badge bg-success-subtle text-success">Activo</span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-secondary-subtle text-secondary">Inactivo</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td class="text-end">
+                                                    <form method="POST" action="?tab=renting-cotizaciones" class="d-inline">
+                                                        <input type="hidden" name="action" value="toggle_renting_quote_alert_email">
+                                                        <input type="hidden" name="alert_id" value="<?php echo esc($alert['id'] ?? ''); ?>">
+                                                        <input type="hidden" name="is_active" value="<?php echo !empty($alert['active']) ? '0' : '1'; ?>">
+                                                        <button type="submit" class="btn btn-sm btn-outline-dark rounded-pill"><?php echo !empty($alert['active']) ? 'Desactivar' : 'Activar'; ?></button>
+                                                    </form>
+                                                    <form method="POST" action="?tab=renting-cotizaciones" class="d-inline ms-1" onsubmit="return confirm('¿Eliminar este correo de alerta?');">
+                                                        <input type="hidden" name="action" value="delete_renting_quote_alert_email">
+                                                        <input type="hidden" name="alert_id" value="<?php echo esc($alert['id'] ?? ''); ?>">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">Eliminar</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
                         <div class="admin-card">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
                                 <i class="bi bi-inbox-fill me-2 text-danger"></i>Solicitudes de cotización (Renting)

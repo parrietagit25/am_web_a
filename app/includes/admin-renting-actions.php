@@ -3,6 +3,8 @@
  * Acciones POST admin — Renting (incluir dentro del bloque de acciones en index.php)
  */
 
+require_once __DIR__ . '/../services/RentingQuoteAlertService.php';
+
 // SAVE RENTING HOME (included from admin/index.php POST handler)
 if ($action === 'save_renting_home') {
     if (!isset($siteData['renting'])) {
@@ -236,6 +238,46 @@ elseif ($action === 'delete_renting_post') {
         $successMsg = 'Publicación de Renting eliminada correctamente.';
     } else {
         $errorMsg = 'Error al eliminar la publicación.';
+    }
+}
+
+// RENTING — correos de alerta (cotizaciones)
+elseif ($action === 'add_renting_quote_alert_email') {
+    if (!isset($siteData['renting'])) {
+        $siteData['renting'] = [];
+    }
+    $result = RentingQuoteAlertService::add(
+        $siteData['renting'],
+        trim($_POST['alert_email'] ?? ''),
+        trim($_POST['alert_label'] ?? '')
+    );
+    if ($result['ok'] && $contentService->saveAll($siteData)) {
+        $successMsg = $result['message'];
+    } else {
+        $errorMsg = $result['message'] ?? 'Error al guardar el correo.';
+    }
+}
+elseif ($action === 'delete_renting_quote_alert_email') {
+    if (!isset($siteData['renting'])) {
+        $siteData['renting'] = [];
+    }
+    $id = trim($_POST['alert_id'] ?? '');
+    if (RentingQuoteAlertService::deleteById($siteData['renting'], $id) && $contentService->saveAll($siteData)) {
+        $successMsg = 'Correo de alerta eliminado.';
+    } else {
+        $errorMsg = 'No se pudo eliminar el correo.';
+    }
+}
+elseif ($action === 'toggle_renting_quote_alert_email') {
+    if (!isset($siteData['renting'])) {
+        $siteData['renting'] = [];
+    }
+    $id = trim($_POST['alert_id'] ?? '');
+    $active = ($_POST['is_active'] ?? '0') === '1';
+    if (RentingQuoteAlertService::setActiveById($siteData['renting'], $id, $active) && $contentService->saveAll($siteData)) {
+        $successMsg = 'Estado del correo actualizado.';
+    } else {
+        $errorMsg = 'No se pudo actualizar el correo.';
     }
 }
 
