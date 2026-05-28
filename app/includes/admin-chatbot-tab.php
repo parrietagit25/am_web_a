@@ -115,6 +115,7 @@ if (!is_array($suggestionsEn)) {
             <li>Endpoint: <code>POST /api/chat.php</code> — contexto en sesión PHP; cada mensaje se guarda en BD (ver <strong>Historial de sesiones</strong>).</li>
             <li>Límite: 40 mensajes por hora por sesión; contexto de las últimas 12 interacciones.</li>
             <li>El botón flotante aparece encima del botón de WhatsApp en todas las páginas públicas.</li>
+            <li><strong>Voz:</strong> micrófono y modo llamada (Chrome/Edge). <strong>Trámites guiados:</strong> reserva RAC, contacto Seminuevos, Leasing y Renting.</li>
             <li>Recomendado: modelo <strong>GPT-4o mini</strong> por costo y velocidad.</li>
         </ul>
     </div>

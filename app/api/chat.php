@@ -34,6 +34,31 @@ if ($action === 'reset') {
     exit;
 }
 
+if ($action === 'start_flow') {
+    $flowId = trim($input['flow_id'] ?? '');
+    $result = $chatbot->startGuideFlow(
+        $flowId,
+        $lang,
+        $activeUnit !== '' ? $activeUnit : null,
+        $pageUrl !== '' ? $pageUrl : null
+    );
+    if (!$result['ok']) {
+        $code = (int) ($result['code'] ?? 400);
+        http_response_code($code >= 400 && $code < 600 ? $code : 400);
+        echo json_encode(['status' => 'error', 'message' => $result['error'] ?? 'Error']);
+        exit;
+    }
+    http_response_code(200);
+    echo json_encode([
+        'status' => 'success',
+        'reply' => $result['reply'] ?? '',
+        'flow' => $result['flow'] ?? null,
+        'speak' => $result['speak'] ?? true,
+        'completed' => $result['completed'] ?? false,
+    ]);
+    exit;
+}
+
 $message = trim($input['message'] ?? '');
 $result = $chatbot->reply($message, $lang, $activeUnit !== '' ? $activeUnit : null, $pageUrl !== '' ? $pageUrl : null);
 
@@ -51,4 +76,8 @@ http_response_code(200);
 echo json_encode([
     'status' => 'success',
     'reply' => $result['reply'],
+    'flow' => $result['flow'] ?? null,
+    'speak' => $result['speak'] ?? true,
+    'completed' => $result['completed'] ?? false,
+    'reservation_code' => $result['reservation_code'] ?? null,
 ]);

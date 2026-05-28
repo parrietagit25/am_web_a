@@ -20,9 +20,9 @@ if (empty($chatbotPublic['enabled'])) {
 $chatbotJson = htmlspecialchars(json_encode($chatbotPublic, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8');
 $chatActiveUnit = isset($activeUnit) ? (string) $activeUnit : '';
 ?>
-<link rel="stylesheet" href="/assets/css/chatbot.css?v=1">
+<link rel="stylesheet" href="/assets/css/chatbot.css?v=2">
 <div id="am-chatbot-root"
      data-chatbot="<?php echo $chatbotJson; ?>"
      data-active-unit="<?php echo esc($chatActiveUnit); ?>"
      aria-live="polite"></div>
-<script src="/assets/js/chatbot.js?v=1" defer></script>
+<script src="/assets/js/chatbot.js?v=2" defer></script>
