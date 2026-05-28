@@ -2427,6 +2427,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     require __DIR__ . '/../../includes/admin-renting-actions.php';
     require __DIR__ . '/../../includes/admin-taller-actions.php';
+    require __DIR__ . '/../../includes/admin-footer-actions.php';
 }
 
 // Reload site data for rendering
@@ -2672,6 +2673,9 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                 </button>
                 <button class="nav-link text-start" id="tab-landings-nav" data-bs-toggle="pill" data-bs-target="#tab-landings" type="button" role="tab" aria-controls="tab-landings" aria-selected="false">
                     <i class="bi bi-bullseye me-2"></i> Landing Pages
+                </button>
+                <button class="nav-link text-start" id="tab-footer-nav" data-bs-toggle="pill" data-bs-target="#tab-footer" type="button" role="tab" aria-controls="tab-footer" aria-selected="false">
+                    <i class="bi bi-layout-text-window-reverse me-2"></i> Pie de página
                 </button>
                 
                 <!-- Rent A Car Collapsible Accordion -->
@@ -3000,6 +3004,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                     <?php require_once __DIR__ . '/../../includes/admin-translations-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-seo-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-landings-tab.php'; ?>
+                    <?php require_once __DIR__ . '/../../includes/admin-footer-tab.php'; ?>
                     
                     <!-- TAB 2: HOMEPAGE HERO & FEATURED BANNER -->
                     <div class="tab-pane fade" id="tab-hero" role="tabpanel" aria-labelledby="tab-hero-nav">
