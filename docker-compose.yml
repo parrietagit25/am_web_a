@@ -15,6 +15,11 @@ services:
   app:
     image: php:8.3-fpm-alpine
     container_name: automarket_app
+    env_file:
+      - .env
+    environment:
+      N8N_SEMINUEVOS_WEBHOOK_URL: ${N8N_SEMINUEVOS_WEBHOOK_URL:-https://n8n.grupopcr.com.pa/webhook/seminuevos}
+      N8N_SEMINUEVOS_JWT_SECRET: ${N8N_SEMINUEVOS_JWT_SECRET:-}
     volumes:
       - ./app:/var/www/html
       - ./docker/php-fpm-entrypoint.sh:/usr/local/bin/php-fpm-entrypoint.sh:ro

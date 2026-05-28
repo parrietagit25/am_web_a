@@ -165,8 +165,30 @@ $activeSucursales = array_values(array_filter($semiSucursales, function($s) {
                             <input type="text" id="phone" name="phone" class="form-control py-3 bg-white" placeholder="xxx-xxxx">
                         </div>
 
-                        <?php if (!empty($activeSucursales)): ?>
                         <div class="col-12">
+                            <label for="auto_interes" class="form-label text-navy font-poppins fw-semibold" style="font-size:.83rem;">Auto de tu inter&eacute;s <span class="text-danger">*</span></label>
+                            <input type="text" id="auto_interes" name="auto_interes" class="form-control py-3 bg-white" placeholder="Ej: Toyota Yaris 2022" required minlength="3">
+                        </div>
+
+                        <div class="col-md-6 col-12">
+                            <label for="provincia" class="form-label text-navy font-poppins fw-semibold" style="font-size:.83rem;">Provincia</label>
+                            <select id="provincia" name="provincia" class="form-control form-select py-3 bg-white">
+                                <option value="">Selecciona...</option>
+                                <option>Bocas Del Toro</option>
+                                <option>Coclé</option>
+                                <option>Colón</option>
+                                <option>Chiriquí</option>
+                                <option>Darien</option>
+                                <option>Herrera</option>
+                                <option>Los Santos</option>
+                                <option>Panamá</option>
+                                <option>Veraguas</option>
+                                <option>Panamá Oeste (La Chorrera)</option>
+                            </select>
+                        </div>
+
+                        <?php if (!empty($activeSucursales)): ?>
+                        <div class="col-md-6 col-12">
                             <label for="contact_branch" class="form-label text-navy font-poppins fw-semibold" style="font-size:.83rem;">Sucursal de inter&eacute;s</label>
                             <select id="contact_branch" name="branch" class="form-control form-select py-3 bg-white">
                                 <option value="">&mdash; Seleccione una sucursal &mdash;</option>
@@ -178,8 +200,13 @@ $activeSucursales = array_values(array_filter($semiSucursales, function($s) {
                         <?php endif; ?>
 
                         <div class="col-12">
-                            <label for="message" class="form-label text-navy font-poppins fw-semibold" style="font-size:.83rem;">Comentarios <span class="text-danger">*</span></label>
-                            <textarea id="message" name="message" class="form-control bg-white" rows="5" placeholder="Comentarios" required></textarea>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="consent" name="consent" value="1" required>
+                                <label class="form-check-label font-poppins text-muted" style="font-size:.82rem;" for="consent">
+                                    Autorizo el tratamiento de mis datos personales conforme a la
+                                    <a href="#privacidad" class="text-danger">Pol&iacute;tica de Privacidad</a> de Automarket.
+                                </label>
+                            </div>
                         </div>
                         <div class="col-12 mt-2">
                             <button type="submit" id="submitBtn" class="sn-submit-btn">Enviar</button>
@@ -191,7 +218,7 @@ $activeSucursales = array_values(array_filter($semiSucursales, function($s) {
                     <div class="rounded-circle bg-success d-flex align-items-center justify-content-center flex-shrink-0" style="width:28px;height:28px;">
                         <i class="bi bi-check-lg text-white"></i>
                     </div>
-                    <span class="fw-semibold font-poppins">&iexcl;Operaci&oacute;n exitosa! Mensaje enviado correctamente.</span>
+                    <span id="successMessage" class="fw-semibold font-poppins">&iexcl;Gracias! Un asesor te contactar&aacute; pronto.</span>
                 </div>
                 <div id="errorBanner" class="mt-4 p-3 rounded-3 d-none align-items-center gap-2 text-white bg-danger">
                     <i class="bi bi-exclamation-triangle-fill"></i>
@@ -366,43 +393,70 @@ async function handleContactSubmit(event) {
     event.preventDefault();
     var form          = document.getElementById('contactForm');
     var submitBtn     = document.getElementById('submitBtn');
-    var successBanner = document.getElementById('successBanner');
-    var errorBanner   = document.getElementById('errorBanner');
-    var errorMessage  = document.getElementById('errorMessage');
+    var successBanner  = document.getElementById('successBanner');
+    var successMessage = document.getElementById('successMessage');
+    var errorBanner    = document.getElementById('errorBanner');
+    var errorMessage   = document.getElementById('errorMessage');
 
     successBanner.classList.add('d-none');
     successBanner.classList.remove('d-flex');
     errorBanner.classList.add('d-none');
     errorBanner.classList.remove('d-flex');
 
-    var firstName = document.getElementById('first_name').value.trim();
-    var lastName  = document.getElementById('last_name').value.trim();
-    var email     = document.getElementById('email').value.trim();
-    var phone     = document.getElementById('phone').value.trim();
-    var message   = document.getElementById('message').value.trim();
-    var branchEl  = document.getElementById('contact_branch');
-    var branch    = branchEl ? branchEl.value : '';
+    var firstName   = document.getElementById('first_name').value.trim();
+    var lastName    = document.getElementById('last_name').value.trim();
+    var email       = document.getElementById('email').value.trim();
+    var phone       = document.getElementById('phone').value.trim();
+    var autoInteres = document.getElementById('auto_interes').value.trim();
+    var provincia   = document.getElementById('provincia').value;
+    var consent     = document.getElementById('consent').checked;
+    var branchEl    = document.getElementById('contact_branch');
+    var branch      = branchEl ? branchEl.value : '';
 
-    if (!firstName || !lastName || !email || !message) {
+    if (!firstName || !lastName || !email || !autoInteres) {
         errorMessage.innerText = 'Por favor, llene todos los campos obligatorios.';
+        errorBanner.classList.remove('d-none'); errorBanner.classList.add('d-flex'); return;
+    }
+    if (autoInteres.length < 3) {
+        errorMessage.innerText = 'Indique el auto de su inter\u00e9s (m\u00ednimo 3 caracteres).';
         errorBanner.classList.remove('d-none'); errorBanner.classList.add('d-flex'); return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         errorMessage.innerText = 'Por favor, introduzca una direcci\u00f3n de correo v\u00e1lida.';
         errorBanner.classList.remove('d-none'); errorBanner.classList.add('d-flex'); return;
     }
+    if (!consent) {
+        errorMessage.innerText = 'Debe aceptar el tratamiento de sus datos personales.';
+        errorBanner.classList.remove('d-none'); errorBanner.classList.add('d-flex'); return;
+    }
     submitBtn.disabled = true; submitBtn.innerText = 'Enviando...';
     try {
-        var response = await fetch('/api/contacto.php', {
+        var response = await fetch('/api/seminuevos-lead.php', {
             method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ first_name: firstName, last_name: lastName,
-                email: email, phone: phone, message: message, unit: 'Seminuevos', branch: branch })
+            body: JSON.stringify({
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+                phone: phone,
+                auto_interes: autoInteres,
+                provincia: provincia,
+                branch: branch,
+                consent: consent
+            })
         });
         var data = await response.json();
-        if (response.ok && data.status === 'success') {
+        if (response.ok && (data.status === 'success' || data.status === 'partial')) {
+            successMessage.innerText = data.message || '\u00a1Gracias! Un asesor te contactar\u00e1 pronto.';
             successBanner.classList.remove('d-none'); successBanner.classList.add('d-flex'); form.reset();
+            if (window.dataLayer && data.crm && data.crm.deal_id) {
+                window.dataLayer.push({
+                    event: 'lead_seminuevos',
+                    deal_id: data.crm.deal_id,
+                    person_source: data.crm.person_source
+                });
+            }
         } else {
-            errorMessage.innerText = data.message || 'Error al enviar el mensaje.';
+            errorMessage.innerText = data.message || data.crm_error || 'Error al enviar el mensaje.';
             errorBanner.classList.remove('d-none'); errorBanner.classList.add('d-flex');
         }
     } catch (err) {

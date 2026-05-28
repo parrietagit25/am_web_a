@@ -52,3 +52,9 @@ function am_log($message, $level = 'INFO') {
 }
 
 define('RESEND_API_KEY', 'TU_RESEND_API_KEY');
+
+// Webhook n8n — leads Seminuevos → Pipedrive (pipeline 21)
+define('N8N_SEMINUEVOS_WEBHOOK_URL', 'https://n8n.grupopcr.com.pa/webhook/seminuevos');
+define('N8N_SEMINUEVOS_JWT_SECRET', 'TU_JWT_SECRET_N8N');
+// Opcional: si IT entrega un Bearer fijo, úsalo en lugar de firmar con el secret:
+// define('N8N_SEMINUEVOS_JWT_TOKEN', '');

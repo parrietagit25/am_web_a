@@ -9,6 +9,9 @@ app/storage/site_data.json.bak*
 app/storage/logs/
 *.log
 
+# Variables de entorno locales
+.env
+
 # Sistema / IDE
 .DS_Store
 Thumbs.db
