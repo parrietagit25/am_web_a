@@ -204,7 +204,7 @@ $activeSucursales = array_values(array_filter($semiSucursales, function($s) {
                                 <input class="form-check-input" type="checkbox" id="consent" name="consent" value="1" required>
                                 <label class="form-check-label font-poppins text-muted" style="font-size:.82rem;" for="consent">
                                     Autorizo el tratamiento de mis datos personales conforme a la
-                                    <a href="#privacidad" class="text-danger">Pol&iacute;tica de Privacidad</a> de Automarket.
+                                    <a href="/pagina-institucional.php?p=privacidad" class="text-danger" target="_blank" rel="noopener">Pol&iacute;tica de Privacidad</a> de Automarket.
                                 </label>
                             </div>
                         </div>

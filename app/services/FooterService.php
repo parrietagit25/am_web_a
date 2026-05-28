@@ -5,13 +5,22 @@
 
 class FooterService
 {
-    public const PAGE_KEYS = ['sobre_nosotros', 'terminos', 'faq', 'subastas'];
+    public const PAGE_KEYS = [
+        'sobre_nosotros',
+        'terminos',
+        'faq',
+        'subastas',
+        'privacidad',
+        'cookies',
+    ];
 
     public const PAGE_LABELS = [
         'sobre_nosotros' => 'Sobre nosotros',
         'terminos' => 'Términos y condiciones',
         'faq' => 'Preguntas frecuentes',
         'subastas' => 'Subastas',
+        'privacidad' => 'Política de privacidad',
+        'cookies' => 'Política de cookies',
     ];
 
     public const UNIT_LABELS = [
@@ -121,8 +130,8 @@ class FooterService
             'email' => $global['email'] ?? 'info@automarket.com.pa',
             'logo_url' => '/assets/img/logo.png',
             'copyright' => $global['footer_copyright'] ?? 'Automarket. Todos los derechos reservados.',
-            'privacy_url' => '#privacidad',
-            'cookies_url' => '#cookies',
+            'privacy_url' => '/pagina-institucional.php?p=privacidad',
+            'cookies_url' => '/pagina-institucional.php?p=cookies',
             'resources_title' => 'Recursos',
             'also_know_title' => 'Conoce también',
             'follow_title' => 'Síguenos',
@@ -131,6 +140,13 @@ class FooterService
                 <span class="badge bg-light text-dark px-2 py-1 fs-6"><i class="bi bi-credit-card-2-front-fill text-danger"></i> Mastercard</span>
                 <span class="badge bg-light text-dark px-2 py-1 fs-6"><i class="bi bi-bank text-success"></i> ACH</span>',
         ], $stored['general'] ?? []);
+
+        if (in_array($general['privacy_url'] ?? '', ['#privacidad', '#', ''], true)) {
+            $general['privacy_url'] = '/pagina-institucional.php?p=privacidad';
+        }
+        if (in_array($general['cookies_url'] ?? '', ['#cookies', '#', ''], true)) {
+            $general['cookies_url'] = '/pagina-institucional.php?p=cookies';
+        }
 
         $pages = $stored['pages'] ?? [];
         foreach (self::PAGE_KEYS as $key) {

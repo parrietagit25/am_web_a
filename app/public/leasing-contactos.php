@@ -127,7 +127,7 @@ if (empty($contactImageUrl)) {
                                 <input class="form-check-input" type="checkbox" id="consent" name="consent" value="1" required>
                                 <label class="form-check-label font-poppins text-muted" style="font-size: 0.82rem;" for="consent">
                                     Autorizo el tratamiento de mis datos personales conforme a la
-                                    <a href="#privacidad" class="text-danger">Política de Privacidad</a> de Automarket.
+                                    <a href="/pagina-institucional.php?p=privacidad" class="text-danger" target="_blank" rel="noopener">Política de Privacidad</a> de Automarket.
                                 </label>
                             </div>
                         </div>

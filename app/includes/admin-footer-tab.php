@@ -27,6 +27,8 @@ $publicBase = $scheme . '://' . $host;
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-faq" type="button">FAQ</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-sucursales" type="button">Sucursales</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-subastas" type="button">Subastas</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-privacidad" type="button">Privacidad</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-cookies" type="button">Cookies</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-blog" type="button">Blog</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-social" type="button">Redes sociales</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-also" type="button">Conoce también</button></li>
@@ -68,12 +70,14 @@ $publicBase = $scheme . '://' . $host;
                             <input type="text" name="footer_copyright" class="form-control form-control-premium" value="<?php echo esc($footerGeneral['copyright'] ?? ''); ?>">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">URL privacidad</label>
-                            <input type="text" name="footer_privacy_url" class="form-control form-control-premium" value="<?php echo esc($footerGeneral['privacy_url'] ?? '#privacidad'); ?>">
+                            <label class="form-label">Enlace pie — Privacidad</label>
+                            <input type="text" name="footer_privacy_url" class="form-control form-control-premium" value="<?php echo esc($footerGeneral['privacy_url'] ?? '/pagina-institucional.php?p=privacidad'); ?>">
+                            <div class="form-text">Por defecto: página institucional de privacidad.</div>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">URL cookies</label>
-                            <input type="text" name="footer_cookies_url" class="form-control form-control-premium" value="<?php echo esc($footerGeneral['cookies_url'] ?? '#cookies'); ?>">
+                            <label class="form-label">Enlace pie — Cookies</label>
+                            <input type="text" name="footer_cookies_url" class="form-control form-control-premium" value="<?php echo esc($footerGeneral['cookies_url'] ?? '/pagina-institucional.php?p=cookies'); ?>">
+                            <div class="form-text">Por defecto: página institucional de cookies.</div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">HTML medios de pago (columna derecha)</label>
@@ -93,6 +97,8 @@ $publicBase = $scheme . '://' . $host;
             'terminos' => ['key' => 'terminos', 'target' => 'footer-sub-terminos', 'public' => '/pagina-institucional.php?p=terminos'],
             'faq' => ['key' => 'faq', 'target' => 'footer-sub-faq', 'public' => '/pagina-institucional.php?p=faq'],
             'subastas' => ['key' => 'subastas', 'target' => 'footer-sub-subastas', 'public' => '/pagina-institucional.php?p=subastas'],
+            'privacidad' => ['key' => 'privacidad', 'target' => 'footer-sub-privacidad', 'public' => '/pagina-institucional.php?p=privacidad'],
+            'cookies' => ['key' => 'cookies', 'target' => 'footer-sub-cookies', 'public' => '/pagina-institucional.php?p=cookies'],
         ];
         foreach ($pageForms as $pf):
             $pk = $pf['key'];

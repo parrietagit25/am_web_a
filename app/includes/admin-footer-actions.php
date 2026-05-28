@@ -19,8 +19,8 @@ if ($action === 'save_footer_general') {
     $g['phone_display'] = trim($_POST['footer_phone'] ?? '');
     $g['email'] = trim($_POST['footer_email'] ?? '');
     $g['copyright'] = trim($_POST['footer_copyright'] ?? '');
-    $g['privacy_url'] = trim($_POST['footer_privacy_url'] ?? '#privacidad');
-    $g['cookies_url'] = trim($_POST['footer_cookies_url'] ?? '#cookies');
+    $g['privacy_url'] = trim($_POST['footer_privacy_url'] ?? '/pagina-institucional.php?p=privacidad');
+    $g['cookies_url'] = trim($_POST['footer_cookies_url'] ?? '/pagina-institucional.php?p=cookies');
     $g['resources_title'] = trim($_POST['footer_resources_title'] ?? 'Recursos');
     $g['also_know_title'] = trim($_POST['footer_also_know_title'] ?? 'Conoce también');
     $g['follow_title'] = trim($_POST['footer_follow_title'] ?? 'Síguenos');

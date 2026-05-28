@@ -99,7 +99,7 @@ $contactImageUrl = $contact['contact_image_url'] ?? '';
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="rc_consent" value="1" required>
                                 <label class="form-check-label font-poppins text-muted small" for="rc_consent">
-                                    He leído y acepto la <a href="#privacidad" class="text-danger">Política de Privacidad</a>.
+                                    He leído y acepto la <a href="/pagina-institucional.php?p=privacidad" class="text-danger" target="_blank" rel="noopener">Política de Privacidad</a>.
                                     Autorizo el tratamiento de mis datos para ser contactado por un asesor comercial.
                                 </label>
                             </div>
