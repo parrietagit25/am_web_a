@@ -1,6 +1,10 @@
 # Configuración local / secretos (crear en el servidor, no subir a Git)
 app/config/config.php
 
+# Contenido dinámico del sitio (se edita en admin en cada entorno; no versionar en Git)
+app/storage/site_data.json
+app/storage/site_data.json.bak*
+
 # Logs de aplicación
 app/storage/logs/
 *.log
