@@ -2646,6 +2646,21 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
             padding: 12px;
             margin-bottom: 10px;
         }
+        .text-navy {
+            color: var(--navy) !important;
+        }
+        .text-navy-light {
+            color: var(--navy-light) !important;
+        }
+        .bg-navy {
+            background-color: var(--navy) !important;
+        }
+        .admin-table-badge {
+            background-color: #f1f3f5 !important;
+            color: #212529 !important;
+            border: 1px solid #dee2e6 !important;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -3530,7 +3545,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                                     <strong><?php echo esc($vehicle['name']); ?></strong>
                                                 </td>
                                                 <td>
-                                                    <span class="badge bg-navy text-white px-2 py-1"><?php echo esc($vehicle['category']); ?></span>
+                                                    <span class="badge admin-table-badge px-2 py-1"><?php echo esc($vehicle['category']); ?></span>
                                                 </td>
                                                 <td>
                                                     <small class="text-muted d-block">
@@ -3776,7 +3791,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                                     <small class="d-block text-muted"><strong>Tel:</strong> <?php echo esc($msg['phone']); ?></small>
                                                 </td>
                                                 <td>
-                                                    <span class="badge bg-light text-navy border"><?php echo esc($msg['unit'] ?? 'General'); ?></span>
+                                                    <span class="badge admin-table-badge"><?php echo esc($msg['unit'] ?? 'General'); ?></span>
                                                 </td>
                                                 <td>
                                                     <div class="text-truncate" style="max-width: 250px;">
@@ -5443,7 +5458,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                                 </td>
                                                 <td><strong><?php echo esc($vehicle['name']); ?></strong></td>
                                                 <td>
-                                                    <span class="badge bg-navy text-white px-2 py-1"><?php echo esc($vehicle['category']); ?></span>
+                                                    <span class="badge admin-table-badge px-2 py-1"><?php echo esc($vehicle['category']); ?></span>
                                                 </td>
                                                 <td>
                                                     <small class="text-muted d-block">
@@ -6832,7 +6847,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <div class="mb-3">
                     <label class="small text-uppercase text-muted fw-bold font-poppins">Unidad de Negocio:</label>
-                    <div><span id="modal-msg-unit" class="badge bg-light text-navy border font-poppins"></span></div>
+                    <div><span id="modal-msg-unit" class="badge admin-table-badge font-poppins"></span></div>
                 </div>
                 <hr>
                 <div>
