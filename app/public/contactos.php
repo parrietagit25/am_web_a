@@ -1,0 +1,597 @@
+<?php
+/**
+ * Automarket - Contactos (Dynamic Contacts Page)
+ */
+$activeUnit = $_GET['unit'] ?? 'rentacar';
+if (!in_array($activeUnit, ['rentacar', 'seminuevos', 'leasing', 'renting', 'taller', 'sostenibilidad'])) {
+    $activeUnit = 'rentacar';
+}
+
+require_once __DIR__ . '/../includes/header.php';
+
+$contactImageUrl = $contentService->get('homepage.contact_image_url', '/assets/img/sucursales-rac.webp');
+$tallerContact = $contentService->get('taller.contact', []);
+
+$unitHomeLinks = [
+    'rentacar'       => ['url' => '/rent-a-car.php',     'label' => 'Rent A Car'],
+    'seminuevos'     => ['url' => '/venta-autos.php',    'label' => 'Venta de Autos'],
+    'leasing'        => ['url' => '/leasing.php',        'label' => 'Leasing'],
+    'renting'        => ['url' => '/renting.php',        'label' => 'Renting'],
+    'taller'         => ['url' => '/taller.php',         'label' => 'Taller'],
+    'sostenibilidad' => ['url' => '/sostenibilidad.php', 'label' => 'Sostenibilidad']
+];
+$currentUnitHome = $unitHomeLinks[$activeUnit] ?? ['url' => '/rent-a-car.php', 'label' => 'Rent A Car'];
+
+// Load Seminuevos sucursales
+$siteData       = $contentService->getAll();
+$semiSucursales = $siteData['seminuevos']['sucursales'] ?? [];
+usort($semiSucursales, function($a, $b) {
+    return intval($a['sort_order'] ?? 99) - intval($b['sort_order'] ?? 99);
+});
+$activeSucursales = array_values(array_filter($semiSucursales, function($s) {
+    return ($s['active'] ?? true) !== false;
+}));
+?>
+
+<?php if ($activeUnit === 'seminuevos'): ?>
+<!-- ============================================================
+     SEMINUEVOS CONTACT PAGE
+     ============================================================ -->
+
+<!-- Leaflet.js Interactive Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<style>
+.sn-breadcrumb-strip { background: #f8f9fc; border-bottom: 1px solid #eaecf3; }
+.sn-page-title { font-size: 2.2rem; letter-spacing: -0.5px; }
+
+/* Form panel */
+.sn-form-panel { background: #ededed; border: 1px solid #e0e0e0; border-radius: 16px; }
+.sn-form-panel .form-control,
+.sn-form-panel .form-select {
+    border-radius: 8px; border: 1px solid #d1d5db;
+    font-family: 'Poppins', sans-serif; font-size: .88rem;
+    transition: border-color .2s, box-shadow .2s;
+}
+.sn-form-panel .form-control:focus,
+.sn-form-panel .form-select:focus { border-color: #c51f17; box-shadow: 0 0 0 3px rgba(197,31,23,.12); }
+.sn-submit-btn {
+    background: #c51f17; border: none; color: #fff; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase; padding: 13px 0;
+    border-radius: 8px; width: 100%; font-size: .9rem;
+    font-family: 'Montserrat', sans-serif;
+    transition: background .2s, transform .15s, box-shadow .2s;
+}
+.sn-submit-btn:hover { background: #a81812; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(197,31,23,.3); }
+
+/* Right sidebar */
+.sn-sidebar-sticky { position: sticky; top: 100px; }
+.sn-cta-box {
+    background: #0d1f5e; border-radius: 16px 16px 0 0;
+    padding: 38px 30px; text-align: center; color: #fff;
+}
+.sn-cta-box h3 {
+    font-size: 1.35rem; font-weight: 900; font-family: 'Montserrat', sans-serif;
+    line-height: 1.25; margin-bottom: 12px;
+}
+.sn-cta-box p { font-family: 'Poppins', sans-serif; font-size: .9rem; opacity: .85; margin-bottom: 22px; }
+.sn-cta-btn-outline {
+    display: inline-block; border: 2px solid #fff; color: #c51f17;
+    background: #fff; font-family: 'Montserrat', sans-serif; font-weight: 800;
+    font-size: .82rem; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 11px 30px; border-radius: 6px; text-decoration: none;
+    transition: all .22s ease;
+}
+.sn-cta-btn-outline:hover { background: #c51f17; border-color: #c51f17; color: #fff; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(197,31,23,.4); }
+.sn-sidebar-img { border-radius: 0 0 16px 16px; overflow: hidden; line-height: 0; }
+.sn-sidebar-img img { width: 100%; display: block; object-fit: cover; max-height: 340px; }
+
+/* Sucursales accordion */
+.sn-accordion-item {
+    background: #fff; border: 1px solid #e3e6f0 !important;
+    border-radius: 12px !important; overflow: hidden;
+    box-shadow: 0 2px 10px rgba(11,31,107,.06);
+}
+.sn-accordion-btn {
+    background: #fff !important; color: #081026 !important; font-weight: 700;
+    font-family: 'Montserrat', sans-serif; font-size: 1.1rem;
+    padding: 20px 24px; box-shadow: none !important; border: none !important;
+    transition: color .2s, border-left .2s;
+}
+.sn-accordion-btn:not(.collapsed) { color: #c51f17 !important; border-left: 5px solid #c51f17 !important; padding-left: 19px; }
+.sn-info-label {
+    font-weight: 700; font-size: .82rem; text-transform: uppercase;
+    letter-spacing: .5px; color: #c51f17; font-family: 'Montserrat', sans-serif;
+    display: block; margin-bottom: 3px;
+}
+.sn-info-value { color: #333; font-family: 'Poppins', sans-serif; font-size: .9rem; padding-left: 22px; }
+.sn-info-value a { color: #0b1f6b; text-decoration: none; font-weight: 600; }
+.sn-info-value a:hover { color: #c51f17; text-decoration: underline; }
+.sn-howto-btn {
+    display: inline-flex; align-items: center; gap: 8px; background: #c51f17; color: #fff;
+    font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: .82rem;
+    letter-spacing: .5px; text-transform: uppercase; padding: 10px 22px;
+    border-radius: 50px; text-decoration: none; transition: background .2s, transform .15s;
+}
+.sn-howto-btn:hover { background: #a81812; color: #fff; transform: translateY(-1px); }
+.leaflet-popup-content-wrapper { border-radius: 8px !important; font-family: 'Poppins', sans-serif; }
+.sn-section-title { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; color: #0b1f6b; }
+.sn-section-title span { color: #c51f17; }
+@media (max-width: 991px) { .sn-sidebar-sticky { position: static; } }
+</style>
+
+<!-- BREADCRUMB + TITLE -->
+<section class="sn-breadcrumb-strip py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2 font-poppins" style="font-size:.84rem;">
+                <li class="breadcrumb-item"><a href="/venta-autos.php" class="text-danger text-decoration-none fw-semibold">Venta de Autos</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Contactos y Sucursales</li>
+            </ol>
+        </nav>
+        <h1 class="sn-page-title fw-bold text-navy font-montserrat mb-1">Contactos y Sucursales</h1>
+        <p class="text-muted font-poppins mb-0" style="font-size:.9rem;">
+            Gracias por escribirnos. Por favor llena el formulario y pronto te responderemos.
+        </p>
+    </div>
+</section>
+
+<!-- FORM + SIDEBAR -->
+<section class="container py-5">
+    <div class="row g-4">
+
+        <!-- LEFT: Contact Form -->
+        <div class="col-lg-7 col-12">
+            <div class="sn-form-panel p-4 p-md-5">
+                <form id="contactForm" onsubmit="handleContactSubmit(event)" novalidate>
+                    <input type="hidden" id="contact_unit" name="unit" value="Seminuevos">
+
+                    <div class="row g-3">
+                        <div class="col-md-6 col-12">
+                            <label for="first_name" class="form-label text-navy font-poppins fw-semibold" style="font-size:.83rem;">Su Nombre <span class="text-danger">*</span></label>
+                            <input type="text" id="first_name" name="first_name" class="form-control py-3 bg-white" placeholder="Su nombre" required>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label for="last_name" class="form-label text-navy font-poppins fw-semibold" style="font-size:.83rem;">Su Apellido <span class="text-danger">*</span></label>
+                            <input type="text" id="last_name" name="last_name" class="form-control py-3 bg-white" placeholder="Su Apellido" required>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label for="email" class="form-label text-navy font-poppins fw-semibold" style="font-size:.83rem;">E-mail <span class="text-danger">*</span></label>
+                            <input type="email" id="email" name="email" class="form-control py-3 bg-white" placeholder="E-mail" required>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label for="phone" class="form-label text-navy font-poppins fw-semibold" style="font-size:.83rem;">Su Tel&eacute;fono</label>
+                            <input type="text" id="phone" name="phone" class="form-control py-3 bg-white" placeholder="xxx-xxxx">
+                        </div>
+
+                        <?php if (!empty($activeSucursales)): ?>
+                        <div class="col-12">
+                            <label for="contact_branch" class="form-label text-navy font-poppins fw-semibold" style="font-size:.83rem;">Sucursal de inter&eacute;s</label>
+                            <select id="contact_branch" name="branch" class="form-control form-select py-3 bg-white">
+                                <option value="">&mdash; Seleccione una sucursal &mdash;</option>
+                                <?php foreach ($activeSucursales as $suc): ?>
+                                    <option value="<?php echo esc($suc['name']); ?>"><?php echo esc($suc['name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <?php endif; ?>
+
+                        <div class="col-12">
+                            <label for="message" class="form-label text-navy font-poppins fw-semibold" style="font-size:.83rem;">Comentarios <span class="text-danger">*</span></label>
+                            <textarea id="message" name="message" class="form-control bg-white" rows="5" placeholder="Comentarios" required></textarea>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <button type="submit" id="submitBtn" class="sn-submit-btn">Enviar</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="successBanner" class="mt-4 p-3 rounded-3 d-none align-items-center gap-2 text-white" style="background:#2b2b2b;">
+                    <div class="rounded-circle bg-success d-flex align-items-center justify-content-center flex-shrink-0" style="width:28px;height:28px;">
+                        <i class="bi bi-check-lg text-white"></i>
+                    </div>
+                    <span class="fw-semibold font-poppins">&iexcl;Operaci&oacute;n exitosa! Mensaje enviado correctamente.</span>
+                </div>
+                <div id="errorBanner" class="mt-4 p-3 rounded-3 d-none align-items-center gap-2 text-white bg-danger">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span id="errorMessage" class="fw-semibold font-poppins">Ocurri&oacute; un error al enviar el mensaje.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: CTA box + Image stacked -->
+        <div class="col-lg-5 col-12 d-none d-lg-block">
+            <div class="sn-sidebar-sticky">
+                <!-- Top: Dark navy CTA box -->
+                <div class="sn-cta-box">
+                    <h3>&iexcl;Compra tu seminuevo!</h3>
+                    <p>Un seminuevo es la mejor forma de estrenar sin pagar de m&aacute;s</p>
+                    <a href="/inventario.php" class="sn-cta-btn-outline">Cotiza tu Veh&iacute;culo</a>
+                </div>
+                <!-- Bottom: Image -->
+                <div class="sn-sidebar-img">
+                    <img src="/assets/img/contactos-sn.webp" alt="Automarket Seminuevos" loading="lazy">
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- SUCURSALES SECTION -->
+<section class="container pb-5 mb-3">
+    <div class="text-center mb-5">
+        <span class="d-inline-block text-danger fw-bold text-uppercase font-poppins mb-2" style="font-size:.78rem;letter-spacing:2px;">
+            <i class="bi bi-geo-alt-fill me-1"></i>Nuestras Ubicaciones
+        </span>
+        <h2 class="sn-section-title font-montserrat">Sucursales <span>Automarket</span></h2>
+        <p class="text-muted font-poppins mt-2" style="max-width:500px;margin:0 auto;font-size:.88rem;">
+            Vis&iacute;tanos en cualquiera de nuestras <?php echo count($activeSucursales); ?> sucursales a nivel nacional
+        </p>
+    </div>
+
+    <?php if (empty($activeSucursales)): ?>
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-building-slash fs-1 mb-3 d-block"></i>
+            <p>Sucursales pr&oacute;ximamente disponibles.</p>
+        </div>
+    <?php else: ?>
+        <div class="accordion d-flex flex-column gap-3" id="snSucursalesAccordion">
+            <?php foreach ($activeSucursales as $index => $suc):
+                $id         = intval($suc['id']);
+                $isFirst    = ($index === 0);
+                $collapseId = 'sn_suc_' . $id;
+                $lat        = floatval($suc['lat'] ?? 8.9866);
+                $lng        = floatval($suc['lng'] ?? -79.5190);
+                $sucName    = addslashes(esc($suc['name']));
+                $sucAddr    = addslashes(esc($suc['address'] ?? ''));
+            ?>
+                <div class="accordion-item sn-accordion-item">
+                    <h2 class="accordion-header mb-0">
+                        <button class="accordion-button sn-accordion-btn <?php echo $isFirst ? '' : 'collapsed'; ?>"
+                                type="button" data-bs-toggle="collapse"
+                                data-bs-target="#<?php echo $collapseId; ?>"
+                                aria-expanded="<?php echo $isFirst ? 'true' : 'false'; ?>"
+                                aria-controls="<?php echo $collapseId; ?>">
+                            <i class="bi bi-geo-alt-fill me-2 fs-5"></i>
+                            <?php echo esc($suc['name']); ?>
+                        </button>
+                    </h2>
+
+                    <div id="<?php echo $collapseId; ?>"
+                         class="accordion-collapse collapse <?php echo $isFirst ? 'show' : ''; ?>"
+                         data-bs-parent="#snSucursalesAccordion">
+                        <div class="accordion-body p-4 bg-white border-top">
+                            <div class="row g-4 align-items-stretch">
+
+                                <!-- Col 1: Info -->
+                                <div class="col-md-6 col-12 d-flex flex-column justify-content-between">
+                                    <div class="d-flex flex-column gap-3">
+
+                                        <?php if (!empty($suc['location'])): ?>
+                                        <div>
+                                            <span class="sn-info-label"><i class="bi bi-geo-alt-fill me-2"></i>Ubicado en:</span>
+                                            <span class="sn-info-value fw-semibold text-navy"><?php echo esc($suc['location']); ?></span>
+                                        </div>
+                                        <?php endif; ?>
+
+                                        <?php if (!empty($suc['address'])): ?>
+                                        <div>
+                                            <span class="sn-info-label"><i class="bi bi-map-fill me-2"></i>Direcci&oacute;n:</span>
+                                            <span class="sn-info-value"><?php echo esc($suc['address']); ?></span>
+                                        </div>
+                                        <?php endif; ?>
+
+                                        <?php if (!empty($suc['schedule'])): ?>
+                                        <div>
+                                            <span class="sn-info-label"><i class="bi bi-clock-fill me-2"></i>Horario:</span>
+                                            <span class="sn-info-value"><?php echo esc($suc['schedule']); ?></span>
+                                        </div>
+                                        <?php endif; ?>
+
+                                        <?php if (!empty($suc['phone'])): ?>
+                                        <div>
+                                            <span class="sn-info-label"><i class="bi bi-telephone-fill me-2"></i>Tel&eacute;fono:</span>
+                                            <span class="sn-info-value">
+                                                <a href="tel:<?php echo preg_replace('/\D/', '', $suc['phone']); ?>"><?php echo esc($suc['phone']); ?></a>
+                                            </span>
+                                        </div>
+                                        <?php endif; ?>
+
+                                    </div>
+
+                                    <div class="mt-4 pt-3 border-top">
+                                        <a href="https://maps.google.com?saddr=Current+Location&daddr=<?php echo $lat; ?>,<?php echo $lng; ?>"
+                                           target="_blank" rel="noopener" class="sn-howto-btn">
+                                            <i class="bi bi-arrow-up-right-circle"></i>&iquest;C&oacute;mo llegar? (Google Maps)
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Col 2: Leaflet Map -->
+                                <div class="col-md-6 col-12 position-relative d-flex">
+                                    <div id="snmap_<?php echo $id; ?>"
+                                         class="rounded-3 shadow-sm border w-100 flex-grow-1"
+                                         style="min-height:280px;background:#f1f3f7;z-index:1;"></div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaflet init -->
+                <script>
+                (function() {
+                    var _m<?php echo $id; ?> = null, _mk<?php echo $id; ?> = null;
+                    var _icon<?php echo $id; ?> = null;
+                    var _lat<?php echo $id; ?> = <?php echo $lat; ?>;
+                    var _lng<?php echo $id; ?> = <?php echo $lng; ?>;
+                    var _name<?php echo $id; ?> = '<?php echo $sucName; ?>';
+                    var _addr<?php echo $id; ?> = '<?php echo $sucAddr; ?>';
+                    var _colEl<?php echo $id; ?> = document.getElementById('<?php echo $collapseId; ?>');
+
+                    function _initMap<?php echo $id; ?>() {
+                        if (_m<?php echo $id; ?>) { _m<?php echo $id; ?>.invalidateSize(); _mk<?php echo $id; ?>.openPopup(); return; }
+                        _m<?php echo $id; ?> = L.map('snmap_<?php echo $id; ?>').setView([_lat<?php echo $id; ?>, _lng<?php echo $id; ?>], 16);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        }).addTo(_m<?php echo $id; ?>);
+                        _icon<?php echo $id; ?> = L.icon({
+                            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+                            iconSize:[25,41], iconAnchor:[12,41], popupAnchor:[1,-34], shadowSize:[41,41]
+                        });
+                        _mk<?php echo $id; ?> = L.marker([_lat<?php echo $id; ?>, _lng<?php echo $id; ?>], {icon: _icon<?php echo $id; ?>})
+                            .addTo(_m<?php echo $id; ?>)
+                            .bindPopup('<span class="fw-bold text-navy">' + _name<?php echo $id; ?> + '</span><br><small class="text-muted">' + _addr<?php echo $id; ?> + '</small>');
+                        _mk<?php echo $id; ?>.openPopup();
+                    }
+
+                    _colEl<?php echo $id; ?>.addEventListener('shown.bs.collapse', _initMap<?php echo $id; ?>);
+
+                    <?php if ($isFirst): ?>
+                    document.addEventListener('DOMContentLoaded', function() { setTimeout(_initMap<?php echo $id; ?>, 250); });
+                    <?php endif; ?>
+                })();
+                </script>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</section>
+
+<script>
+async function handleContactSubmit(event) {
+    event.preventDefault();
+    var form          = document.getElementById('contactForm');
+    var submitBtn     = document.getElementById('submitBtn');
+    var successBanner = document.getElementById('successBanner');
+    var errorBanner   = document.getElementById('errorBanner');
+    var errorMessage  = document.getElementById('errorMessage');
+
+    successBanner.classList.add('d-none');
+    successBanner.classList.remove('d-flex');
+    errorBanner.classList.add('d-none');
+    errorBanner.classList.remove('d-flex');
+
+    var firstName = document.getElementById('first_name').value.trim();
+    var lastName  = document.getElementById('last_name').value.trim();
+    var email     = document.getElementById('email').value.trim();
+    var phone     = document.getElementById('phone').value.trim();
+    var message   = document.getElementById('message').value.trim();
+    var branchEl  = document.getElementById('contact_branch');
+    var branch    = branchEl ? branchEl.value : '';
+
+    if (!firstName || !lastName || !email || !message) {
+        errorMessage.innerText = 'Por favor, llene todos los campos obligatorios.';
+        errorBanner.classList.remove('d-none'); errorBanner.classList.add('d-flex'); return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errorMessage.innerText = 'Por favor, introduzca una direcci\u00f3n de correo v\u00e1lida.';
+        errorBanner.classList.remove('d-none'); errorBanner.classList.add('d-flex'); return;
+    }
+    submitBtn.disabled = true; submitBtn.innerText = 'Enviando...';
+    try {
+        var response = await fetch('/api/contacto.php', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ first_name: firstName, last_name: lastName,
+                email: email, phone: phone, message: message, unit: 'Seminuevos', branch: branch })
+        });
+        var data = await response.json();
+        if (response.ok && data.status === 'success') {
+            successBanner.classList.remove('d-none'); successBanner.classList.add('d-flex'); form.reset();
+        } else {
+            errorMessage.innerText = data.message || 'Error al enviar el mensaje.';
+            errorBanner.classList.remove('d-none'); errorBanner.classList.add('d-flex');
+        }
+    } catch (err) {
+        console.error(err);
+        errorMessage.innerText = 'Error de red. Int\u00e9ntelo m\u00e1s tarde.';
+        errorBanner.classList.remove('d-none'); errorBanner.classList.add('d-flex');
+    } finally {
+        submitBtn.disabled = false; submitBtn.innerText = 'Enviar';
+    }
+}
+</script>
+
+<?php else: ?>
+<!-- ============================================================
+     GENERIC CONTACT PAGE (rent-a-car, leasing, renting, etc.)
+     ============================================================ -->
+
+<!-- Breadcrumb and Title -->
+<section class="py-5" style="background-color: #f8f9fc;">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2 font-poppins">
+                <li class="breadcrumb-item"><a href="<?php echo esc($currentUnitHome['url']); ?>" class="text-danger text-decoration-none fw-semibold"><?php echo esc($currentUnitHome['label']); ?></a></li>
+                <li class="breadcrumb-item active" aria-current="page"><?php echo esc(t('contact.title')); ?></li>
+            </ol>
+        </nav>
+        <h1 class="display-5 fw-bold text-navy font-montserrat mb-0" style="font-size: 2.30rem; letter-spacing: -0.5px;"><?php echo esc(($activeUnit === 'taller' && !empty($tallerContact['title'] ?? '')) ? $tallerContact['title'] : t('contact.title')); ?></h1>
+        <p class="text-muted font-poppins mt-2 mb-0">
+            <?php
+            echo esc(($activeUnit === 'taller' && !empty($tallerContact['intro'] ?? '')) ? $tallerContact['intro'] : t('contact.intro'));
+            ?>
+        </p>
+    </div>
+</section>
+
+<!-- Contact Form & Info -->
+<section class="container py-5 mb-5">
+    <div class="row g-5">
+        <div class="col-lg-7 col-12">
+            <div class="p-4 p-md-5 rounded-4 shadow-sm" style="background-color: #ededed; border: 1px solid #e0e0e0;">
+                <form id="contactForm" onsubmit="handleContactSubmit(event)" novalidate>
+                    <input type="hidden" id="contact_unit" name="unit" value="<?php echo esc($activeUnit === 'rentacar' ? 'Rent A Car' : ucfirst($activeUnit)); ?>">
+                    <div class="row g-3">
+                        <div class="col-md-6 col-12">
+                            <label for="first_name" class="form-label text-navy font-poppins fw-semibold size-xs mb-1"><?php echo esc(t('contact.first_name')); ?></label>
+                            <input type="text" id="first_name" name="first_name" class="form-control form-control-premium bg-white border-0 py-3" placeholder="<?php echo esc(t('contact.first_name')); ?>" required>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label for="last_name" class="form-label text-navy font-poppins fw-semibold size-xs mb-1"><?php echo esc(t('contact.last_name')); ?></label>
+                            <input type="text" id="last_name" name="last_name" class="form-control form-control-premium bg-white border-0 py-3" placeholder="<?php echo esc(t('contact.last_name')); ?>" required>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label for="email" class="form-label text-navy font-poppins fw-semibold size-xs mb-1"><?php echo esc(t('contact.email')); ?></label>
+                            <input type="email" id="email" name="email" class="form-control form-control-premium bg-white border-0 py-3" placeholder="<?php echo esc(t('contact.email')); ?>" required>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label for="phone" class="form-label text-navy font-poppins fw-semibold size-xs mb-1"><?php echo esc(t('contact.phone')); ?></label>
+                            <input type="text" id="phone" name="phone" class="form-control form-control-premium bg-white border-0 py-3" placeholder="<?php echo esc(t('contact.phone')); ?>" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="message" class="form-label text-navy font-poppins fw-semibold size-xs mb-1"><?php echo esc(t('contact.message')); ?></label>
+                            <textarea id="message" name="message" class="form-control form-control-premium bg-white border-0 py-3" rows="5" placeholder="<?php echo esc(t('contact.message')); ?>" required></textarea>
+                        </div>
+                        <div class="col-12 text-center mt-4">
+                            <button type="submit" id="submitBtn" class="btn btn-theme px-5 py-3 fw-bold text-uppercase rounded-3 font-montserrat shadow-sm" style="background-color: #c51f17; border-color: #c51f17; min-width: 180px;">
+                                <?php echo esc(t('common.send')); ?>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <div id="successBanner" class="mt-4 p-3 rounded-3 d-none align-items-center justify-content-between text-white" style="background-color: #2b2b2b;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-success d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                            <i class="bi bi-check-lg text-white"></i>
+                        </div>
+                        <span class="fw-semibold font-poppins">&iexcl;Operaci&oacute;n exitosa!</span>
+                    </div>
+                    <div class="small opacity-75 font-poppins d-none d-md-block" style="font-size: 0.75rem;">Mensaje enviado correctamente</div>
+                </div>
+                <div id="errorBanner" class="mt-4 p-3 rounded-3 d-none align-items-center gap-2 text-white bg-danger">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span id="errorMessage" class="fw-semibold font-poppins">Ocurri&oacute; un error al enviar el mensaje.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5 col-12">
+            <div class="ps-lg-4 sticky-widget">
+                <div class="contact-info-panel py-4 px-1">
+                    <div class="mb-5">
+                        <h5 class="fw-bold font-montserrat text-navy text-uppercase mb-3" style="font-size: 1.1rem; letter-spacing: 0.5px;"><?php echo esc(t('contact.phone_label')); ?></h5>
+                        <div class="d-flex flex-column gap-2">
+                            <?php
+                            $phone1 = ($activeUnit === 'taller') ? ($tallerContact['phone_1'] ?? '(507) 279-2700') : '(507) 279-2700';
+                            $phone2 = ($activeUnit === 'taller') ? ($tallerContact['phone_2'] ?? '(507) 6747-0070') : '(507) 6747-0070';
+                            ?>
+                            <?php if (!empty(trim($phone1))): ?>
+                                <a href="tel:<?php echo preg_replace('/\D/', '', $phone1); ?>" class="text-navy font-poppins fs-5 text-decoration-none fw-semibold hover-red d-flex align-items-center gap-2">
+                                    <i class="bi bi-telephone-fill text-muted"></i> <?php echo esc($phone1); ?>
+                                </a>
+                            <?php endif; ?>
+                            <?php if (!empty(trim($phone2))): ?>
+                                <a href="tel:<?php echo preg_replace('/\D/', '', $phone2); ?>" class="text-navy font-poppins fs-5 text-decoration-none fw-semibold hover-red d-flex align-items-center gap-2">
+                                    <i class="bi bi-telephone-fill text-muted"></i> <?php echo esc($phone2); ?>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="mb-5">
+                        <h5 class="fw-bold font-montserrat text-navy text-uppercase mb-3" style="font-size: 1.1rem; letter-spacing: 0.5px;"><?php echo esc(t('contact.whatsapp')); ?></h5>
+                        <?php
+                        $waText = ($activeUnit === 'taller') ? ($tallerContact['whatsapp'] ?? '(507) 6747-0070') : '(507) 6747-0070';
+                        $waDigits = preg_replace('/\D/', '', $waText);
+                        ?>
+                        <a href="https://api.whatsapp.com/send?phone=<?php echo esc($waDigits); ?>" target="_blank" class="btn text-white fw-bold d-inline-flex align-items-center gap-2 px-4 py-2 rounded-3 shadow-sm hover-grow" style="background-color: #25d366; font-family: 'Poppins', sans-serif;">
+                            <i class="bi bi-whatsapp fs-5"></i> <?php echo esc($waText); ?>
+                        </a>
+                    </div>
+                    <?php
+                    $sideImage = $contactImageUrl;
+                    if ($activeUnit === 'taller' && !empty($tallerContact['image_url'] ?? '')) {
+                        $sideImage = $tallerContact['image_url'];
+                    }
+                    ?>
+                    <?php if (!empty($sideImage)): ?>
+                        <div class="mt-4 rounded-4 overflow-hidden border shadow-sm">
+                            <img src="<?php echo esc($sideImage); ?>" alt="Automarket Contacto" class="img-fluid w-100" style="object-fit: cover; max-height: 350px; display: block;">
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .hover-red:hover { color: #c51f17 !important; }
+    .hover-grow { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .hover-grow:hover { transform: scale(1.03); box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3) !important; }
+    @media (min-width: 992px) { .sticky-widget { position: sticky; top: 100px; z-index: 10; } }
+</style>
+
+<script>
+async function handleContactSubmit(event) {
+    event.preventDefault();
+    var form = document.getElementById('contactForm');
+    var submitBtn = document.getElementById('submitBtn');
+    var successBanner = document.getElementById('successBanner');
+    var errorBanner = document.getElementById('errorBanner');
+    var errorMessage = document.getElementById('errorMessage');
+    successBanner.classList.add('d-none'); successBanner.classList.remove('d-flex');
+    errorBanner.classList.add('d-none');
+    var firstName = document.getElementById('first_name').value.trim();
+    var lastName = document.getElementById('last_name').value.trim();
+    var email = document.getElementById('email').value.trim();
+    var phone = document.getElementById('phone').value.trim();
+    var message = document.getElementById('message').value.trim();
+    if (!firstName || !lastName || !email || !message) {
+        errorMessage.innerText = 'Por favor, llene todos los campos obligatorios.';
+        errorBanner.classList.remove('d-none'); return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errorMessage.innerText = 'Por favor, introduzca una direcci\u00f3n de correo v\u00e1lida.';
+        errorBanner.classList.remove('d-none'); return;
+    }
+    submitBtn.disabled = true; submitBtn.innerText = 'Enviando...';
+    try {
+        var response = await fetch('/api/contacto.php', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ first_name: firstName, last_name: lastName, email: email, phone: phone, message: message,
+                unit: document.getElementById('contact_unit').value })
+        });
+        var data = await response.json();
+        if (response.ok && data.status === 'success') {
+            successBanner.classList.remove('d-none'); successBanner.classList.add('d-flex'); form.reset();
+        } else {
+            errorMessage.innerText = data.message || 'Error al enviar el mensaje.';
+            errorBanner.classList.remove('d-none');
+        }
+    } catch (err) {
+        console.error(err);
+        errorMessage.innerText = 'Error de red. Int\u00e9ntelo m\u00e1s tarde.';
+        errorBanner.classList.remove('d-none');
+    } finally {
+        submitBtn.disabled = false; submitBtn.innerText = 'Enviar';
+    }
+}
+</script>
+
+<?php endif; ?>
+
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>
