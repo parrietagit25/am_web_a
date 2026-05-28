@@ -77,7 +77,9 @@ try {
         'price_web' => $vehicle['priceWeb'] ?? null,
         'price_counter' => $vehicle['priceCounter'] ?? null,
         'price_total' => $vehicle['priceTotal'] ?? null,
-        'price_total_estimated' => $vehicle['priceTotalEstimated'] ?? null,
+        'price_total_estimated' => isset($input['price_total_estimated'])
+            ? (float) $input['price_total_estimated']
+            : ($vehicle['priceTotalEstimated'] ?? null),
         'coverage_code' => trim($input['coverage_code'] ?? ''),
         'equipment' => $input['equipment'] ?? [],
         'vehicle_snapshot' => $vehicle,

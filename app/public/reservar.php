@@ -10,23 +10,23 @@ require_once __DIR__ . '/../includes/header.php';
 <section class="container mt-4 pt-2">
     <div class="row">
         <div class="col-12">
-            <div class="stepper-container">
+            <div class="stepper-container" id="checkoutStepper">
                 <div class="stepper-line"></div>
-                <div class="stepper-line-active" style="width: 70%;"></div>
+                <div class="stepper-line-active" id="checkoutStepperProgress" style="width: 70%;"></div>
                 
-                <div class="step-item completed">
+                <div class="step-item completed" data-step="1">
                     <div class="step-badge" style="cursor: pointer;" onclick="window.location.href='/rent-a-car.php'"><i class="bi bi-check-lg"></i></div>
                     <span class="step-title">1. Fecha y Lugar</span>
                 </div>
-                <div class="step-item completed">
+                <div class="step-item completed" data-step="2">
                     <div class="step-badge" style="cursor: pointer;" onclick="window.location.href='/resultados.php'"><i class="bi bi-check-lg"></i></div>
                     <span class="step-title">2. Vehículo</span>
                 </div>
-                <div class="step-item active">
+                <div class="step-item active" data-step="3" id="stepperStep3">
                     <div class="step-badge">3</div>
                     <span class="step-title">3. Adicionales y Datos</span>
                 </div>
-                <div class="step-item">
+                <div class="step-item" data-step="4" id="stepperStep4">
                     <div class="step-badge">4</div>
                     <span class="step-title">4. Confirmación</span>
                 </div>
@@ -178,6 +178,10 @@ require_once __DIR__ . '/../includes/header.php';
                             <span class="text-muted">Cargo por Acceso de Servicio (SAF)</span>
                             <span id="checkoutSafRate" class="fw-semibold text-navy">$0.00</span>
                         </div>
+                        <div class="d-flex justify-content-between" id="checkoutCoverageRow">
+                            <span class="text-muted">Protección seleccionada</span>
+                            <span id="checkoutCoverageRate" class="fw-semibold text-navy">$0.00</span>
+                        </div>
                         <div class="d-flex justify-content-between">
                             <span class="text-muted">Impuesto (ITBMS 7%)</span>
                             <span id="checkoutItbmsRate" class="fw-semibold text-navy">$0.00</span>
@@ -202,6 +206,59 @@ require_once __DIR__ . '/../includes/header.php';
 </section>
 
 <script>
+function setCheckoutStepperConfirmed() {
+    const progress = document.getElementById('checkoutStepperProgress');
+    if (progress) progress.style.width = '100%';
+
+    document.querySelectorAll('#checkoutStepper .step-item').forEach(el => {
+        el.classList.remove('active');
+        el.classList.add('completed');
+        const badge = el.querySelector('.step-badge');
+        if (badge) badge.innerHTML = '<i class="bi bi-check-lg"></i>';
+    });
+
+    const step4 = document.getElementById('stepperStep4');
+    if (step4) {
+        step4.classList.add('active');
+        const badge = step4.querySelector('.step-badge');
+        if (badge) badge.innerHTML = '<i class="bi bi-check-lg"></i>';
+    }
+}
+
+function recalcCheckoutTotals() {
+    const state = window._racCheckoutPricing;
+    if (!state) return;
+
+    const selected = document.querySelector('input[name="coverage_code"]:checked');
+    let coverageAmt = 0;
+    let coverageLabel = '—';
+    if (selected && state.packagesByCode[selected.value]) {
+        const pkg = state.packagesByCode[selected.value];
+        coverageAmt = parseFloat(pkg.amountTotal ?? pkg.pricePerDay ?? 0) || 0;
+        coverageLabel = pkg.name || pkg.description || selected.value;
+    }
+
+    const subtotal = state.rentalBase + state.saf + coverageAmt;
+    const itbms = Math.round(subtotal * 0.07 * 100) / 100;
+    const total = Math.round((subtotal + itbms) * 100) / 100;
+
+    document.getElementById('checkoutBaseRate').innerText = '$' + state.rentalBase.toFixed(2);
+    document.getElementById('checkoutSafRate').innerText = '$' + state.saf.toFixed(2);
+    document.getElementById('checkoutCoverageRate').innerText = '$' + coverageAmt.toFixed(2);
+    document.getElementById('checkoutItbmsRate').innerText = '$' + itbms.toFixed(2);
+    document.getElementById('checkoutTotalRate').innerText = '$' + total.toFixed(2);
+
+    window._racCheckoutPricing.currentTotal = total;
+    window._racCheckoutPricing.currentCoverage = coverageAmt;
+    window._racCheckoutPricing.currentItbms = itbms;
+
+    document.querySelectorAll('#coverageOptions label').forEach(lbl => {
+        lbl.classList.remove('border-danger');
+        const inp = lbl.querySelector('input[name="coverage_code"]');
+        if (inp && inp.checked) lbl.classList.add('border-danger');
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     
     // Read from sessionStorage
@@ -257,40 +314,55 @@ document.addEventListener('DOMContentLoaded', function() {
     if (checkoutPickupDate) checkoutPickupDate.innerHTML = `<i class="bi bi-calendar-event me-1"></i> ${criteria.pickupDate} <small class="text-muted">${criteria.pickupTime}</small>`;
     if (checkoutReturnDate) checkoutReturnDate.innerHTML = `<i class="bi bi-calendar-x me-1"></i> ${criteria.returnDate} <small class="text-muted">${criteria.returnTime}</small>`;
     
-    // 3. Populate Pricing details
     const pricing = vehicle.pricing || {};
-    const baseVal = pricing.rateBase || vehicle.priceWeb || 0;
-    const safVal = pricing.saf || 0;
-    const itbmsVal = pricing.itbms || 0;
-    const totalVal = vehicle.priceTotalEstimated || vehicle.priceTotal || (baseVal + safVal + itbmsVal);
-    
-    document.getElementById('checkoutBaseRate').innerText = `$${parseFloat(baseVal).toFixed(2)}`;
-    document.getElementById('checkoutSafRate').innerText = `$${parseFloat(safVal).toFixed(2)}`;
-    document.getElementById('checkoutItbmsRate').innerText = `$${parseFloat(itbmsVal).toFixed(2)}`;
-    document.getElementById('checkoutTotalRate').innerText = `$${parseFloat(totalVal).toFixed(2)}`;
+    const rentalBase = parseFloat(pricing.rateBase ?? vehicle.priceTotal ?? vehicle.priceWeb ?? 0) || 0;
+    const saf = parseFloat(pricing.saf ?? 0) || 0;
 
-    const rateType = sessionStorage.getItem('selectedRateType') || vehicle._selectedRateType || 'web';
     const coverageWrap = document.getElementById('coverageOptions');
     const packages = pricing.coveragePackages || vehicle.availableCoverages || [];
-    const defaultCode = (packages.find(p => p.isDefault) || packages[0])?.code || 'BASIC';
+    const packagesByCode = {};
+    packages.forEach((pkg, i) => {
+        const code = pkg.code || pkg.coverageType || ('cov_' + i);
+        packagesByCode[code] = pkg;
+    });
+
+    window._racCheckoutPricing = {
+        rentalBase,
+        saf,
+        packagesByCode
+    };
+
+    const defaultPkg = packages.find(p => p.isDefault) || packages[0];
+    const defaultCode = defaultPkg ? (defaultPkg.code || defaultPkg.coverageType) : 'BASIC';
 
     if (coverageWrap && packages.length) {
         packages.forEach((pkg, i) => {
             const code = pkg.code || pkg.coverageType || ('cov_' + i);
-            const id = 'cov_' + code;
-            const checked = (pkg.isDefault || code === defaultCode) ? 'checked' : '';
+            const id = 'cov_' + code.replace(/[^a-zA-Z0-9_-]/g, '');
+            const isDefault = pkg.isDefault || code === defaultCode;
+            const checked = isDefault ? 'checked' : '';
+            const name = (pkg.name || pkg.description || code).replace(/</g, '&lt;');
+            const amt = parseFloat(pkg.amountTotal || pkg.pricePerDay || 0).toFixed(2);
+            const ded = parseFloat(pkg.deductible || 0).toFixed(0);
             coverageWrap.insertAdjacentHTML('beforeend', `
                 <label class="border rounded-3 p-3 d-flex gap-3 align-items-start cursor-pointer ${checked ? 'border-danger' : ''}">
-                    <input type="radio" name="coverage_code" class="form-check-input mt-1" value="${code}" id="${id}" ${checked}>
+                    <input type="radio" name="coverage_code" class="form-check-input mt-1 rac-coverage-radio" value="${code}" id="${id}" data-amount="${amt}" ${checked}>
                     <div>
-                        <span class="fw-bold text-navy d-block">${pkg.name || pkg.description || code}</span>
-                        <small class="text-muted">$${parseFloat(pkg.amountTotal || pkg.pricePerDay || 0).toFixed(2)} total · Deducible $${parseFloat(pkg.deductible || 0).toFixed(0)}</small>
+                        <span class="fw-bold text-navy d-block">${name}</span>
+                        <small class="text-muted">$${amt} total · Deducible $${ded}</small>
                     </div>
                 </label>`);
         });
+
+        coverageWrap.querySelectorAll('.rac-coverage-radio').forEach(radio => {
+            radio.addEventListener('change', recalcCheckoutTotals);
+        });
     } else if (coverageWrap) {
         coverageWrap.innerHTML = '<p class="text-muted text-sm">La protección se confirmará con su asesor al validar la reserva.</p>';
+        document.getElementById('checkoutCoverageRow')?.classList.add('d-none');
     }
+
+    recalcCheckoutTotals();
 });
 
 /**
@@ -320,6 +392,12 @@ function submitCheckoutBooking(e) {
     const coverageEl = document.querySelector('input[name="coverage_code"]:checked');
     const rateType = sessionStorage.getItem('selectedRateType') || vehicle._selectedRateType || 'web';
 
+    const pricingState = window._racCheckoutPricing || {};
+    const estimatedTotal = pricingState.currentTotal
+        || vehicle.priceTotalEstimated
+        || vehicle.priceTotal
+        || 0;
+
     const payload = {
         customer_name: name,
         customer_phone: phone,
@@ -327,6 +405,7 @@ function submitCheckoutBooking(e) {
         customer_comments: comments,
         coverage_code: coverageEl ? coverageEl.value : '',
         rate_type: rateType,
+        price_total_estimated: estimatedTotal,
         search: criteria,
         vehicle: vehicle
     };
@@ -361,6 +440,7 @@ function submitCheckoutBooking(e) {
         
         document.getElementById('checkoutGrid').classList.add('d-none');
         document.getElementById('successPanel').classList.remove('d-none');
+        setCheckoutStepperConfirmed();
         const codeEl = document.getElementById('successReservationCode');
         if (codeEl && data.reservation_code) {
             codeEl.textContent = 'Código de reserva: ' + data.reservation_code;

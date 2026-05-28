@@ -31,14 +31,16 @@ $statusLabels = [
                     <input type="hidden" name="action" value="add_rac_alert_email">
                     <div class="col-md-5">
                         <label class="form-label fw-semibold">Correo electrónico</label>
-                        <input type="email" name="alert_email" class="form-control form-control-premium" placeholder="reservas@empresa.com" required>
+                        <input type="email" name="alert_email" id="rac_alert_email_input" class="form-control form-control-premium" placeholder="reservas@empresa.com" required>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Etiqueta (opcional)</label>
                         <input type="text" name="alert_label" class="form-control form-control-premium" placeholder="Equipo reservas">
                     </div>
                     <div class="col-md-3">
-                        <button type="submit" class="btn btn-theme w-100 rounded-pill fw-bold text-white">Agregar</button>
+                        <button type="submit" class="btn btn-theme w-100 rounded-pill fw-bold text-white py-2">
+                            <i class="bi bi-plus-circle me-1"></i> Registrar
+                        </button>
                     </div>
                 </form>
 
@@ -106,13 +108,14 @@ $statusLabels = [
                                     <th>Retiro / Devolución</th>
                                     <th>Total est.</th>
                                     <th>Estado</th>
-                                    <th></th>
+                                    <th class="text-end">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($racReservations as $res): ?>
                                 <?php
                                     $st = $statusLabels[$res['status'] ?? 'pending'] ?? $statusLabels['pending'];
+                                    $resJson = htmlspecialchars(json_encode($res, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8');
                                 ?>
                                 <tr>
                                     <td><span class="badge bg-danger-subtle text-danger fw-bold"><?php echo esc($res['reservation_code']); ?></span></td>
@@ -132,11 +135,18 @@ $statusLabels = [
                                     </td>
                                     <td class="fw-semibold">$<?php echo number_format((float) ($res['price_total_estimated'] ?? 0), 2); ?></td>
                                     <td><span class="badge <?php echo esc($st['class']); ?>"><?php echo esc($st['label']); ?></span></td>
-                                    <td>
-                                        <form method="post" class="d-flex gap-1">
+                                    <td class="text-end text-nowrap">
+                                        <button type="button"
+                                            class="btn btn-sm btn-outline-primary rounded-pill me-1 rac-detail-btn"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#racReservationDetailModal"
+                                            data-reservation="<?php echo $resJson; ?>">
+                                            <i class="bi bi-eye me-1"></i> Ver detalle
+                                        </button>
+                                        <form method="post" class="d-inline-flex gap-1 align-items-center">
                                             <input type="hidden" name="action" value="update_rac_reservation_status">
                                             <input type="hidden" name="reservation_id" value="<?php echo (int) $res['id']; ?>">
-                                            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                            <select name="status" class="form-select form-select-sm" style="min-width: 110px;" onchange="this.form.submit()">
                                                 <option value="pending" <?php echo ($res['status'] ?? '') === 'pending' ? 'selected' : ''; ?>>Pendiente</option>
                                                 <option value="confirmed" <?php echo ($res['status'] ?? '') === 'confirmed' ? 'selected' : ''; ?>>Confirmada</option>
                                                 <option value="cancelled" <?php echo ($res['status'] ?? '') === 'cancelled' ? 'selected' : ''; ?>>Cancelada</option>
@@ -153,3 +163,121 @@ $statusLabels = [
         </div>
     </div>
 </div>
+
+<!-- Modal detalle reserva RAC -->
+<div class="modal fade" id="racReservationDetailModal" tabindex="-1" aria-labelledby="racReservationDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-navy" id="racReservationDetailModalLabel">Detalle de reserva</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body font-poppins text-sm" id="racReservationDetailBody">
+                <p class="text-muted">Cargando…</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-dark rounded-pill px-4" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const modal = document.getElementById('racReservationDetailModal');
+    if (!modal) return;
+
+    const branchNames = <?php
+        $map = [];
+        foreach (BranchDataService::getSucursales() as $b) {
+            if (!empty($b['code'])) {
+                $map[$b['code']] = $b['name'] ?? $b['code'];
+            }
+        }
+        echo json_encode($map, JSON_UNESCAPED_UNICODE);
+    ?>;
+
+    function esc(s) {
+        if (s == null || s === '') return '—';
+        const d = document.createElement('div');
+        d.textContent = String(s);
+        return d.innerHTML;
+    }
+
+    function row(label, value) {
+        return `<div class="col-md-6 mb-3"><span class="text-muted d-block small text-uppercase">${label}</span><span class="fw-semibold text-navy">${value}</span></div>`;
+    }
+
+    function parseJsonField(raw) {
+        if (!raw) return null;
+        try {
+            return typeof raw === 'string' ? JSON.parse(raw) : raw;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    modal.addEventListener('show.bs.modal', function (event) {
+        const btn = event.relatedTarget;
+        const body = document.getElementById('racReservationDetailBody');
+        if (!btn || !body) return;
+
+        let res;
+        try {
+            res = JSON.parse(btn.getAttribute('data-reservation') || '{}');
+        } catch (e) {
+            body.innerHTML = '<p class="text-danger">No se pudo leer el detalle.</p>';
+            return;
+        }
+
+        const vehicleSnap = parseJsonField(res.vehicle_snapshot_json);
+        const searchSnap = parseJsonField(res.search_snapshot_json);
+        const equip = parseJsonField(res.equipment_json);
+
+        document.getElementById('racReservationDetailModalLabel').textContent =
+            'Reserva ' + (res.reservation_code || '');
+
+        let html = '<div class="row">';
+        html += row('Código', esc(res.reservation_code));
+        html += row('Estado', esc(res.status));
+        html += row('Registrada', esc(res.created_at));
+        html += row('Tarifa', esc(res.rate_type === 'counter' ? 'Mostrador' : 'Web exclusivo'));
+        html += '</div><hr><h6 class="fw-bold text-navy">Cliente</h6><div class="row">';
+        html += row('Nombre', esc(res.customer_name));
+        html += row('Correo', esc(res.customer_email));
+        html += row('Teléfono', esc(res.customer_phone));
+        html += row('Cobertura', esc(res.coverage_code));
+        html += '</div>';
+        if (res.customer_comments) {
+            html += `<p class="mb-0"><span class="text-muted small">Comentarios</span><br>${esc(res.customer_comments)}</p>`;
+        }
+        html += '<hr><h6 class="fw-bold text-navy">Vehículo</h6><div class="row">';
+        html += row('Nombre', esc(res.vehicle_name));
+        html += row('Categoría', esc(res.vehicle_category));
+        html += row('SIPP', esc(res.sipp_code));
+        html += row('Vendor rate ID', esc(res.vendor_rate_id));
+        html += '</div><hr><h6 class="fw-bold text-navy">Fechas y sucursales</h6><div class="row">';
+        html += row('Retiro', esc((branchNames[res.location_code] || res.location_code) + ' · ' + res.pickup_date + ' ' + res.pickup_time));
+        html += row('Devolución', esc((branchNames[res.return_location_code] || res.return_location_code) + ' · ' + res.return_date + ' ' + res.return_time));
+        html += row('Edad conductor', esc(res.driver_age));
+        html += row('Cupón', esc(res.promo_code || '—'));
+        html += '</div><hr><h6 class="fw-bold text-navy">Montos (USD)</h6><div class="row">';
+        html += row('Tarifa web/día ref.', res.price_web != null ? '$' + parseFloat(res.price_web).toFixed(2) : '—');
+        html += row('Total estimado', res.price_total_estimated != null ? '<strong>$' + parseFloat(res.price_total_estimated).toFixed(2) + '</strong>' : '—');
+        html += row('Total base periodo', res.price_total != null ? '$' + parseFloat(res.price_total).toFixed(2) : '—');
+        html += row('Quote token', esc(res.quote_token));
+        html += '</div>';
+
+        if (searchSnap && typeof searchSnap === 'object') {
+            html += '<hr><h6 class="fw-bold text-navy">Criterios de búsqueda</h6><pre class="bg-light p-3 rounded-3 small mb-0" style="max-height:120px;overflow:auto;">' +
+                esc(JSON.stringify(searchSnap, null, 2)) + '</pre>';
+        }
+        if (vehicleSnap && typeof vehicleSnap === 'object') {
+            html += '<hr><h6 class="fw-bold text-navy">Snapshot vehículo (API)</h6><pre class="bg-light p-3 rounded-3 small mb-0" style="max-height:160px;overflow:auto;">' +
+                esc(JSON.stringify(vehicleSnap, null, 2)) + '</pre>';
+        }
+
+        body.innerHTML = html;
+    });
+})();
+</script>
