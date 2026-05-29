@@ -222,6 +222,30 @@
     50% { transform: scale(1.08); }
 }
 
+.am-chat-voice-row {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px 4px;
+    background: #fff;
+    border-top: 1px solid #eef0f4;
+}
+.am-chat-voice-label {
+    font-size: 0.72rem;
+    color: #6c757d;
+    margin: 0;
+    white-space: nowrap;
+}
+.am-chat-voice-select {
+    flex: 1;
+    font-size: 0.75rem;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 4px 8px;
+    max-width: 100%;
+}
+
 .am-chat-input-row {
     flex-shrink: 0;
     display: flex;

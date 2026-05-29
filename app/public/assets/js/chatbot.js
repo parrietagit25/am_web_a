@@ -51,6 +51,10 @@
         '<div class="am-chat-flow-bar" id="am-chat-flow-bar"></div>' +
         '<div class="am-chat-messages" id="am-chat-messages"></div>' +
         '<div class="am-chat-suggestions" id="am-chat-suggestions"></div>' +
+        '<div class="am-chat-voice-row" id="am-chat-voice-row">' +
+            '<label for="am-chat-voice-select" class="am-chat-voice-label">' + (config.lang === 'en' ? 'Voice' : 'Voz') + '</label>' +
+            '<select id="am-chat-voice-select" class="am-chat-voice-select" title="' + (config.lang === 'en' ? 'Speaking voice' : 'Voz del asistente') + '"></select>' +
+        '</div>' +
         '<div class="am-chat-input-row">' +
             '<button type="button" class="am-chat-mic" id="am-chat-mic" title="Hablar"><i class="bi bi-mic-fill"></i></button>' +
             '<textarea id="am-chat-input" rows="1" placeholder="' + (config.lang === 'en' ? 'Type or use the mic…' : 'Escribe o usa el micrófono…') + '" maxlength="2000"></textarea>' +
@@ -68,6 +72,9 @@
     var micBtn = document.getElementById('am-chat-mic');
     var callBtn = document.getElementById('am-chat-call');
     var statusEl = document.getElementById('am-chat-status');
+    var voiceSelectEl = document.getElementById('am-chat-voice-select');
+    var micStream = null;
+    var VOICE_STORAGE_KEY = 'am_chat_voice_uri';
 
     function escapeHtml(str) {
         var d = document.createElement('div');
@@ -190,14 +197,67 @@
         return data;
     }
 
+    function getVoicesList() {
+        return synth ? synth.getVoices() : [];
+    }
+
     function pickVoice() {
-        if (!synth || preferredVoice) return preferredVoice;
-        var voices = synth.getVoices();
-        var lang = (config.lang === 'en') ? 'en' : 'es';
-        preferredVoice = voices.find(function (v) {
-            return v.lang && v.lang.indexOf(lang) === 0;
+        var voices = getVoicesList();
+        if (!voices.length) return null;
+
+        var savedUri = '';
+        try {
+            savedUri = localStorage.getItem(VOICE_STORAGE_KEY) || '';
+        } catch (e) { /* */ }
+        if (voiceSelectEl && voiceSelectEl.value) {
+            savedUri = voiceSelectEl.value;
+        }
+
+        if (savedUri) {
+            var byUri = voices.find(function (v) { return v.voiceURI === savedUri; });
+            if (byUri) return byUri;
+        }
+
+        var nameHint = (config.voice_name || '').toLowerCase();
+        if (nameHint) {
+            var byName = voices.find(function (v) {
+                return v.name && v.name.toLowerCase().indexOf(nameHint) !== -1;
+            });
+            if (byName) return byName;
+        }
+
+        var lang = config.lang === 'en' ? 'en' : 'es';
+        return voices.find(function (v) {
+            return v.lang && v.lang.toLowerCase().indexOf(lang) === 0;
+        }) || voices.find(function (v) {
+            return v.lang && v.lang.toLowerCase().indexOf('es') === 0;
         }) || voices[0] || null;
-        return preferredVoice;
+    }
+
+    function populateVoiceSelect() {
+        if (!voiceSelectEl || !synth) return;
+        var voices = getVoicesList();
+        var lang = config.lang === 'en' ? 'en' : 'es';
+        var filtered = voices.filter(function (v) {
+            return v.lang && v.lang.toLowerCase().indexOf(lang) === 0;
+        });
+        if (filtered.length < 2) filtered = voices;
+
+        var prev = voiceSelectEl.value || localStorage.getItem(VOICE_STORAGE_KEY) || '';
+        voiceSelectEl.innerHTML = '';
+        filtered.forEach(function (v) {
+            var opt = document.createElement('option');
+            opt.value = v.voiceURI;
+            opt.textContent = v.name + (v.lang ? ' (' + v.lang + ')' : '');
+            voiceSelectEl.appendChild(opt);
+        });
+
+        if (prev) {
+            voiceSelectEl.value = prev;
+        } else if (config.voice_name) {
+            var match = pickVoice();
+            if (match) voiceSelectEl.value = match.voiceURI;
+        }
     }
 
     function speakText(text, onEnd) {
@@ -209,10 +269,13 @@
         var plain = text.replace(/\*\*/g, '').replace(/<[^>]+>/g, '');
         var u = new SpeechSynthesisUtterance(plain);
         u.lang = config.lang === 'en' ? 'en-US' : 'es-PA';
-        u.rate = 1;
-        u.pitch = 1;
+        u.rate = parseFloat(config.voice_rate) || 1;
+        u.pitch = parseFloat(config.voice_pitch) || 1;
         var voice = pickVoice();
-        if (voice) u.voice = voice;
+        if (voice) {
+            u.voice = voice;
+            u.lang = voice.lang || u.lang;
+        }
         u.onend = function () {
             setStatus(config.lang === 'en' ? 'AI · Automarket' : 'IA · Automarket');
             if (onEnd) onEnd();
@@ -222,6 +285,70 @@
         };
         setStatus(config.lang === 'en' ? 'Speaking…' : 'Hablando…');
         synth.speak(u);
+    }
+
+    function isSecureForMic() {
+        return window.isSecureContext === true
+            || location.protocol === 'https:'
+            || location.hostname === 'localhost'
+            || location.hostname === '127.0.0.1';
+    }
+
+    function releaseMicStream() {
+        if (micStream) {
+            micStream.getTracks().forEach(function (t) { t.stop(); });
+            micStream = null;
+        }
+    }
+
+    function ensureMicrophoneAccess() {
+        return new Promise(function (resolve, reject) {
+            if (!isSecureForMic()) {
+                reject(new Error('insecure'));
+                return;
+            }
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                resolve(true);
+                return;
+            }
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function (stream) {
+                    releaseMicStream();
+                    micStream = stream;
+                    resolve(true);
+                })
+                .catch(function (err) {
+                    reject(err);
+                });
+        });
+    }
+
+    function micPermissionMessage(err) {
+        if (err && err.message === 'insecure') {
+            return config.lang === 'en'
+                ? 'The microphone requires HTTPS (secure connection). Open the site with https:// or use localhost.'
+                : 'El micrófono requiere conexión segura (HTTPS). Abra el sitio con https:// o use localhost.';
+        }
+        return config.lang === 'en'
+            ? 'Microphone blocked. Click the lock icon in the address bar → Site settings → allow Microphone, then try again.'
+            : 'Micrófono bloqueado. Haga clic en el candado de la barra de direcciones → configuración del sitio → permitir Micrófono, e intente de nuevo.';
+    }
+
+    function recognitionErrorMessage(code) {
+        if (code === 'not-allowed' || code === 'service-not-allowed') {
+            return micPermissionMessage(null);
+        }
+        if (code === 'no-speech') {
+            return config.lang === 'en'
+                ? 'I didn\'t hear anything. Please speak again.'
+                : 'No escuché nada. Por favor, hable de nuevo.';
+        }
+        if (code === 'aborted') {
+            return '';
+        }
+        return config.lang === 'en'
+            ? 'Could not use the microphone (' + code + '). Try Chrome or Edge.'
+            : 'No pude usar el micrófono (' + code + '). Pruebe con Chrome o Edge.';
     }
 
     function initRecognition() {
@@ -239,19 +366,35 @@
         r.onend = function () {
             isListening = false;
             micBtn.classList.remove('listening');
-            if (!isBusy) {
-                setStatus(voiceCallMode
-                    ? (config.lang === 'en' ? 'On call · listening' : 'En llamada · escuchando')
-                    : (config.lang === 'en' ? 'AI · Automarket' : 'IA · Automarket'));
+            if (!isBusy && voiceCallMode) {
+                setStatus(config.lang === 'en' ? 'On call · speak' : 'En llamada · hable');
+                setTimeout(function () {
+                    if (voiceCallMode && !isBusy && !isListening) {
+                        startListening(true);
+                    }
+                }, 400);
+            } else if (!isBusy) {
+                setStatus(config.lang === 'en' ? 'AI · Automarket' : 'IA · Automarket');
             }
         };
-        r.onerror = function () {
+        r.onerror = function (ev) {
             isListening = false;
             micBtn.classList.remove('listening');
+            var msg = recognitionErrorMessage(ev.error || '');
+            if (msg && ev.error !== 'aborted') {
+                appendBubble('assistant', msg);
+            }
+            if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') {
+                voiceCallMode = false;
+                callBtn.classList.remove('active');
+                releaseMicStream();
+            }
         };
         r.onresult = function (ev) {
+            if (!ev.results || !ev.results.length) return;
             var text = ev.results[0][0].transcript;
-            inputEl.value = text;
+            if (!text || !text.trim()) return;
+            inputEl.value = text.trim();
             sendMessage(voiceCallMode);
         };
         return r;
@@ -265,24 +408,45 @@
         micBtn.classList.remove('listening');
     }
 
-    function startListening() {
+    function beginRecognition() {
+        if (!recognition) recognition = initRecognition();
+        if (!recognition) return;
+        try {
+            recognition.start();
+        } catch (e) {
+            setTimeout(function () {
+                if (!isListening && !isBusy) {
+                    try { recognition.start(); } catch (e2) { /* */ }
+                }
+            }, 350);
+        }
+    }
+
+    async function startListening(skipMicPrompt) {
         if (!SpeechRecognition) {
             appendBubble('assistant', config.lang === 'en'
                 ? 'Voice is not supported in this browser. Use Chrome or Edge.'
                 : 'La voz no está disponible en este navegador. Use Chrome o Edge.');
             return;
         }
-        if (!recognition) recognition = initRecognition();
-        if (!recognition || isBusy || isListening) return;
+        if (isBusy || isListening) return;
         stopListening();
         synth.cancel();
-        try {
-            recognition.start();
-        } catch (e) {
-            setTimeout(function () {
-                try { recognition.start(); } catch (e2) { /* */ }
-            }, 300);
+
+        if (!skipMicPrompt && !micStream) {
+            setStatus(config.lang === 'en' ? 'Allow microphone…' : 'Permita el micrófono…');
+            try {
+                await ensureMicrophoneAccess();
+            } catch (err) {
+                appendBubble('assistant', micPermissionMessage(err));
+                voiceCallMode = false;
+                callBtn.classList.remove('active');
+                setStatus(config.lang === 'en' ? 'AI · Automarket' : 'IA · Automarket');
+                return;
+            }
         }
+
+        beginRecognition();
     }
 
     function handleAssistantReply(data) {
@@ -298,11 +462,11 @@
         if (shouldSpeak && reply) {
             speakText(reply, function () {
                 if (voiceCallMode && !isBusy) {
-                    setTimeout(startListening, 400);
+                    setTimeout(function () { startListening(true); }, 400);
                 }
             });
         } else if (voiceCallMode && !isBusy) {
-            setTimeout(startListening, 500);
+            setTimeout(function () { startListening(true); }, 500);
         }
     }
 
@@ -392,14 +556,24 @@
             stopListening();
         } else {
             document.body.classList.add('am-chat-voice-last');
-            startListening();
+            startListening(false);
         }
     });
-    callBtn.addEventListener('click', function () {
+    callBtn.addEventListener('click', async function () {
         voiceCallMode = !voiceCallMode;
         callBtn.classList.toggle('active', voiceCallMode);
         if (voiceCallMode) {
             setOpen(true);
+            setStatus(config.lang === 'en' ? 'Allow microphone…' : 'Permita el micrófono…');
+            try {
+                await ensureMicrophoneAccess();
+            } catch (err) {
+                voiceCallMode = false;
+                callBtn.classList.remove('active');
+                appendBubble('assistant', micPermissionMessage(err));
+                setStatus(config.lang === 'en' ? 'AI · Automarket' : 'IA · Automarket');
+                return;
+            }
             setStatus(config.lang === 'en' ? 'On call' : 'En llamada');
             var msg = config.lang === 'en'
                 ? 'Thank you for calling Automarket. How can I help you?'
@@ -409,14 +583,13 @@
                 appendBubble('assistant', msg);
                 renderSuggestions();
                 updateShortcutsVisibility();
-                speakText(msg, function () {
-                    startListening();
-                });
-            } else {
-                startListening();
             }
+            speakText(msg, function () {
+                startListening(true);
+            });
         } else {
             stopListening();
+            releaseMicStream();
             synth.cancel();
             setStatus(config.lang === 'en' ? 'AI · Automarket' : 'IA · Automarket');
         }
@@ -428,14 +601,23 @@
         }
     });
 
-    if (synth) {
+    if (synth && voiceSelectEl) {
         synth.onvoiceschanged = function () {
-            pickVoice();
+            populateVoiceSelect();
         };
+        populateVoiceSelect();
+        setTimeout(populateVoiceSelect, 600);
+        voiceSelectEl.addEventListener('change', function () {
+            try {
+                localStorage.setItem(VOICE_STORAGE_KEY, voiceSelectEl.value);
+            } catch (e) { /* */ }
+        });
     }
 
     if (!SpeechRecognition) {
         micBtn.title = config.lang === 'en' ? 'Voice not supported' : 'Voz no disponible';
         callBtn.disabled = true;
+    } else if (!isSecureForMic()) {
+        callBtn.title = config.lang === 'en' ? 'Requires HTTPS' : 'Requiere HTTPS';
     }
 })();

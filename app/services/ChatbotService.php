@@ -46,6 +46,9 @@ class ChatbotService {
                 'What is renting and what does it include?',
                 'Where are your branches?',
             ],
+            'voice_name' => '',
+            'voice_rate' => 1.0,
+            'voice_pitch' => 1.0,
         ];
     }
 
@@ -62,6 +65,9 @@ class ChatbotService {
         }
         $cfg['max_tokens'] = max(100, min(2000, (int) ($cfg['max_tokens'] ?? 700)));
         $cfg['temperature'] = max(0, min(1.5, (float) ($cfg['temperature'] ?? 0.85)));
+        $cfg['voice_rate'] = max(0.5, min(1.5, (float) ($cfg['voice_rate'] ?? 1.0)));
+        $cfg['voice_pitch'] = max(0.5, min(2.0, (float) ($cfg['voice_pitch'] ?? 1.0)));
+        $cfg['voice_name'] = trim((string) ($cfg['voice_name'] ?? ''));
         return $cfg;
     }
 
@@ -93,6 +99,9 @@ class ChatbotService {
             'guided_flows' => ChatbotGuideService::flowCatalog($lang),
             'lang' => $lang,
             'voice_enabled' => true,
+            'voice_name' => (string) ($config['voice_name'] ?? ''),
+            'voice_rate' => (float) ($config['voice_rate'] ?? 1.0),
+            'voice_pitch' => (float) ($config['voice_pitch'] ?? 1.0),
         ];
     }
 
@@ -125,6 +134,9 @@ class ChatbotService {
             'temperature' => max(0, min(1.5, (float) ($post['chatbot_temperature'] ?? 0.6))),
             'suggested_questions_es' => $parseLines($post['chatbot_suggestions_es'] ?? ''),
             'suggested_questions_en' => $parseLines($post['chatbot_suggestions_en'] ?? ''),
+            'voice_name' => trim($post['chatbot_voice_name'] ?? ''),
+            'voice_rate' => max(0.5, min(1.5, (float) ($post['chatbot_voice_rate'] ?? 1.0))),
+            'voice_pitch' => max(0.5, min(2.0, (float) ($post['chatbot_voice_pitch'] ?? 1.0))),
         ];
     }
 

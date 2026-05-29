@@ -92,6 +92,30 @@ if (!is_array($suggestionsEn)) {
                 <div class="form-text">Se suman al contexto automático del sitio. No incluya datos sensibles.</div>
             </div>
 
+            <div class="row g-3 mb-3 border-top pt-4">
+                <div class="col-12">
+                    <h6 class="fw-bold text-navy mb-2"><i class="bi bi-volume-up-fill me-2 text-danger"></i>Voz del asistente (lectura en voz alta)</h6>
+                    <p class="text-muted small mb-0">Las voces dependen del navegador y del sistema operativo (Windows/Mac). Escriba parte del nombre de la voz que prefiera; el visitante también puede cambiarla en el chat.</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="chatbot_voice_name">Nombre de voz (parcial)</label>
+                    <input type="text" id="chatbot_voice_name" name="chatbot_voice_name" class="form-control form-control-premium"
+                           value="<?php echo esc($chatbotCfg['voice_name'] ?? ''); ?>"
+                           placeholder="Ej.: Sabina, Helena, Google español, Paulina">
+                    <div class="form-text">Deje vacío para la voz en español/inglés por defecto del navegador.</div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="chatbot_voice_rate">Velocidad (0.5–1.5)</label>
+                    <input type="number" id="chatbot_voice_rate" name="chatbot_voice_rate" class="form-control form-control-premium"
+                           min="0.5" max="1.5" step="0.05" value="<?php echo esc((string) ($chatbotCfg['voice_rate'] ?? 1)); ?>">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="chatbot_voice_pitch">Tono (0.5–2)</label>
+                    <input type="number" id="chatbot_voice_pitch" name="chatbot_voice_pitch" class="form-control form-control-premium"
+                           min="0.5" max="2" step="0.05" value="<?php echo esc((string) ($chatbotCfg['voice_pitch'] ?? 1)); ?>">
+                </div>
+            </div>
+
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <label class="form-label" for="chatbot_suggestions_es">Preguntas sugeridas (ES, una por línea)</label>
@@ -115,7 +139,8 @@ if (!is_array($suggestionsEn)) {
             <li>Endpoint: <code>POST /api/chat.php</code> — contexto en sesión PHP; cada mensaje se guarda en BD (ver <strong>Historial de sesiones</strong>).</li>
             <li>Límite: 40 mensajes por hora por sesión; contexto de las últimas 12 interacciones.</li>
             <li>El botón flotante aparece encima del botón de WhatsApp en todas las páginas públicas.</li>
-            <li><strong>Voz:</strong> micrófono y modo llamada (Chrome/Edge). <strong>Trámites guiados:</strong> reserva RAC, contacto Seminuevos, Leasing y Renting.</li>
+            <li><strong>Voz:</strong> Chrome o Edge en HTTPS; permiso de micrófono al iniciar llamada. Configurar voz arriba o en el selector del chat.</li>
+            <li><strong>Trámites guiados:</strong> reserva RAC, contacto Seminuevos, Leasing y Renting.</li>
             <li>Recomendado: modelo <strong>GPT-4o mini</strong> por costo y velocidad.</li>
         </ul>
     </div>
