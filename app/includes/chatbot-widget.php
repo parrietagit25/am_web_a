@@ -25,4 +25,4 @@ $chatActiveUnit = isset($activeUnit) ? (string) $activeUnit : '';
      data-chatbot="<?php echo $chatbotJson; ?>"
      data-active-unit="<?php echo esc($chatActiveUnit); ?>"
      aria-live="polite"></div>
-<script src="/assets/js/chatbot.js?v=3" defer></script>
+<script src="/assets/js/chatbot.js?v=4" defer></script>

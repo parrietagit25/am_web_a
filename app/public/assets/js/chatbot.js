@@ -241,7 +241,7 @@
             micBtn.classList.remove('listening');
             if (!isBusy) {
                 setStatus(voiceCallMode
-                    ? (config.lang === 'en' ? 'Call mode · speak' : 'Modo llamada · hable')
+                    ? (config.lang === 'en' ? 'On call · listening' : 'En llamada · escuchando')
                     : (config.lang === 'en' ? 'AI · Automarket' : 'IA · Automarket'));
             }
         };
@@ -252,7 +252,7 @@
         r.onresult = function (ev) {
             var text = ev.results[0][0].transcript;
             inputEl.value = text;
-            sendMessage();
+            sendMessage(voiceCallMode);
         };
         return r;
     }
@@ -399,17 +399,22 @@
         voiceCallMode = !voiceCallMode;
         callBtn.classList.toggle('active', voiceCallMode);
         if (voiceCallMode) {
-            setStatus(config.lang === 'en' ? 'Call mode active' : 'Modo llamada activo');
-            if (messagesEl.children.length === 0) {
-                setOpen(true);
-            }
+            setOpen(true);
+            setStatus(config.lang === 'en' ? 'On call' : 'En llamada');
             var msg = config.lang === 'en'
-                ? 'Call mode is on — I\'ll listen after each reply. Tell me what you need; say "cancel" anytime.'
-                : 'Modo llamada activo: te escucho después de cada respuesta. Cuéntame qué necesitas; di «cancelar» cuando quieras.';
-            appendBubble('assistant', msg);
-            speakText(msg, function () {
+                ? 'Thank you for calling Automarket. How can I help you?'
+                : 'Gracias por llamar a Automarket, ¿en qué puedo ayudarte?';
+            if (!hasUserMessages()) {
+                messagesEl.innerHTML = '';
+                appendBubble('assistant', msg);
+                renderSuggestions();
+                updateShortcutsVisibility();
+                speakText(msg, function () {
+                    startListening();
+                });
+            } else {
                 startListening();
-            });
+            }
         } else {
             stopListening();
             synth.cancel();
