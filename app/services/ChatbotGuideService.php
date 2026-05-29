@@ -36,7 +36,7 @@ class ChatbotGuideService {
     /**
      * @return array{ok: bool, reply: string, flow?: array, completed?: bool, speak?: bool}|null null = no guide handling
      */
-    public function startFlow(string $flowId, string $lang): array {
+    public function startFlow(string $flowId, string $lang, ?string $userRequest = null): array {
         $valid = array_column(self::flowCatalog($lang), 'id');
         if (!in_array($flowId, $valid, true)) {
             return [
@@ -48,7 +48,7 @@ class ChatbotGuideService {
         $_SESSION[self::SESSION_GUIDE] = [
             'flow' => $flowId,
             'step' => 'init',
-            'data' => [],
+            'data' => ['user_request' => $userRequest ? trim($userRequest) : ''],
             'lang' => $lang,
         ];
         return $this->advanceToFirstStep($lang);
@@ -62,7 +62,7 @@ class ChatbotGuideService {
         if ($state === null) {
             $intent = $this->detectIntent($message, $lang, $activeUnit);
             if ($intent !== null) {
-                return $this->startFlow($intent, $lang);
+                return $this->startFlow($intent, $lang, $message);
             }
             return null;
         }
@@ -72,8 +72,8 @@ class ChatbotGuideService {
             return [
                 'ok' => true,
                 'reply' => $lang === 'en'
-                    ? 'Process cancelled. How else can I help you?'
-                    : 'Proceso cancelado. ¿En qué más puedo ayudarte?',
+                    ? 'No problem, we stopped there. What else can I help you with?'
+                    : 'Sin problema, lo dejamos aquí. ¿En qué más te puedo ayudar?',
                 'completed' => true,
                 'speak' => true,
             ];
@@ -85,27 +85,29 @@ class ChatbotGuideService {
 
     private function detectIntent(string $message, string $lang, ?string $activeUnit): ?string {
         $t = mb_strtolower($message);
-        if ($activeUnit === 'rentacar' || preg_match('/\b(reserv|alquil|rent a car|rac)\b/u', $t)) {
-            if (preg_match('/\b(reserv|alquil|rentar|book)\b/u', $t)) {
-                return 'rac_reservation';
-            }
+
+        $wantsRac = preg_match('/\b(reserv|alquil|rentar|rent a car|carro|veh[ií]culo|auto)\b/u', $t)
+            && preg_match('/\b(reserv|alquil|rentar|necesito|quiero|busco|book|viaje|viajar)\b/u', $t);
+        $wantsSeminuevos = preg_match('/\b(seminuevo|seminuevos|venta de auto|inventario|comprar auto)\b/u', $t)
+            || ($activeUnit === 'seminuevos' && preg_match('/\b(contact|cotiz|inter[eé]s|asesor|formulario)\b/u', $t));
+        $wantsLeasing = preg_match('/\b(leasing|flota corporativa|amcorp|empresa.*flota)\b/u', $t)
+            || ($activeUnit === 'leasing' && preg_match('/\b(contact|cotiz|formulario)\b/u', $t));
+        $wantsRenting = preg_match('/\b(renting|plan de renting|cuota)\b/u', $t)
+            || ($activeUnit === 'renting' && preg_match('/\b(contact|cotiz|plan|inter[eé]s|formulario)\b/u', $t));
+
+        if ($wantsRac && !preg_match('/\b(seminuevo|leasing|renting)\b/u', $t)) {
+            return 'rac_reservation';
         }
-        if ($activeUnit === 'seminuevos' || preg_match('/\b(seminuevo|venta de auto|inventario)\b/u', $t)) {
-            if (preg_match('/\b(contact|cotiz|inter[eé]s|comprar|asesor)\b/u', $t)) {
-                return 'seminuevos_lead';
-            }
+        if ($wantsSeminuevos) {
+            return 'seminuevos_lead';
         }
-        if ($activeUnit === 'leasing' || preg_match('/\b(leasing|flota corporativa|amcorp)\b/u', $t)) {
-            if (preg_match('/\b(contact|cotiz|empresa|flota)\b/u', $t)) {
-                return 'leasing_lead';
-            }
+        if ($wantsLeasing) {
+            return 'leasing_lead';
         }
-        if ($activeUnit === 'renting' || preg_match('/\b(renting)\b/u', $t)) {
-            if (preg_match('/\b(contact|cotiz|plan|inter[eé]s)\b/u', $t)) {
-                return 'renting_lead';
-            }
+        if ($wantsRenting) {
+            return 'renting_lead';
         }
-        if (preg_match('/\b(guiar|llenar|formulario|registr|ayudame a)\b/u', $t)) {
+        if (preg_match('/\b(guiar|llenar|formulario|registr|ayudame|ayúdame|acompañ)\b/u', $t)) {
             return match ($activeUnit) {
                 'seminuevos' => 'seminuevos_lead',
                 'leasing' => 'leasing_lead',
@@ -131,7 +133,39 @@ class ChatbotGuideService {
             default => 'done',
         };
         $_SESSION[self::SESSION_GUIDE] = $state;
-        return $this->promptForStep($state, $lang);
+        $opening = $this->flowOpening($state, $lang);
+        $question = $this->questionForStep($state, $lang);
+        return [
+            'ok' => true,
+            'reply' => $question !== '' ? $opening . "\n\n" . $question : $opening,
+            'flow' => $this->flowMeta($state),
+            'speak' => true,
+        ];
+    }
+
+    /** @param array<string, mixed> $state */
+    private function flowOpening(array $state, string $lang): string {
+        $isEn = $lang === 'en';
+        $req = trim((string) ($state['data']['user_request'] ?? ''));
+        $heard = $req !== ''
+            ? ($isEn ? 'I heard you: «' . $req . '». ' : 'Entendido: «' . $req . '». ')
+            : '';
+
+        return match ($state['flow'] ?? '') {
+            'rac_reservation' => $heard . ($isEn
+                ? 'Let\'s get your rental sorted — I\'ll ask one thing at a time.'
+                : 'Perfecto, vamos con tu reserva. Te voy preguntando de a poquito.'),
+            'seminuevos_lead' => $heard . ($isEn
+                ? 'I\'ll help you reach our pre-owned team.'
+                : 'Listo, te ayudo a enviar tu consulta a Seminuevos.'),
+            'leasing_lead' => $heard . ($isEn
+                ? 'We\'ll fill in your leasing request together.'
+                : 'Dale, armamos juntos tu solicitud de Leasing.'),
+            'renting_lead' => $heard . ($isEn
+                ? 'I\'ll guide you with your Renting inquiry.'
+                : 'Con gusto, te acompaño con tu consulta de Renting.'),
+            default => $heard,
+        };
     }
 
     /**
@@ -141,7 +175,7 @@ class ChatbotGuideService {
         $flow = $state['flow'];
         $step = $state['step'];
         $data = $state['data'] ?? [];
-        $err = $lang === 'en' ? 'I did not understand. ' : 'No entendí tu respuesta. ';
+        $err = $lang === 'en' ? 'Sorry, I didn\'t catch that. ' : 'Perdón, no lo entendí bien. ';
 
         if ($flow === 'rac_reservation') {
             return $this->stepRac($state, $step, $message, $lang, $data, $err);
@@ -363,7 +397,9 @@ class ChatbotGuideService {
         $state['data']['vehicles'] = $vehicles;
         $state['step'] = 'vehicle_choice';
         $_SESSION[self::SESSION_GUIDE] = $state;
-        $intro = $isEn ? 'Available vehicles — choose one:' : 'Vehículos disponibles — elija uno:';
+        $intro = $isEn
+            ? 'I found these options for you — which one do you like?'
+            : 'Encontré estas opciones — ¿cuál te llama la atención?';
         return [
             'ok' => true,
             'reply' => $intro . "\n\n" . $this->vehicleListPrompt($vehicles, $isEn),
@@ -575,72 +611,12 @@ class ChatbotGuideService {
 
     /** @param array<string, mixed> $state */
     private function promptForStep(array $state, string $lang): array {
-        $isEn = $lang === 'en';
-        $flow = $state['flow'];
-        $step = $state['step'];
-        $data = $state['data'] ?? [];
-
-        $reply = match ($flow) {
-            'rac_reservation' => match ($step) {
-                'pickup_branch' => ($isEn ? '🚗 **Rent a Car reservation**\n\n' : '🚗 **Reserva Rent a Car**\n\n')
-                    . $this->branchListPrompt(BranchDataService::getBranchPayloadForJs(), $isEn),
-                'return_same' => $isEn ? 'Return at the same branch? (yes/no)' : '¿Devuelve en la misma sucursal? (sí/no)',
-                'return_branch' => ($isEn ? 'Return branch:' : 'Sucursal de devolución:')
-                    . "\n" . $this->branchListPrompt(BranchDataService::getBranchPayloadForJs(), $isEn),
-                'pickup_date' => $isEn ? 'Pickup date?' : '¿Fecha de retiro del vehículo?',
-                'pickup_time' => $isEn ? 'Pickup time? (e.g. 10:00)' : '¿Hora de retiro? (ej. 10:00)',
-                'return_date' => $isEn ? 'Return date?' : '¿Fecha de devolución?',
-                'return_time' => $isEn ? 'Return time?' : '¿Hora de devolución?',
-                'age' => $isEn ? 'Driver age? (23 or 25)' : '¿Edad del conductor? (23 o 25)',
-                'promo' => $isEn ? 'Promo code? (or "no")' : '¿Código promocional? (o diga "no")',
-                'customer_name' => $isEn ? 'Your full name:' : 'Su nombre completo:',
-                'customer_email' => $isEn ? 'Email address:' : 'Correo electrónico:',
-                'customer_phone' => $isEn ? 'Phone number:' : 'Teléfono:',
-                'confirm' => $this->racConfirmPrompt($data, $isEn),
-                default => $isEn ? 'Continue…' : 'Continuemos…',
-            },
-            'seminuevos_lead' => match ($step) {
-                'nombre' => $isEn
-                    ? '📋 **Seminuevos contact** — Let\'s fill your request.\n\nYour full name?'
-                    : '📋 **Contacto Seminuevos** — Le guiaré paso a paso.\n\n¿Su nombre completo?',
-                'email' => $isEn ? 'Email:' : '¿Correo electrónico?',
-                'telefono' => $isEn ? 'Phone (optional, or "-"):' : '¿Teléfono? (opcional, o diga "no")',
-                'auto_interes' => $isEn ? 'Car of interest:' : '¿Auto de su interés?',
-                'provincia' => $isEn ? 'Province:' : '¿Provincia?',
-                'consent' => $isEn
-                    ? 'Do you accept personal data processing? (yes)'
-                    : '¿Acepta el tratamiento de sus datos personales? (sí)',
-                default => '…',
-            },
-            'leasing_lead' => match ($step) {
-                'empresa' => $isEn
-                    ? '📋 **Leasing contact** — Company name?'
-                    : '📋 **Contacto Leasing** — ¿Nombre de la empresa?',
-                'nombre' => $isEn ? 'Contact person name:' : '¿Nombre del contacto?',
-                'telefono' => $isEn ? 'Phone:' : '¿Teléfono?',
-                'email' => $isEn ? 'Email:' : '¿Correo?',
-                'tipo_vehiculo' => $isEn ? 'Vehicle type (SUV, Sedán…):' : '¿Tipo de vehículo? (SUV, Sedán, Pickup…)',
-                'fecha_alquiler' => $isEn ? 'Tentative start date:' : '¿Fecha tentativa de alquiler?',
-                'primera_vez' => $isEn ? 'First time with Automarket? (yes/no)' : '¿Primera vez con Automarket? (sí/no)',
-                'direccion' => $isEn ? 'Company address (optional):' : '¿Dirección de la empresa? (opcional)',
-                'consent' => $isEn ? 'Accept data processing? (yes)' : '¿Acepta tratamiento de datos? (sí)',
-                default => '…',
-            },
-            'renting_lead' => match ($step) {
-                'nombre' => $isEn
-                    ? '📋 **Renting contact** — Your full name?'
-                    : '📋 **Contacto Renting** — ¿Su nombre completo?',
-                'email' => $isEn ? 'Email:' : '¿Correo?',
-                'telefono' => $isEn ? 'Phone:' : '¿Teléfono?',
-                'auto_interes' => $isEn ? 'Car of interest:' : '¿Auto de interés?',
-                'rango_ingresos' => $isEn
-                    ? 'Income range: ' . implode(' | ', N8nRentingLeadService::RANGOS_INGRESOS)
-                    : 'Rango de ingresos: ' . implode(' | ', N8nRentingLeadService::RANGOS_INGRESOS),
-                'consent' => $isEn ? 'Accept data processing? (yes)' : '¿Acepta tratamiento de datos? (sí)',
-                default => '…',
-            },
-            default => '…',
-        };
+        $q = $this->questionForStep($state, $lang);
+        $acks = $lang === 'en'
+            ? ['Got it.', 'Thanks.', 'Perfect.', 'Great.']
+            : ['Listo.', 'Gracias.', 'Perfecto.', 'Muy bien.'];
+        $ack = $acks[random_int(0, count($acks) - 1)];
+        $reply = $q !== '' ? $ack . ' ' . $q : $ack;
 
         return [
             'ok' => true,
@@ -650,14 +626,102 @@ class ChatbotGuideService {
         ];
     }
 
+    /** @param array<string, mixed> $state */
+    private function questionForStep(array $state, string $lang): string {
+        $isEn = $lang === 'en';
+        $flow = $state['flow'];
+        $step = $state['step'];
+        $data = $state['data'] ?? [];
+        $branches = BranchDataService::getBranchPayloadForJs();
+
+        return match ($flow) {
+            'rac_reservation' => match ($step) {
+                'pickup_branch' => $isEn
+                    ? 'Where would you like to pick up the car? (e.g. Tocumen airport, Costa del Este…)'
+                    : '¿Desde qué sucursal te gustaría retirar el auto? (ej. Aeropuerto Tocumen, Costa del Este…)',
+                'return_same' => $isEn
+                    ? 'Will you return it at the same branch?'
+                    : '¿Lo devuelves en la misma sucursal?',
+                'return_branch' => $isEn
+                    ? 'Which branch for return?'
+                    : '¿En cuál sucursal lo devuelves?',
+                'pickup_date' => $isEn
+                    ? 'What date do you pick it up?'
+                    : '¿Qué día retiras el vehículo?',
+                'pickup_time' => $isEn
+                    ? 'What time? (e.g. 10:00)'
+                    : '¿A qué hora? (ej. 10:00)',
+                'return_date' => $isEn
+                    ? 'And the return date?'
+                    : '¿Y la fecha de devolución?',
+                'return_time' => $isEn
+                    ? 'Return time?'
+                    : '¿A qué hora lo devuelves?',
+                'age' => $isEn
+                    ? 'How old is the driver — 23 or 25?'
+                    : '¿Qué edad tiene el conductor, 23 o 25 años?',
+                'promo' => $isEn
+                    ? 'Any promo code? If not, just say no.'
+                    : '¿Tienes código promocional? Si no, dime «no».',
+                'customer_name' => $isEn
+                    ? 'Almost done. What\'s your full name?'
+                    : 'Ya casi. ¿Cuál es tu nombre completo?',
+                'customer_email' => $isEn
+                    ? 'Your email?'
+                    : '¿Tu correo electrónico?',
+                'customer_phone' => $isEn
+                    ? 'And your phone number?'
+                    : '¿Y tu teléfono?',
+                'confirm' => $this->racConfirmPrompt($data, $isEn),
+                default => $isEn ? 'Let\'s continue.' : 'Sigamos.',
+            },
+            'seminuevos_lead' => match ($step) {
+                'nombre' => $isEn ? 'What\'s your full name?' : '¿Cuál es tu nombre completo?',
+                'email' => $isEn ? 'Your email?' : '¿Tu correo?',
+                'telefono' => $isEn ? 'Phone number? (optional)' : '¿Teléfono? (opcional)',
+                'auto_interes' => $isEn ? 'Which car are you interested in?' : '¿Qué auto te interesa?',
+                'provincia' => $isEn ? 'Which province are you in?' : '¿En qué provincia estás?',
+                'consent' => $isEn
+                    ? 'To finish, do you accept us processing your data? (yes)'
+                    : 'Para enviar esto, ¿aceptas el tratamiento de tus datos? (sí)',
+                default => '…',
+            },
+            'leasing_lead' => match ($step) {
+                'empresa' => $isEn ? 'What\'s the company name?' : '¿Nombre de la empresa?',
+                'nombre' => $isEn ? 'Your name as contact?' : '¿Tu nombre como contacto?',
+                'telefono' => $isEn ? 'Phone number?' : '¿Teléfono?',
+                'email' => $isEn ? 'Email?' : '¿Correo?',
+                'tipo_vehiculo' => $isEn ? 'What type of vehicle? (SUV, Sedán, Pickup…)' : '¿Qué tipo de vehículo? (SUV, Sedán, Pickup…)',
+                'fecha_alquiler' => $isEn ? 'When would you like to start? (date)' : '¿Cuándo te gustaría iniciar? (fecha)',
+                'primera_vez' => $isEn ? 'Is this your first time with Automarket?' : '¿Es tu primera vez con Automarket?',
+                'direccion' => $isEn ? 'Company address? (optional)' : '¿Dirección de la empresa? (opcional)',
+                'consent' => $isEn ? 'Do you accept data processing? (yes)' : '¿Aceptas el tratamiento de datos? (sí)',
+                default => '…',
+            },
+            'renting_lead' => match ($step) {
+                'nombre' => $isEn ? 'What\'s your full name?' : '¿Tu nombre completo?',
+                'email' => $isEn ? 'Your email?' : '¿Tu correo?',
+                'telefono' => $isEn ? 'Phone?' : '¿Teléfono?',
+                'auto_interes' => $isEn ? 'Which car interests you?' : '¿Qué auto te interesa?',
+                'rango_ingresos' => $isEn
+                    ? 'Income range: ' . implode(', ', N8nRentingLeadService::RANGOS_INGRESOS)
+                    : 'Rango de ingresos mensual: ' . implode(', ', N8nRentingLeadService::RANGOS_INGRESOS),
+                'consent' => $isEn ? 'Accept data processing? (yes)' : '¿Aceptas el tratamiento de datos? (sí)',
+                default => '…',
+            },
+            default => '…',
+        };
+    }
+
     /** @param array<int, array<string, mixed>> $branches */
     private function branchListPrompt(array $branches, bool $isEn): string {
-        $lines = [$isEn ? 'Main branches (name or code):' : 'Sucursales principales (nombre o código):'];
-        foreach (array_slice($branches, 0, 8) as $b) {
-            $lines[] = '• ' . ($b['shortName'] ?? $b['name']) . ' (' . ($b['code'] ?? '') . ')';
+        $names = [];
+        foreach (array_slice($branches, 0, 5) as $b) {
+            $names[] = $b['shortName'] ?? $b['name'] ?? '';
         }
-        $lines[] = $isEn ? '…or say the branch name.' : '…o diga el nombre de la sucursal.';
-        return implode("\n", $lines);
+        return $isEn
+            ? 'Examples: ' . implode(', ', array_filter($names)) . '.'
+            : 'Por ejemplo: ' . implode(', ', array_filter($names)) . '.';
     }
 
     /** @param array<int, array<string, mixed>> $vehicles */
@@ -668,7 +732,7 @@ class ChatbotGuideService {
             $p = $price !== '' ? ' — $' . number_format((float) $price, 2) : '';
             $lines[] = ($i + 1) . '. ' . ($v['name'] ?? 'Vehículo') . $p;
         }
-        $lines[] = $isEn ? 'Reply with the number (1, 2, 3…).' : 'Responda con el número (1, 2, 3…).';
+        $lines[] = $isEn ? 'Tell me the number (1, 2, 3…).' : 'Dime el número (1, 2, 3…).';
         return implode("\n", $lines);
     }
 
@@ -676,12 +740,11 @@ class ChatbotGuideService {
     private function racConfirmPrompt(array $data, bool $isEn): string {
         $v = $data['vehicle']['name'] ?? '';
         $search = $data['search'] ?? [];
-        $summary = ($isEn ? 'Confirm reservation?' : '¿Confirma la reserva?') . "\n"
-            . ($isEn ? 'Vehicle: ' : 'Vehículo: ') . $v . "\n"
-            . ($search['pickupDate'] ?? '') . ' → ' . ($search['returnDate'] ?? '') . "\n"
-            . ($data['customer_name'] ?? '') . ' · ' . ($data['customer_email'] ?? '') . "\n"
-            . ($isEn ? '(yes/no)' : '(sí/no)');
-        return $summary;
+        return ($isEn
+            ? "Here's the summary: {$v}, " . ($search['pickupDate'] ?? '') . ' to ' . ($search['returnDate'] ?? '')
+            . ", under {$data['customer_name']}. Shall I register it? (yes/no)"
+            : "Te resumo: {$v}, del " . ($search['pickupDate'] ?? '') . ' al ' . ($search['returnDate'] ?? '')
+            . ", a nombre de {$data['customer_name']}. ¿Registro la reserva? (sí/no)");
     }
 
     /** @param array<string, mixed> $state */

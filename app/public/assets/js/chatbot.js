@@ -103,21 +103,32 @@
         flowBarEl.appendChild(badge);
     }
 
-    function renderGuidedFlows() {
-        suggestionsEl.innerHTML = '';
-        var flows = config.guided_flows || [];
-        if (!flows.length || messagesEl.querySelectorAll('.am-chat-bubble').length > 1) return;
+    function hasUserMessages() {
+        return messagesEl.querySelectorAll('.am-chat-bubble.user').length > 0;
+    }
 
-        var title = document.createElement('p');
-        title.className = 'am-chat-flows-title small text-muted mb-1 px-1';
-        title.textContent = config.lang === 'en' ? 'Guided assistance:' : 'Asistencia guiada:';
+    function updateShortcutsVisibility() {
+        if (hasUserMessages()) {
+            suggestionsEl.classList.add('is-collapsed');
+        } else {
+            suggestionsEl.classList.remove('is-collapsed');
+        }
+    }
+
+    function renderGuidedFlows() {
+        var flows = config.guided_flows || [];
+        if (!flows.length) return;
+
+        var title = document.createElement('span');
+        title.className = 'am-chat-flows-title';
+        title.textContent = config.lang === 'en' ? 'Quick start:' : 'Inicio rápido:';
         suggestionsEl.appendChild(title);
 
         flows.forEach(function (f) {
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'am-chat-flow-btn';
-            btn.innerHTML = '<i class="bi bi-' + (f.icon || 'arrow-right-circle') + ' me-1"></i>' + escapeHtml(f.label);
+            btn.textContent = f.label;
             btn.addEventListener('click', function () {
                 startFlow(f.id);
             });
@@ -127,18 +138,21 @@
 
     function renderSuggestions() {
         suggestionsEl.innerHTML = '';
-        renderGuidedFlows();
-        var list = config.suggested_questions || [];
-        list.forEach(function (q) {
-            var btn = document.createElement('button');
-            btn.type = 'button';
-            btn.textContent = q;
-            btn.addEventListener('click', function () {
-                inputEl.value = q;
-                sendMessage();
+        if (!hasUserMessages()) {
+            renderGuidedFlows();
+            var list = config.suggested_questions || [];
+            list.slice(0, 2).forEach(function (q) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = q;
+                btn.addEventListener('click', function () {
+                    inputEl.value = q;
+                    sendMessage(false);
+                });
+                suggestionsEl.appendChild(btn);
             });
-            suggestionsEl.appendChild(btn);
-        });
+        }
+        updateShortcutsVisibility();
     }
 
     function setOpen(open) {
@@ -298,8 +312,8 @@
 
         if (fromVoice) document.body.classList.add('am-chat-voice-last');
 
-        suggestionsEl.innerHTML = '';
         appendBubble('user', text);
+        updateShortcutsVisibility();
         inputEl.value = '';
         setBusy(true);
         stopListening();
@@ -327,7 +341,7 @@
 
     async function startFlow(flowId) {
         if (isBusy) return;
-        suggestionsEl.innerHTML = '';
+        updateShortcutsVisibility();
         setBusy(true);
         stopListening();
         var typing = appendBubble('assistant', config.lang === 'en' ? 'Starting…' : 'Iniciando…');
@@ -390,8 +404,8 @@
                 setOpen(true);
             }
             var msg = config.lang === 'en'
-                ? 'Call mode on. I will listen after each reply. Say "cancel" to stop a process.'
-                : 'Modo llamada activado. Escucharé después de cada respuesta. Diga "cancelar" para salir de un trámite.';
+                ? 'Call mode is on — I\'ll listen after each reply. Tell me what you need; say "cancel" anytime.'
+                : 'Modo llamada activo: te escucho después de cada respuesta. Cuéntame qué necesitas; di «cancelar» cuando quieras.';
             appendBubble('assistant', msg);
             speakText(msg, function () {
                 startListening();

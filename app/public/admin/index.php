@@ -2580,7 +2580,8 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
         }
         .sidebar-heading[aria-expanded="true"] #leasing-chevron,
         .sidebar-heading[aria-expanded="true"] #renting-chevron,
-        .sidebar-heading[aria-expanded="true"] #taller-chevron {
+        .sidebar-heading[aria-expanded="true"] #taller-chevron,
+        .sidebar-heading[aria-expanded="true"] #chatbot-chevron {
             transform: rotate(180deg);
         }
         #rentacar-chevron {
@@ -2590,7 +2591,8 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
         #seminuevos-chevron,
         #leasing-chevron,
         #renting-chevron,
-        #taller-chevron {
+        #taller-chevron,
+        #chatbot-chevron {
             transition: transform 0.2s ease;
             display: inline-block;
         }
@@ -2700,18 +2702,6 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                 <button class="nav-link text-start" id="tab-seo-nav" data-bs-toggle="pill" data-bs-target="#tab-seo" type="button" role="tab" aria-controls="tab-seo" aria-selected="false">
                     <i class="bi bi-search me-2"></i> SEO (Global / Página)
                 </button>
-                <div class="sidebar-heading px-3 py-2 mt-2 text-uppercase text-white-50 fw-bold d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#chatbot-submenu" aria-expanded="false" style="cursor: pointer; font-size: 0.75rem; letter-spacing: 0.5px;">
-                    <span>Chatbot IA</span>
-                    <i class="bi bi-chevron-down" id="chatbot-chevron"></i>
-                </div>
-                <div class="collapse" id="chatbot-submenu">
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-chatbot-nav" data-bs-toggle="pill" data-bs-target="#tab-chatbot" type="button" role="tab" aria-controls="tab-chatbot" aria-selected="false">
-                        <i class="bi bi-sliders me-2"></i> Configuración
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-chatbot-sessions-nav" data-bs-toggle="pill" data-bs-target="#tab-chatbot-sessions" type="button" role="tab" aria-controls="tab-chatbot-sessions" aria-selected="false">
-                        <i class="bi bi-chat-left-text-fill me-2"></i> Historial de sesiones
-                    </button>
-                </div>
                 <button class="nav-link text-start" id="tab-landings-nav" data-bs-toggle="pill" data-bs-target="#tab-landings" type="button" role="tab" aria-controls="tab-landings" aria-selected="false">
                     <i class="bi bi-bullseye me-2"></i> Landing Pages
                 </button>
@@ -2860,6 +2850,20 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                     </button>
                     <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-taller-sucursales-nav" data-bs-toggle="pill" data-bs-target="#tab-taller-sucursales" type="button" role="tab" aria-controls="tab-taller-sucursales" aria-selected="false">
                         <i class="bi bi-geo-alt-fill me-2"></i> Sucursales
+                    </button>
+                </div>
+
+                <!-- Chatbot IA Collapsible Accordion -->
+                <div class="sidebar-heading px-3 py-2 mt-3 text-uppercase text-white-50 fw-bold d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#chatbot-submenu" aria-expanded="false" style="cursor: pointer; font-size: 0.75rem; letter-spacing: 0.5px;">
+                    <span>Chatbot IA</span>
+                    <i class="bi bi-chevron-down" id="chatbot-chevron"></i>
+                </div>
+                <div class="collapse" id="chatbot-submenu">
+                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-chatbot-nav" data-bs-toggle="pill" data-bs-target="#tab-chatbot" type="button" role="tab" aria-controls="tab-chatbot" aria-selected="false">
+                        <i class="bi bi-sliders me-2"></i> Configuración
+                    </button>
+                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-chatbot-sessions-nav" data-bs-toggle="pill" data-bs-target="#tab-chatbot-sessions" type="button" role="tab" aria-controls="tab-chatbot-sessions" aria-selected="false">
+                        <i class="bi bi-chat-left-text-fill me-2"></i> Historial de sesiones
                     </button>
                 </div>
             </div>

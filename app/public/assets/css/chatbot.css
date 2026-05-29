@@ -25,13 +25,14 @@
 
 .am-chat-panel {
     position: fixed;
-    bottom: 175px;
-    right: 24px;
-    width: min(380px, calc(100vw - 32px));
-    height: min(520px, calc(100vh - 200px));
+    bottom: 90px;
+    right: 20px;
+    width: min(400px, calc(100vw - 24px));
+    height: min(720px, calc(100vh - 100px));
+    max-height: calc(100vh - 100px);
     background: #fff;
     border-radius: 16px;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
     z-index: 9998;
     display: flex;
     flex-direction: column;
@@ -48,9 +49,10 @@
 }
 
 .am-chat-header {
+    flex-shrink: 0;
     background: linear-gradient(135deg, #1f347f 0%, #c51f17 100%);
     color: #fff;
-    padding: 14px 16px;
+    padding: 12px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -92,6 +94,7 @@
 }
 
 .am-chat-flow-bar {
+    flex-shrink: 0;
     padding: 6px 12px 0;
     background: #fff;
 }
@@ -104,26 +107,11 @@
     padding: 4px 10px;
     border-radius: 20px;
 }
-.am-chat-flows-title {
-    width: 100%;
-}
-.am-chat-flow-btn {
-    font-size: 0.78rem;
-    padding: 8px 12px;
-    border-radius: 12px;
-    border: 1px solid #1f347f;
-    background: #f0f4ff;
-    color: #1f347f;
-    cursor: pointer;
-    font-weight: 600;
-}
-.am-chat-flow-btn:hover {
-    background: #1f347f;
-    color: #fff;
-}
 
+/* Área principal de conversación — prioridad visual */
 .am-chat-messages {
-    flex: 1;
+    flex: 1 1 auto;
+    min-height: 200px;
     overflow-y: auto;
     padding: 14px;
     background: #f6f7fb;
@@ -133,11 +121,11 @@
 }
 
 .am-chat-bubble {
-    max-width: 88%;
-    padding: 10px 14px;
+    max-width: 90%;
+    padding: 11px 14px;
     border-radius: 14px;
-    font-size: 0.88rem;
-    line-height: 1.45;
+    font-size: 0.9rem;
+    line-height: 1.5;
     word-wrap: break-word;
 }
 .am-chat-bubble.user {
@@ -158,26 +146,55 @@
     font-style: italic;
 }
 
+/* Atajos compactos — no roban espacio al chat */
 .am-chat-suggestions {
-    padding: 8px 12px 0;
+    flex-shrink: 0;
+    max-height: 108px;
+    overflow-y: auto;
+    padding: 6px 10px 4px;
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 5px;
     background: #fff;
     border-top: 1px solid #eef0f4;
 }
-.am-chat-suggestions button {
-    font-size: 0.75rem;
-    padding: 6px 10px;
-    border-radius: 20px;
-    border: 1px solid #dee2e6;
-    background: #fff;
+.am-chat-suggestions.is-collapsed {
+    display: none;
+}
+.am-chat-flows-title {
+    width: 100%;
+    font-size: 0.68rem;
+    margin: 0 0 2px 2px;
+    color: #6c757d;
+}
+.am-chat-flow-btn {
+    font-size: 0.7rem;
+    padding: 5px 9px;
+    border-radius: 10px;
+    border: 1px solid #c5d0e8;
+    background: #f8f9fc;
     color: #1f347f;
     cursor: pointer;
+    font-weight: 600;
+    line-height: 1.2;
 }
-.am-chat-suggestions button:hover {
+.am-chat-flow-btn:hover {
+    background: #1f347f;
+    color: #fff;
+}
+.am-chat-suggestions button:not(.am-chat-flow-btn) {
+    font-size: 0.7rem;
+    padding: 5px 9px;
+    border-radius: 16px;
+    border: 1px solid #dee2e6;
+    background: #fff;
+    color: #495057;
+    cursor: pointer;
+}
+.am-chat-suggestions button:not(.am-chat-flow-btn):hover {
     background: #f0f4ff;
     border-color: #1f347f;
+    color: #1f347f;
 }
 
 .am-chat-mic {
@@ -206,9 +223,10 @@
 }
 
 .am-chat-input-row {
+    flex-shrink: 0;
     display: flex;
     gap: 8px;
-    padding: 12px;
+    padding: 10px 12px;
     background: #fff;
     border-top: 1px solid #eef0f4;
 }
@@ -219,7 +237,7 @@
     border-radius: 12px;
     padding: 10px 12px;
     font-size: 0.88rem;
-    max-height: 100px;
+    max-height: 80px;
     min-height: 42px;
 }
 .am-chat-input-row textarea:focus {
@@ -246,8 +264,9 @@
 @media (max-width: 576px) {
     .am-chat-panel {
         right: 8px;
-        bottom: 160px;
+        bottom: 80px;
         width: calc(100vw - 16px);
+        height: min(85vh, calc(100vh - 90px));
     }
     .am-chat-launcher {
         right: 20px;
