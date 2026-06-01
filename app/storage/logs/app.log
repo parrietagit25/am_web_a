@@ -7,3 +7,4 @@
 [2026-05-26 17:09:11] [INFO] General contact form query submitted: Name: Pedro Arrieta, Email: pedroarrieta25@hotmail.com, Unit: Rent A Car, Message: esto es una prueba
 [2026-05-26 17:09:12] [INFO] Sending legacy lead request: {"name":"Pedro Arrieta","phone":"60026773","email":"pedroarrieta25@hotmail.com","interest":"Contacto - Unidad: Rent A Car","estimated_value":0}
 [2026-05-26 18:15:02] [INFO] Secure payment submitted: Reserva: AM-77777, Email: pedro.arrieta@grupopcr.com.pa, Monto: 125.5, Cardholder: Pedro Arrieta
+[2026-05-28 19:47:26] [INFO] Partner availability request: {"locationCode":"TBM","returnLocationCode":"TBM","pickupDate":"2026-05-29","pickupTime":"14:00","returnDate":"2026-06-06","returnTime":"10:00","age":"25","promoCode":"no tengo c\u00f3digo promocional"}

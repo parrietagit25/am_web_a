@@ -36,10 +36,17 @@ class Database {
         $dbPath = __DIR__ . '/../storage/database.sqlite';
         $dbDir = dirname($dbPath);
         if (!is_dir($dbDir)) {
-            mkdir($dbDir, 0755, true);
+            mkdir($dbDir, 0775, true);
+        }
+        if (!is_writable($dbDir)) {
+            am_log('SQLite storage directory is not writable: ' . $dbDir, 'ERROR');
+        }
+        if (!is_file($dbPath)) {
+            touch($dbPath);
+            @chmod($dbPath, 0664);
         }
 
-        $this->pdo = new PDO("sqlite:" . $dbPath);
+        $this->pdo = new PDO('sqlite:' . $dbPath);
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         $this->driver = 'sqlite';

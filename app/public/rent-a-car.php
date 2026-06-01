@@ -19,12 +19,9 @@ $heroImage = $contentService->get('homepage.hero.image_url', 'https://images.uns
                 <h1 class="display-3 fw-bold mb-3 font-montserrat leading-tight">
                     <?php echo nl2br(esc($heroTitle)); ?>
                 </h1>
-                <p class="fs-4 mb-4 opacity-90 font-poppins">
+                <p class="fs-4 mb-0 opacity-90 font-poppins">
                     <?php echo esc($heroSubtitle); ?>
                 </p>
-                <a href="#search-anchor" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg fs-5">
-                    <?php echo esc(t('rentacar.hero.search_vehicle')); ?> <i class="bi bi-chevron-down ms-2"></i>
-                </a>
             </div>
         </div>
     </div>

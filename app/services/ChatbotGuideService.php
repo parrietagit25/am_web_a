@@ -234,7 +234,9 @@ class ChatbotGuideService {
             case 'pickup_date':
                 $d = ChatbotGuideParser::parseDate($message);
                 if (!$d || $d < date('Y-m-d')) {
-                    return $this->stay($state, $err . ($isEn ? 'Enter pickup date (YYYY-MM-DD or DD/MM/YYYY).' : 'Indique fecha de retiro (AAAA-MM-DD o DD/MM/AAAA).'), $lang);
+                    return $this->stay($state, $err . ($isEn
+                        ? 'What day do you pick up? You can say e.g. May 30, 30/05/2026 or tomorrow.'
+                        : '¿Qué día retiras? Puedes decir por ejemplo: 30 de mayo, 30/05/2026 o mañana.'), $lang);
                 }
                 $data['search']['pickupDate'] = $d;
                 $state['step'] = 'pickup_time';
@@ -248,7 +250,9 @@ class ChatbotGuideService {
             case 'return_date':
                 $d = ChatbotGuideParser::parseDate($message);
                 if (!$d || ($data['search']['pickupDate'] ?? '') > $d) {
-                    return $this->stay($state, $err . ($isEn ? 'Enter return date (after pickup).' : 'Indique fecha de devolución (posterior al retiro).'), $lang);
+                    return $this->stay($state, $err . ($isEn
+                        ? 'Return date? Same formats: May 31, 31/05/2026…'
+                        : '¿Fecha de devolución? Mismo formato: 31 de mayo, 31/05/2026…'), $lang);
                 }
                 $data['search']['returnDate'] = $d;
                 $state['step'] = 'return_time';
@@ -646,14 +650,14 @@ class ChatbotGuideService {
                     ? 'Which branch for return?'
                     : '¿En cuál sucursal lo devuelves?',
                 'pickup_date' => $isEn
-                    ? 'What date do you pick it up?'
-                    : '¿Qué día retiras el vehículo?',
+                    ? 'What day do you pick it up? (e.g. May 30, 30/05/2026, tomorrow…)'
+                    : '¿Qué día retiras el vehículo? (ej. 30 de mayo, 30/05/2026, mañana…)',
                 'pickup_time' => $isEn
                     ? 'What time? (e.g. 10:00)'
                     : '¿A qué hora? (ej. 10:00)',
                 'return_date' => $isEn
-                    ? 'And the return date?'
-                    : '¿Y la fecha de devolución?',
+                    ? 'And the return date? (same formats)'
+                    : '¿Y la fecha de devolución? (mismo formato)',
                 'return_time' => $isEn
                     ? 'Return time?'
                     : '¿A qué hora lo devuelves?',

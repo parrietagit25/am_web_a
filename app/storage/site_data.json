@@ -263,6 +263,29 @@
                 "heroSubtitle": "Mantenimiento preventivo, correctivo y mecánicos certificados",
                 "ctaText": "Agendar cita"
             }
+        },
+        "chatbot": {
+            "enabled": false,
+            "assistant_name": "Asistente Automarket",
+            "welcome_message_es": "¡Hola! Qué gusto saludarte. Cuéntame, ¿qué necesitas hoy? Puedo ayudarte con una reserva de alquiler, Seminuevos, Leasing, Renting o resolver dudas del sitio.",
+            "welcome_message_en": "Hi there! Good to see you. What can I help you with today? I can assist with a rental booking, pre-owned cars, leasing, renting, or general questions.",
+            "system_instructions": "",
+            "model": "gpt-4o-mini",
+            "max_tokens": 700,
+            "temperature": 0.9,
+            "suggested_questions_es": [
+                "¿Cómo reservo un auto de alquiler?",
+                "¿Qué es el renting y qué incluye?",
+                "¿Dónde están las sucursales?"
+            ],
+            "suggested_questions_en": [
+                "How do I book a rental car?",
+                "What is renting and what does it include?",
+                "Where are your branches?"
+            ],
+            "voice_name": "Paulina",
+            "voice_rate": 1,
+            "voice_pitch": 1
         }
     },
     "homepage": {
