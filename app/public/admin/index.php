@@ -246,6 +246,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    elseif ($action === 'save_news_home_settings') {
+        if (!isset($siteData['homepage'])) {
+            $siteData['homepage'] = [];
+        }
+        $siteData['homepage']['noticias_show_on_home'] = isset($_POST['noticias_show_on_home']);
+
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Preferencia de noticias en página principal guardada.';
+        } else {
+            $detail = ContentService::getLastSaveError();
+            $errorMsg = 'Error al guardar la preferencia.'
+                . ($detail !== '' ? ' ' . $detail : '');
+        }
+    }
+
     // 3. ADD NEWS CARD
     elseif ($action === 'add_news') {
         $title = trim($_POST['news_title'] ?? '');
@@ -3206,6 +3221,32 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                     
                     <!-- TAB 3: NOTICIAS / BLOG MANAGEMENT -->
                     <div class="tab-pane fade" id="tab-news" role="tabpanel" aria-labelledby="tab-news-nav">
+                        <?php
+                        $noticiasShowOnHome = array_key_exists('noticias_show_on_home', $homepage)
+                            ? (bool) $homepage['noticias_show_on_home']
+                            : true;
+                        ?>
+                        <div class="admin-card mb-4">
+                            <h5 class="fw-bold mb-3 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-house-door me-2 text-danger"></i>Sección en página principal
+                            </h5>
+                            <form method="POST" action="" class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                                <input type="hidden" name="action" value="save_news_home_settings">
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="noticias_show_on_home" name="noticias_show_on_home" value="1" <?php echo $noticiasShowOnHome ? 'checked' : ''; ?>>
+                                    <label class="form-check-label fw-semibold" for="noticias_show_on_home">
+                                        Mostrar bloque «Últimas Noticias» en <code>rent-a-car.php</code>
+                                    </label>
+                                </div>
+                                <p class="text-muted small mb-0 w-100">
+                                    Si lo desactivas, las noticias siguen en <a href="/blog.php" target="_blank" rel="noopener">/blog.php</a> pero no aparecen en el home de Rent a Car.
+                                </p>
+                                <button type="submit" class="btn btn-premium btn-sm ms-auto">
+                                    <i class="bi bi-save2"></i> Guardar preferencia
+                                </button>
+                            </form>
+                        </div>
+
                         <!-- Add News Form -->
                         <div class="admin-card">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="newsFormTitle"><i class="bi bi-file-plus me-2 text-danger"></i>Agregar Nueva Noticia</h5>

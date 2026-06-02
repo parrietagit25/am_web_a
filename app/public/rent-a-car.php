@@ -209,8 +209,11 @@ $featuredImageUrl = $featured['image_url'] ?? '/assets/img/feria_david.webp';
 
 <!-- 5. Últimas noticias -->
 <?php
+$noticiasShowOnHome = $contentService->get('homepage.noticias_show_on_home', true);
+$noticiasShowOnHome = ($noticiasShowOnHome !== false && $noticiasShowOnHome !== 0 && $noticiasShowOnHome !== '0');
 $noticias = $contentService->get('homepage.noticias', []);
 ?>
+<?php if ($noticiasShowOnHome): ?>
 <section class="container py-5 mb-5 border-top" id="blog">
     <div class="text-center mb-5">
         <h2 class="fw-bold text-navy display-6 font-montserrat">Últimas Noticias</h2>
@@ -250,6 +253,7 @@ $noticias = $contentService->get('homepage.noticias', []);
         <?php endforeach; ?>
     </div>
 </section>
+<?php endif; ?>
 
 <!-- 6. Testimonios -->
 <?php
