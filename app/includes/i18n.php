@@ -26,6 +26,7 @@ function t_unit(string $unitKey, string $defaultLabel): string {
 function t_cta(string $ctaText): string {
     $map = [
         'Buscar vehículo' => 'cta.buscar_vehiculo',
+        'Ver Flota' => 'cta.ver_flota',
         'Ver inventario' => 'cta.ver_inventario',
         'Cotizar Leasing' => 'cta.cotizar_leasing',
     ];

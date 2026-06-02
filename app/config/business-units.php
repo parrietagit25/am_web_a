@@ -19,7 +19,7 @@ return [
         'activeClass' => 'active-rentacar',
         'heroTitle' => 'Te acompañamos a tu destino',
         'heroSubtitle' => 'Reserva tu vehículo en línea en segundos con la flota más moderna',
-        'ctaText' => 'Buscar vehículo'
+        'ctaText' => 'Ver Flota'
     ],
     'seminuevos' => [
         'key' => 'seminuevos',

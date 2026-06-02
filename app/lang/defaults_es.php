@@ -27,6 +27,7 @@ return [
     'menu.nuestros_servicios' => 'NUESTROS SERVICIOS',
     'menu.sobre_nosotros' => 'SOBRE NOSOTROS',
     'cta.buscar_vehiculo' => 'Buscar vehículo',
+    'cta.ver_flota' => 'Ver Flota',
     'cta.ver_inventario' => 'Ver inventario',
     'cta.cotizar_leasing' => 'Cotizar Leasing',
     'footer.tagline' => '"Juntos transformamos la movilidad en satisfacción"',

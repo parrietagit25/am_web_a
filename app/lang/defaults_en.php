@@ -27,6 +27,7 @@ return [
     'menu.nuestros_servicios' => 'OUR SERVICES',
     'menu.sobre_nosotros' => 'ABOUT US',
     'cta.buscar_vehiculo' => 'Search vehicle',
+    'cta.ver_flota' => 'View Fleet',
     'cta.ver_inventario' => 'View inventory',
     'cta.cotizar_leasing' => 'Get Leasing Quote',
     'footer.tagline' => '"Together we transform mobility into satisfaction"',
