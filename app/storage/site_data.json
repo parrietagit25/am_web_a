@@ -21,7 +21,6 @@
                         "label": "ALQUILERES",
                         "link": "#",
                         "submenu": [
-                           
                             {
                                 "label": "Nuestra flota",
                                 "link": "/flota.php"
@@ -30,14 +29,10 @@
                                 "label": "Sucursales",
                                 "link": "/sucursales.php"
                             },
-                            /*{
-                                "label": "Requisitos de alquiler",
-                                "link": "/requisitos-alquiler.php"
-                            }, */
                             {
                                 "label": "Blog",
                                 "link": "/blog.php"
-                            }, 
+                            },
                             {
                                 "label": "Términos y condiciones",
                                 "link": "/terminos-condiciones.php"
