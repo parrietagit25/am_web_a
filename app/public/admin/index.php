@@ -270,6 +270,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $subheading = trim($_POST['news_subheading'] ?? '');
         $description = trim($_POST['news_description'] ?? '');
         $content = trim($_POST['news_content'] ?? '');
+        $showOnHome = isset($_POST['news_show_on_home']);
 
         $thumbnail = '';
         if (isset($_FILES['news_thumbnail']) && $_FILES['news_thumbnail']['error'] === UPLOAD_ERR_OK) {
@@ -302,7 +303,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'banner' => $banner,
                 'subheading' => $subheading,
                 'description' => $description,
-                'content' => $content
+                'content' => $content,
+                'show_on_home' => $showOnHome,
             ];
 
             if ($contentService->saveAll($siteData)) {
@@ -312,6 +314,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } else {
             $errorMsg = 'Faltan campos obligatorios para la noticia.';
+        }
+    }
+
+    elseif ($action === 'toggle_news_home') {
+        $id = intval($_POST['news_id'] ?? 0);
+        $foundIdx = -1;
+        foreach ($siteData['homepage']['noticias'] as $idx => $item) {
+            if (intval($item['id']) === $id) {
+                $foundIdx = $idx;
+                break;
+            }
+        }
+        if ($foundIdx !== -1) {
+            $current = $siteData['homepage']['noticias'][$foundIdx]['show_on_home'] ?? true;
+            $siteData['homepage']['noticias'][$foundIdx]['show_on_home'] = !($current === true || $current === 1 || $current === '1');
+            if ($contentService->saveAll($siteData)) {
+                $successMsg = 'Visibilidad en página principal actualizada.';
+            } else {
+                $errorMsg = 'Error al actualizar la visibilidad de la noticia.';
+            }
+        } else {
+            $errorMsg = 'Noticia no encontrada.';
         }
     }
 
@@ -341,6 +365,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $subheading = trim($_POST['news_subheading'] ?? '');
         $description = trim($_POST['news_description'] ?? '');
         $content = trim($_POST['news_content'] ?? '');
+        $showOnHome = isset($_POST['news_show_on_home']);
 
         $foundIdx = -1;
         foreach ($siteData['homepage']['noticias'] as $idx => $item) {
@@ -382,7 +407,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'banner' => $banner,
                 'subheading' => $subheading,
                 'description' => $description,
-                'content' => $content
+                'content' => $content,
+                'show_on_home' => $showOnHome,
             ];
 
             if ($contentService->saveAll($siteData)) {
@@ -3306,6 +3332,15 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                         <textarea id="news_content" name="news_content" class="form-control form-control-premium font-monospace" rows="12" placeholder="Puede pegar HTML (&lt;p&gt;, &lt;img&gt;, &lt;section&gt;…) o texto con **negrita** y viñetas con -" required></textarea>
                                         <div class="form-text">Se renderiza HTML seguro (sin scripts). Imágenes relativas (ej. <code>archivo.webp</code>) se buscan en <code>/assets/img/uploads/</code>.</div>
                                     </div>
+
+                                    <div class="col-12">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="news_show_on_home" name="news_show_on_home" value="1" checked>
+                                            <label class="form-check-label fw-semibold" for="news_show_on_home">
+                                                Mostrar esta noticia en «Últimas Noticias» del home (rent-a-car.php)
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="text-end mt-4 d-flex justify-content-end gap-2">
@@ -3329,16 +3364,20 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                             <th style="width: 150px;">Fecha</th>
                                             <th>Título</th>
                                             <th>Subtítulo (Card)</th>
+                                            <th style="width: 110px;" class="text-center">En home</th>
                                             <th style="width: 120px;" class="text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty($homepage['noticias'])): ?>
                                             <tr>
-                                                <td colspan="5" class="text-center py-4 text-muted">No hay noticias publicadas.</td>
+                                                <td colspan="6" class="text-center py-4 text-muted">No hay noticias publicadas.</td>
                                             </tr>
                                         <?php else: ?>
-                                            <?php foreach ($homepage['noticias'] as $noticia): ?>
+                                            <?php foreach ($homepage['noticias'] as $noticia):
+                                                $newsOnHome = !array_key_exists('show_on_home', $noticia)
+                                                    || ($noticia['show_on_home'] !== false && $noticia['show_on_home'] !== 0 && $noticia['show_on_home'] !== '0');
+                                            ?>
                                             <tr>
                                                 <td>
                                                     <?php if (!empty($noticia['thumbnail'])): ?>
@@ -3352,6 +3391,15 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                                 <td><small class="fw-semibold text-muted"><?php echo esc($noticia['date'] ?? ''); ?></small></td>
                                                 <td><strong><?php echo esc($noticia['title'] ?? ''); ?></strong></td>
                                                 <td><small class="text-muted"><?php echo esc($noticia['desc'] ?? ''); ?></small></td>
+                                                <td class="text-center">
+                                                    <form method="POST" action="" class="d-inline">
+                                                        <input type="hidden" name="action" value="toggle_news_home">
+                                                        <input type="hidden" name="news_id" value="<?php echo intval($noticia['id']); ?>">
+                                                        <button type="submit" class="btn btn-sm <?php echo $newsOnHome ? 'btn-success' : 'btn-outline-secondary'; ?>" title="<?php echo $newsOnHome ? 'Visible en home — clic para ocultar' : 'Oculta en home — clic para mostrar'; ?>">
+                                                            <i class="bi <?php echo $newsOnHome ? 'bi-eye-fill' : 'bi-eye-slash'; ?>"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
                                                 <td class="text-center">
                                                     <div class="d-flex justify-content-center gap-1">
                                                         <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditNews(<?php echo json_encode($noticia, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'><i class="bi bi-pencil-fill"></i></button>
@@ -5886,6 +5934,13 @@ function initEditNews(noticia) {
     document.getElementById('news_description').value = noticia.description || '';
     document.getElementById('news_content').value = noticia.content || '';
 
+    var showOnHome = noticia.show_on_home;
+    if (showOnHome === undefined || showOnHome === null || showOnHome === true || showOnHome === 1 || showOnHome === '1') {
+        document.getElementById('news_show_on_home').checked = true;
+    } else {
+        document.getElementById('news_show_on_home').checked = false;
+    }
+
     // Thumbnail is not required during edit since we keep existing if empty
     document.getElementById('news_thumbnail').removeAttribute('required');
     if (noticia.thumbnail) {
@@ -5918,6 +5973,7 @@ function resetNewsForm() {
     document.getElementById('news_thumbnail').setAttribute('required', 'required');
     document.getElementById('newsThumbnailHelp').innerHTML = '';
     document.getElementById('newsBannerHelp').innerHTML = '';
+    document.getElementById('news_show_on_home').checked = true;
 
     document.getElementById('newsCancelBtn').classList.add('d-none');
     document.getElementById('newsSubmitBtn').className = 'btn btn-premium d-inline-flex align-items-center gap-2';

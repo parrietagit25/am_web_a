@@ -211,9 +211,19 @@ $featuredImageUrl = $featured['image_url'] ?? '/assets/img/feria_david.webp';
 <?php
 $noticiasShowOnHome = $contentService->get('homepage.noticias_show_on_home', true);
 $noticiasShowOnHome = ($noticiasShowOnHome !== false && $noticiasShowOnHome !== 0 && $noticiasShowOnHome !== '0');
-$noticias = $contentService->get('homepage.noticias', []);
+$noticiasAll = $contentService->get('homepage.noticias', []);
+$noticias = array_values(array_filter($noticiasAll, static function ($noticia) {
+    if (!is_array($noticia)) {
+        return false;
+    }
+    if (!array_key_exists('show_on_home', $noticia)) {
+        return true;
+    }
+    $v = $noticia['show_on_home'];
+    return $v !== false && $v !== 0 && $v !== '0';
+}));
 ?>
-<?php if ($noticiasShowOnHome): ?>
+<?php if ($noticiasShowOnHome && !empty($noticias)): ?>
 <section class="container py-5 mb-5 border-top" id="blog">
     <div class="text-center mb-5">
         <h2 class="fw-bold text-navy display-6 font-montserrat">Últimas Noticias</h2>
