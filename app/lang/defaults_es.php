@@ -21,7 +21,7 @@ return [
     'menu.inventario' => 'INVENTARIO',
     'menu.nuestro_equipo' => 'NUESTRO EQUIPO',
     'menu.contactos_sucursales' => 'CONTACTOS Y SUCURSALES',
-    'menu.nuestra_flota' => 'NUESTRA FLOTA',
+    'menu.nuestra_flota' => 'Nuestra flota',
     'menu.nuestro_equipo_leasing' => 'NUESTRO EQUIPO',
     'menu.contactos' => 'CONTACTOS',
     'menu.nuestros_servicios' => 'NUESTROS SERVICIOS',

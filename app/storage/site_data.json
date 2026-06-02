@@ -22,11 +22,11 @@
                         "link": "#",
                         "submenu": [
                             {
-                                "label": "Términos y Condiciones",
+                                "label": "Términos y condiciones",
                                 "link": "/terminos-condiciones.php"
                             },
                             {
-                                "label": "Nuestra Flota",
+                                "label": "Nuestra flota",
                                 "link": "/flota.php"
                             },
                             {

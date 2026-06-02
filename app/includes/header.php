@@ -199,7 +199,7 @@ $themeRgb = "$r, $g, $b";
                                     ?>
                                         <li>
                                             <a class="dropdown-item fw-semibold text-navy py-2 px-3 font-poppins" href="<?php echo esc($subLink); ?>" style="font-size: 0.85rem;">
-                                                <?php echo esc(t_menu($sub['label'])); ?>
+                                                <?php echo esc(t_submenu($sub['label'])); ?>
                                             </a>
                                         </li>
                                     <?php endforeach; ?>

@@ -19,6 +19,21 @@ function t_menu(string $label): string {
     return $key ? t($key, $label) : $label;
 }
 
+/** Primera letra mayúscula, resto minúsculas (español/inglés). */
+function formatMenuSentenceCase(string $text): string {
+    $text = trim($text);
+    if ($text === '') {
+        return '';
+    }
+    $lower = mb_strtolower($text, 'UTF-8');
+    return mb_strtoupper(mb_substr($lower, 0, 1, 'UTF-8'), 'UTF-8') . mb_substr($lower, 1, null, 'UTF-8');
+}
+
+/** Etiquetas de submenú: traducción + capitalización uniforme. */
+function t_submenu(string $label): string {
+    return formatMenuSentenceCase(t_menu($label));
+}
+
 function t_unit(string $unitKey, string $defaultLabel): string {
     return t(TranslationService::unitKeyFor($unitKey), $defaultLabel);
 }
