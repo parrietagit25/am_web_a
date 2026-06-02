@@ -201,33 +201,47 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterButtons = document.querySelectorAll('.fleet-filter-btn');
     const fleetCards = document.querySelectorAll('.fleet-card-wrapper');
 
-    filterButtons.forEach(button => {
+    function applyFleetCategoryFilter(selectedCategory, activeButton) {
+        filterButtons.forEach(function(btn) {
+            btn.classList.toggle('active', btn === activeButton);
+        });
+
+        fleetCards.forEach(function(card) {
+            const cardCategory = card.getAttribute('data-category');
+
+            if (selectedCategory === 'all' || cardCategory === selectedCategory) {
+                card.style.opacity = '0';
+                card.classList.remove('d-none');
+                setTimeout(function() {
+                    card.style.opacity = '1';
+                }, 50);
+            } else {
+                card.style.opacity = '0';
+                setTimeout(function() {
+                    card.classList.add('d-none');
+                }, 300);
+            }
+        });
+    }
+
+    filterButtons.forEach(function(button) {
         button.addEventListener('click', function() {
-            // Remove active class from all buttons
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            // Add active class to clicked button
-            this.classList.add('active');
-
-            const selectedCategory = this.getAttribute('data-category');
-
-            fleetCards.forEach(card => {
-                const cardCategory = card.getAttribute('data-category');
-                
-                if (selectedCategory === 'all' || cardCategory === selectedCategory) {
-                    card.style.opacity = '0';
-                    card.classList.remove('d-none');
-                    setTimeout(() => {
-                        card.style.opacity = '1';
-                    }, 50);
-                } else {
-                    card.style.opacity = '0';
-                    setTimeout(() => {
-                        card.classList.add('d-none');
-                    }, 300);
-                }
-            });
+            applyFleetCategoryFilter(this.getAttribute('data-category'), this);
         });
     });
+
+    const params = new URLSearchParams(window.location.search);
+    const categoryFromUrl = (params.get('categoria') || params.get('category') || '').trim();
+    if (categoryFromUrl !== '') {
+        const matchBtn = Array.prototype.find.call(filterButtons, function(btn) {
+            return btn.getAttribute('data-category') === categoryFromUrl;
+        });
+        if (matchBtn) {
+            applyFleetCategoryFilter(categoryFromUrl, matchBtn);
+        } else {
+            applyFleetCategoryFilter(categoryFromUrl, null);
+        }
+    }
 });
 </script>
 

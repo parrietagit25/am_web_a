@@ -133,9 +133,12 @@ $intervalVal = intval($fleetCarousel['interval'] ?? 3000);
                  data-direction="<?php echo $directionVal; ?>" 
                  data-interval="<?php echo $intervalVal; ?>">
                 
-                <?php foreach (($fleetCarousel['items'] ?? []) as $item): ?>
+                <?php foreach (($fleetCarousel['items'] ?? []) as $item):
+                    $fleetCat = trim((string)($item['category'] ?? $item['label'] ?? ''));
+                    $fleetCatUrl = $fleetCat !== '' ? '/flota.php?categoria=' . rawurlencode($fleetCat) : '/flota.php';
+                ?>
                 <div class="fleet-carousel-item">
-                    <a href="#search-anchor" class="fleet-category-link text-decoration-none" data-category="<?php echo esc($item['category'] ?? ''); ?>">
+                    <a href="<?php echo esc($fleetCatUrl); ?>" class="fleet-category-link text-decoration-none" data-category="<?php echo esc($fleetCat); ?>">
                         <div class="fleet-category-image-container">
                             <img src="<?php echo esc($item['image_url'] ?? ''); ?>" alt="<?php echo esc($item['label'] ?? ''); ?>" class="img-fluid fleet-category-img">
                         </div>
