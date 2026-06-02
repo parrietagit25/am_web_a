@@ -1,9 +1,10 @@
 # Configuración local / secretos (crear en el servidor, no subir a Git)
 app/config/config.php
 app/services/Database.php
-# Contenido dinámico del sitio (se edita en admin en cada entorno; no versionar en Git)
+# Contenido dinámico del sitio (solo en cada servidor; ver app/storage/README.md)
 app/storage/site_data.json
 app/storage/site_data.json.bak*
+# Plantilla vacía sí se versiona: app/storage/site_data.example.json
 
 # Base SQLite local (reservas RAC, etc. — cada servidor tiene la suya)
 app/storage/database.sqlite
