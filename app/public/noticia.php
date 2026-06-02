@@ -4,6 +4,7 @@
  */
 $activeUnit = 'rentacar';
 require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/article-content.php';
 
 $newsId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $noticias = $contentService->get('homepage.noticias', []);
@@ -23,6 +24,12 @@ if (!$article) {
     exit;
 }
 ?>
+
+<style>
+.article-rich-content img { max-width: 100%; height: auto; }
+.article-rich-content section { margin-bottom: 1.5rem; }
+.article-rich-content h1, .article-rich-content h2, .article-rich-content h3 { margin-top: 1rem; margin-bottom: .75rem; }
+</style>
 
 <!-- Article Header Section -->
 <section class="container py-5 mt-4">
@@ -53,25 +60,14 @@ if (!$article) {
                     <?php endif; ?>
 
                     <?php if (!empty($article['description'])): ?>
-                        <p class="fs-5 text-muted font-poppins mb-4 lh-lg" style="text-align: justify;">
-                            <?php 
-                            $desc_html = esc($article['description']);
-                            $desc_html = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $desc_html);
-                            $desc_html = preg_replace('/\*(.*?)\*/', '<em>$1</em>', $desc_html);
-                            echo $desc_html;
-                            ?>
-                        </p>
+                        <div class="fs-5 text-muted font-poppins mb-4 lh-lg article-rich-content" style="text-align: justify;">
+                            <?php echo renderRacArticleContent($article['description']); ?>
+                        </div>
                     <?php endif; ?>
 
-                    <!-- Main Dynamic Content (with bullet/paragraph spacing) -->
                     <?php if (!empty($article['content'])): ?>
-                        <div class="article-body-content text-navy font-poppins fs-6 lh-lg" style="text-align: justify; white-space: pre-line;">
-                            <?php 
-                            $content_html = esc($article['content']);
-                            $content_html = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $content_html);
-                            $content_html = preg_replace('/\*(.*?)\*/', '<em>$1</em>', $content_html);
-                            echo $content_html;
-                            ?>
+                        <div class="article-body-content article-rich-content text-navy font-poppins fs-6 lh-lg" style="text-align: justify;">
+                            <?php echo renderRacArticleContent($article['content']); ?>
                         </div>
                     <?php endif; ?>
                 </div>

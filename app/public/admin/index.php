@@ -3261,8 +3261,9 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                     </div>
 
                                     <div class="col-12">
-                                        <label for="news_content" class="form-label">Contenido Detallado del Artículo (Soporta saltos de línea y viñetas)</label>
-                                        <textarea id="news_content" name="news_content" class="form-control form-control-premium" rows="6" placeholder="Escriba los detalles aquí..." required></textarea>
+                                        <label for="news_content" class="form-label">Contenido Detallado del Artículo (HTML, saltos de línea o viñetas)</label>
+                                        <textarea id="news_content" name="news_content" class="form-control form-control-premium font-monospace" rows="12" placeholder="Puede pegar HTML (&lt;p&gt;, &lt;img&gt;, &lt;section&gt;…) o texto con **negrita** y viñetas con -" required></textarea>
+                                        <div class="form-text">Se renderiza HTML seguro (sin scripts). Imágenes relativas (ej. <code>archivo.webp</code>) se buscan en <code>/assets/img/uploads/</code>.</div>
                                     </div>
                                 </div>
 
