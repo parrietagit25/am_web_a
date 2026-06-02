@@ -38,10 +38,6 @@ $activeSucursales = array_values(array_filter($semiSucursales, function($s) {
      SEMINUEVOS CONTACT PAGE
      ============================================================ -->
 
-<!-- Leaflet.js Interactive Map -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
 <style>
 .sn-breadcrumb-strip { background: #f8f9fc; border-bottom: 1px solid #eaecf3; }
 .sn-page-title { font-size: 2.2rem; letter-spacing: -0.5px; }
@@ -87,37 +83,6 @@ $activeSucursales = array_values(array_filter($semiSucursales, function($s) {
 .sn-sidebar-img { border-radius: 0 0 16px 16px; overflow: hidden; line-height: 0; }
 .sn-sidebar-img img { width: 100%; display: block; object-fit: cover; max-height: 340px; }
 
-/* Sucursales accordion */
-.sn-accordion-item {
-    background: #fff; border: 1px solid #e3e6f0 !important;
-    border-radius: 12px !important; overflow: hidden;
-    box-shadow: 0 2px 10px rgba(11,31,107,.06);
-}
-.sn-accordion-btn {
-    background: #fff !important; color: #081026 !important; font-weight: 700;
-    font-family: 'Montserrat', sans-serif; font-size: 1.1rem;
-    padding: 20px 24px; box-shadow: none !important; border: none !important;
-    transition: color .2s, border-left .2s;
-}
-.sn-accordion-btn:not(.collapsed) { color: #c51f17 !important; border-left: 5px solid #c51f17 !important; padding-left: 19px; }
-.sn-info-label {
-    font-weight: 700; font-size: .82rem; text-transform: uppercase;
-    letter-spacing: .5px; color: #c51f17; font-family: 'Montserrat', sans-serif;
-    display: block; margin-bottom: 3px;
-}
-.sn-info-value { color: #333; font-family: 'Poppins', sans-serif; font-size: .9rem; padding-left: 22px; }
-.sn-info-value a { color: #0b1f6b; text-decoration: none; font-weight: 600; }
-.sn-info-value a:hover { color: #c51f17; text-decoration: underline; }
-.sn-howto-btn {
-    display: inline-flex; align-items: center; gap: 8px; background: #c51f17; color: #fff;
-    font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: .82rem;
-    letter-spacing: .5px; text-transform: uppercase; padding: 10px 22px;
-    border-radius: 50px; text-decoration: none; transition: background .2s, transform .15s;
-}
-.sn-howto-btn:hover { background: #a81812; color: #fff; transform: translateY(-1px); }
-.leaflet-popup-content-wrapper { border-radius: 8px !important; font-family: 'Poppins', sans-serif; }
-.sn-section-title { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; color: #0b1f6b; }
-.sn-section-title span { color: #c51f17; }
 @media (max-width: 991px) { .sn-sidebar-sticky { position: static; } }
 </style>
 
@@ -127,10 +92,10 @@ $activeSucursales = array_values(array_filter($semiSucursales, function($s) {
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-2 font-poppins" style="font-size:.84rem;">
                 <li class="breadcrumb-item"><a href="/venta-autos.php" class="text-danger text-decoration-none fw-semibold">Venta de Autos</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Contactos y Sucursales</li>
+                <li class="breadcrumb-item active" aria-current="page">Contacto</li>
             </ol>
         </nav>
-        <h1 class="sn-page-title fw-bold text-navy font-montserrat mb-1">Contactos y Sucursales</h1>
+        <h1 class="sn-page-title fw-bold text-navy font-montserrat mb-1">Contacto</h1>
         <p class="text-muted font-poppins mb-0" style="font-size:.9rem;">
             Gracias por escribirnos. Por favor llena el formulario y pronto te responderemos.
         </p>
@@ -244,148 +209,6 @@ $activeSucursales = array_values(array_filter($semiSucursales, function($s) {
         </div>
 
     </div>
-</section>
-
-<!-- SUCURSALES SECTION -->
-<section class="container pb-5 mb-3">
-    <div class="text-center mb-5">
-        <span class="d-inline-block text-danger fw-bold text-uppercase font-poppins mb-2" style="font-size:.78rem;letter-spacing:2px;">
-            <i class="bi bi-geo-alt-fill me-1"></i>Nuestras Ubicaciones
-        </span>
-        <h2 class="sn-section-title font-montserrat">Sucursales <span>Automarket</span></h2>
-        <p class="text-muted font-poppins mt-2" style="max-width:500px;margin:0 auto;font-size:.88rem;">
-            Vis&iacute;tanos en cualquiera de nuestras <?php echo count($activeSucursales); ?> sucursales a nivel nacional
-        </p>
-    </div>
-
-    <?php if (empty($activeSucursales)): ?>
-        <div class="text-center py-5 text-muted">
-            <i class="bi bi-building-slash fs-1 mb-3 d-block"></i>
-            <p>Sucursales pr&oacute;ximamente disponibles.</p>
-        </div>
-    <?php else: ?>
-        <div class="accordion d-flex flex-column gap-3" id="snSucursalesAccordion">
-            <?php foreach ($activeSucursales as $index => $suc):
-                $id         = intval($suc['id']);
-                $isFirst    = ($index === 0);
-                $collapseId = 'sn_suc_' . $id;
-                $lat        = floatval($suc['lat'] ?? 8.9866);
-                $lng        = floatval($suc['lng'] ?? -79.5190);
-                $sucName    = addslashes(esc($suc['name']));
-                $sucAddr    = addslashes(esc($suc['address'] ?? ''));
-            ?>
-                <div class="accordion-item sn-accordion-item">
-                    <h2 class="accordion-header mb-0">
-                        <button class="accordion-button sn-accordion-btn <?php echo $isFirst ? '' : 'collapsed'; ?>"
-                                type="button" data-bs-toggle="collapse"
-                                data-bs-target="#<?php echo $collapseId; ?>"
-                                aria-expanded="<?php echo $isFirst ? 'true' : 'false'; ?>"
-                                aria-controls="<?php echo $collapseId; ?>">
-                            <i class="bi bi-geo-alt-fill me-2 fs-5"></i>
-                            <?php echo esc($suc['name']); ?>
-                        </button>
-                    </h2>
-
-                    <div id="<?php echo $collapseId; ?>"
-                         class="accordion-collapse collapse <?php echo $isFirst ? 'show' : ''; ?>"
-                         data-bs-parent="#snSucursalesAccordion">
-                        <div class="accordion-body p-4 bg-white border-top">
-                            <div class="row g-4 align-items-stretch">
-
-                                <!-- Col 1: Info -->
-                                <div class="col-md-6 col-12 d-flex flex-column justify-content-between">
-                                    <div class="d-flex flex-column gap-3">
-
-                                        <?php if (!empty($suc['location'])): ?>
-                                        <div>
-                                            <span class="sn-info-label"><i class="bi bi-geo-alt-fill me-2"></i>Ubicado en:</span>
-                                            <span class="sn-info-value fw-semibold text-navy"><?php echo esc($suc['location']); ?></span>
-                                        </div>
-                                        <?php endif; ?>
-
-                                        <?php if (!empty($suc['address'])): ?>
-                                        <div>
-                                            <span class="sn-info-label"><i class="bi bi-map-fill me-2"></i>Direcci&oacute;n:</span>
-                                            <span class="sn-info-value"><?php echo esc($suc['address']); ?></span>
-                                        </div>
-                                        <?php endif; ?>
-
-                                        <?php if (!empty($suc['schedule'])): ?>
-                                        <div>
-                                            <span class="sn-info-label"><i class="bi bi-clock-fill me-2"></i>Horario:</span>
-                                            <span class="sn-info-value"><?php echo esc($suc['schedule']); ?></span>
-                                        </div>
-                                        <?php endif; ?>
-
-                                        <?php if (!empty($suc['phone'])): ?>
-                                        <div>
-                                            <span class="sn-info-label"><i class="bi bi-telephone-fill me-2"></i>Tel&eacute;fono:</span>
-                                            <span class="sn-info-value">
-                                                <a href="tel:<?php echo preg_replace('/\D/', '', $suc['phone']); ?>"><?php echo esc($suc['phone']); ?></a>
-                                            </span>
-                                        </div>
-                                        <?php endif; ?>
-
-                                    </div>
-
-                                    <div class="mt-4 pt-3 border-top">
-                                        <a href="https://maps.google.com?saddr=Current+Location&daddr=<?php echo $lat; ?>,<?php echo $lng; ?>"
-                                           target="_blank" rel="noopener" class="sn-howto-btn">
-                                            <i class="bi bi-arrow-up-right-circle"></i>&iquest;C&oacute;mo llegar? (Google Maps)
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <!-- Col 2: Leaflet Map -->
-                                <div class="col-md-6 col-12 position-relative d-flex">
-                                    <div id="snmap_<?php echo $id; ?>"
-                                         class="rounded-3 shadow-sm border w-100 flex-grow-1"
-                                         style="min-height:280px;background:#f1f3f7;z-index:1;"></div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Leaflet init -->
-                <script>
-                (function() {
-                    var _m<?php echo $id; ?> = null, _mk<?php echo $id; ?> = null;
-                    var _icon<?php echo $id; ?> = null;
-                    var _lat<?php echo $id; ?> = <?php echo $lat; ?>;
-                    var _lng<?php echo $id; ?> = <?php echo $lng; ?>;
-                    var _name<?php echo $id; ?> = '<?php echo $sucName; ?>';
-                    var _addr<?php echo $id; ?> = '<?php echo $sucAddr; ?>';
-                    var _colEl<?php echo $id; ?> = document.getElementById('<?php echo $collapseId; ?>');
-
-                    function _initMap<?php echo $id; ?>() {
-                        if (_m<?php echo $id; ?>) { _m<?php echo $id; ?>.invalidateSize(); _mk<?php echo $id; ?>.openPopup(); return; }
-                        _m<?php echo $id; ?> = L.map('snmap_<?php echo $id; ?>').setView([_lat<?php echo $id; ?>, _lng<?php echo $id; ?>], 16);
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        }).addTo(_m<?php echo $id; ?>);
-                        _icon<?php echo $id; ?> = L.icon({
-                            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-                            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-                            iconSize:[25,41], iconAnchor:[12,41], popupAnchor:[1,-34], shadowSize:[41,41]
-                        });
-                        _mk<?php echo $id; ?> = L.marker([_lat<?php echo $id; ?>, _lng<?php echo $id; ?>], {icon: _icon<?php echo $id; ?>})
-                            .addTo(_m<?php echo $id; ?>)
-                            .bindPopup('<span class="fw-bold text-navy">' + _name<?php echo $id; ?> + '</span><br><small class="text-muted">' + _addr<?php echo $id; ?> + '</small>');
-                        _mk<?php echo $id; ?>.openPopup();
-                    }
-
-                    _colEl<?php echo $id; ?>.addEventListener('shown.bs.collapse', _initMap<?php echo $id; ?>);
-
-                    <?php if ($isFirst): ?>
-                    document.addEventListener('DOMContentLoaded', function() { setTimeout(_initMap<?php echo $id; ?>, 250); });
-                    <?php endif; ?>
-                })();
-                </script>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
 </section>
 
 <script>

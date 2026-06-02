@@ -83,8 +83,12 @@
                         "link": "/nuestro-equipo.php"
                     },
                     {
-                        "label": "CONTACTOS Y SUCURSALES",
+                        "label": "CONTACTOS",
                         "link": "/contactos.php?unit=seminuevos"
+                    },
+                    {
+                        "label": "SUCURSALES",
+                        "link": "/seminuevos-sucursales.php"
                     }
                 ],
                 "activeClass": "active-seminuevos",

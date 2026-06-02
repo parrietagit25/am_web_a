@@ -32,7 +32,8 @@ return [
             ['label' => 'FINANCIAMIENTO', 'link' => '/financiamiento.php'],
             ['label' => 'INVENTARIO', 'link' => '/inventario.php'],
             ['label' => 'NUESTRO EQUIPO', 'link' => '/nuestro-equipo.php'],
-            ['label' => 'CONTACTOS Y SUCURSALES', 'link' => '/contactos.php?unit=seminuevos']
+            ['label' => 'CONTACTOS', 'link' => '/contactos.php?unit=seminuevos'],
+            ['label' => 'SUCURSALES', 'link' => '/seminuevos-sucursales.php']
         ],
         'activeClass' => 'active-seminuevos',
         'heroTitle' => 'Encuentra tu próximo auto seminuevo',
