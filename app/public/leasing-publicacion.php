@@ -44,6 +44,9 @@ if (!$article) {
     font-size: 1.15rem;
     margin-top: 0.15rem;
 }
+.leasing-article-rich img { max-width: 100%; height: auto; }
+.leasing-article-rich section { margin-bottom: 1.5rem; }
+.leasing-article-rich h1, .leasing-article-rich h2, .leasing-article-rich h3 { margin-top: 1rem; margin-bottom: .75rem; }
 </style>
 
 <section class="container py-5">
@@ -61,18 +64,13 @@ if (!$article) {
                 <?php endif; ?>
 
                 <?php if (!empty($article['description'])): ?>
-                    <div class="leasing-article-intro mb-3">
-                        <?php
-                        $descHtml = esc($article['description']);
-                        $descHtml = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $descHtml);
-                        $descHtml = preg_replace('/\*(.*?)\*/', '<em>$1</em>', $descHtml);
-                        ?>
-                        <p class="leasing-article-paragraph mb-0"><?php echo $descHtml; ?></p>
+                    <div class="leasing-article-intro leasing-article-rich font-poppins mb-3">
+                        <?php echo renderLeasingArticleContent($article['description']); ?>
                     </div>
                 <?php endif; ?>
 
                 <?php if (!empty($article['content'])): ?>
-                    <div class="leasing-article-body font-poppins">
+                    <div class="leasing-article-body leasing-article-rich font-poppins">
                         <?php echo renderLeasingArticleContent($article['content']); ?>
                     </div>
                 <?php endif; ?>

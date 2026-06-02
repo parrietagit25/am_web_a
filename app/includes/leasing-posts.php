@@ -57,55 +57,6 @@ function findLeasingPostById($contentService, $postId) {
 }
 
 function renderLeasingArticleContent($raw) {
-    if ($raw === null || $raw === '') {
-        return '';
-    }
-
-    $formatInline = function ($text) {
-        $text = esc($text);
-        $text = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $text);
-        $text = preg_replace('/\*(.*?)\*/', '<em>$1</em>', $text);
-        return $text;
-    };
-
-    $lines = preg_split("/\r\n|\n|\r/", $raw);
-    $html = '';
-    $inList = false;
-
-    foreach ($lines as $line) {
-        $trimmed = trim($line);
-
-        if ($trimmed === '') {
-            if ($inList) {
-                $html .= '</ul>';
-                $inList = false;
-            }
-            continue;
-        }
-
-        if (preg_match('/^[-*•]\s+(.+)$/u', $trimmed, $matches)) {
-            if (!$inList) {
-                $html .= '<ul class="leasing-checklist list-unstyled mb-4">';
-                $inList = true;
-            }
-            $html .= '<li class="d-flex align-items-start gap-2 mb-2">';
-            $html .= '<i class="bi bi-check-square-fill leasing-check-icon flex-shrink-0"></i>';
-            $html .= '<span>' . $formatInline($matches[1]) . '</span>';
-            $html .= '</li>';
-            continue;
-        }
-
-        if ($inList) {
-            $html .= '</ul>';
-            $inList = false;
-        }
-
-        $html .= '<p class="leasing-article-paragraph">' . $formatInline($trimmed) . '</p>';
-    }
-
-    if ($inList) {
-        $html .= '</ul>';
-    }
-
-    return $html;
+    require_once __DIR__ . '/article-content.php';
+    return renderRacArticleContent($raw);
 }

@@ -5190,14 +5190,15 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                     </div>
 
                                     <div class="col-12">
-                                        <label for="leasing_post_description" class="form-label">Párrafo introductorio</label>
-                                        <textarea id="leasing_post_description" name="leasing_post_description" class="form-control form-control-premium" rows="3" placeholder="Usa **texto** para negritas."></textarea>
+                                        <label for="leasing_post_description" class="form-label">Párrafo introductorio (HTML, texto o viñetas)</label>
+                                        <textarea id="leasing_post_description" name="leasing_post_description" class="form-control form-control-premium font-monospace" rows="4" placeholder="Puede pegar HTML (&lt;p&gt;, &lt;section&gt;…) o usar **negritas** y viñetas con -"></textarea>
+                                        <div class="form-text">Se renderiza HTML seguro en el detalle de la publicación.</div>
                                     </div>
 
                                     <div class="col-12">
-                                        <label for="leasing_post_content" class="form-label">Contenido detallado</label>
-                                        <textarea id="leasing_post_content" name="leasing_post_content" class="form-control form-control-premium font-monospace" rows="12" placeholder="Párrafos normales y líneas con guion para listas:&#10;- Auto de reemplazo inmediato&#10;- Mantenimiento preventivo..." required></textarea>
-                                        <div class="form-text">Soporta saltos de línea, **negritas** y viñetas con guion al inicio de cada línea (<code>- ítem</code>).</div>
+                                        <label for="leasing_post_content" class="form-label">Contenido detallado (HTML, texto o viñetas)</label>
+                                        <textarea id="leasing_post_content" name="leasing_post_content" class="form-control form-control-premium font-monospace" rows="12" placeholder="Puede pegar HTML (&lt;section&gt;, &lt;h2&gt;, &lt;ul&gt;…) o texto con **negrita** y - viñetas" required></textarea>
+                                        <div class="form-text">Se renderiza HTML seguro (sin scripts). Imágenes relativas (ej. <code>archivo.webp</code>) se buscan en <code>/assets/img/uploads/</code>.</div>
                                     </div>
                                 </div>
 
