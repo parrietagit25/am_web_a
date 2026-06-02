@@ -169,6 +169,7 @@ $featuredTitle = $featured['title'] ?? 'Feria de David 2026';
 $featuredHeading = $featured['heading'] ?? 'Feria Internacional de David 2026: tradición, desarrollo y crecimiento en Chiriquí';
 $featuredDescription = $featured['description'] ?? '';
 $featuredBtnText = $featured['button_text'] ?? 'Ver mas: Feria de David 2026';
+$featuredBtnLink = trim((string)($featured['button_link'] ?? ''));
 $featuredImageUrl = $featured['image_url'] ?? '/assets/img/feria_david.webp';
 ?>
 <section class="container py-5 mb-5">
@@ -184,9 +185,15 @@ $featuredImageUrl = $featured['image_url'] ?? '/assets/img/feria_david.webp';
                 <p class="text-muted mb-4 font-poppins">
                     <?php echo nl2br(esc($featuredDescription)); ?>
                 </p>
-                <a href="#search-anchor" class="btn btn-theme px-4 py-3 rounded-pill fw-bold align-self-start shadow-sm text-uppercase">
+                <?php if ($featuredBtnLink !== ''): ?>
+                <a href="<?php echo esc($featuredBtnLink); ?>" class="btn btn-theme px-4 py-3 rounded-pill fw-bold align-self-start shadow-sm text-uppercase"<?php echo preg_match('#^https?://#i', $featuredBtnLink) ? ' target="_blank" rel="noopener noreferrer"' : ''; ?>>
                     <?php echo esc($featuredBtnText); ?>
                 </a>
+                <?php else: ?>
+                <span class="btn btn-theme px-4 py-3 rounded-pill fw-bold align-self-start shadow-sm text-uppercase disabled" aria-disabled="true">
+                    <?php echo esc($featuredBtnText); ?>
+                </span>
+                <?php endif; ?>
             </div>
             
             <!-- Right Image Column -->

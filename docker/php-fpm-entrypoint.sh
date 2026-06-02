@@ -15,9 +15,14 @@ if [ "$(id -u)" = "0" ]; then
     if [ ! -f /var/www/html/storage/site_data.json ]; then
         echo '{}' > /var/www/html/storage/site_data.json
     fi
+    # Siempre corregir dueño tras git pull en el host (evita "Error al guardar" en admin)
     chmod 664 /var/www/html/storage/site_data.json 2>/dev/null || true
     chown www-data:www-data /var/www/html/storage/site_data.json 2>/dev/null || \
         chown 82:82 /var/www/html/storage/site_data.json 2>/dev/null || true
+    chmod 664 /var/www/html/storage/logs/app.log 2>/dev/null || true
+    touch /var/www/html/storage/logs/app.log 2>/dev/null || true
+    chown www-data:www-data /var/www/html/storage/logs/app.log 2>/dev/null || \
+        chown 82:82 /var/www/html/storage/logs/app.log 2>/dev/null || true
 
     # SQLite: el archivo Y la carpeta storage deben ser escribibles (journal -wal/-shm)
     if [ ! -f /var/www/html/storage/database.sqlite ]; then

@@ -72,7 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($contentService->saveAll($siteData)) {
             $successMsg = 'Configuración global actualizada correctamente.';
         } else {
-            $errorMsg = 'Error al guardar la configuración global.';
+            $detail = ContentService::getLastSaveError();
+            $errorMsg = 'Error al guardar la configuración global.'
+                . ($detail !== '' ? ' ' . $detail : ' Revise permisos de storage/site_data.json en el servidor.');
         }
     }
 
@@ -184,6 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $siteData['homepage']['featured']['heading'] = trim($_POST['featured_heading'] ?? '');
         $siteData['homepage']['featured']['description'] = trim($_POST['featured_description'] ?? '');
         $siteData['homepage']['featured']['button_text'] = trim($_POST['featured_button_text'] ?? '');
+        $siteData['homepage']['featured']['button_link'] = trim($_POST['featured_button_link'] ?? '');
 
         // Upload featured image if provided
         if (isset($_FILES['featured_image']) && $_FILES['featured_image']['error'] === UPLOAD_ERR_OK) {
@@ -3174,6 +3177,12 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                     <div class="col-md-6">
                                         <label for="featured_button_text" class="form-label">Texto del Botón de Acción</label>
                                         <input type="text" id="featured_button_text" name="featured_button_text" class="form-control form-control-premium" value="<?php echo esc($homepage['featured']['button_text'] ?? ''); ?>" required>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="featured_button_link" class="form-label">Enlace del Botón de Acción</label>
+                                        <input type="text" id="featured_button_link" name="featured_button_link" class="form-control form-control-premium" value="<?php echo esc($homepage['featured']['button_link'] ?? ''); ?>" placeholder="/blog.php o https://ejemplo.com/pagina">
+                                        <div class="form-text">Ruta interna (ej. <code>/blog.php</code>) o URL completa. Dejar vacío si no debe enlazar.</div>
                                     </div>
 
                                     <div class="col-md-6">

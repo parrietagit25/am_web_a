@@ -7,6 +7,9 @@
 class ContentService {
     private $filePath;
 
+    /** @var string Último error de saveAll() para mostrar en admin */
+    private static string $lastSaveError = '';
+
     public function __construct() {
         $this->filePath = __DIR__ . '/../storage/site_data.json';
         $this->ensureMigration();
@@ -85,26 +88,63 @@ class ContentService {
      * @param array $data
      * @return bool
      */
+    public static function getLastSaveError(): string {
+        return self::$lastSaveError;
+    }
+
     public function saveAll(array $data) {
+        self::$lastSaveError = '';
         $dir = dirname($this->filePath);
+
         if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+            if (!@mkdir($dir, 0775, true) && !is_dir($dir)) {
+                self::$lastSaveError = 'No se pudo crear la carpeta storage/.';
+                am_log('ContentService::saveAll — ' . self::$lastSaveError, 'ERROR');
+                return false;
+            }
         }
-        $jsonRaw = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        if ($jsonRaw === false) {
-            am_log('ContentService::saveAll — json_encode falló', 'ERROR');
+
+        if (!is_writable($dir)) {
+            @chmod($dir, 0775);
+        }
+        if (!is_writable($dir)) {
+            self::$lastSaveError = 'La carpeta storage/ no es escribible por PHP (revisar permisos en el servidor).';
+            am_log('ContentService::saveAll — ' . self::$lastSaveError, 'ERROR');
             return false;
         }
 
-        $written = @file_put_contents($this->filePath, $jsonRaw, LOCK_EX);
-        if ($written === false) {
-            am_log(
-                'ContentService::saveAll — no se pudo escribir ' . $this->filePath
-                . ' (revisar permisos: chown www-data storage/site_data.json)',
-                'ERROR'
-            );
+        if (file_exists($this->filePath) && !is_writable($this->filePath)) {
+            @chmod($this->filePath, 0664);
+        }
+
+        $encodeFlags = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+        if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+            $encodeFlags |= JSON_INVALID_UTF8_SUBSTITUTE;
+        }
+        $jsonRaw = json_encode($data, $encodeFlags);
+        if ($jsonRaw === false) {
+            self::$lastSaveError = 'No se pudo serializar los datos: ' . json_last_error_msg();
+            am_log('ContentService::saveAll — json_encode falló: ' . json_last_error_msg(), 'ERROR');
             return false;
         }
+
+        $tmpFile = $this->filePath . '.tmp.' . getmypid();
+        $written = @file_put_contents($tmpFile, $jsonRaw, LOCK_EX);
+        if ($written === false) {
+            self::$lastSaveError = 'No se pudo escribir site_data.json (permisos). Ejecute en el servidor: chown www-data:www-data storage/site_data.json && chmod 664 storage/site_data.json';
+            am_log('ContentService::saveAll — ' . self::$lastSaveError, 'ERROR');
+            @unlink($tmpFile);
+            return false;
+        }
+
+        if (!@rename($tmpFile, $this->filePath)) {
+            @unlink($tmpFile);
+            self::$lastSaveError = 'No se pudo actualizar site_data.json. Verifique que el usuario PHP (www-data) sea dueño del archivo.';
+            am_log('ContentService::saveAll — rename falló en ' . $this->filePath, 'ERROR');
+            return false;
+        }
+
+        @chmod($this->filePath, 0664);
         return true;
     }
 
@@ -431,6 +471,7 @@ class ContentService {
                     'heading' => 'Feria Internacional de David 2026: tradición, desarrollo y crecimiento en Chiriquí',
                     'description' => 'La Feria Internacional de David 2026 es uno de los eventos comerciales, agroindustriales y culturales más importantes de Panamá. En su 69.ª edición, se celebrará del 12 al 22 de marzo de 2026 en la ciudad de David, provincia de Chiriquí, consolidándose como el principal punto de encuentro para empresarios, productores, inversionistas y familias de todo el país.',
                     'button_text' => 'Ver mas: Feria de David 2026',
+                    'button_link' => '/blog.php',
                     'image_url' => '/assets/img/feria_david.webp'
                 ],
                 'noticias' => [
