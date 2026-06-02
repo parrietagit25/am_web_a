@@ -164,7 +164,7 @@ usort($activeAgents, function ($a, $b) {
                 <p class="text-muted font-poppins">Estamos actualizando la información de nuestros asesores corporativos.</p>
             </div>
         <?php else: ?>
-            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-3 g-lg-4 justify-content-center">
+            <div class="row row-cols-2 row-cols-md-4 g-3 g-lg-4">
                 <?php foreach ($activeAgents as $agent): ?>
                     <div class="col">
                         <div class="leasing-agent-card">
