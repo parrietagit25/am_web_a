@@ -12,9 +12,19 @@ return [
         'logo_title' => 'Automarket',
         'logo_subtitle' => 'Rent A Car',
         'menu' => [
-            ['label' => 'ALQUILERES', 'link' => '#alquileres'],
-            ['label' => 'SUCURSALES', 'link' => '#sucursales'],
-            ['label' => 'PAGA TU RESERVA', 'link' => '#paga-reserva']
+            [
+                'label' => 'ALQUILERES',
+                'link' => '#',
+                'submenu' => [
+                    ['label' => 'Nuestra flota', 'link' => '/flota.php'],
+                    ['label' => 'Sucursales', 'link' => '/sucursales.php'],
+                    ['label' => 'Blog', 'link' => '/blog.php'],
+                    ['label' => 'Términos y condiciones', 'link' => '/terminos-condiciones.php'],
+                ],
+            ],
+            ['label' => 'SUCURSALES', 'link' => '/taller-sucursales.php'],
+            ['label' => 'PAGA TU RESERVA', 'link' => '/pago-seguro.php'],
+            ['label' => 'CONTACTOS', 'link' => '/contactos.php'],
         ],
         'activeClass' => 'active-rentacar',
         'heroTitle' => 'Te acompañamos a tu destino',

@@ -32,3 +32,16 @@ docker compose exec -u root app sh -lc 'chown www-data:www-data /var/www/html/st
 ```
 
 En pulls **siguientes** ya no debería bloquearse `git pull` por `site_data.json`.
+
+## Menú Rent a Car → ALQUILERES (submenú)
+
+Editar en `site_data.json`: `global.business_units.rentacar.menu[0].submenu`
+
+Orden recomendado (sin «Requisitos de alquiler»):
+
+1. Nuestra flota → `/flota.php`
+2. Sucursales → `/sucursales.php`
+3. Blog → `/blog.php`
+4. Términos y condiciones → `/terminos-condiciones.php` (último)
+
+La página `/requisitos-alquiler.php` sigue existiendo; solo se oculta del menú.

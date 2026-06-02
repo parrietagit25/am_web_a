@@ -11,6 +11,33 @@ $siteGlobal = $contentService->get('global');
 $trackingCodes = $siteGlobal['tracking_codes'] ?? [];
 $businessUnits = $siteGlobal['business_units'] ?? require __DIR__ . '/../config/business-units.php';
 
+/**
+ * Submenú: oculta Requisitos de alquiler y deja Términos y condiciones al final.
+ */
+function filter_submenu_items(array $items): array {
+    $visible = [];
+    $terminos = null;
+    foreach ($items as $sub) {
+        if (!is_array($sub)) {
+            continue;
+        }
+        $link = (string) ($sub['link'] ?? '');
+        $path = strtolower(parse_url($link, PHP_URL_PATH) ?: $link);
+        if (str_contains($path, 'requisitos-alquiler')) {
+            continue;
+        }
+        if (str_contains($path, 'terminos-condiciones')) {
+            $terminos = $sub;
+            continue;
+        }
+        $visible[] = $sub;
+    }
+    if ($terminos !== null) {
+        $visible[] = $terminos;
+    }
+    return $visible;
+}
+
 // Determine the active business unit
 if (!isset($activeUnit) || !array_key_exists($activeUnit, $businessUnits)) {
     $activeUnit = 'rentacar';
@@ -188,7 +215,7 @@ $themeRgb = "$r, $g, $b";
                                     <?php echo esc(t_menu($item['label'])); ?>
                                 </button>
                                 <ul class="dropdown-menu shadow border-0 py-2 rounded-3" aria-labelledby="navbarDropdown-<?php echo esc(str_replace(' ', '', $item['label'])); ?>">
-                                    <?php foreach ($item['submenu'] as $sub): 
+                                    <?php foreach (filter_submenu_items($item['submenu']) as $sub): 
                                         $subLink = $sub['link'];
                                         if (str_starts_with($subLink, '#')) {
                                             $currentScript = basename($_SERVER['SCRIPT_NAME']);
