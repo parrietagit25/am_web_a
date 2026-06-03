@@ -13,7 +13,7 @@ $team = $seminuevosData['team'] ?? [];
 $headerImg = $team['header_image_url'] ?? '';
 $descTitle = !empty($team['description_title']) ? $team['description_title'] : 'Automarket Panamá';
 $descText = !empty($team['description_text']) ? $team['description_text'] : "Automarket Panamá es la empresa líder en la venta de autos Seminuevos y Garantizados en Panamá. Con más de 21 años en el mercado y más de 17,500 autos vendidos.\n\nVive la experiencia de tener tu Auto Seminuevo de Verdad con Automarket Panama.";
-$highlightsStr = !empty($team['highlights']) ? $team['highlights'] : "5 Sucursales a nivel Nacional.\nEquipo de Ventas especializado.\nAsesoría en Financiamiento y Seguros.\nRespaldo y Garantía.";
+$highlightsStr = !empty($team['highlights']) ? $team['highlights'] : "4 Sucursales a nivel Nacional.\nEquipo de Ventas especializado.\nAsesoría en Financiamiento y Seguros.\nRespaldo y Garantía.";
 
 $highlights = array_filter(array_map('trim', explode("\n", $highlightsStr)));
 $agents = $team['agents'] ?? [];
@@ -440,7 +440,7 @@ $activeAgents = array_filter($agents, function($agent) {
                     </svg>
                 </div>
                 <p class="highlight-circle-text font-poppins">
-                    <span class="text-danger fw-bold">5 Sucursales</span> a nivel<br>Nacional.
+                    <span class="text-danger fw-bold">4 Sucursales</span> a nivel<br>Nacional.
                 </p>
             </div>
             

@@ -4733,7 +4733,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                     <!-- Highlights list -->
                                     <div class="col-12">
                                         <label for="team_highlights" class="form-label fw-semibold">Puntos Clave / Destacados (Uno por línea)</label>
-                                        <textarea id="team_highlights" name="highlights" class="form-control form-control-premium font-monospace" rows="4" placeholder="Ej: 5 Sucursales a nivel Nacional.&#10;Equipo de Ventas especializado..." required><?php echo esc($semi_team['highlights'] ?? ''); ?></textarea>
+                                        <textarea id="team_highlights" name="highlights" class="form-control form-control-premium font-monospace" rows="4" placeholder="Ej: 4 Sucursales a nivel Nacional.&#10;Equipo de Ventas especializado..." required><?php echo esc($semi_team['highlights'] ?? ''); ?></textarea>
                                     </div>
                                     
                                     <!-- Branch sorting order -->
