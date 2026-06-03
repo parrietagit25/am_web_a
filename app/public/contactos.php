@@ -28,8 +28,16 @@ $semiSucursales = $siteData['seminuevos']['sucursales'] ?? [];
 usort($semiSucursales, function($a, $b) {
     return intval($a['sort_order'] ?? 99) - intval($b['sort_order'] ?? 99);
 });
-$activeSucursales = array_values(array_filter($semiSucursales, function($s) {
-    return ($s['active'] ?? true) !== false;
+$activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
+    if (($s['active'] ?? true) === false) {
+        return false;
+    }
+    $name = mb_strtolower(trim($s['name'] ?? ''), 'UTF-8');
+    // No ofrecer Penonomé en el formulario de contacto Seminuevos
+    if (preg_match('/penonom/u', $name)) {
+        return false;
+    }
+    return true;
 }));
 ?>
 
