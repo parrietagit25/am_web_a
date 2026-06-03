@@ -79,9 +79,9 @@ $publicBase = $scheme . '://' . $host;
                             <input type="text" name="footer_cookies_url" class="form-control form-control-premium" value="<?php echo esc($footerGeneral['cookies_url'] ?? '/pagina-institucional.php?p=cookies'); ?>">
                             <div class="form-text">Por defecto: página institucional de cookies.</div>
                         </div>
+                        <input type="hidden" name="footer_payment_badges_html" value="">
                         <div class="col-12">
-                            <label class="form-label">HTML medios de pago (columna derecha)</label>
-                            <textarea name="footer_payment_badges_html" class="form-control form-control-premium font-monospace small" rows="3"><?php echo esc($footerGeneral['payment_badges_html'] ?? ''); ?></textarea>
+                            <p class="small text-muted mb-0"><i class="bi bi-credit-card me-1"></i> Medios de pago en el pie: imágenes <code>visa.png</code> y <code>mastercard.png</code> en <code>/assets/img/</code> (tamaño icono).</p>
                         </div>
                     </div>
                     <div class="text-end mt-4">

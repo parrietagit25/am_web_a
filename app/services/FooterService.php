@@ -136,9 +136,7 @@ class FooterService
             'also_know_title' => 'Conoce también',
             'follow_title' => 'Síguenos',
             'payment_title' => 'Medios de pago',
-            'payment_badges_html' => '<span class="badge bg-light text-dark px-2 py-1 fs-6"><i class="bi bi-credit-card-2-back-fill text-primary"></i> Visa</span>
-                <span class="badge bg-light text-dark px-2 py-1 fs-6"><i class="bi bi-credit-card-2-front-fill text-danger"></i> Mastercard</span>
-                <span class="badge bg-light text-dark px-2 py-1 fs-6"><i class="bi bi-bank text-success"></i> ACH</span>',
+            'payment_badges_html' => '',
         ], $stored['general'] ?? []);
 
         if (in_array($general['privacy_url'] ?? '', ['#privacidad', '#', ''], true)) {

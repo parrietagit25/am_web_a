@@ -746,3 +746,12 @@ header.navbar {
     flex-shrink: 0;
 }
 
+/* Footer — medios de pago (Visa / Mastercard) */
+.footer-payment-icon {
+    height: 28px;
+    width: auto;
+    max-width: 48px;
+    object-fit: contain;
+    display: block;
+}
+

@@ -84,8 +84,9 @@ usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b[
                     </div>
                     
                     <h5 class="fw-bold mb-3 text-white"><?php echo esc($fg['payment_title'] ?? t('footer.payment_methods')); ?></h5>
-                    <div class="payment-badges d-flex flex-wrap gap-2">
-                        <?php echo $fg['payment_badges_html'] ?? ''; ?>
+                    <div class="payment-badges d-flex flex-wrap gap-2 align-items-center">
+                        <img src="/assets/img/visa.png" alt="Visa" class="footer-payment-icon" width="44" height="28" loading="lazy">
+                        <img src="/assets/img/mastercard.png" alt="Mastercard" class="footer-payment-icon" width="44" height="28" loading="lazy">
                     </div>
                 </div>
 
