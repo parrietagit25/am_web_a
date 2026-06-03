@@ -115,8 +115,9 @@ $publicBase = $scheme . '://' . $host;
                         <input type="text" name="page_title" class="form-control form-control-premium" value="<?php echo esc($pg['title'] ?? FooterService::PAGE_LABELS[$pk]); ?>" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Contenido</label>
-                        <textarea name="page_content_html" class="form-control form-control-premium js-summernote-mini" rows="12"><?php echo esc($pg['content_html'] ?? ''); ?></textarea>
+                        <label class="form-label fw-semibold">Contenido (HTML permitido)</label>
+                        <textarea name="page_content_html" class="form-control form-control-premium js-summernote-mini" rows="12"><?php echo $pg['content_html'] ?? ''; ?></textarea>
+                        <div class="form-text">Se renderiza HTML seguro en el sitio (sin scripts). Puede pegar etiquetas como <code>&lt;section&gt;</code>, <code>&lt;h2&gt;</code>, <code>&lt;ul&gt;</code>.</div>
                     </div>
                     <div class="form-check mb-3">
                         <input class="form-check-input" type="checkbox" name="page_active" value="1" id="page_active_<?php echo esc($pk); ?>" <?php echo !empty($pg['active']) ? 'checked' : ''; ?>>

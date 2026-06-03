@@ -38,6 +38,7 @@ $seoOverride = [
 ];
 
 require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/article-content.php';
 ?>
 
 <section class="py-5" style="background-color: #f8f9fc;">
@@ -56,7 +57,7 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="bg-white border rounded-4 shadow-sm p-4 p-md-5 institutional-content font-poppins">
-                <?php echo $page['content_html']; ?>
+                <?php echo renderRacArticleContent($page['content_html'] ?? ''); ?>
             </div>
         </div>
     </div>
@@ -64,7 +65,11 @@ require_once __DIR__ . '/../includes/header.php';
 
 <style>
 .institutional-content img { max-width: 100%; height: auto; border-radius: 8px; }
-.institutional-content h2, .institutional-content h3 { color: #0b1f6b; margin-top: 1.5rem; }
+.institutional-content section { margin-bottom: 0; }
+.institutional-content h1, .institutional-content h2, .institutional-content h3 { color: #0b1f6b; margin-top: 1.5rem; }
+.institutional-content h1:first-child, .institutional-content h2:first-child { margin-top: 0; }
+.institutional-content ul, .institutional-content ol { padding-left: 1.25rem; }
+.institutional-content p, .institutional-content li { line-height: 1.75; }
 </style>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
