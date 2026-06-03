@@ -46,15 +46,15 @@ usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b[
                         <?php echo esc($fg['tagline'] ?? t('footer.tagline')); ?>
                     </p>
                     <div class="contact-details text-secondary-light">
-                        <p class="mb-2"><i class="bi bi-geo-alt-fill me-2 text-accent-light"></i> <?php echo esc($fg['address'] ?? ''); ?></p>
-                        <p class="mb-2"><i class="bi bi-telephone-fill me-2 text-accent-light"></i> <a href="tel:<?php echo preg_replace('/\D/', '', $fg['phone_display'] ?? ''); ?>" class="text-white text-decoration-none"><?php echo esc($fg['phone_display'] ?? ''); ?></a></p>
-                        <p class="mb-2"><i class="bi bi-envelope-fill me-2 text-accent-light"></i> <a href="mailto:<?php echo esc($fg['email'] ?? ''); ?>" class="text-white text-decoration-none"><?php echo esc($fg['email'] ?? ''); ?></a></p>
+                        <p class="mb-2"><i class="bi bi-geo-alt-fill me-2 text-white"></i> <?php echo esc($fg['address'] ?? ''); ?></p>
+                        <p class="mb-2"><i class="bi bi-telephone-fill me-2 text-white"></i> <a href="tel:<?php echo preg_replace('/\D/', '', $fg['phone_display'] ?? ''); ?>" class="text-white text-decoration-none"><?php echo esc($fg['phone_display'] ?? ''); ?></a></p>
+                        <p class="mb-2"><i class="bi bi-envelope-fill me-2 text-white"></i> <a href="mailto:<?php echo esc($fg['email'] ?? ''); ?>" class="text-white text-decoration-none"><?php echo esc($fg['email'] ?? ''); ?></a></p>
                     </div>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="col-lg-2 col-md-6 col-6">
-                    <h5 class="fw-bold mb-3 border-bottom border-secondary pb-2 text-accent-light"><?php echo esc($fg['resources_title'] ?? t('footer.resources')); ?></h5>
+                    <h5 class="fw-bold mb-3 border-bottom border-secondary pb-2 text-white"><?php echo esc($fg['resources_title'] ?? t('footer.resources')); ?></h5>
                     <ul class="list-unstyled footer-links">
                         <?php foreach ($resourceLinks as $rl): ?>
                         <li class="mb-2"><a href="<?php echo esc($rl['url']); ?>" class="text-white text-decoration-none opacity-75"><?php echo esc($rl['label']); ?></a></li>
@@ -64,7 +64,7 @@ usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b[
 
                 <!-- Business Units Links -->
                 <div class="col-lg-3 col-md-6 col-6">
-                    <h5 class="fw-bold mb-3 border-bottom border-secondary pb-2 text-accent-light"><?php echo esc($fg['also_know_title'] ?? t('footer.also_know')); ?></h5>
+                    <h5 class="fw-bold mb-3 border-bottom border-secondary pb-2 text-white"><?php echo esc($fg['also_know_title'] ?? t('footer.also_know')); ?></h5>
                     <ul class="list-unstyled footer-links">
                         <?php foreach ($alsoKnow as $link): ?>
                         <li class="mb-2"><a href="<?php echo esc($link['url'] ?? '#'); ?>" class="text-white text-decoration-none opacity-75"><?php echo esc($link['label'] ?? ''); ?></a></li>
@@ -74,7 +74,7 @@ usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b[
 
                 <!-- Payment Methods & Socials -->
                 <div class="col-lg-3 col-md-6">
-                    <h5 class="fw-bold mb-3 border-bottom border-secondary pb-2 text-accent-light"><?php echo esc($fg['follow_title'] ?? t('footer.follow_us')); ?></h5>
+                    <h5 class="fw-bold mb-3 border-bottom border-secondary pb-2 text-white"><?php echo esc($fg['follow_title'] ?? t('footer.follow_us')); ?></h5>
                     <div class="d-flex flex-wrap gap-3 mb-4">
                         <?php foreach ($socialNetworks as $sn): ?>
                         <a href="<?php echo esc($sn['url'] ?? '#'); ?>" class="text-white fs-4 opacity-75 hover-opacity-100" target="_blank" rel="noopener noreferrer" title="<?php echo esc($sn['label'] ?? ''); ?>">
@@ -83,7 +83,7 @@ usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b[
                         <?php endforeach; ?>
                     </div>
                     
-                    <h5 class="fw-bold mb-3 text-accent-light"><?php echo esc($fg['payment_title'] ?? t('footer.payment_methods')); ?></h5>
+                    <h5 class="fw-bold mb-3 text-white"><?php echo esc($fg['payment_title'] ?? t('footer.payment_methods')); ?></h5>
                     <div class="payment-badges d-flex flex-wrap gap-2">
                         <?php echo $fg['payment_badges_html'] ?? ''; ?>
                     </div>
