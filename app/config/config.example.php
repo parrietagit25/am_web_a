@@ -34,6 +34,10 @@ define('PIPEDRIVE_LEASING_STAGE_ID', null);
 define('ADMIN_USER', 'admin');
 define('ADMIN_PASS', 'CAMBIAR_PASSWORD_SEGURO');
 
+// Sync inventario seminuevos (proceso Python). Token por defecto también en InventorySyncAuth.php
+define('INVENTORY_SYNC_TOKEN', 'SI5dGxz/2/AqWkOYuz6t4r3KYGbqGxOj3MhT3T/hp!J6Du9ko=6ITrMBNJU5WzUj?ep3VWb8gwxGv9RPgq?r0y=A8gdF2cJ!fWil1G??6voWqJvRdip1M?0u/sol-ON?');
+define('INVENTORY_SYNC_MIN_VEHICLES', 50);
+
 // define('DB_HOST', 'localhost');
 // define('DB_NAME', 'automarket');
 // define('DB_USER', 'root');

@@ -323,8 +323,13 @@ class TelemetryService
             $params[':entity_id'] = '%' . trim((string)$filters['entity_id']) . '%';
         }
         if (!empty($filters['q'])) {
-            $where .= ' AND (e.page_path LIKE :q OR e.page_title LIKE :q OR e.entity_label LIKE :q OR e.ip_address LIKE :q OR e.city LIKE :q)';
-            $params[':q'] = '%' . trim((string)$filters['q']) . '%';
+            $where .= ' AND (e.page_path LIKE :q1 OR e.page_title LIKE :q2 OR e.entity_label LIKE :q3 OR e.ip_address LIKE :q4 OR e.city LIKE :q5)';
+            $q = '%' . trim((string)$filters['q']) . '%';
+            $params[':q1'] = $q;
+            $params[':q2'] = $q;
+            $params[':q3'] = $q;
+            $params[':q4'] = $q;
+            $params[':q5'] = $q;
         }
 
         $countRow = $db->selectOne("SELECT COUNT(*) AS cnt FROM telemetry_events e WHERE $where", $params);
@@ -554,13 +559,15 @@ class TelemetryService
 
         $db->execute(
             "UPDATE telemetry_events SET
-                duration_seconds = CASE WHEN :duration > duration_seconds THEN :duration ELSE duration_seconds END,
-                scroll_depth = CASE WHEN :scroll > scroll_depth THEN :scroll ELSE scroll_depth END,
+                duration_seconds = CASE WHEN :duration_cmp > duration_seconds THEN :duration_set ELSE duration_seconds END,
+                scroll_depth = CASE WHEN :scroll_cmp > scroll_depth THEN :scroll_set ELSE scroll_depth END,
                 updated_at = $nowExpr
              WHERE id = :id AND visitor_id = :vid",
             [
-                ':duration' => $duration,
-                ':scroll' => $scroll,
+                ':duration_cmp' => $duration,
+                ':duration_set' => $duration,
+                ':scroll_cmp' => $scroll,
+                ':scroll_set' => $scroll,
                 ':id' => $hitId,
                 ':vid' => $visitorId,
             ]

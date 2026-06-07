@@ -47,14 +47,9 @@ class InventorySyncService
                     [':vin' => $vin]
                 )['c'] ?? 0);
 
-                $updateStat = (int) ($data['update_stat'] ?? 0);
-
                 if ($exists > 0) {
-                    if ($updateStat !== 1) {
-                        continue;
-                    }
                     $sets = [];
-                    $params = [':vin' => $vin];
+                    $params = [':vin_where' => $vin];
                     foreach (self::SYNC_COLUMNS as $col) {
                         if ($col === 'VIN') {
                             continue;
@@ -65,7 +60,7 @@ class InventorySyncService
                     $sets[] = 'stat_master = 1';
                     $sets[] = 'prioridad = 0';
                     $sets[] = "foto_impel = ''";
-                    $sql = 'UPDATE ' . self::TEMP_TABLE . ' SET ' . implode(', ', $sets) . ' WHERE VIN = :vin';
+                    $sql = 'UPDATE ' . self::TEMP_TABLE . ' SET ' . implode(', ', $sets) . ' WHERE VIN = :vin_where';
                     try {
                         $db->execute($sql, $params);
                         $processed++;
@@ -123,7 +118,23 @@ class InventorySyncService
             'processed' => $processed,
             'errors' => $errors,
             'vins_in_batch' => count($vins),
+            'temp_count' => self::tempCount(),
         ];
+    }
+
+    public static function tempCount(): int
+    {
+        InventorySyncSchema::ensure();
+        $db = Database::getInstance();
+        return (int) ($db->selectOne('SELECT COUNT(*) AS c FROM ' . self::TEMP_TABLE)['c'] ?? 0);
+    }
+
+    public static function mainCount(): int
+    {
+        $db = Database::getInstance();
+        return (int) ($db->selectOne(
+            "SELECT COUNT(*) AS c FROM " . self::MAIN_TABLE . " WHERE Status = 'DISPONIBLE'"
+        )['c'] ?? 0);
     }
 
     public static function pasarData(): array
