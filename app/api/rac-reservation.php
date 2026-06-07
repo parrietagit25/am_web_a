@@ -10,6 +10,7 @@ require_once __DIR__ . '/../services/Database.php';
 require_once __DIR__ . '/../services/BranchDataService.php';
 require_once __DIR__ . '/../services/RacReservationService.php';
 require_once __DIR__ . '/../services/RacAlertEmailService.php';
+require_once __DIR__ . '/../services/CaptchaService.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -23,6 +24,8 @@ if (!is_array($input)) {
     echo json_encode(['success' => false, 'message' => 'JSON inválido.']);
     exit;
 }
+
+CaptchaService::enforce($input, 'success');
 
 $name = trim($input['customer_name'] ?? $input['name'] ?? '');
 $email = trim($input['customer_email'] ?? $input['email'] ?? '');

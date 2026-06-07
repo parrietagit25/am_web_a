@@ -11,6 +11,7 @@ header('Access-Control-Allow-Methods: POST');
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/ContentService.php';
 require_once __DIR__ . '/../services/N8nRentingLeadService.php';
+require_once __DIR__ . '/../services/CaptchaService.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -25,6 +26,8 @@ if (!is_array($input)) {
     echo json_encode(['status' => 'error', 'message' => 'Cuerpo de solicitud inválido o JSON mal formado.']);
     exit;
 }
+
+CaptchaService::enforce($input);
 
 $nombre = trim((string) ($input['nombre'] ?? ''));
 if ($nombre === '' && !empty($input['first_name'])) {

@@ -38,6 +38,11 @@ define('ADMIN_PASS', 'CAMBIAR_PASSWORD_SEGURO');
 define('INVENTORY_SYNC_TOKEN', 'SI5dGxz/2/AqWkOYuz6t4r3KYGbqGxOj3MhT3T/hp!J6Du9ko=6ITrMBNJU5WzUj?ep3VWb8gwxGv9RPgq?r0y=A8gdF2cJ!fWil1G??6voWqJvRdip1M?0u/sol-ON?');
 define('INVENTORY_SYNC_MIN_VEHICLES', 50);
 
+// Google reCAPTCHA v3 — https://www.google.com/recaptcha/admin (tipo v3, dominios del sitio)
+define('RECAPTCHA_SITE_KEY', '');
+define('RECAPTCHA_SECRET_KEY', '');
+define('RECAPTCHA_MIN_SCORE', 0.5);
+
 // define('DB_HOST', 'localhost');
 // define('DB_NAME', 'automarket');
 // define('DB_USER', 'root');

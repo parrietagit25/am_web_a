@@ -101,12 +101,24 @@ usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b[
                     <a href="<?php echo esc($fg['privacy_url'] ?? '#privacidad'); ?>" class="text-secondary-light text-decoration-none"><?php echo esc(t('footer.privacy')); ?></a>
                     <a href="<?php echo esc($fg['cookies_url'] ?? '#cookies'); ?>" class="text-secondary-light text-decoration-none"><?php echo esc(t('footer.cookies')); ?></a>
                 </span>
+                <?php if ($captchaSiteKey !== ''): ?>
+                <p class="text-secondary-light small mb-0 mt-2" style="opacity:0.65;">
+                    Este sitio está protegido por reCAPTCHA y se aplican la
+                    <a href="https://policies.google.com/privacy" class="text-secondary-light" target="_blank" rel="noopener noreferrer">Política de Privacidad</a>
+                    y los
+                    <a href="https://policies.google.com/terms" class="text-secondary-light" target="_blank" rel="noopener noreferrer">Términos del Servicio</a>
+                    de Google.
+                </p>
+                <?php endif; ?>
             </div>
         </div>
     </footer>
 
     <?php
     $reqPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
+    $captchaSiteKey = (strpos($reqPath, '/admin') !== 0 && defined('RECAPTCHA_SITE_KEY'))
+        ? trim((string) RECAPTCHA_SITE_KEY)
+        : '';
     if (strpos($reqPath, '/admin') !== 0) {
         require __DIR__ . '/chatbot-widget.php';
     }
@@ -127,6 +139,16 @@ usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b[
 
     <!-- Bootstrap 5 JavaScript Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <?php
+    if (strpos($reqPath, '/admin') !== 0):
+    ?>
+    <script>window.AM_RECAPTCHA = { siteKey: <?php echo json_encode($captchaSiteKey, JSON_UNESCAPED_UNICODE); ?> };</script>
+    <?php if ($captchaSiteKey !== ''): ?>
+    <script src="https://www.google.com/recaptcha/api.js?render=<?php echo urlencode($captchaSiteKey); ?>"></script>
+    <?php endif; ?>
+    <script src="/assets/js/captcha.js?v=1"></script>
+    <?php endif; ?>
     
     <!-- Custom Web Controller JavaScript -->
     <?php if (!empty($activeUnit) && $activeUnit === 'rentacar'): ?>

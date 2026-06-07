@@ -14,6 +14,7 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/ContentService.php';
 require_once __DIR__ . '/../services/PipedriveService.php';
 require_once __DIR__ . '/../services/RentingQuoteAlertService.php';
+require_once __DIR__ . '/../services/CaptchaService.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 if (!$input) {
@@ -21,6 +22,8 @@ if (!$input) {
     echo json_encode(['status' => 'error', 'message' => 'Solicitud inválida.']);
     exit;
 }
+
+CaptchaService::enforce($input);
 
 $name = trim($input['name'] ?? '');
 $email = filter_var($input['email'] ?? '', FILTER_VALIDATE_EMAIL);

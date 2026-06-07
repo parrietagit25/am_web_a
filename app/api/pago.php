@@ -10,6 +10,7 @@ header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/ContentService.php';
+require_once __DIR__ . '/../services/CaptchaService.php';
 
 // Only handle POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -33,6 +34,8 @@ if (!$input) {
     ]);
     exit;
 }
+
+CaptchaService::enforce($input);
 
 // Sanitize inputs
 $reserva_id = filter_var($input['reserva_id'] ?? '', FILTER_DEFAULT);

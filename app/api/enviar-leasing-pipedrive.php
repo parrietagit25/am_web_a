@@ -10,6 +10,7 @@ header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/PipedriveService.php';
+require_once __DIR__ . '/../services/CaptchaService.php';
 
 // 1. Validate POST method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -44,6 +45,8 @@ if (!$input) {
     ]);
     exit;
 }
+
+CaptchaService::enforce($input, 'success');
 
 // 3. Extract and Sanitize Form Inputs
 $empresa = filter_var(trim($input['empresa'] ?? ''), FILTER_DEFAULT);

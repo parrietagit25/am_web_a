@@ -11,6 +11,7 @@ header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/PipedriveService.php';
 require_once __DIR__ . '/../services/ContentService.php';
+require_once __DIR__ . '/../services/CaptchaService.php';
 
 // Only handle POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -34,6 +35,8 @@ if (!$input) {
     ]);
     exit;
 }
+
+CaptchaService::enforce($input);
 
 // Sanitize inputs
 $first_name = filter_var($input['first_name'] ?? '', FILTER_DEFAULT);
