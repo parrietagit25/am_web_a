@@ -5,11 +5,16 @@
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../services/ContentService.php';
 require_once __DIR__ . '/../../services/Database.php';
+require_once __DIR__ . '/../../services/AdminUserService.php';
+require_once __DIR__ . '/../../includes/admin-auth.php';
 
-// Check authentication session
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header("Location: /admin/login.php");
-    exit;
+AdminUserService::ensureSchema();
+admin_require_login();
+
+$requestedTab = trim($_GET['tab'] ?? '');
+$defaultAdminTab = AdminUserService::firstAllowedTabSlug();
+if ($requestedTab !== '' && AdminUserService::canTab($requestedTab)) {
+    $defaultAdminTab = $requestedTab;
 }
 
 $contentService = new ContentService();
@@ -20,7 +25,11 @@ $errorMsg = '';
 
 // Handle CRUD operations
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
+    $action = trim($_POST['action'] ?? '');
+
+    if ($action !== '' && !admin_guard_post_action($action)) {
+        admin_deny_post($errorMsg, $action);
+    } else {
 
     // 1. SAVE GLOBAL SETTINGS
     if ($action === 'save_global') {
@@ -2481,11 +2490,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    require __DIR__ . '/../../includes/admin-users-actions.php';
     require __DIR__ . '/../../includes/admin-renting-actions.php';
     require __DIR__ . '/../../includes/admin-taller-actions.php';
     require __DIR__ . '/../../includes/admin-footer-actions.php';
     require __DIR__ . '/../../includes/admin-rac-actions.php';
     require __DIR__ . '/../../includes/admin-chatbot-actions.php';
+
+    } // fin guard permisos POST
 }
 
 // Reload site data for rendering
@@ -2733,187 +2745,10 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                 <span class="badge bg-danger mt-2 text-uppercase tracking-wider">Administración</span>
             </div>
             
-            <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                <!-- Configuración Principal -->
-                <div class="sidebar-heading px-3 py-2 mt-2 text-uppercase text-white-50 fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Menú Principal</div>
-                
-                <button class="nav-link text-start active" id="tab-global-nav" data-bs-toggle="pill" data-bs-target="#tab-global" type="button" role="tab" aria-controls="tab-global" aria-selected="true">
-                    <i class="bi bi-gear-fill me-2"></i> Configuración Global
-                </button>
-                <button class="nav-link text-start" id="tab-translations-nav" data-bs-toggle="pill" data-bs-target="#tab-translations" type="button" role="tab" aria-controls="tab-translations" aria-selected="false">
-                    <i class="bi bi-translate me-2"></i> Traducciones (ES / EN)
-                </button>
-                <button class="nav-link text-start" id="tab-seo-nav" data-bs-toggle="pill" data-bs-target="#tab-seo" type="button" role="tab" aria-controls="tab-seo" aria-selected="false">
-                    <i class="bi bi-search me-2"></i> SEO (Global / Página)
-                </button>
-                <button class="nav-link text-start" id="tab-landings-nav" data-bs-toggle="pill" data-bs-target="#tab-landings" type="button" role="tab" aria-controls="tab-landings" aria-selected="false">
-                    <i class="bi bi-bullseye me-2"></i> Landing Pages
-                </button>
-                <button class="nav-link text-start" id="tab-footer-nav" data-bs-toggle="pill" data-bs-target="#tab-footer" type="button" role="tab" aria-controls="tab-footer" aria-selected="false">
-                    <i class="bi bi-layout-text-window-reverse me-2"></i> Pie de página
-                </button>
-                
-                <!-- Rent A Car Collapsible Accordion -->
-                <div class="sidebar-heading px-3 py-2 mt-3 text-uppercase text-white-50 fw-bold d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#rentacar-submenu" aria-expanded="true" style="cursor: pointer; font-size: 0.75rem; letter-spacing: 0.5px;">
-                    <span>Rent A Car</span>
-                    <i class="bi bi-chevron-down" id="rentacar-chevron"></i>
-                </div>
-                
-                <div class="collapse show" id="rentacar-submenu">
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-hero-nav" data-bs-toggle="pill" data-bs-target="#tab-hero" type="button" role="tab" aria-controls="tab-hero" aria-selected="false">
-                        <i class="bi bi-house-door-fill me-2"></i> Principal (Hero y Eventos)
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-news-nav" data-bs-toggle="pill" data-bs-target="#tab-news" type="button" role="tab" aria-controls="tab-news" aria-selected="false">
-                        <i class="bi bi-newspaper me-2"></i> Noticias / Blog
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-opinions-nav" data-bs-toggle="pill" data-bs-target="#tab-opinions" type="button" role="tab" aria-controls="tab-opinions" aria-selected="false">
-                        <i class="bi bi-chat-right-quote-fill me-2"></i> Opiniones de Clientes
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-vehicles-nav" data-bs-toggle="pill" data-bs-target="#tab-vehicles" type="button" role="tab" aria-controls="tab-vehicles" aria-selected="false">
-                        <i class="bi bi-car-front-fill me-2"></i> Vehículos / Flota
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-sucursales-nav" data-bs-toggle="pill" data-bs-target="#tab-sucursales" type="button" role="tab" aria-controls="tab-sucursales" aria-selected="false">
-                        <i class="bi bi-geo-alt-fill me-2"></i> Sucursales
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-terms-nav" data-bs-toggle="pill" data-bs-target="#tab-terms" type="button" role="tab" aria-controls="tab-terms" aria-selected="false">
-                        <i class="bi bi-file-earmark-text-fill me-2"></i> Términos y Condiciones
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-requirements-nav" data-bs-toggle="pill" data-bs-target="#tab-requirements" type="button" role="tab" aria-controls="tab-requirements" aria-selected="false">
-                        <i class="bi bi-file-earmark-ruled-fill me-2"></i> Requisitos de Alquiler
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-contact-nav" data-bs-toggle="pill" data-bs-target="#tab-contact" type="button" role="tab" aria-controls="tab-contact" aria-selected="false">
-                        <i class="bi bi-envelope-fill me-2"></i> Contacto / Mensajes
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-payments-nav" data-bs-toggle="pill" data-bs-target="#tab-payments" type="button" role="tab" aria-controls="tab-payments" aria-selected="false">
-                        <i class="bi bi-credit-card-fill me-2"></i> Pagos Recibidos
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-rac-reservations-nav" data-bs-toggle="pill" data-bs-target="#tab-rac-reservations" type="button" role="tab" aria-controls="tab-rac-reservations" aria-selected="false">
-                        <i class="bi bi-calendar2-check-fill me-2"></i> Reservas RAC
-                    </button>
-                </div>
-                
-                <!-- Venta de Autos (Seminuevos) Collapsible Accordion -->
-                <div class="sidebar-heading px-3 py-2 mt-3 text-uppercase text-white-50 fw-bold d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#seminuevos-submenu" aria-expanded="false" style="cursor: pointer; font-size: 0.75rem; letter-spacing: 0.5px;">
-                    <span>Venta de Autos</span>
-                    <i class="bi bi-chevron-down" id="seminuevos-chevron"></i>
-                </div>
-                
-                <div class="collapse" id="seminuevos-submenu">
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-semi-home-nav" data-bs-toggle="pill" data-bs-target="#tab-semi-home" type="button" role="tab" aria-controls="tab-semi-home" aria-selected="false">
-                        <i class="bi bi-house-door-fill me-2"></i> Principal (Banner y Anatomía)
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-semi-inventory-nav" data-bs-toggle="pill" data-bs-target="#tab-semi-inventory" type="button" role="tab" aria-controls="tab-semi-inventory" aria-selected="false">
-                        <i class="bi bi-car-front-fill me-2"></i> Inventario de Autos
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-semi-opinions-nav" data-bs-toggle="pill" data-bs-target="#tab-semi-opinions" type="button" role="tab" aria-controls="tab-semi-opinions" aria-selected="false">
-                        <i class="bi bi-chat-right-quote-fill me-2"></i> Opiniones de Clientes
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-semi-financing-nav" data-bs-toggle="pill" data-bs-target="#tab-semi-financing" type="button" role="tab" aria-controls="tab-semi-financing" aria-selected="false">
-                        <i class="bi bi-bank2 me-2"></i> Requisitos y Aliados Bancarios
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-semi-team-nav" data-bs-toggle="pill" data-bs-target="#tab-semi-team" type="button" role="tab" aria-controls="tab-semi-team" aria-selected="false">
-                        <i class="bi bi-people-fill me-2"></i> Equipo de Ventas
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-semi-contact-nav" data-bs-toggle="pill" data-bs-target="#tab-semi-contact" type="button" role="tab" aria-controls="tab-semi-contact" aria-selected="false">
-                        <i class="bi bi-envelope-heart-fill me-2"></i> Contacto
-                    </button>
-                </div>
-
-                <!-- Leasing Operativo Collapsible Accordion -->
-                <div class="sidebar-heading px-3 py-2 mt-3 text-uppercase text-white-50 fw-bold d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#leasing-submenu" aria-expanded="false" style="cursor: pointer; font-size: 0.75rem; letter-spacing: 0.5px;">
-                    <span>Leasing Operativo</span>
-                    <i class="bi bi-chevron-down" id="leasing-chevron"></i>
-                </div>
-
-                <div class="collapse" id="leasing-submenu">
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-leasing-home-nav" data-bs-toggle="pill" data-bs-target="#tab-leasing-home" type="button" role="tab" aria-controls="tab-leasing-home" aria-selected="false">
-                        <i class="bi bi-house-door-fill me-2"></i> Principal
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-leasing-sucursales-nav" data-bs-toggle="pill" data-bs-target="#tab-leasing-sucursales" type="button" role="tab" aria-controls="tab-leasing-sucursales" aria-selected="false">
-                        <i class="bi bi-geo-alt-fill me-2"></i> Sucursales
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-leasing-flota-nav" data-bs-toggle="pill" data-bs-target="#tab-leasing-flota" type="button" role="tab" aria-controls="tab-leasing-flota" aria-selected="false">
-                        <i class="bi bi-car-front-fill me-2"></i> Nuestra Flota
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-leasing-equipo-nav" data-bs-toggle="pill" data-bs-target="#tab-leasing-equipo" type="button" role="tab" aria-controls="tab-leasing-equipo" aria-selected="false">
-                        <i class="bi bi-people-fill me-2"></i> Nuestro Equipo
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-leasing-contacto-nav" data-bs-toggle="pill" data-bs-target="#tab-leasing-contacto" type="button" role="tab" aria-controls="tab-leasing-contacto" aria-selected="false">
-                        <i class="bi bi-envelope-fill me-2"></i> Contacto
-                    </button>
-                </div>
-
-                <!-- Renting Collapsible Accordion -->
-                <div class="sidebar-heading px-3 py-2 mt-3 text-uppercase text-white-50 fw-bold d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#renting-submenu" aria-expanded="false" style="cursor: pointer; font-size: 0.75rem; letter-spacing: 0.5px;">
-                    <span>Renting</span>
-                    <i class="bi bi-chevron-down" id="renting-chevron"></i>
-                </div>
-
-                <div class="collapse" id="renting-submenu">
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-renting-home-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-home" type="button" role="tab" aria-controls="tab-renting-home" aria-selected="false">
-                        <i class="bi bi-house-door-fill me-2"></i> Principal
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-renting-servicios-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-servicios" type="button" role="tab" aria-controls="tab-renting-servicios" aria-selected="false">
-                        <i class="bi bi-grid-1x2-fill me-2"></i> Nuestros Servicios
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-renting-sobre-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-sobre" type="button" role="tab" aria-controls="tab-renting-sobre" aria-selected="false">
-                        <i class="bi bi-people-fill me-2"></i> Sobre Nosotros
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-renting-publicaciones-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-publicaciones" type="button" role="tab" aria-controls="tab-renting-publicaciones" aria-selected="false">
-                        <i class="bi bi-file-post-fill me-2"></i> Publicaciones
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-renting-contacto-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-contacto" type="button" role="tab" aria-controls="tab-renting-contacto" aria-selected="false">
-                        <i class="bi bi-envelope-fill me-2"></i> Contactos
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-renting-cotizaciones-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-cotizaciones" type="button" role="tab" aria-controls="tab-renting-cotizaciones" aria-selected="false">
-                        <i class="bi bi-clipboard-check-fill me-2"></i> Cotizaciones
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-renting-marcas-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-marcas" type="button" role="tab" aria-controls="tab-renting-marcas" aria-selected="false">
-                        <i class="bi bi-award-fill me-2"></i> Marcas Aliadas
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-renting-opiniones-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-opiniones" type="button" role="tab" aria-controls="tab-renting-opiniones" aria-selected="false">
-                        <i class="bi bi-chat-left-quote-fill me-2"></i> Opiniones
-                    </button>
-                </div>
-
-                <!-- Taller Collapsible Accordion -->
-                <div class="sidebar-heading px-3 py-2 mt-3 text-uppercase text-white-50 fw-bold d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#taller-submenu" aria-expanded="false" style="cursor: pointer; font-size: 0.75rem; letter-spacing: 0.5px;">
-                    <span>Taller</span>
-                    <i class="bi bi-chevron-down" id="taller-chevron"></i>
-                </div>
-
-                <div class="collapse" id="taller-submenu">
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-taller-home-nav" data-bs-toggle="pill" data-bs-target="#tab-taller-home" type="button" role="tab" aria-controls="tab-taller-home" aria-selected="false">
-                        <i class="bi bi-tools me-2"></i> Principal
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-taller-contacto-nav" data-bs-toggle="pill" data-bs-target="#tab-taller-contacto" type="button" role="tab" aria-controls="tab-taller-contacto" aria-selected="false">
-                        <i class="bi bi-envelope-fill me-2"></i> Contacto
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-taller-sobre-nav" data-bs-toggle="pill" data-bs-target="#tab-taller-sobre" type="button" role="tab" aria-controls="tab-taller-sobre" aria-selected="false">
-                        <i class="bi bi-people-fill me-2"></i> Sobre Nosotros
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-taller-sucursales-nav" data-bs-toggle="pill" data-bs-target="#tab-taller-sucursales" type="button" role="tab" aria-controls="tab-taller-sucursales" aria-selected="false">
-                        <i class="bi bi-geo-alt-fill me-2"></i> Sucursales
-                    </button>
-                </div>
-
-                <!-- Chatbot IA Collapsible Accordion -->
-                <div class="sidebar-heading px-3 py-2 mt-3 text-uppercase text-white-50 fw-bold d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#chatbot-submenu" aria-expanded="false" style="cursor: pointer; font-size: 0.75rem; letter-spacing: 0.5px;">
-                    <span>Chatbot IA</span>
-                    <i class="bi bi-chevron-down" id="chatbot-chevron"></i>
-                </div>
-                <div class="collapse" id="chatbot-submenu">
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-chatbot-nav" data-bs-toggle="pill" data-bs-target="#tab-chatbot" type="button" role="tab" aria-controls="tab-chatbot" aria-selected="false">
-                        <i class="bi bi-sliders me-2"></i> Configuración
-                    </button>
-                    <button class="nav-link text-start w-100 border-0 bg-transparent" id="tab-chatbot-sessions-nav" data-bs-toggle="pill" data-bs-target="#tab-chatbot-sessions" type="button" role="tab" aria-controls="tab-chatbot-sessions" aria-selected="false">
-                        <i class="bi bi-chat-left-text-fill me-2"></i> Historial de sesiones
-                    </button>
-                </div>
-            </div>
+            <?php require __DIR__ . '/../../includes/admin-sidebar-nav.php'; ?>
             
             <div class="mt-auto p-4 border-top border-secondary text-center">
-                <p class="small text-white-50 mb-2">Conectado como <strong>admin</strong></p>
+                <p class="small text-white-50 mb-2">Conectado como <strong><?php echo esc(admin_current_username()); ?></strong></p>
                 <a href="/admin/logout.php" class="btn btn-sm btn-outline-danger w-100 rounded-pill"><i class="bi bi-box-arrow-left me-1"></i> Cerrar Sesión</a>
             </div>
         </div>
@@ -2946,7 +2781,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                 <div class="tab-content" id="v-pills-tabContent">
                     
                     <!-- TAB 1: GLOBAL CONFIGURATION -->
-                    <div class="tab-pane fade show active" id="tab-global" role="tabpanel" aria-labelledby="tab-global-nav">
+                    <div class="tab-pane fade<?php echo $defaultAdminTab === 'global' ? ' show active' : ''; ?>" id="tab-global" role="tabpanel" aria-labelledby="tab-global-nav">
                         <div class="admin-card">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy"><i class="bi bi-globe2 me-2 text-danger"></i>Configuración de Cabecera, WhatsApp y Pie</h5>
                             
@@ -3099,6 +2934,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                     <?php require_once __DIR__ . '/../../includes/admin-chatbot-sessions-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-landings-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-footer-tab.php'; ?>
+                    <?php if (admin_can('users')) { require_once __DIR__ . '/../../includes/admin-users-tab.php'; } ?>
                     
                     <!-- TAB 2: HOMEPAGE HERO & FEATURED BANNER -->
                     <div class="tab-pane fade" id="tab-hero" role="tabpanel" aria-labelledby="tab-hero-nav">
@@ -6911,6 +6747,24 @@ function showSemiMessageDetail(msg) {
 
 // On page load, check URL parameter 'tab' to activate the correct tab
 document.addEventListener('DOMContentLoaded', function () {
+    const tabPermMap = <?php echo json_encode(AdminUserService::tabSlugOrder(), JSON_UNESCAPED_UNICODE); ?>;
+    const allowedPerms = <?php echo json_encode(AdminUserService::permissions(), JSON_UNESCAPED_UNICODE); ?>;
+    const isSuperAdmin = <?php echo AdminUserService::isSuperAdmin() ? 'true' : 'false'; ?>;
+    const defaultTab = <?php echo json_encode($defaultAdminTab, JSON_UNESCAPED_UNICODE); ?>;
+
+    function adminCanPerm(perm) {
+        return isSuperAdmin || allowedPerms.indexOf(perm) !== -1;
+    }
+
+    Object.keys(tabPermMap).forEach(function (slug) {
+        if (!adminCanPerm(tabPermMap[slug])) {
+            const pane = document.getElementById('tab-' + slug);
+            if (pane) {
+                pane.remove();
+            }
+        }
+    });
+
     if (window.jQuery && jQuery.fn && jQuery.fn.summernote) {
         jQuery('.js-summernote-mini').summernote({
             height: 240,
@@ -6926,7 +6780,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const urlParams = new URLSearchParams(window.location.search);
-    const tabName = urlParams.get('tab');
+    const tabName = urlParams.get('tab') || defaultTab;
     if (tabName) {
         const tabButton = document.getElementById('tab-' + tabName + '-nav');
         if (tabButton) {

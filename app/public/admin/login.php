@@ -3,23 +3,31 @@
  * Admin Login Page
  */
 require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../../services/AdminUserService.php';
+
+AdminUserService::ensureSchema();
 
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+    $password = (string)($_POST['password'] ?? '');
 
-    if (empty($username) || empty($password)) {
+    if ($username === '' || $password === '') {
         $error = 'Por favor complete todos los campos.';
     } else {
-        if ($username === ADMIN_USER && $password === ADMIN_PASS) {
-            $_SESSION['admin_logged_in'] = true;
-            header("Location: /admin/index.php");
+        $user = AdminUserService::authenticate($username, $password);
+        if ($user) {
+            AdminUserService::loginSession($user);
+            header('Location: /admin/index.php');
             exit;
-        } else {
-            $error = 'Usuario o contraseña incorrectos.';
         }
+        if (AdminUserService::authenticateLegacy($username, $password)) {
+            AdminUserService::loginLegacySuperAdmin();
+            header('Location: /admin/index.php');
+            exit;
+        }
+        $error = 'Usuario o contraseña incorrectos.';
     }
 }
 
