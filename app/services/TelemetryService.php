@@ -136,15 +136,19 @@ class TelemetryService
             $params
         );
 
+        [$eventWhere, $eventParams] = self::buildFilterWhere($filters, 'e');
         $topCountries = $db->select(
-            "SELECT COALESCE(country, 'Desconocido') AS country, country_code,
-                    COUNT(DISTINCT visitor_id) AS visitors, COUNT(*) AS events
-             FROM telemetry_events
-             WHERE $where
+            "SELECT COALESCE(e.country, v.country, 'Desconocido') AS country,
+                    COALESCE(v.country_code, '') AS country_code,
+                    COUNT(DISTINCT e.visitor_id) AS visitors,
+                    COUNT(*) AS events
+             FROM telemetry_events e
+             LEFT JOIN telemetry_visitors v ON v.visitor_id = e.visitor_id
+             WHERE $eventWhere
              GROUP BY country, country_code
              ORDER BY visitors DESC
              LIMIT 12",
-            $params
+            $eventParams
         );
 
         $topCities = $db->select(
@@ -210,22 +214,22 @@ class TelemetryService
         $limit = min(100, max(15, intval($filters['limit'] ?? 30)));
         $offset = ($page - 1) * $limit;
 
-        [$where, $params] = self::buildFilterWhere($filters);
+        [$where, $params] = self::buildFilterWhere($filters, 'e');
 
         if (!empty($filters['visitor_id'])) {
-            $where .= ' AND visitor_id = :visitor_id';
+            $where .= ' AND e.visitor_id = :visitor_id';
             $params[':visitor_id'] = trim((string)$filters['visitor_id']);
         }
         if (!empty($filters['entity_id'])) {
-            $where .= ' AND entity_id LIKE :entity_id';
+            $where .= ' AND e.entity_id LIKE :entity_id';
             $params[':entity_id'] = '%' . trim((string)$filters['entity_id']) . '%';
         }
         if (!empty($filters['q'])) {
-            $where .= ' AND (page_path LIKE :q OR page_title LIKE :q OR entity_label LIKE :q OR ip_address LIKE :q OR city LIKE :q)';
+            $where .= ' AND (e.page_path LIKE :q OR e.page_title LIKE :q OR e.entity_label LIKE :q OR e.ip_address LIKE :q OR e.city LIKE :q)';
             $params[':q'] = '%' . trim((string)$filters['q']) . '%';
         }
 
-        $countRow = $db->selectOne("SELECT COUNT(*) AS cnt FROM telemetry_events WHERE $where", $params);
+        $countRow = $db->selectOne("SELECT COUNT(*) AS cnt FROM telemetry_events e WHERE $where", $params);
         $total = intval($countRow['cnt'] ?? 0);
         $pages = max(1, (int)ceil($total / $limit));
 
@@ -442,28 +446,30 @@ class TelemetryService
     }
 
     /** @param array<string, mixed> $filters @return array{0: string, 1: array<string, mixed>} */
-    private static function buildFilterWhere(array $filters): array
+    private static function buildFilterWhere(array $filters, string $alias = ''): array
     {
+        $col = static fn(string $name) => ($alias !== '' ? $alias . '.' : '') . $name;
+
         $where = '1=1';
         $params = [];
 
         if (!empty($filters['date_from'])) {
-            $where .= ' AND created_at >= :date_from';
+            $where .= ' AND ' . $col('created_at') . ' >= :date_from';
             $params[':date_from'] = trim((string)$filters['date_from']) . ' 00:00:00';
         } else {
-            $where .= ' AND created_at >= :date_from';
+            $where .= ' AND ' . $col('created_at') . ' >= :date_from';
             $params[':date_from'] = date('Y-m-d', strtotime('-7 days')) . ' 00:00:00';
         }
         if (!empty($filters['date_to'])) {
-            $where .= ' AND created_at <= :date_to';
+            $where .= ' AND ' . $col('created_at') . ' <= :date_to';
             $params[':date_to'] = trim((string)$filters['date_to']) . ' 23:59:59';
         }
         if (!empty($filters['business_unit'])) {
-            $where .= ' AND business_unit = :business_unit';
+            $where .= ' AND ' . $col('business_unit') . ' = :business_unit';
             $params[':business_unit'] = trim((string)$filters['business_unit']);
         }
         if (!empty($filters['event_type'])) {
-            $where .= ' AND event_type = :event_type';
+            $where .= ' AND ' . $col('event_type') . ' = :event_type';
             $params[':event_type'] = trim((string)$filters['event_type']);
         }
 
