@@ -145,7 +145,7 @@ class TelemetryService
              FROM telemetry_events e
              LEFT JOIN telemetry_visitors v ON v.visitor_id = e.visitor_id
              WHERE $eventWhere
-             GROUP BY country, country_code
+             GROUP BY COALESCE(e.country, v.country, 'Desconocido'), COALESCE(v.country_code, '')
              ORDER BY visitors DESC
              LIMIT 12",
             $eventParams
