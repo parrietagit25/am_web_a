@@ -183,6 +183,7 @@ class AdminUserService
             'footer' => 'footer',
             'users' => 'users',
             'audit-log' => 'audit_log',
+            'telemetry' => 'telemetry',
             'hero' => 'hero',
             'news' => 'news',
             'opinions' => 'opinions',

@@ -338,4 +338,20 @@ function submitVehicleLead(e) {
 }
 </script>
 
+<?php
+$telemetryContext = [
+    'entity_type' => 'vehicle_seminuevo',
+    'entity_id' => (string)($vehicle['LicensePlate'] ?? $vehicle['id'] ?? ''),
+    'entity_label' => $fullName,
+    'meta' => [
+        'make' => (string)($vehicle['Make'] ?? ''),
+        'model' => (string)($vehicle['Model'] ?? ''),
+        'year' => (string)($vehicle['Year'] ?? ''),
+        'price' => $priceVal,
+        'location' => (string)($vehicle['LocationName'] ?? ''),
+        'plate' => (string)($vehicle['LicensePlate'] ?? ''),
+    ],
+];
+?>
+
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

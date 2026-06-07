@@ -134,5 +134,14 @@ usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b[
     <?php endif; ?>
     <script src="/assets/js/main.js"></script>
     <script src="/assets/js/dropdown-fix.js?v=3"></script>
+    <?php if (strpos($reqPath, '/admin') !== 0): ?>
+    <script>
+    window.AM_TELEMETRY = {
+        unit: <?php echo json_encode($activeUnit ?? '', JSON_UNESCAPED_UNICODE); ?>,
+        context: <?php echo json_encode($telemetryContext ?? null, JSON_UNESCAPED_UNICODE); ?>
+    };
+    </script>
+    <script src="/assets/js/telemetry.js?v=1" defer></script>
+    <?php endif; ?>
 </body>
 </html>

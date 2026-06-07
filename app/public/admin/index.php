@@ -2940,6 +2940,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                     <?php require_once __DIR__ . '/../../includes/admin-footer-tab.php'; ?>
                     <?php if (admin_can('users')) { require_once __DIR__ . '/../../includes/admin-users-tab.php'; } ?>
                     <?php if (admin_can('audit_log')) { require_once __DIR__ . '/../../includes/admin-audit-tab.php'; } ?>
+                    <?php if (admin_can('telemetry')) { require_once __DIR__ . '/../../includes/admin-telemetry-tab.php'; } ?>
                     
                     <!-- TAB 2: HOMEPAGE HERO & FEATURED BANNER -->
                     <div class="tab-pane fade" id="tab-hero" role="tabpanel" aria-labelledby="tab-hero-nav">

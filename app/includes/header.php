@@ -90,8 +90,7 @@ $themeRgb = "$r, $g, $b";
     <?php endif; ?>
     <meta name="twitter:title" content="<?php echo esc($seo['og_title']); ?>">
     <meta name="twitter:description" content="<?php echo esc($seo['og_description']); ?>">
-    
-    <!-- Google Fonts -->
+    <meta name="am-business-unit" content="<?php echo esc($activeUnit ?? ''); ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
