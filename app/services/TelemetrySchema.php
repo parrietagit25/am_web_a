@@ -37,6 +37,9 @@ class TelemetrySchema
                 language VARCHAR(16) NULL,
                 screen_width SMALLINT UNSIGNED NULL,
                 screen_height SMALLINT UNSIGNED NULL,
+                viewport_width SMALLINT UNSIGNED NULL,
+                viewport_height SMALLINT UNSIGNED NULL,
+                pixel_ratio DECIMAL(4,2) NULL,
                 referrer_first VARCHAR(500) NULL,
                 KEY idx_tv_last_seen (last_seen_at),
                 KEY idx_tv_country (country_code)
@@ -96,6 +99,9 @@ class TelemetrySchema
                 language TEXT,
                 screen_width INTEGER,
                 screen_height INTEGER,
+                viewport_width INTEGER,
+                viewport_height INTEGER,
+                pixel_ratio REAL,
                 referrer_first TEXT
             )");
             $db->execute("CREATE TABLE IF NOT EXISTS telemetry_events (
@@ -130,6 +136,35 @@ class TelemetrySchema
             $db->execute('CREATE INDEX IF NOT EXISTS idx_te_entity ON telemetry_events (entity_type, entity_id)');
         }
 
+        self::migrateVisitorColumns($db, $driver);
+
         self::$ensured = true;
+    }
+
+    private static function migrateVisitorColumns(Database $db, string $driver): void
+    {
+        $columns = [
+            'viewport_width' => $driver === 'mysql' ? 'SMALLINT UNSIGNED NULL' : 'INTEGER',
+            'viewport_height' => $driver === 'mysql' ? 'SMALLINT UNSIGNED NULL' : 'INTEGER',
+            'pixel_ratio' => $driver === 'mysql' ? 'DECIMAL(4,2) NULL' : 'REAL',
+        ];
+        foreach ($columns as $name => $type) {
+            try {
+                if ($driver === 'mysql') {
+                    $exists = $db->selectOne(
+                        "SELECT COUNT(*) AS c FROM information_schema.COLUMNS
+                         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'telemetry_visitors' AND COLUMN_NAME = :col",
+                        [':col' => $name]
+                    );
+                    if (intval($exists['c'] ?? 0) === 0) {
+                        $db->execute("ALTER TABLE telemetry_visitors ADD COLUMN $name $type");
+                    }
+                } else {
+                    $db->execute("ALTER TABLE telemetry_visitors ADD COLUMN $name $type");
+                }
+            } catch (Throwable $e) {
+                // Columna ya existe
+            }
+        }
     }
 }

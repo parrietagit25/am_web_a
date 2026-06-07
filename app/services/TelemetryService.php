@@ -29,7 +29,7 @@ class TelemetryService
 
         $ip = self::clientIp();
         $ua = self::truncate((string)($payload['user_agent'] ?? $_SERVER['HTTP_USER_AGENT'] ?? ''), 500);
-        $client = self::parseUserAgent($ua);
+        $client = self::mergeClientInfo($payload, self::parseUserAgent($ua));
 
         if ($type === 'init') {
             self::upsertVisitor($visitorId, $payload, $ip, $ua, $client);
@@ -181,6 +181,8 @@ class TelemetryService
             );
         }
 
+        $deviceStats = self::visitorDeviceStats($eventWhere, $eventParams);
+
         return [
             'today' => [
                 'visitors' => intval($statsToday['visitors'] ?? 0),
@@ -199,6 +201,102 @@ class TelemetryService
             'top_countries' => $topCountries,
             'top_cities' => $topCities,
             'hourly' => $hourly,
+            'devices' => $deviceStats,
+        ];
+    }
+
+    /**
+     * @return array<string, array<int, array<string, mixed>>>
+     */
+    private static function visitorDeviceStats(string $eventWhere, array $params): array
+    {
+        $db = Database::getInstance();
+        $join = "FROM telemetry_visitors v
+                 INNER JOIN telemetry_events e ON e.visitor_id = v.visitor_id
+                 WHERE $eventWhere";
+
+        $byDevice = $db->select(
+            "SELECT COALESCE(NULLIF(v.device_type, ''), 'desconocido') AS key_name,
+                    COUNT(DISTINCT v.visitor_id) AS visitors,
+                    COUNT(*) AS page_views
+             $join
+             GROUP BY COALESCE(NULLIF(v.device_type, ''), 'desconocido')
+             ORDER BY visitors DESC",
+            $params
+        );
+
+        $byOs = $db->select(
+            "SELECT COALESCE(NULLIF(v.os, ''), 'Desconocido') AS key_name,
+                    COUNT(DISTINCT v.visitor_id) AS visitors,
+                    COUNT(*) AS page_views
+             $join
+             GROUP BY COALESCE(NULLIF(v.os, ''), 'Desconocido')
+             ORDER BY visitors DESC
+             LIMIT 12",
+            $params
+        );
+
+        $byBrowser = $db->select(
+            "SELECT COALESCE(NULLIF(v.browser, ''), 'Desconocido') AS key_name,
+                    COUNT(DISTINCT v.visitor_id) AS visitors,
+                    COUNT(*) AS page_views
+             $join
+             GROUP BY COALESCE(NULLIF(v.browser, ''), 'Desconocido')
+             ORDER BY visitors DESC
+             LIMIT 10",
+            $params
+        );
+
+        if ($db->getDriverName() === 'mysql') {
+            $byScreen = $db->select(
+                "SELECT CONCAT(v.screen_width, ' × ', v.screen_height) AS key_name,
+                        COUNT(DISTINCT v.visitor_id) AS visitors,
+                        COUNT(*) AS page_views
+                 $join AND v.screen_width IS NOT NULL AND v.screen_width > 0
+                 GROUP BY v.screen_width, v.screen_height
+                 ORDER BY visitors DESC
+                 LIMIT 12",
+                $params
+            );
+            $byViewport = $db->select(
+                "SELECT CONCAT(v.viewport_width, ' × ', v.viewport_height) AS key_name,
+                        COUNT(DISTINCT v.visitor_id) AS visitors,
+                        COUNT(*) AS page_views
+                 $join AND v.viewport_width IS NOT NULL AND v.viewport_width > 0
+                 GROUP BY v.viewport_width, v.viewport_height
+                 ORDER BY visitors DESC
+                 LIMIT 12",
+                $params
+            );
+        } else {
+            $byScreen = $db->select(
+                "SELECT (CAST(v.screen_width AS TEXT) || ' × ' || CAST(v.screen_height AS TEXT)) AS key_name,
+                        COUNT(DISTINCT v.visitor_id) AS visitors,
+                        COUNT(*) AS page_views
+                 $join AND v.screen_width IS NOT NULL AND v.screen_width > 0
+                 GROUP BY v.screen_width, v.screen_height
+                 ORDER BY visitors DESC
+                 LIMIT 12",
+                $params
+            );
+            $byViewport = $db->select(
+                "SELECT (CAST(v.viewport_width AS TEXT) || ' × ' || CAST(v.viewport_height AS TEXT)) AS key_name,
+                        COUNT(DISTINCT v.visitor_id) AS visitors,
+                        COUNT(*) AS page_views
+                 $join AND v.viewport_width IS NOT NULL AND v.viewport_width > 0
+                 GROUP BY v.viewport_width, v.viewport_height
+                 ORDER BY visitors DESC
+                 LIMIT 12",
+                $params
+            );
+        }
+
+        return [
+            'by_device' => $byDevice,
+            'by_os' => $byOs,
+            'by_browser' => $byBrowser,
+            'by_screen' => $byScreen,
+            'by_viewport' => $byViewport,
         ];
     }
 
@@ -234,7 +332,8 @@ class TelemetryService
         $pages = max(1, (int)ceil($total / $limit));
 
         $rows = $db->select(
-            "SELECT e.*, v.browser, v.os, v.device_type, v.isp, v.region, v.country_code AS visitor_country_code
+            "SELECT e.*, v.browser, v.os, v.device_type, v.isp, v.region, v.country_code AS visitor_country_code,
+                    v.screen_width, v.screen_height, v.viewport_width, v.viewport_height, v.pixel_ratio, v.language AS visitor_language
              FROM telemetry_events e
              LEFT JOIN telemetry_visitors v ON v.visitor_id = e.visitor_id
              WHERE $where
@@ -275,19 +374,21 @@ class TelemetryService
         $geo = $needsGeo ? self::resolveGeo($ip) : [];
 
         $screen = is_array($payload['screen'] ?? null) ? $payload['screen'] : [];
+        $viewport = is_array($payload['viewport'] ?? null) ? $payload['viewport'] : [];
         $language = trim((string)($payload['language'] ?? ''));
         $referrer = self::truncate(trim((string)($payload['referrer'] ?? '')), 500);
-        $params = self::visitorParams($visitorId, $ip, $ua, $client, $geo, $screen, $language, $referrer);
+        $params = self::visitorParams($visitorId, $ip, $ua, $client, $geo, $screen, $viewport, $language, $referrer, $payload);
         $nowExpr = $db->getDriverName() === 'mysql' ? 'NOW()' : "datetime('now')";
 
         if (!$existing) {
             $db->execute(
                 "INSERT INTO telemetry_visitors
                 (visitor_id, first_seen_at, last_seen_at, visit_count, ip_address, country, country_code, region, city,
-                 latitude, longitude, timezone, isp, user_agent, browser, os, device_type, language, screen_width, screen_height, referrer_first)
+                 latitude, longitude, timezone, isp, user_agent, browser, os, device_type, language, screen_width, screen_height,
+                 viewport_width, viewport_height, pixel_ratio, referrer_first)
                  VALUES
                 (:visitor_id, $nowExpr, $nowExpr, 1, :ip, :country, :country_code, :region, :city,
-                 :lat, :lon, :timezone, :isp, :ua, :browser, :os, :device, :lang, :sw, :sh, :ref)",
+                 :lat, :lon, :timezone, :isp, :ua, :browser, :os, :device, :lang, :sw, :sh, :vw, :vh, :dpr, :ref)",
                 $params
             );
             return;
@@ -303,7 +404,10 @@ class TelemetryService
             device_type = :device,
             language = :lang,
             screen_width = :sw,
-            screen_height = :sh";
+            screen_height = :sh,
+            viewport_width = :vw,
+            viewport_height = :vh,
+            pixel_ratio = :dpr";
         if ($geo !== []) {
             $sql .= ',
             country = :country,
@@ -319,7 +423,7 @@ class TelemetryService
         $db->execute($sql, $params);
     }
 
-    /** @param array<string, mixed> $geo @param array<string, mixed> $screen @return array<string, mixed> */
+    /** @param array<string, mixed> $geo @param array<string, mixed> $screen @param array<string, mixed> $viewport @param array<string, mixed> $payload @return array<string, mixed> */
     private static function visitorParams(
         string $visitorId,
         string $ip,
@@ -327,9 +431,16 @@ class TelemetryService
         array $client,
         array $geo,
         array $screen,
+        array $viewport,
         string $language,
-        string $referrer
+        string $referrer,
+        array $payload = []
     ): array {
+        $dpr = $payload['pixel_ratio'] ?? $payload['dpr'] ?? null;
+        if ($dpr === null && is_array($payload['client_device'] ?? null)) {
+            $dpr = $payload['client_device']['pixel_ratio'] ?? null;
+        }
+
         return [
             ':visitor_id' => $visitorId,
             ':ip' => $ip !== '' ? $ip : null,
@@ -348,8 +459,26 @@ class TelemetryService
             ':lang' => $language !== '' ? $language : null,
             ':sw' => intval($screen['w'] ?? $screen['width'] ?? 0) ?: null,
             ':sh' => intval($screen['h'] ?? $screen['height'] ?? 0) ?: null,
+            ':vw' => intval($viewport['w'] ?? $viewport['width'] ?? 0) ?: null,
+            ':vh' => intval($viewport['h'] ?? $viewport['height'] ?? 0) ?: null,
+            ':dpr' => is_numeric($dpr) ? round(floatval($dpr), 2) : null,
             ':ref' => $referrer !== '' ? $referrer : null,
         ];
+    }
+
+    /** @param array<string, mixed> $payload @param array<string, string> $parsed @return array<string, string> */
+    private static function mergeClientInfo(array $payload, array $parsed): array
+    {
+        $client = is_array($payload['client_device'] ?? null) ? $payload['client_device'] : [];
+        foreach (['browser', 'os', 'device'] as $key) {
+            if (!empty($client[$key])) {
+                $parsed[$key] = trim((string)$client[$key]);
+            }
+        }
+        if (!empty($client['device_type'])) {
+            $parsed['device'] = trim((string)$client['device_type']);
+        }
+        return $parsed;
     }
 
     private static function touchVisitor(string $visitorId): void
@@ -519,32 +648,46 @@ class TelemetryService
         $os = 'Desconocido';
         $device = 'desktop';
 
-        if (stripos($ua, 'Mobile') !== false || stripos($ua, 'Android') !== false && stripos($ua, 'Mobile') !== false) {
+        if (preg_match('/Mobile|Android.*Mobile|iPhone|iPod/i', $ua)) {
             $device = 'mobile';
-        } elseif (stripos($ua, 'Tablet') !== false || stripos($ua, 'iPad') !== false) {
+        } elseif (preg_match('/iPad|Tablet|Android(?!.*Mobile)/i', $ua)) {
             $device = 'tablet';
         }
 
-        if (stripos($ua, 'Windows') !== false) {
-            $os = 'Windows';
-        } elseif (stripos($ua, 'Mac OS') !== false || stripos($ua, 'Macintosh') !== false) {
-            $os = 'macOS';
-        } elseif (stripos($ua, 'Android') !== false) {
-            $os = 'Android';
-        } elseif (stripos($ua, 'iPhone') !== false || stripos($ua, 'iOS') !== false) {
+        if (preg_match('/iPhone|iPod/i', $ua)) {
             $os = 'iOS';
-        } elseif (stripos($ua, 'Linux') !== false) {
+            $device = 'mobile';
+        } elseif (preg_match('/iPad/i', $ua)) {
+            $os = 'iPadOS';
+            $device = 'tablet';
+        } elseif (preg_match('/Android/i', $ua)) {
+            $os = 'Android';
+        } elseif (preg_match('/Windows NT/i', $ua)) {
+            $os = 'Windows';
+        } elseif (preg_match('/Mac OS X|Macintosh/i', $ua)) {
+            $os = 'macOS';
+        } elseif (preg_match('/CrOS/i', $ua)) {
+            $os = 'Chrome OS';
+        } elseif (preg_match('/Linux/i', $ua)) {
             $os = 'Linux';
         }
 
-        if (stripos($ua, 'Edg/') !== false) {
+        if (preg_match('/Edg\//i', $ua)) {
             $browser = 'Edge';
-        } elseif (stripos($ua, 'Chrome/') !== false) {
+        } elseif (preg_match('/OPR\//i', $ua)) {
+            $browser = 'Opera';
+        } elseif (preg_match('/CriOS/i', $ua)) {
+            $browser = 'Chrome (iOS)';
+        } elseif (preg_match('/FxiOS/i', $ua)) {
+            $browser = 'Firefox (iOS)';
+        } elseif (preg_match('/Chrome\//i', $ua) && !preg_match('/Edg\//i', $ua)) {
             $browser = 'Chrome';
-        } elseif (stripos($ua, 'Firefox/') !== false) {
+        } elseif (preg_match('/Firefox\//i', $ua)) {
             $browser = 'Firefox';
-        } elseif (stripos($ua, 'Safari/') !== false) {
+        } elseif (preg_match('/Safari\//i', $ua) && !preg_match('/Chrome/i', $ua)) {
             $browser = 'Safari';
+        } elseif (preg_match('/SamsungBrowser/i', $ua)) {
+            $browser = 'Samsung Internet';
         }
 
         return ['browser' => $browser, 'os' => $os, 'device' => $device];
@@ -641,5 +784,38 @@ class TelemetryService
             'sostenibilidad' => 'Sostenibilidad',
             '' => 'General',
         ];
+    }
+
+    public static function deviceTypeLabel(string $type): string
+    {
+        return match (strtolower($type)) {
+            'mobile' => 'Teléfono móvil',
+            'tablet' => 'Tablet',
+            'desktop' => 'PC / Escritorio',
+            'desconocido' => 'Desconocido',
+            default => ucfirst($type),
+        };
+    }
+
+    public static function deviceIcon(string $type): string
+    {
+        return match (strtolower($type)) {
+            'mobile' => 'bi-phone',
+            'tablet' => 'bi-tablet',
+            'desktop' => 'bi-pc-display',
+            default => 'bi-question-circle',
+        };
+    }
+
+    public static function formatResolution(?int $w, ?int $h, ?int $vw = null, ?int $vh = null): string
+    {
+        $parts = [];
+        if ($w && $h) {
+            $parts[] = 'Pantalla ' . $w . '×' . $h;
+        }
+        if ($vw && $vh) {
+            $parts[] = 'Ventana ' . $vw . '×' . $vh;
+        }
+        return $parts !== [] ? implode(' · ', $parts) : '—';
     }
 }

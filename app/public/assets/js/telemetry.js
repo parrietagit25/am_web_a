@@ -112,11 +112,57 @@
         return null;
     }
 
+    function detectClientDevice() {
+        var ua = navigator.userAgent || '';
+        var type = 'desktop';
+        var os = 'Desconocido';
+        var browser = 'Desconocido';
+
+        if (/iPhone|iPod/i.test(ua)) {
+            type = 'mobile';
+            os = 'iOS';
+        } else if (/iPad/i.test(ua)) {
+            type = 'tablet';
+            os = 'iPadOS';
+        } else if (/Android/i.test(ua)) {
+            type = /Mobile/i.test(ua) ? 'mobile' : 'tablet';
+            os = 'Android';
+        } else if (/Windows NT/i.test(ua)) {
+            os = 'Windows';
+        } else if (/Mac OS X|Macintosh/i.test(ua)) {
+            os = 'macOS';
+        } else if (/CrOS/i.test(ua)) {
+            os = 'Chrome OS';
+        } else if (/Linux/i.test(ua)) {
+            os = 'Linux';
+        }
+
+        if (/Edg\//i.test(ua)) browser = 'Edge';
+        else if (/OPR\//i.test(ua)) browser = 'Opera';
+        else if (/CriOS/i.test(ua)) browser = 'Chrome (iOS)';
+        else if (/FxiOS/i.test(ua)) browser = 'Firefox (iOS)';
+        else if (/Chrome\//i.test(ua) && !/Edg\//i.test(ua)) browser = 'Chrome';
+        else if (/Firefox\//i.test(ua)) browser = 'Firefox';
+        else if (/Safari\//i.test(ua) && !/Chrome/i.test(ua)) browser = 'Safari';
+        else if (/SamsungBrowser/i.test(ua)) browser = 'Samsung Internet';
+
+        return {
+            device_type: type,
+            device: type,
+            os: os,
+            browser: browser,
+            touch: (navigator.maxTouchPoints || 0) > 0,
+            platform: navigator.platform || '',
+            pixel_ratio: window.devicePixelRatio || 1
+        };
+    }
+
     function basePayload(type) {
         var entity = detectEntityFromUrl();
         var cfg = window.AM_TELEMETRY || {};
         var bodyClass = document.body.className || '';
         var unitMatch = bodyClass.match(/theme-(\w+)/);
+        var clientDevice = detectClientDevice();
         return {
             type: type,
             visitor_id: state.visitorId,
@@ -128,7 +174,11 @@
             referrer: document.referrer || '',
             language: navigator.language || '',
             timezone: (Intl.DateTimeFormat && Intl.DateTimeFormat().resolvedOptions().timeZone) || '',
+            user_agent: navigator.userAgent || '',
             screen: { w: window.screen.width, h: window.screen.height },
+            viewport: { w: window.innerWidth, h: window.innerHeight },
+            pixel_ratio: window.devicePixelRatio || 1,
+            client_device: clientDevice,
             utm: getUtm(),
             entity: entity,
             meta: cfg.context && cfg.context.meta ? cfg.context.meta : (entity && entity.meta ? entity.meta : {})

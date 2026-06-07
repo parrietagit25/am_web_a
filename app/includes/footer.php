@@ -141,7 +141,7 @@ usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b[
         context: <?php echo json_encode($telemetryContext ?? null, JSON_UNESCAPED_UNICODE); ?>
     };
     </script>
-    <script src="/assets/js/telemetry.js?v=1" defer></script>
+    <script src="/assets/js/telemetry.js?v=2" defer></script>
     <?php endif; ?>
 </body>
 </html>
