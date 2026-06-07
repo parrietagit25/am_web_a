@@ -105,6 +105,7 @@ $contactImageUrl = $contact['contact_image_url'] ?? '';
                             </div>
                         </div>
                         <div class="col-12 text-center mt-2">
+                            <?php require __DIR__ . '/../includes/captcha-widget.php'; ?>
                             <button type="submit" id="rc_submit" class="btn w-100 py-3 fw-bold text-white text-uppercase font-montserrat" style="background:#0b1f6b; border-radius:4px; max-width: 280px;">
                                 Enviar solicitud
                             </button>

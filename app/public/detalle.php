@@ -289,6 +289,7 @@ $spinUrl = "https://spins.impel.io/automarketpanama/" . urlencode($spinPlaca);
                         <input type="email" id="clientEmail" class="form-control form-control-premium" placeholder="nombre@correo.com" required>
                     </div>
                     
+                    <?php require __DIR__ . '/../includes/captcha-widget.php'; ?>
                     <button type="submit" class="btn btn-theme w-100 py-3 rounded-pill fw-bold text-white shadow-sm mt-3">
                         <i class="bi bi-send me-2"></i>ENVIAR SOLICITUD
                     </button>

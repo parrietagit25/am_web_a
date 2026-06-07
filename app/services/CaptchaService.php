@@ -87,14 +87,18 @@ class CaptchaService
             return ['ok' => false, 'error' => $codes];
         }
 
-        $score = floatval($data['score'] ?? 0);
-        $minScore = defined('RECAPTCHA_MIN_SCORE') ? floatval(RECAPTCHA_MIN_SCORE) : 0.5;
-        if ($score < $minScore) {
-            am_log('Captcha low score: ' . $score, 'WARNING');
-            return ['ok' => false, 'error' => 'low_score', 'score' => $score];
+        // v3 incluye score; v2 (checkbox) no — solo validar score si viene en la respuesta
+        if (array_key_exists('score', $data)) {
+            $score = floatval($data['score']);
+            $minScore = defined('RECAPTCHA_MIN_SCORE') ? floatval(RECAPTCHA_MIN_SCORE) : 0.5;
+            if ($score < $minScore) {
+                am_log('Captcha low score: ' . $score, 'WARNING');
+                return ['ok' => false, 'error' => 'low_score', 'score' => $score];
+            }
+            return ['ok' => true, 'score' => $score];
         }
 
-        return ['ok' => true, 'score' => $score];
+        return ['ok' => true];
     }
 
     private static function clientIp(): string

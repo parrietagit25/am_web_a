@@ -145,9 +145,9 @@ $captchaSiteKey = ($isPublicSite && defined('RECAPTCHA_SITE_KEY'))
     <?php if ($isPublicSite): ?>
     <script>window.AM_RECAPTCHA = { siteKey: <?php echo json_encode($captchaSiteKey, JSON_UNESCAPED_UNICODE); ?> };</script>
     <?php if ($captchaSiteKey !== ''): ?>
-    <script src="https://www.google.com/recaptcha/api.js?render=<?php echo urlencode($captchaSiteKey); ?>"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <?php endif; ?>
-    <script src="/assets/js/captcha.js?v=1"></script>
+    <script src="/assets/js/captcha.js?v=2"></script>
     <?php endif; ?>
     
     <!-- Custom Web Controller JavaScript -->

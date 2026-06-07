@@ -182,6 +182,7 @@ $activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
                             </div>
                         </div>
                         <div class="col-12 mt-2">
+                            <?php require __DIR__ . '/../includes/captcha-widget.php'; ?>
                             <button type="submit" id="submitBtn" class="sn-submit-btn">Enviar</button>
                         </div>
                     </div>
@@ -352,6 +353,7 @@ async function handleContactSubmit(event) {
                             <textarea id="message" name="message" class="form-control form-control-premium bg-white border-0 py-3" rows="5" placeholder="<?php echo esc(t('contact.message')); ?>" required></textarea>
                         </div>
                         <div class="col-12 text-center mt-4">
+                            <?php require __DIR__ . '/../includes/captcha-widget.php'; ?>
                             <button type="submit" id="submitBtn" class="btn btn-theme px-5 py-3 fw-bold text-uppercase rounded-3 font-montserrat shadow-sm" style="background-color: #c51f17; border-color: #c51f17; min-width: 180px;">
                                 <?php echo esc(t('common.send')); ?>
                             </button>

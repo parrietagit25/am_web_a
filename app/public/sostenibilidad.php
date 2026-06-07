@@ -101,6 +101,7 @@ require_once __DIR__ . '/../includes/header.php';
                             <label for="ecoMsg" class="form-label fw-semibold">¿Cómo te gustaría colaborar?</label>
                             <textarea id="ecoMsg" class="form-control form-control-premium" rows="3" placeholder="Quiero cotizar flota eléctrica / participar de reforestaciones..." required></textarea>
                         </div>
+                        <?php require __DIR__ . '/../includes/captcha-widget.php'; ?>
                         <button type="submit" class="btn btn-theme w-100 py-3 rounded-pill fw-bold text-white shadow-sm">
                             <i class="bi bi-leaf-fill me-2"></i>ENVIAR MENSAJE VERDE
                         </button>

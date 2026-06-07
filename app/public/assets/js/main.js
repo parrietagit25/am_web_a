@@ -392,6 +392,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Reset inputs
                     leasingLeadForm.reset();
                     leasingLeadForm.classList.remove('was-validated');
+                    if (window.AmCaptcha && typeof window.AmCaptcha.reset === 'function') {
+                        window.AmCaptcha.reset();
+                    }
                 } else {
                     throw new Error(data.message || "Error al procesar el envío.");
                 }

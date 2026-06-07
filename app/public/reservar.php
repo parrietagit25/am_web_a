@@ -116,6 +116,7 @@ require_once __DIR__ . '/../includes/header.php';
 
                         <!-- Submit Booking Action -->
                         <div class="col-12 mt-4">
+                            <?php require __DIR__ . '/../includes/captcha-widget.php'; ?>
                             <button type="submit" class="btn btn-theme w-100 py-3 rounded-pill fw-bold text-white fs-5 shadow">
                                 <i class="bi bi-shield-lock-fill me-2"></i>CONFIRMAR RESERVA
                             </button>

@@ -91,6 +91,7 @@ require_once __DIR__ . '/../includes/header.php';
                         
                         <!-- Submit Button -->
                         <div class="col-12 text-center mt-4">
+                            <?php require __DIR__ . '/../includes/captcha-widget.php'; ?>
                             <button type="submit" id="payBtn" class="btn btn-theme w-100 py-3 fw-bold text-uppercase rounded-3 font-montserrat shadow-sm d-flex align-items-center justify-content-center gap-2" style="background-color: #c51f17; border-color: #c51f17;">
                                 <i class="bi bi-lock-fill"></i> Realizar Pago Seguro
                             </button>

@@ -331,6 +331,7 @@ $rentingOpiniones = array_values(array_filter($renting['opiniones'] ?? [], funct
                                 <?php endforeach; ?>
                             </select>
                         </div>
+                        <?php require __DIR__ . '/../includes/captcha-widget.php'; ?>
                         <button type="submit" id="rq_submit" class="btn w-100 py-3 fw-bold text-white text-uppercase" style="background:#0b1f6b; border-radius:4px;">ENVIAR</button>
                     </form>
                     <div id="rq_success" class="mt-3 p-3 rounded d-none align-items-center gap-2 text-white" style="background:#2b2b2b;">

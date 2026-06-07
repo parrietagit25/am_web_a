@@ -132,6 +132,7 @@ if (empty($contactImageUrl)) {
                             </div>
                         </div>
                         <div class="col-12 text-center mt-2">
+                            <?php require __DIR__ . '/../includes/captcha-widget.php'; ?>
                             <button type="submit" id="submitBtn" class="btn btn-theme px-5 py-3 fw-bold text-uppercase rounded-3 font-montserrat shadow-sm" style="min-width: 180px;">
                                 Solicitar cotización
                             </button>

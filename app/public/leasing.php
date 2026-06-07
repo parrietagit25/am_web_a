@@ -242,8 +242,10 @@ $leasingOpiniones = $leasingData['opiniones'] ?? [];
                                 <textarea id="comentarios" name="comentarios" class="form-control form-control-premium" rows="3" placeholder="Cuéntanos brevemente qué necesita tu empresa..."></textarea>
                             </div>
 
-                            <!-- Cloudflare Turnstile Placeholder -->
-                            <!-- Aquí se puede integrar Cloudflare Turnstile en producción -->
+                            <!-- reCAPTCHA -->
+                            <div class="col-12">
+                                <?php require __DIR__ . '/../includes/captcha-widget.php'; ?>
+                            </div>
 
                             <!-- Submit Button and Feedback -->
                             <div class="col-12 mt-4">
