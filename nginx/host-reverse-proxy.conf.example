@@ -1,0 +1,26 @@
+# Si el puerto 80 ya lo usa otro servicio en el droplet, NO cambies docker-compose.
+# Copia este archivo al nginx del HOST y proxyea a Docker (8082).
+#
+# Ubuntu/Debian:
+#   sudo cp nginx/host-reverse-proxy.conf.example /etc/nginx/sites-available/am_web_a
+#   sudo ln -sf /etc/nginx/sites-available/am_web_a /etc/nginx/sites-enabled/
+#   sudo nginx -t && sudo systemctl reload nginx
+#
+# Requiere: ufw allow 80/tcp
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name 24.199.95.190;
+
+    client_max_body_size 20M;
+
+    location / {
+        proxy_pass http://127.0.0.1:8082;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
