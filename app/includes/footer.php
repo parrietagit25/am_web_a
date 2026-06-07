@@ -31,6 +31,12 @@ usort($alsoKnow, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b['sort_
 
 $socialNetworks = array_filter($footerData['social'], fn($s) => !empty($s['active']));
 usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b['sort_order'] ?? 99));
+
+$reqPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
+$isPublicSite = strpos($reqPath, '/admin') !== 0;
+$captchaSiteKey = ($isPublicSite && defined('RECAPTCHA_SITE_KEY'))
+    ? trim((string) RECAPTCHA_SITE_KEY)
+    : '';
 ?>
     <!-- Footer Section -->
     <footer class="footer bg-navy text-white pt-5 pb-4 mt-auto">
@@ -115,11 +121,7 @@ usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b[
     </footer>
 
     <?php
-    $reqPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
-    $captchaSiteKey = (strpos($reqPath, '/admin') !== 0 && defined('RECAPTCHA_SITE_KEY'))
-        ? trim((string) RECAPTCHA_SITE_KEY)
-        : '';
-    if (strpos($reqPath, '/admin') !== 0) {
+    if ($isPublicSite) {
         require __DIR__ . '/chatbot-widget.php';
     }
     ?>
@@ -140,9 +142,7 @@ usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b[
     <!-- Bootstrap 5 JavaScript Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <?php
-    if (strpos($reqPath, '/admin') !== 0):
-    ?>
+    <?php if ($isPublicSite): ?>
     <script>window.AM_RECAPTCHA = { siteKey: <?php echo json_encode($captchaSiteKey, JSON_UNESCAPED_UNICODE); ?> };</script>
     <?php if ($captchaSiteKey !== ''): ?>
     <script src="https://www.google.com/recaptcha/api.js?render=<?php echo urlencode($captchaSiteKey); ?>"></script>
@@ -156,7 +156,7 @@ usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b[
     <?php endif; ?>
     <script src="/assets/js/main.js"></script>
     <script src="/assets/js/dropdown-fix.js?v=3"></script>
-    <?php if (strpos($reqPath, '/admin') !== 0): ?>
+    <?php if ($isPublicSite): ?>
     <script>
     window.AM_TELEMETRY = {
         unit: <?php echo json_encode($activeUnit ?? '', JSON_UNESCAPED_UNICODE); ?>,
