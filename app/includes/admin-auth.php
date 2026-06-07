@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../services/AdminUserService.php';
 require_once __DIR__ . '/../services/AdminPermissionRegistry.php';
+require_once __DIR__ . '/../services/AdminAuditService.php';
 
 function admin_require_login(): void
 {
@@ -42,4 +43,17 @@ function admin_deny_post(string &$errorMsg, string $action = ''): void
 {
     $errorMsg = 'No tiene permiso para realizar esta acción.'
         . ($action !== '' ? ' (' . $action . ')' : '');
+    if ($action !== '') {
+        AdminAuditService::logPostAction($action, 'denied', $errorMsg);
+    }
+}
+
+function admin_log_post_result(string $action, string $successMsg, string $errorMsg): void
+{
+    if ($action === '') {
+        return;
+    }
+    $status = $successMsg !== '' ? 'success' : ($errorMsg !== '' ? 'error' : 'unknown');
+    $message = $successMsg !== '' ? $successMsg : $errorMsg;
+    AdminAuditService::logPostAction($action, $status, $message);
 }

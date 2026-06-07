@@ -182,6 +182,7 @@ class AdminUserService
             'landings' => 'landings',
             'footer' => 'footer',
             'users' => 'users',
+            'audit-log' => 'audit_log',
             'hero' => 'hero',
             'news' => 'news',
             'opinions' => 'opinions',

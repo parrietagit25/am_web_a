@@ -17,6 +17,7 @@ class AdminPermissionRegistry
                     'landings' => 'Landing pages',
                     'footer' => 'Pie de página',
                     'users' => 'Gestión de usuarios',
+                    'audit_log' => 'Registro de actividad (auditoría)',
                 ],
             ],
             'rentacar' => [

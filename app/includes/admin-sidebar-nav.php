@@ -18,6 +18,7 @@ function admin_group_visible(string $groupId): bool
 }
 
 $showMainUsers = admin_can('users');
+$showMainAudit = admin_can('audit_log');
 $showMain = admin_group_visible('main');
 $showRentacar = admin_group_visible('rentacar');
 $showSeminuevos = admin_group_visible('seminuevos');
@@ -27,7 +28,7 @@ $showTaller = admin_group_visible('taller');
 $showChatbot = admin_group_visible('chatbot');
 ?>
 <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-    <?php if ($showMain): ?>
+    <?php if ($showMain || $showMainAudit): ?>
         <div class="sidebar-heading px-3 py-2 mt-2 text-uppercase text-white-50 fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Menú Principal</div>
 
         <?php if (admin_can('global')): ?>
@@ -58,6 +59,11 @@ $showChatbot = admin_group_visible('chatbot');
         <?php if ($showMainUsers): ?>
         <button class="nav-link text-start<?php echo admin_nav_active('users', $defaultAdminTab); ?>" id="tab-users-nav" data-bs-toggle="pill" data-bs-target="#tab-users" type="button" role="tab" data-admin-perm="users">
             <i class="bi bi-people-fill me-2"></i> Usuarios
+        </button>
+        <?php endif; ?>
+        <?php if ($showMainAudit): ?>
+        <button class="nav-link text-start<?php echo admin_nav_active('audit-log', $defaultAdminTab); ?>" id="tab-audit-log-nav" data-bs-toggle="pill" data-bs-target="#tab-audit-log" type="button" role="tab" data-admin-perm="audit_log">
+            <i class="bi bi-journal-text me-2"></i> Registro de actividad
         </button>
         <?php endif; ?>
     <?php endif; ?>

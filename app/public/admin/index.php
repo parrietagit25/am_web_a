@@ -6,9 +6,11 @@ require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../services/ContentService.php';
 require_once __DIR__ . '/../../services/Database.php';
 require_once __DIR__ . '/../../services/AdminUserService.php';
+require_once __DIR__ . '/../../services/AdminAuditService.php';
 require_once __DIR__ . '/../../includes/admin-auth.php';
 
 AdminUserService::ensureSchema();
+AdminAuditService::ensureSchema();
 admin_require_login();
 
 $requestedTab = trim($_GET['tab'] ?? '');
@@ -2497,6 +2499,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../../includes/admin-rac-actions.php';
     require __DIR__ . '/../../includes/admin-chatbot-actions.php';
 
+    admin_log_post_result($action, $successMsg, $errorMsg);
+
     } // fin guard permisos POST
 }
 
@@ -2935,6 +2939,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                     <?php require_once __DIR__ . '/../../includes/admin-landings-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-footer-tab.php'; ?>
                     <?php if (admin_can('users')) { require_once __DIR__ . '/../../includes/admin-users-tab.php'; } ?>
+                    <?php if (admin_can('audit_log')) { require_once __DIR__ . '/../../includes/admin-audit-tab.php'; } ?>
                     
                     <!-- TAB 2: HOMEPAGE HERO & FEATURED BANNER -->
                     <div class="tab-pane fade" id="tab-hero" role="tabpanel" aria-labelledby="tab-hero-nav">

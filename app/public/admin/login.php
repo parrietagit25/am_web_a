@@ -4,8 +4,10 @@
  */
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../services/AdminUserService.php';
+require_once __DIR__ . '/../../services/AdminAuditService.php';
 
 AdminUserService::ensureSchema();
+AdminAuditService::ensureSchema();
 
 $error = '';
 
@@ -18,15 +20,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         if (AdminUserService::authenticateLegacy($username, $password)) {
             AdminUserService::loginLegacySuperAdmin();
+            AdminAuditService::logAuthEvent('login_success', 'success', $username, 'Inicio de sesión (cuenta principal)');
             header('Location: /admin/index.php');
             exit;
         }
         $user = AdminUserService::authenticate($username, $password);
         if ($user) {
             AdminUserService::loginSession($user);
+            AdminAuditService::logAuthEvent('login_success', 'success', $username, 'Inicio de sesión correcto');
             header('Location: /admin/index.php');
             exit;
         }
+        AdminAuditService::logAuthEvent('login_failed', 'error', $username, 'Usuario o contraseña incorrectos');
         $error = 'Usuario o contraseña incorrectos.';
     }
 }
