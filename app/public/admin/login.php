@@ -16,14 +16,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($username === '' || $password === '') {
         $error = 'Por favor complete todos los campos.';
     } else {
-        $user = AdminUserService::authenticate($username, $password);
-        if ($user) {
-            AdminUserService::loginSession($user);
+        if (AdminUserService::authenticateLegacy($username, $password)) {
+            AdminUserService::loginLegacySuperAdmin();
             header('Location: /admin/index.php');
             exit;
         }
-        if (AdminUserService::authenticateLegacy($username, $password)) {
-            AdminUserService::loginLegacySuperAdmin();
+        $user = AdminUserService::authenticate($username, $password);
+        if ($user) {
+            AdminUserService::loginSession($user);
             header('Location: /admin/index.php');
             exit;
         }

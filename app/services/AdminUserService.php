@@ -11,6 +11,57 @@ class AdminUserService
     public static function ensureSchema(): void
     {
         AdminUserSchema::ensure();
+        self::bootstrapDefaultSuperAdmin();
+        self::repairSessionIfLegacyAdmin();
+    }
+
+    /** Garantiza que el usuario admin de config.php exista como super administrador. */
+    private static function bootstrapDefaultSuperAdmin(): void
+    {
+        $db = Database::getInstance();
+        $username = ADMIN_USER;
+        $row = $db->selectOne(
+            'SELECT * FROM admin_users WHERE username = :username LIMIT 1',
+            [':username' => $username]
+        );
+
+        $nowExpr = $db->getDriverName() === 'mysql' ? 'NOW()' : "datetime('now')";
+
+        if (!$row) {
+            $db->execute(
+                "INSERT INTO admin_users (username, password_hash, display_name, is_super_admin, permissions_json, is_active, created_at)
+                 VALUES (:username, :password_hash, :display_name, 1, '[]', 1, $nowExpr)",
+                [
+                    ':username' => $username,
+                    ':password_hash' => password_hash(ADMIN_PASS, PASSWORD_DEFAULT),
+                    ':display_name' => 'Administrador',
+                ]
+            );
+            return;
+        }
+
+        if (empty($row['is_super_admin']) || (string)($row['permissions_json'] ?? '[]') !== '[]') {
+            $db->execute(
+                "UPDATE admin_users SET is_super_admin = 1, permissions_json = '[]', is_active = 1, updated_at = $nowExpr
+                 WHERE username = :username",
+                [':username' => $username]
+            );
+        }
+    }
+
+    /** Corrige sesiones del admin principal creadas antes de asignar super admin. */
+    public static function repairSessionIfLegacyAdmin(): void
+    {
+        if (!self::isLoggedIn()) {
+            return;
+        }
+        if (!empty($_SESSION['admin_is_super'])) {
+            return;
+        }
+        $username = (string)($_SESSION['admin_username'] ?? '');
+        if ($username === '' || $username === ADMIN_USER) {
+            self::loginLegacySuperAdmin();
+        }
     }
 
     public static function isLoggedIn(): bool
@@ -189,7 +240,32 @@ class AdminUserService
         if (!password_verify($password, (string)$row['password_hash'])) {
             return null;
         }
-        return self::normalizeUserRow($row);
+
+        $user = self::normalizeUserRow($row);
+        if ($username === ADMIN_USER) {
+            $user = self::ensureLegacyAdminIsSuper($user);
+        }
+        return $user;
+    }
+
+    /** @param array<string, mixed> $user @return array<string, mixed> */
+    private static function ensureLegacyAdminIsSuper(array $user): array
+    {
+        if (!empty($user['is_super_admin']) && ($user['permissions'] ?? []) === []) {
+            return $user;
+        }
+
+        $db = Database::getInstance();
+        $nowExpr = $db->getDriverName() === 'mysql' ? 'NOW()' : "datetime('now')";
+        $db->execute(
+            "UPDATE admin_users SET is_super_admin = 1, permissions_json = '[]', is_active = 1, updated_at = $nowExpr
+             WHERE id = :id",
+            [':id' => intval($user['id'])]
+        );
+
+        $user['is_super_admin'] = true;
+        $user['permissions'] = [];
+        return $user;
     }
 
     public static function authenticateLegacy(string $username, string $password): bool
@@ -260,6 +336,12 @@ class AdminUserService
         }
         if (!preg_match('/^[a-zA-Z0-9._-]{3,40}$/', $username)) {
             return ['ok' => false, 'message' => 'Usuario inválido (3-40 caracteres, letras, números, . _ -).'];
+        }
+
+        if ($username === ADMIN_USER) {
+            $isSuper = true;
+            $permissions = [];
+            $isActive = true;
         }
 
         $db = Database::getInstance();
@@ -355,6 +437,9 @@ class AdminUserService
         $user = self::getUser($id);
         if (!$user) {
             return ['ok' => false, 'message' => 'Usuario no encontrado.'];
+        }
+        if (($user['username'] ?? '') === ADMIN_USER) {
+            return ['ok' => false, 'message' => 'No se puede eliminar la cuenta principal de administración.'];
         }
         if (!self::canManageUser($user)) {
             return ['ok' => false, 'message' => 'No puede eliminar este usuario.'];
