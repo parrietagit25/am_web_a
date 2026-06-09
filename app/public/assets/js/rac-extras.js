@@ -12,6 +12,60 @@
         DELIVERY: 'Servicio de Delivery'
     };
 
+    const DRIVER_FALLBACK_PER_UNIT = 15;
+
+    /** CONDADIC suele venir en mandatoryCharges u optionalCharges, no en availableEquipment. */
+    function findCondadicCharge(vehicle) {
+        const lists = [
+            vehicle.mandatoryCharges || [],
+            vehicle.optionalCharges || [],
+            vehicle.availableEquipment || [],
+        ];
+        for (const list of lists) {
+            const hit = list.find(c => (c.code || '').toUpperCase() === 'CONDADIC');
+            if (hit) return hit;
+        }
+        return null;
+    }
+
+    function calcDriverTotal(charge, drivers, days) {
+        const count = parseInt(drivers, 10) || 0;
+        if (count <= 0) return 0;
+
+        if (!charge) {
+            return DRIVER_FALLBACK_PER_UNIT * count;
+        }
+
+        const amountTotal = parseFloat(charge.amountTotal ?? 0) || 0;
+        if (amountTotal > 0) {
+            // Misma fórmula que ExtrasPage.jsx: total del periodo × cantidad de conductores
+            return (amountTotal / Math.max(days, 1)) * days * count;
+        }
+
+        const perDay = parseFloat(charge.pricePerDay ?? 0) || 0;
+        if (perDay > 0) {
+            return perDay * days * count;
+        }
+
+        return DRIVER_FALLBACK_PER_UNIT * count;
+    }
+
+    function driverPriceLabel(charge, days) {
+        if (!charge) {
+            return `$${DRIVER_FALLBACK_PER_UNIT.toFixed(2)} c/u`;
+        }
+        const amountTotal = parseFloat(charge.amountTotal ?? 0) || 0;
+        if (amountTotal > 0) {
+            const perDriver = (amountTotal / Math.max(days, 1)) * days;
+            return `$${perDriver.toFixed(2)} c/u (${days} día${days !== 1 ? 's' : ''})`;
+        }
+        const perDay = parseFloat(charge.pricePerDay ?? 0) || 0;
+        if (perDay > 0) {
+            return `$${perDay.toFixed(2)}/día · Total $${(perDay * days).toFixed(2)} c/u`;
+        }
+        return `$${DRIVER_FALLBACK_PER_UNIT.toFixed(2)} c/u`;
+    }
+
     function run() {
         const ctx = window.RAC_FLOW.requireVehicle('/rent-a-car.php');
         if (!ctx) return;
@@ -52,13 +106,15 @@
 
         const selectedItems = new Set((saved && saved.items) ? saved.items.map(i => i.code) : []);
         let additionalDrivers = (saved && saved.additionalDrivers) ? parseInt(saved.additionalDrivers, 10) : 0;
+        const driverCharge = findCondadicCharge(vehicle);
 
         renderProtection(packages, selectedProtection, packagesByCode);
-        renderEquipment(equipment, selectedItems, additionalDrivers);
+        renderEquipment(equipment, selectedItems, additionalDrivers, driverCharge, days);
 
         const state = {
             rentalBase, saf, days, packagesByCode,
-            selectedProtection, selectedItems, additionalDrivers, equipment
+            selectedProtection, selectedItems, additionalDrivers, equipment,
+            driverCharge
         };
 
         function recalc() {
@@ -68,22 +124,21 @@
                 coverageAmt = parseFloat(pkg.pricePerDay) * state.days;
             }
 
-            let extrasAmt = 0;
+            const driverAmt = calcDriverTotal(state.driverCharge, state.additionalDrivers, state.days);
+
+            let equipAmt = 0;
             state.equipment.forEach(eq => {
-                const code = eq.code || '';
-                if (code === 'CONDADIC') {
-                    extrasAmt += (parseFloat(eq.amountTotal ?? eq.pricePerDay ?? 15) || 15) * state.additionalDrivers;
-                    return;
-                }
-                if (state.selectedItems.has(code)) {
-                    if (eq.unitName === 'day' || eq.pricePerDay) {
-                        extrasAmt += (parseFloat(eq.pricePerDay ?? 0) || 0) * state.days;
-                    } else {
-                        extrasAmt += parseFloat(eq.amountTotal ?? 0) || 0;
-                    }
+                const code = (eq.code || '').toUpperCase();
+                if (code === 'CONDADIC') return;
+                if (!state.selectedItems.has(eq.code)) return;
+                if (eq.unitName === 'day' || eq.pricePerDay) {
+                    equipAmt += (parseFloat(eq.pricePerDay ?? 0) || 0) * state.days;
+                } else {
+                    equipAmt += parseFloat(eq.amountTotal ?? 0) || 0;
                 }
             });
 
+            const extrasAmt = equipAmt + driverAmt;
             const subtotal = state.rentalBase + state.saf + coverageAmt + extrasAmt;
             const itbms = Math.round(subtotal * 0.07 * 100) / 100;
             const total = Math.round((subtotal + itbms) * 100) / 100;
@@ -91,14 +146,40 @@
             document.getElementById('sumBase').textContent = window.RAC_FLOW.fmtMoney(state.rentalBase);
             document.getElementById('sumSaf').textContent = window.RAC_FLOW.fmtMoney(state.saf);
             document.getElementById('sumCoverage').textContent = window.RAC_FLOW.fmtMoney(coverageAmt);
-            document.getElementById('sumExtras').textContent = window.RAC_FLOW.fmtMoney(extrasAmt);
+            const extrasRow = document.getElementById('sumExtrasRow');
+            if (extrasRow) {
+                extrasRow.classList.toggle('d-none', equipAmt <= 0);
+            }
+            document.getElementById('sumExtras').textContent = window.RAC_FLOW.fmtMoney(equipAmt);
             document.getElementById('sumItbms').textContent = window.RAC_FLOW.fmtMoney(itbms);
             document.getElementById('sumTotal').textContent = window.RAC_FLOW.fmtMoney(total);
 
             const covName = pkg.name || pkg.description || state.selectedProtection;
             document.getElementById('sumCoverageLabel').textContent = covName;
 
-            state.totals = { base: state.rentalBase, saf: state.saf, coverage: coverageAmt, extras: extrasAmt, itbms, total };
+            const driverRow = document.getElementById('sumDriverRow');
+            const driverVal = document.getElementById('sumDriver');
+            if (driverRow && driverVal) {
+                if (state.additionalDrivers > 0 && driverAmt > 0) {
+                    driverRow.classList.remove('d-none');
+                    driverVal.textContent = window.RAC_FLOW.fmtMoney(driverAmt);
+                    document.getElementById('sumDriverLabel').textContent =
+                        `Conductor adicional (×${state.additionalDrivers})`;
+                } else {
+                    driverRow.classList.add('d-none');
+                }
+            }
+
+            state.totals = {
+                base: state.rentalBase,
+                saf: state.saf,
+                coverage: coverageAmt,
+                equipment: equipAmt,
+                drivers: driverAmt,
+                extras: extrasAmt,
+                itbms,
+                total
+            };
             state.coverageName = covName;
             state.coverageDeductible = pkg.deductible != null ? parseFloat(pkg.deductible) : null;
         }
@@ -133,6 +214,13 @@
                 const eq = state.equipment.find(x => x.code === code);
                 if (eq) items.push({ code: eq.code, description: eq.description || eq.code });
             });
+            if (state.additionalDrivers > 0) {
+                items.push({
+                    code: 'CONDADIC',
+                    description: 'Conductor Adicional',
+                    quantity: state.additionalDrivers
+                });
+            }
 
             const extrasSelection = {
                 protection: state.selectedProtection,
@@ -218,27 +306,22 @@
         }).join('');
     }
 
-    function renderEquipment(equipment, selectedItems, additionalDrivers) {
+    function renderEquipment(equipment, selectedItems, additionalDrivers, driverCharge, days) {
         const wrap = document.getElementById('equipmentOptions');
         if (!wrap) return;
 
-        const driverEq = equipment.find(e => (e.code || '').toUpperCase() === 'CONDADIC');
         const others = equipment.filter(e => (e.code || '').toUpperCase() !== 'CONDADIC');
 
-        let html = '';
-        if (driverEq || true) {
-            const price = driverEq ? (parseFloat(driverEq.amountTotal ?? driverEq.pricePerDay ?? 15)) : 15;
-            html += `
+        let html = `
             <div class="border rounded-3 p-3 d-flex align-items-center justify-content-between">
                 <div><i class="bi bi-person-plus text-danger me-2"></i><strong>Conductor Adicional</strong>
-                    <small class="text-muted d-block">$${price.toFixed(2)} c/u</small></div>
+                    <small class="text-muted d-block">${driverPriceLabel(driverCharge, days)}</small></div>
                 <div class="d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle" data-driver-delta="-1">−</button>
                     <span id="driverCount" class="fw-bold px-2">${additionalDrivers}</span>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle" data-driver-delta="1">+</button>
                 </div>
             </div>`;
-        }
 
         others.forEach(eq => {
             const code = eq.code || '';
