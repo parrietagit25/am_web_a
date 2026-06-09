@@ -57,3 +57,104 @@ function admin_log_post_result(string $action, string $successMsg, string $error
     $message = $successMsg !== '' ? $successMsg : $errorMsg;
     AdminAuditService::logPostAction($action, $status, $message);
 }
+
+function admin_flash_set(string $successMsg, string $errorMsg): void
+{
+    $_SESSION['admin_flash'] = [
+        'success' => $successMsg,
+        'error' => $errorMsg,
+    ];
+}
+
+/** @return array{success: string, error: string} */
+function admin_flash_consume(): array
+{
+    $flash = $_SESSION['admin_flash'] ?? ['success' => '', 'error' => ''];
+    unset($_SESSION['admin_flash']);
+    return [
+        'success' => (string) ($flash['success'] ?? ''),
+        'error' => (string) ($flash['error'] ?? ''),
+    ];
+}
+
+function admin_sanitize_tab_slug(string $tab): ?string
+{
+    $tab = trim($tab);
+    if ($tab === '' || !AdminUserService::canTab($tab)) {
+        return null;
+    }
+    return $tab;
+}
+
+function admin_tab_slug_for_permission(string $permission): ?string
+{
+    foreach (AdminUserService::tabSlugOrder() as $slug => $perm) {
+        if ($perm === $permission) {
+            return $slug;
+        }
+    }
+    return null;
+}
+
+function admin_tab_slug_for_action(string $action): ?string
+{
+    $action = trim($action);
+    if ($action === '') {
+        return null;
+    }
+    $permission = AdminPermissionRegistry::permissionForAction($action);
+    if ($permission === null) {
+        return null;
+    }
+    return admin_tab_slug_for_permission($permission);
+}
+
+function admin_resolve_redirect_tab(string $action): string
+{
+    $postTab = admin_sanitize_tab_slug(trim($_POST['admin_tab'] ?? ''));
+    if ($postTab !== null) {
+        return $postTab;
+    }
+
+    $getTab = admin_sanitize_tab_slug(trim($_GET['tab'] ?? ''));
+    if ($getTab !== null) {
+        return $getTab;
+    }
+
+    $actionTab = admin_tab_slug_for_action($action);
+    if ($actionTab !== null) {
+        $sanitized = admin_sanitize_tab_slug($actionTab);
+        if ($sanitized !== null) {
+            return $sanitized;
+        }
+    }
+
+    $sessionTab = admin_sanitize_tab_slug(trim($_SESSION['admin_last_tab'] ?? ''));
+    if ($sessionTab !== null) {
+        return $sessionTab;
+    }
+
+    return AdminUserService::firstAllowedTabSlug();
+}
+
+function admin_redirect_after_post(string $action, string $successMsg, string $errorMsg): void
+{
+    if ($action === '' && $successMsg === '' && $errorMsg === '') {
+        return;
+    }
+
+    admin_flash_set($successMsg, $errorMsg);
+
+    $tab = admin_resolve_redirect_tab($action);
+    $_SESSION['admin_last_tab'] = $tab;
+
+    $query = ['tab' => $tab];
+    foreach (['q', 'p'] as $key) {
+        if (isset($_GET[$key]) && trim((string) $_GET[$key]) !== '') {
+            $query[$key] = $_GET[$key];
+        }
+    }
+
+    header('Location: /admin/index.php?' . http_build_query($query), true, 303);
+    exit;
+}

@@ -17,6 +17,7 @@ $requestedTab = trim($_GET['tab'] ?? '');
 $defaultAdminTab = AdminUserService::firstAllowedTabSlug();
 if ($requestedTab !== '' && AdminUserService::canTab($requestedTab)) {
     $defaultAdminTab = $requestedTab;
+    $_SESSION['admin_last_tab'] = $requestedTab;
 }
 
 $contentService = new ContentService();
@@ -24,6 +25,12 @@ $siteData = $contentService->getAll();
 
 $successMsg = '';
 $errorMsg = '';
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $flash = admin_flash_consume();
+    $successMsg = $flash['success'];
+    $errorMsg = $flash['error'];
+}
 
 // Handle CRUD operations
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -2502,6 +2509,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     admin_log_post_result($action, $successMsg, $errorMsg);
 
     } // fin guard permisos POST
+
+    admin_redirect_after_post($action, $successMsg, $errorMsg);
 }
 
 // Reload site data for rendering
@@ -6757,6 +6766,54 @@ document.addEventListener('DOMContentLoaded', function () {
     const allowedPerms = <?php echo json_encode(AdminUserService::permissions(), JSON_UNESCAPED_UNICODE); ?>;
     const isSuperAdmin = <?php echo AdminUserService::isSuperAdmin() ? 'true' : 'false'; ?>;
     const defaultTab = <?php echo json_encode($defaultAdminTab, JSON_UNESCAPED_UNICODE); ?>;
+
+    function getActiveAdminTabSlug() {
+        const active = document.querySelector('.admin-sidebar .nav-link.active[data-bs-target]');
+        if (!active) {
+            return defaultTab;
+        }
+        const target = active.getAttribute('data-bs-target') || '';
+        if (!target.startsWith('#tab-')) {
+            return defaultTab;
+        }
+        return target.slice(5);
+    }
+
+    function syncAdminTabUrl(slug) {
+        if (!slug) {
+            return;
+        }
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', slug);
+        if (slug !== 'semi-inventory') {
+            url.searchParams.delete('q');
+            url.searchParams.delete('p');
+        }
+        history.replaceState(null, '', url.pathname + url.search);
+    }
+
+    document.querySelectorAll('form[method="POST"]').forEach(function (form) {
+        form.addEventListener('submit', function () {
+            const tab = getActiveAdminTabSlug();
+            let input = form.querySelector('input[name="admin_tab"]');
+            if (!input) {
+                input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'admin_tab';
+                form.appendChild(input);
+            }
+            input.value = tab;
+        });
+    });
+
+    document.querySelectorAll('.admin-sidebar .nav-link[data-bs-target]').forEach(function (btn) {
+        btn.addEventListener('shown.bs.tab', function () {
+            const target = btn.getAttribute('data-bs-target') || '';
+            if (target.startsWith('#tab-')) {
+                syncAdminTabUrl(target.slice(5));
+            }
+        });
+    });
 
     function adminCanPerm(perm) {
         return isSuperAdmin || allowedPerms.indexOf(perm) !== -1;
