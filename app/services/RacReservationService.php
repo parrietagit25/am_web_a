@@ -68,6 +68,11 @@ class RacReservationService {
         $vehicleSnap = $data['vehicle_snapshot'] ?? [];
         $coverageCode = trim($data['coverage_code'] ?? '');
         $coverageResolved = self::resolveCoverageFromSnapshot($coverageCode, $vehicleSnap);
+        $barsCode = trim($data['bars_confirmation_code'] ?? '');
+        $status = trim($data['status'] ?? 'pending');
+        if (!in_array($status, ['pending', 'confirmed', 'cancelled'], true)) {
+            $status = 'pending';
+        }
 
         $sql = "INSERT INTO rac_reservations (
             reservation_code, status, customer_name, customer_email, customer_phone, customer_comments,
@@ -77,7 +82,8 @@ class RacReservationService {
             price_web, price_counter, price_total, price_total_estimated,
             coverage_code, coverage_name, coverage_amount, coverage_deductible,
             price_rental_base, price_saf, price_itbms,
-            equipment_json, vehicle_snapshot_json, search_snapshot_json
+            equipment_json, vehicle_snapshot_json, search_snapshot_json,
+            bars_confirmation_code, extras_snapshot_json
         ) VALUES (
             :reservation_code, :status, :customer_name, :customer_email, :customer_phone, :customer_comments,
             :location_code, :return_location_code, :pickup_date, :pickup_time, :return_date, :return_time,
@@ -86,12 +92,13 @@ class RacReservationService {
             :price_web, :price_counter, :price_total, :price_total_estimated,
             :coverage_code, :coverage_name, :coverage_amount, :coverage_deductible,
             :price_rental_base, :price_saf, :price_itbms,
-            :equipment_json, :vehicle_snapshot_json, :search_snapshot_json
+            :equipment_json, :vehicle_snapshot_json, :search_snapshot_json,
+            :bars_confirmation_code, :extras_snapshot_json
         )";
 
         $db->execute($sql, [
             ':reservation_code' => $code,
-            ':status' => 'pending',
+            ':status' => $status,
             ':customer_name' => trim($data['customer_name'] ?? ''),
             ':customer_email' => trim($data['customer_email'] ?? ''),
             ':customer_phone' => trim($data['customer_phone'] ?? ''),
@@ -124,10 +131,36 @@ class RacReservationService {
             ':equipment_json' => json_encode($data['equipment'] ?? [], JSON_UNESCAPED_UNICODE),
             ':vehicle_snapshot_json' => json_encode($data['vehicle_snapshot'] ?? [], JSON_UNESCAPED_UNICODE),
             ':search_snapshot_json' => json_encode($data['search_snapshot'] ?? [], JSON_UNESCAPED_UNICODE),
+            ':bars_confirmation_code' => $barsCode !== '' ? $barsCode : null,
+            ':extras_snapshot_json' => json_encode($data['extras_snapshot'] ?? [], JSON_UNESCAPED_UNICODE),
         ]);
 
         $id = (int) $db->lastInsertId();
-        return $this->findById($id) ?: ['id' => $id, 'reservation_code' => $code];
+        $row = $this->findById($id) ?: ['id' => $id, 'reservation_code' => $code];
+        if ($barsCode !== '') {
+            $row['bars_confirmation_code'] = $barsCode;
+        }
+        return $row;
+    }
+
+    public function findByBarsCode(string $code): ?array {
+        $code = strtoupper(trim($code));
+        if ($code === '') {
+            return null;
+        }
+        $db = Database::getInstance();
+        return $db->selectOne(
+            'SELECT * FROM rac_reservations WHERE bars_confirmation_code = :code OR reservation_code = :code2',
+            [':code' => $code, ':code2' => $code]
+        ) ?: null;
+    }
+
+    public static function displayConfirmationCode(array $row): string {
+        $bars = strtoupper(trim($row['bars_confirmation_code'] ?? ''));
+        if ($bars !== '' && $bars !== 'PENDING') {
+            return $bars;
+        }
+        return $row['reservation_code'] ?? '';
     }
 
     public function findById(int $id): ?array {

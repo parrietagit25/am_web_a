@@ -131,6 +131,8 @@ class RacDatabaseSchema {
                 'price_rental_base' => 'DECIMAL(12,2) NULL',
                 'price_saf' => 'DECIMAL(12,2) NULL',
                 'price_itbms' => 'DECIMAL(12,2) NULL',
+                'bars_confirmation_code' => 'VARCHAR(64) NULL',
+                'extras_snapshot_json' => 'LONGTEXT NULL',
             ]
             : [
                 'coverage_name' => 'TEXT',
@@ -139,6 +141,8 @@ class RacDatabaseSchema {
                 'price_rental_base' => 'REAL',
                 'price_saf' => 'REAL',
                 'price_itbms' => 'REAL',
+                'bars_confirmation_code' => 'TEXT',
+                'extras_snapshot_json' => 'TEXT',
             ];
 
         foreach ($columns as $name => $type) {

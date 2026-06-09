@@ -24,6 +24,7 @@ return [
             ],
             ['label' => 'SUCURSALES', 'link' => '/taller-sucursales.php'],
             ['label' => 'PAGA TU RESERVA', 'link' => '/pago-seguro.php'],
+            ['label' => 'MI RESERVA', 'link' => '/mi-reserva.php'],
             ['label' => 'CONTACTOS', 'link' => '/contactos.php'],
         ],
         'activeClass' => 'active-rentacar',

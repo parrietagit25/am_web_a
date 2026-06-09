@@ -102,6 +102,45 @@
         </div>`;
     }
 
+    function renderSidebar(criteria, days) {
+        const box = document.getElementById('sidebarSummary');
+        if (!box) return;
+        const fn = window.RAC_FLOW || {};
+        const fmtD = fn.formatDateDisplay || (d => d);
+        const fmtT = fn.formatTimeDisplay || (t => t);
+        const br = fn.branchLabel || branchLabel;
+        box.innerHTML = `
+            <div class="small mb-3"><span class="text-danger fw-semibold text-uppercase">Recogida</span><br>
+                ${br(criteria.locationCode)}<br>
+                <span class="text-muted">${fmtD(criteria.pickupDate)} ${fmtT(criteria.pickupTime)}</span></div>
+            <div class="small mb-3"><span class="text-danger fw-semibold text-uppercase">Devolución</span><br>
+                ${br(criteria.returnLocationCode || criteria.locationCode)}<br>
+                <span class="text-muted">${fmtD(criteria.returnDate)} ${fmtT(criteria.returnTime)}</span></div>
+            <div class="bg-navy text-white rounded-3 px-3 py-2 d-flex justify-content-between small mb-2">
+                <span>Días de renta</span><strong>${days}</strong></div>
+            <div class="small text-muted">Edad conductor: ${criteria.age === '23' ? '23-24' : '+25'} años</div>`;
+    }
+
+    function renderCategoryFilters(vehicles) {
+        const wrap = document.getElementById('categoryFilters');
+        if (!wrap) return;
+        const counts = {};
+        vehicles.forEach(v => {
+            const c = (v.category || 'General').toLowerCase();
+            counts[c] = (counts[c] || 0) + 1;
+        });
+        let html = `<button class="btn btn-outline-dark rounded-pill px-4 filter-category-btn active" data-category="all">Todos (${vehicles.length})</button>`;
+        Object.keys(counts).sort().forEach(cat => {
+            const slug = cat.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            html += `<button class="btn btn-outline-dark rounded-pill px-4 filter-category-btn" data-category="${slug}">${cat.charAt(0).toUpperCase() + cat.slice(1)} (${counts[cat]})</button>`;
+        });
+        wrap.innerHTML = html;
+    }
+
+    function normalizeCategory(str) {
+        return (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
     function bindSelectButtons(vehicles) {
         document.querySelectorAll('.rac-select-btn').forEach(btn => {
             const idx = parseInt(btn.getAttribute('data-vehicle-index'), 10);
@@ -112,7 +151,8 @@
                 const enriched = Object.assign({}, vehicle, { _selectedRateType: rate });
                 sessionStorage.setItem('selectedVehicle', JSON.stringify(enriched));
                 sessionStorage.setItem('selectedRateType', rate);
-                window.location.href = '/reservar.php';
+                sessionStorage.removeItem('extrasSelection');
+                window.location.href = '/extras.php';
             });
         });
     }
@@ -228,6 +268,13 @@
         grid.innerHTML = html;
         bindSelectButtons(vehicles);
 
+        try {
+            sessionStorage.setItem('searchResultsVehicles', JSON.stringify(vehicles));
+        } catch (e) { /* ignore */ }
+
+        renderSidebar(criteria, days);
+        renderCategoryFilters(vehicles);
+
         document.querySelectorAll('.filter-category-btn').forEach(btn => {
             btn.addEventListener('click', e => {
                 e.preventDefault();
@@ -235,8 +282,8 @@
                 btn.classList.add('active');
                 const cat = btn.getAttribute('data-category');
                 document.querySelectorAll('.rac-vehicle-col').forEach(col => {
-                    const c = col.getAttribute('data-category') || '';
-                    const show = cat === 'all' || c.includes(cat);
+                    const c = normalizeCategory(col.getAttribute('data-category') || '');
+                    const show = cat === 'all' || c.includes(cat) || cat.includes(c);
                     col.classList.toggle('d-none', !show);
                     col.classList.toggle('d-flex', show);
                 });

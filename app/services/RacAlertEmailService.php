@@ -4,6 +4,8 @@
  */
 
 require_once __DIR__ . '/RacDatabaseSchema.php';
+require_once __DIR__ . '/RacReservationService.php';
+require_once __DIR__ . '/BranchDataService.php';
 require_once __DIR__ . '/ResendService.php';
 
 class RacAlertEmailService {
@@ -73,8 +75,9 @@ class RacAlertEmailService {
         }
 
         $code = $reservation['reservation_code'] ?? '';
-        $subject = 'Nueva reserva RAC — ' . $code;
-        $html = $this->buildEmailHtml($reservation);
+        $displayCode = RacReservationService::displayConfirmationCode($reservation);
+        $subject = 'Nueva reserva RAC — ' . $displayCode;
+        $html = $this->buildEmailHtml($reservation, true);
 
         $resend = new ResendService();
         $result = $resend->sendEmail($recipients, $subject, $html);
@@ -88,7 +91,32 @@ class RacAlertEmailService {
         return ['sent' => false, 'recipients' => count($recipients), 'error' => $err];
     }
 
-    private function buildEmailHtml(array $r): string {
+    /**
+     * @return array{sent: bool, error: ?string}
+     */
+    public function notifyCustomer(array $reservation): array {
+        $email = filter_var($reservation['customer_email'] ?? '', FILTER_VALIDATE_EMAIL);
+        if (!$email) {
+            return ['sent' => false, 'error' => 'Correo del cliente no válido'];
+        }
+
+        $displayCode = RacReservationService::displayConfirmationCode($reservation);
+        $subject = 'Confirmación de reserva Automarket — ' . $displayCode;
+        $html = $this->buildEmailHtml($reservation, false);
+
+        $resend = new ResendService();
+        $result = $resend->sendEmail([$email], $subject, $html);
+
+        if (($result['status'] ?? '') === 'success') {
+            return ['sent' => true, 'error' => null];
+        }
+
+        $err = $result['message'] ?? 'Error al enviar correo';
+        am_log('RAC customer email failed: ' . $err, 'ERROR');
+        return ['sent' => false, 'error' => $err];
+    }
+
+    private function buildEmailHtml(array $r, bool $isAdmin): string {
         $esc = function ($v) {
             return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
         };
@@ -96,26 +124,42 @@ class RacAlertEmailService {
         $returnBranch = BranchDataService::findByCode($r['return_location_code'] ?? '');
         $pickupName = $pickupBranch['name'] ?? ($r['location_code'] ?? '');
         $returnName = $returnBranch['name'] ?? ($r['return_location_code'] ?? '');
+        $displayCode = RacReservationService::displayConfirmationCode($r);
+        $barsCode = trim($r['bars_confirmation_code'] ?? '');
+        $pendingNote = ($barsCode === 'PENDING' || $barsCode === '')
+            ? '<p style="color:#856404;background:#fff3cd;padding:10px;border-radius:6px;font-size:13px;">Su número de confirmación definitivo puede tardar unos minutos. Guarde este comprobante.</p>'
+            : '';
+
+        $intro = $isAdmin
+            ? "<h2 style='color: #c51f17;'>Nueva reserva Rent A Car</h2>"
+            : "<h2 style='color: #c51f17;'>¡Reserva confirmada!</h2>
+               <p>Gracias por reservar con Automarket Rent A Car. Detalles de su alquiler:</p>
+               {$pendingNote}";
+
+        $adminFooter = $isAdmin
+            ? "<hr><p style='font-size: 12px; color: #666;'>Revise el panel administrativo para gestionar esta reserva.</p>"
+            : "<hr><p style='font-size: 12px; color: #666;'>Presente su número de confirmación, licencia válida y tarjeta de crédito a nombre del conductor al retirar el vehículo.</p>
+               <p style='font-size: 12px; color: #666;'>Consulte su reserva en: <a href='https://automarket.com.pa/mi-reserva.php'>Mi Reserva</a></p>";
 
         return "
         <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-            <h2 style='color: #c51f17;'>Nueva reserva Rent A Car</h2>
-            <p><strong>Código:</strong> {$esc($r['reservation_code'] ?? '')}</p>
+            {$intro}
+            <p><strong>Número de confirmación:</strong> {$esc($displayCode)}</p>
+            <p><strong>Referencia interna:</strong> {$esc($r['reservation_code'] ?? '')}</p>
             <p><strong>Cliente:</strong> {$esc($r['customer_name'] ?? '')}<br>
                <strong>Email:</strong> {$esc($r['customer_email'] ?? '')}<br>
                <strong>Teléfono:</strong> {$esc($r['customer_phone'] ?? '')}</p>
             <p><strong>Vehículo:</strong> {$esc($r['vehicle_name'] ?? '')} ({$esc($r['sipp_code'] ?? '')})</p>
             <p><strong>Retiro:</strong> {$esc($pickupName)} — {$esc($r['pickup_date'] ?? '')} {$esc($r['pickup_time'] ?? '')}<br>
                <strong>Devolución:</strong> {$esc($returnName)} — {$esc($r['return_date'] ?? '')} {$esc($r['return_time'] ?? '')}</p>
-            <p><strong>Póliza:</strong> {$esc($r['coverage_name'] ?? $r['coverage_code'] ?? '—')}<br>
+            <p><strong>Protección:</strong> {$esc($r['coverage_name'] ?? $r['coverage_code'] ?? '—')}<br>
                <strong>Monto protección:</strong> \$" . number_format((float) ($r['coverage_amount'] ?? 0), 2) . " USD</p>
             <p><strong>Desglose:</strong> Base \$" . number_format((float) ($r['price_rental_base'] ?? 0), 2) .
                " + SAF \$" . number_format((float) ($r['price_saf'] ?? 0), 2) .
                " + ITBMS \$" . number_format((float) ($r['price_itbms'] ?? 0), 2) .
                " = <strong>Total \$" . number_format((float) ($r['price_total_estimated'] ?? 0), 2) . " USD</strong></p>
-            <p><strong>Comentarios:</strong><br>" . nl2br($esc($r['customer_comments'] ?? '—')) . "</p>
-            <hr>
-            <p style='font-size: 12px; color: #666;'>Revise el panel administrativo para gestionar esta reserva.</p>
+            <p><strong>Notas:</strong><br>" . nl2br($esc($r['customer_comments'] ?? '—')) . "</p>
+            {$adminFooter}
         </div>";
     }
 }
