@@ -137,7 +137,7 @@ require_once __DIR__ . '/../includes/rac-stepper.php';
     </div>
 </section>
 
-<script src="/assets/js/rac-flow.js?v=1"></script>
+<script src="/assets/js/rac-flow.js?v=2"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = window.RAC_FLOW.requireVehicle('/rent-a-car.php');
@@ -155,6 +155,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const { vehicle, criteria } = ctx;
     const days = window.RAC_FLOW.calcDays(criteria.pickupDate, criteria.returnDate);
     const totals = extras.totals || {};
+    const mandatoryLines = (extras.mandatoryCharges || []).map(function (c) {
+        return '<div class="d-flex justify-content-between"><span>' + c.label + '</span><span>' +
+            window.RAC_FLOW.fmtMoney(c.amount) + '</span></div>';
+    }).join('');
     const img = window.RAC_FLOW.resolveImage(vehicle.image);
 
     document.getElementById('reserveSidebar').innerHTML = `
@@ -170,9 +174,12 @@ document.addEventListener('DOMContentLoaded', function() {
             ${window.RAC_FLOW.formatDateDisplay(criteria.returnDate)} ${window.RAC_FLOW.formatTimeDisplay(criteria.returnTime)}</div>
         <span class="badge bg-warning text-dark mb-3">${days} días</span>
         <div class="small d-flex flex-column gap-2">
-            <div class="d-flex justify-content-between"><span>${vehicle.name}</span><span>${window.RAC_FLOW.fmtMoney(totals.base)}</span></div>
+            <div class="d-flex justify-content-between"><span>Tarifa base</span><span>${window.RAC_FLOW.fmtMoney(totals.base)}</span></div>
+            ${totals.saf > 0 ? `<div class="d-flex justify-content-between"><span>SAF</span><span>${window.RAC_FLOW.fmtMoney(totals.saf)}</span></div>` : ''}
+            ${mandatoryLines}
             <div class="d-flex justify-content-between"><span>${extras.coverage_name || extras.protection || 'Protección'}</span><span>${window.RAC_FLOW.fmtMoney(totals.coverage)}</span></div>
-            ${totals.extras > 0 ? `<div class="d-flex justify-content-between"><span>Extras</span><span>${window.RAC_FLOW.fmtMoney(totals.extras)}</span></div>` : ''}
+            ${totals.drivers > 0 ? `<div class="d-flex justify-content-between"><span>Conductor adicional</span><span>${window.RAC_FLOW.fmtMoney(totals.drivers)}</span></div>` : ''}
+            ${totals.equipment > 0 ? `<div class="d-flex justify-content-between"><span>Otros extras</span><span>${window.RAC_FLOW.fmtMoney(totals.equipment)}</span></div>` : ''}
             <div class="d-flex justify-content-between"><span>ITBMS (7%)</span><span>${window.RAC_FLOW.fmtMoney(totals.itbms)}</span></div>
         </div>
         <hr>

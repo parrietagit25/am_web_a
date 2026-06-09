@@ -57,9 +57,13 @@
         return b ? b.name : code;
     }
 
-    function renderCard(vehicle, days, vehicleIndex) {
+    function renderCard(vehicle, days, vehicleIndex, criteria) {
         const isFallback = vehicle._isFallback === true;
-        const webTotal = vehicle.priceTotal != null ? vehicle.priceTotal : (vehicle.priceWeb || 0) * days;
+        const rateBase = vehicle.priceTotal != null ? vehicle.priceTotal : (vehicle.priceWeb || 0) * days;
+        let webTotal = rateBase;
+        if (window.RAC_FLOW && criteria && !isFallback) {
+            webTotal = window.RAC_FLOW.rentalSubtotalBeforeCoverage(vehicle, criteria, days);
+        }
         const counterTotal = vehicle.priceCounter != null ? (vehicle.priceCounter * days) : webTotal * 1.07;
 
         const img = vehicle.image
@@ -264,7 +268,7 @@
             statusBox.classList.add('d-none');
         }
 
-        vehicles.forEach((v, i) => { html += renderCard(v, days, i); });
+        vehicles.forEach((v, i) => { html += renderCard(v, days, i, criteria); });
         grid.innerHTML = html;
         bindSelectButtons(vehicles);
 

@@ -82,7 +82,8 @@
 
         const pricing = vehicle.pricing || {};
         const rentalBase = parseFloat(pricing.rateBase ?? vehicle.priceTotal ?? vehicle.priceWeb ?? 0) || 0;
-        const saf = parseFloat(pricing.saf ?? 0) || 0;
+        const saf = window.RAC_FLOW.resolveSafAmount(vehicle);
+        const mandatoryCharges = window.RAC_FLOW.getBillableMandatoryCharges(vehicle, criteria);
         const packages = pricing.coveragePackages || vehicle.availableCoverages || [];
         const equipment = (vehicle.availableEquipment || []).filter(e => {
             const c = (e.code || '').toUpperCase();
@@ -112,10 +113,23 @@
         renderEquipment(equipment, selectedItems, additionalDrivers, driverCharge, days);
 
         const state = {
-            rentalBase, saf, days, packagesByCode,
+            rentalBase, saf, mandatoryCharges, days, packagesByCode,
             selectedProtection, selectedItems, additionalDrivers, equipment,
             driverCharge
         };
+
+        function renderMandatoryRows(charges) {
+            const wrap = document.getElementById('sumMandatoryRows');
+            if (!wrap) return;
+            if (!charges.length) {
+                wrap.innerHTML = '';
+                return;
+            }
+            wrap.innerHTML = charges.map(function (c) {
+                return '<div class="d-flex justify-content-between"><span class="text-muted">' +
+                    c.label + '</span><span>' + window.RAC_FLOW.fmtMoney(c.amount) + '</span></div>';
+            }).join('');
+        }
 
         function recalc() {
             const pkg = state.packagesByCode[state.selectedProtection] || {};
@@ -139,10 +153,14 @@
             });
 
             const extrasAmt = equipAmt + driverAmt;
-            const subtotal = state.rentalBase + state.saf + coverageAmt + extrasAmt;
+            const mandatoryAmt = state.mandatoryCharges.reduce(function (s, c) {
+                return s + c.amount;
+            }, 0);
+            const subtotal = state.rentalBase + state.saf + mandatoryAmt + coverageAmt + extrasAmt;
             const itbms = Math.round(subtotal * 0.07 * 100) / 100;
             const total = Math.round((subtotal + itbms) * 100) / 100;
 
+            renderMandatoryRows(state.mandatoryCharges);
             document.getElementById('sumBase').textContent = window.RAC_FLOW.fmtMoney(state.rentalBase);
             document.getElementById('sumSaf').textContent = window.RAC_FLOW.fmtMoney(state.saf);
             document.getElementById('sumCoverage').textContent = window.RAC_FLOW.fmtMoney(coverageAmt);
@@ -173,6 +191,7 @@
             state.totals = {
                 base: state.rentalBase,
                 saf: state.saf,
+                mandatory: mandatoryAmt,
                 coverage: coverageAmt,
                 equipment: equipAmt,
                 drivers: driverAmt,
@@ -226,6 +245,7 @@
                 protection: state.selectedProtection,
                 items,
                 additionalDrivers: state.additionalDrivers,
+                mandatoryCharges: state.mandatoryCharges,
                 totals: state.totals,
                 pricingSnapshot: vehicle.pricing || {},
                 coverage_name: state.coverageName,
@@ -244,7 +264,7 @@
         const el = document.getElementById('extrasVehicleHeader');
         if (!el) return;
         const img = window.RAC_FLOW.resolveImage(vehicle.image);
-        const webTotal = vehicle.priceTotal != null ? vehicle.priceTotal : (vehicle.priceWeb || 0) * days;
+        const webTotal = window.RAC_FLOW.rentalSubtotalBeforeCoverage(vehicle, criteria, days);
         el.innerHTML = `
             <div class="d-flex flex-wrap align-items-center gap-3">
                 ${img ? `<img src="${img}" alt="" style="max-height:70px;object-fit:contain">` : ''}

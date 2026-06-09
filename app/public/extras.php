@@ -49,6 +49,7 @@ require_once __DIR__ . '/../includes/rac-stepper.php';
                 <div class="d-flex flex-column gap-2 small font-poppins mb-3">
                     <div class="d-flex justify-content-between"><span class="text-muted">Tarifa base</span><span id="sumBase">$0.00</span></div>
                     <div class="d-flex justify-content-between"><span class="text-muted">SAF</span><span id="sumSaf">$0.00</span></div>
+                    <div id="sumMandatoryRows" class="d-flex flex-column gap-2"></div>
                     <div class="d-flex justify-content-between"><span class="text-muted" id="sumCoverageLabel">Protección</span><span id="sumCoverage">$0.00</span></div>
                     <div class="d-flex justify-content-between d-none" id="sumDriverRow">
                         <span class="text-muted" id="sumDriverLabel">Conductor adicional</span><span id="sumDriver">$0.00</span>
@@ -71,8 +72,8 @@ require_once __DIR__ . '/../includes/rac-stepper.php';
     </div>
 </section>
 
-<script src="/assets/js/rac-flow.js?v=1"></script>
-<script src="/assets/js/rac-extras.js?v=3"></script>
+<script src="/assets/js/rac-flow.js?v=2"></script>
+<script src="/assets/js/rac-extras.js?v=4"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const c = window.RAC_FLOW && window.RAC_FLOW.getCriteria();
