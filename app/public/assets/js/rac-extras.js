@@ -14,6 +14,36 @@
 
     const DRIVER_FALLBACK_PER_UNIT = 15;
 
+    /** Solo estos 3 paquetes se ofrecen en línea (BARS puede devolver más en availableCoverages). */
+    const PROTECTION_ORDER = ['BASIC', 'STANDARD', 'PREMIUM'];
+    const PROTECTION_LABELS = {
+        BASIC: 'Protección Básica',
+        STANDARD: 'Protección Estándar',
+        PREMIUM: 'Protección Premium'
+    };
+
+    function protectionCode(pkg) {
+        return String(pkg.code || pkg.coverageType || '').toUpperCase().trim();
+    }
+
+    function filterProtectionPackages(list) {
+        if (!Array.isArray(list)) return [];
+        const byCode = {};
+        list.forEach(function (pkg) {
+            const code = protectionCode(pkg);
+            if (PROTECTION_ORDER.indexOf(code) === -1) return;
+            if (!byCode[code]) byCode[code] = pkg;
+        });
+        return PROTECTION_ORDER.map(function (code) { return byCode[code]; }).filter(Boolean);
+    }
+
+    function resolveProtectionPackages(vehicle) {
+        const pricing = vehicle.pricing || {};
+        const fromPricing = filterProtectionPackages(pricing.coveragePackages);
+        if (fromPricing.length) return fromPricing;
+        return filterProtectionPackages(vehicle.availableCoverages);
+    }
+
     /** CONDADIC suele venir en mandatoryCharges u optionalCharges, no en availableEquipment. */
     function findCondadicCharge(vehicle) {
         const lists = [
@@ -84,32 +114,34 @@
         const rentalBase = parseFloat(pricing.rateBase ?? vehicle.priceTotal ?? vehicle.priceWeb ?? 0) || 0;
         const saf = window.RAC_FLOW.resolveSafAmount(vehicle);
         const mandatoryCharges = window.RAC_FLOW.getBillableMandatoryCharges(vehicle, criteria);
-        const packages = pricing.coveragePackages || vehicle.availableCoverages || [];
-        const equipment = (vehicle.availableEquipment || []).filter(e => {
+        const packages = resolveProtectionPackages(vehicle);
+        const equipment = (vehicle.availableEquipment || []).filter(function (e) {
             const c = (e.code || '').toUpperCase();
-            return c !== 'AMAS' || packages.some(p => (p.code || p.coverageType) === 'AMAS');
+            return PROTECTION_ORDER.indexOf(c) === -1;
         });
 
         const packagesByCode = {};
-        packages.forEach((pkg, i) => {
-            const code = pkg.code || pkg.coverageType || ('cov_' + i);
+        packages.forEach(function (pkg, i) {
+            const code = protectionCode(pkg) || ('cov_' + i);
             packagesByCode[code] = pkg;
         });
 
-        let selectedProtection = packages.find(p => p.isDefault)?.code
-            || packages.find(p => (p.code || p.coverageType) === 'BASIC')?.code
-            || packages[0]?.code
-            || packages[0]?.coverageType
-            || 'BASIC';
+        const defaultPkg = packages.find(function (p) { return p.isDefault; })
+            || packages.find(function (p) { return protectionCode(p) === 'BASIC'; })
+            || packages[0];
+        let selectedProtection = defaultPkg ? protectionCode(defaultPkg) : 'BASIC';
 
         const saved = window.RAC_FLOW.getExtras();
-        if (saved && saved.protection) selectedProtection = saved.protection;
+        if (saved && saved.protection) {
+            const savedCode = String(saved.protection).toUpperCase();
+            if (packagesByCode[savedCode]) selectedProtection = savedCode;
+        }
 
         const selectedItems = new Set((saved && saved.items) ? saved.items.map(i => i.code) : []);
         let additionalDrivers = (saved && saved.additionalDrivers) ? parseInt(saved.additionalDrivers, 10) : 0;
         const driverCharge = findCondadicCharge(vehicle);
 
-        renderProtection(packages, selectedProtection, packagesByCode);
+        renderProtection(packages, selectedProtection);
         renderEquipment(equipment, selectedItems, additionalDrivers, driverCharge, days);
 
         const state = {
@@ -296,31 +328,41 @@
             </div>`;
     }
 
-    function renderProtection(packages, selected, packagesByCode) {
+    function renderProtection(packages, selected) {
         const wrap = document.getElementById('protectionOptions');
         if (!wrap) return;
         if (!packages.length) {
             wrap.innerHTML = '<p class="text-muted">La protección se confirmará al retirar el vehículo.</p>';
             return;
         }
-        wrap.innerHTML = packages.map((pkg, i) => {
-            const code = pkg.code || pkg.coverageType || ('cov_' + i);
-            const checked = code === selected ? 'checked' : '';
-            const border = checked ? 'border-danger' : '';
-            const amt = parseFloat(pkg.amountTotal || 0) || (parseFloat(pkg.pricePerDay || 0) * (window.RAC_FLOW.calcDays(
-                window.RAC_FLOW.getCriteria()?.pickupDate,
-                window.RAC_FLOW.getCriteria()?.returnDate
-            )));
-            const perDay = parseFloat(pkg.pricePerDay || 0);
-            const ded = parseFloat(pkg.deductible || 0);
-            const badge = code === 'STANDARD' ? '<span class="badge bg-warning text-dark ms-1">Más popular</span>' :
-                code === 'PREMIUM' ? '<span class="badge bg-success ms-1">Sin preocupaciones</span>' : '';
+        const days = window.RAC_FLOW.calcDays(
+            window.RAC_FLOW.getCriteria()?.pickupDate,
+            window.RAC_FLOW.getCriteria()?.returnDate
+        );
+        wrap.innerHTML = packages.map(function (pkg, i) {
+            const code = protectionCode(pkg) || ('cov_' + i);
+            const checked = code === String(selected || '').toUpperCase() ? 'checked' : '';
+            const border = checked ? 'border-danger border-2' : '';
+            const amt = parseFloat(pkg.amountTotal || 0) || (parseFloat(pkg.pricePerDay || 0) * days);
+            const perDay = parseFloat(pkg.pricePerDay || 0) || (days > 0 ? amt / days : 0);
+            const title = PROTECTION_LABELS[code] || pkg.name || pkg.description || code;
+            const desc = pkg.description || title;
+            let badge = '';
+            if (code === 'STANDARD') {
+                badge = '<span class="badge bg-success text-uppercase ms-2" style="font-size:0.65rem;">Más popular</span>';
+            } else if (code === 'PREMIUM') {
+                badge = '<span class="badge bg-navy text-white text-uppercase ms-2" style="font-size:0.65rem;background:#081026;">Sin preocupaciones</span>';
+            }
             return `
-            <label class="border rounded-3 p-3 d-flex gap-3 align-items-start cursor-pointer ${border}">
-                <input type="radio" name="protection_code" class="form-check-input mt-1" value="${code}" ${checked}>
-                <div class="flex-grow-1">
-                    <span class="fw-bold text-navy">${pkg.name || pkg.description || code}</span>${badge}
-                    <small class="text-muted d-block">$${perDay.toFixed(2)}/día · Total $${amt.toFixed(2)} · Deducible $${ded.toFixed(0)}</small>
+            <label class="border rounded-3 p-3 d-flex gap-3 align-items-center cursor-pointer ${border}">
+                <input type="radio" name="protection_code" class="form-check-input flex-shrink-0" value="${code}" ${checked}>
+                <div class="flex-grow-1 min-w-0">
+                    <div class="fw-bold text-navy">${title}${badge}</div>
+                    <small class="text-muted d-block">${desc}</small>
+                </div>
+                <div class="text-end flex-shrink-0">
+                    <div class="fw-bold text-danger">$${perDay.toFixed(2)}/día</div>
+                    <small class="text-muted">Total: $${amt.toFixed(2)}</small>
                 </div>
             </label>`;
         }).join('');
