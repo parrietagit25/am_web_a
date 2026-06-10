@@ -18,14 +18,20 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 $code = strtoupper(trim($_GET['code'] ?? ''));
+$lastName = trim($_GET['lastName'] ?? $_GET['last_name'] ?? '');
 if ($code === '') {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Indique el número de reserva.']);
     exit;
 }
+if ($lastName === '') {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Indique su apellido para consultar la reserva.']);
+    exit;
+}
 
 $api = new AutomarketReservationApiService();
-$result = $api->lookupReservation($code);
+$result = $api->lookupReservation($code, $lastName);
 
 if ($result['ok'] && is_array($result['data'])) {
     http_response_code(200);
@@ -38,6 +44,14 @@ if ($result['ok'] && is_array($result['data'])) {
 }
 
 $local = (new RacReservationService())->findByBarsCode($code);
+if ($local && !reservationLastNameMatches($local, $lastName)) {
+    http_response_code(403);
+    echo json_encode([
+        'success' => false,
+        'message' => 'El apellido no coincide con la reserva indicada.',
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 if ($local) {
     $pickupBranch = BranchDataService::findByCode($local['location_code'] ?? '');
     $returnBranch = BranchDataService::findByCode($local['return_location_code'] ?? '');
@@ -65,5 +79,19 @@ if ($local) {
 http_response_code(404);
 echo json_encode([
     'success' => false,
-    'message' => $result['error'] ?? 'No encontramos esta reserva. Revise el número o contáctenos.',
+    'message' => $result['error'] ?? 'No encontramos esta reserva. Revise el número y apellido o contáctenos.',
 ], JSON_UNESCAPED_UNICODE);
+
+function reservationLastNameMatches(array $row, string $lastName): bool {
+    $needle = mb_strtolower(trim($lastName), 'UTF-8');
+    if ($needle === '') {
+        return false;
+    }
+    $stored = mb_strtolower(trim($row['customer_name'] ?? ''), 'UTF-8');
+    if ($stored === '') {
+        return false;
+    }
+    $parts = preg_split('/\s+/', $stored);
+    $storedLast = $parts ? (string) end($parts) : '';
+    return $storedLast === $needle || str_contains($stored, $needle);
+}

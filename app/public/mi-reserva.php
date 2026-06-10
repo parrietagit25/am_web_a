@@ -18,15 +18,20 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4">
                 <form id="lookupForm" class="row g-3 align-items-end">
-                    <div class="col-md-8">
+                    <div class="col-md-6">
                         <label for="lookupCode" class="form-label fw-semibold text-navy">Número de confirmación</label>
-                        <input type="text" id="lookupCode" class="form-control form-control-premium py-3" placeholder="Ej: ABC123456" required
+                        <input type="text" id="lookupCode" class="form-control form-control-premium py-3" placeholder="Ej: PCR-123456" required
                             value="<?php echo esc(strtoupper(trim($_GET['id'] ?? $_GET['code'] ?? ''))); ?>">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
+                        <label for="lookupLastName" class="form-label fw-semibold text-navy">Apellido del conductor</label>
+                        <input type="text" id="lookupLastName" class="form-control form-control-premium py-3" placeholder="Como figura en la reserva" required>
+                    </div>
+                    <div class="col-12">
                         <button type="submit" class="btn btn-theme w-100 py-3 rounded-pill fw-bold text-white">Buscar</button>
                     </div>
                 </form>
+                <p class="text-muted small mt-2 mb-0">Por seguridad, necesitamos el número de confirmación y el apellido del conductor principal.</p>
                 <div id="lookupError" class="alert alert-danger rounded-3 mt-3 d-none" role="alert"></div>
             </div>
 
@@ -64,17 +69,19 @@ require_once __DIR__ . '/../includes/header.php';
     header, footer, #lookupForm, .btn:not(.d-none) { display: none !important; }
 </style>
 
-<script src="/assets/js/rac-flow.js?v=1"></script>
+<script src="/assets/js/rac-flow.js?v=3"></script>
 <script>
-function lookupReservation(code) {
+function lookupReservation(code, lastName) {
     code = (code || '').trim().toUpperCase();
-    if (!code) return;
+    lastName = (lastName || '').trim();
+    if (!code || !lastName) return;
 
     document.getElementById('lookupError').classList.add('d-none');
     document.getElementById('lookupResult').classList.add('d-none');
     document.getElementById('lookupLoader').classList.remove('d-none');
 
-    fetch('/api/rac-reservation-lookup.php?code=' + encodeURIComponent(code))
+    const qs = new URLSearchParams({ code: code, lastName: lastName });
+    fetch('/api/rac-reservation-lookup.php?' + qs.toString())
         .then(r => r.json())
         .then(data => {
             document.getElementById('lookupLoader').classList.add('d-none');
@@ -135,12 +142,10 @@ function formatDt(v) {
 
 document.getElementById('lookupForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    lookupReservation(document.getElementById('lookupCode').value);
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    const initial = document.getElementById('lookupCode').value;
-    if (initial) lookupReservation(initial);
+    lookupReservation(
+        document.getElementById('lookupCode').value,
+        document.getElementById('lookupLastName').value
+    );
 });
 </script>
 

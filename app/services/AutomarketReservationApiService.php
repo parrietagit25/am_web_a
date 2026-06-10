@@ -26,12 +26,17 @@ class AutomarketReservationApiService {
     /**
      * @return array{ok: bool, data: ?array, error: ?string, httpCode: int}
      */
-    public function lookupReservation(string $code): array {
+    public function lookupReservation(string $code, string $lastName = ''): array {
         $code = strtoupper(trim($code));
         if ($code === '') {
             return ['ok' => false, 'data' => null, 'error' => 'Código de reserva requerido.', 'httpCode' => 400];
         }
-        $result = $this->request('GET', '/api/reservation/' . rawurlencode($code), null, 20);
+        $path = '/api/reservation/' . rawurlencode($code);
+        $lastName = trim($lastName);
+        if ($lastName !== '') {
+            $path .= '?lastName=' . rawurlencode($lastName);
+        }
+        $result = $this->request('GET', $path, null, 20);
         if ($result['ok'] && is_array($result['data']) && isset($result['data']['reservation'])) {
             $result['data'] = $result['data']['reservation'];
         }
@@ -67,6 +72,25 @@ class AutomarketReservationApiService {
             $rateCode = 'NONE';
         }
 
+        $vendorRateId = $vehicle['vendorRateId'] ?? ($vehicle['pricing']['quoteToken'] ?? '');
+        if ($rateType === 'counter' && !empty($vehicle['rates']) && is_array($vehicle['rates'])) {
+            foreach ($vehicle['rates'] as $r) {
+                $rc = strtoupper(trim((string) ($r['rateCode'] ?? '')));
+                if ($rc !== 'WEB' && $rc !== 'BEST' && !empty($r['vendorRateId'])) {
+                    $vendorRateId = (string) $r['vendorRateId'];
+                    break;
+                }
+            }
+        }
+
+        $coverageCode = '';
+        if (is_array($extras)) {
+            $cov = strtoupper(trim((string) ($extras['protection'] ?? '')));
+            if ($cov !== '' && $cov !== 'NONE') {
+                $coverageCode = $cov;
+            }
+        }
+
         return array_filter([
             'locationCode' => strtoupper(trim($search['locationCode'] ?? '')),
             'returnLocationCode' => strtoupper(trim($search['returnLocationCode'] ?? $search['locationCode'] ?? '')),
@@ -75,8 +99,9 @@ class AutomarketReservationApiService {
             'returnDate' => $search['returnDate'] ?? '',
             'returnTime' => $search['returnTime'] ?? '10:00',
             'sippCode' => $vehicle['sippCode'] ?? '',
-            'vendorRateId' => $vehicle['vendorRateId'] ?? ($vehicle['pricing']['quoteToken'] ?? ''),
+            'vendorRateId' => $vendorRateId,
             'rateCode' => $rateCode,
+            'coverageCode' => $coverageCode ?: null,
             'firstName' => $firstName,
             'lastName' => $lastName,
             'email' => trim($input['email'] ?? $input['customer_email'] ?? ''),
@@ -87,6 +112,7 @@ class AutomarketReservationApiService {
             'flightNumber' => trim($input['flight_number'] ?? '') ?: null,
             'airlineCode' => trim($input['airline_code'] ?? '') ?: null,
             'remarks' => trim($input['remarks'] ?? $input['customer_comments'] ?? '') ?: null,
+            'birthDate' => trim($input['birth_date'] ?? '') ?: null,
             'extras' => is_array($extras) ? $extras : null,
         ], static function ($v) {
             return $v !== null && $v !== '';

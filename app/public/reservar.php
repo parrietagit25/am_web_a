@@ -91,6 +91,10 @@ require_once __DIR__ . '/../includes/rac-stepper.php';
                                 <option value="CR">Costa Rica</option>
                             </select>
                         </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Fecha de nacimiento <small class="text-muted">(opcional)</small></label>
+                            <input type="date" id="birthDate" class="form-control form-control-premium">
+                        </div>
                     </div>
                 </div>
 
@@ -137,7 +141,7 @@ require_once __DIR__ . '/../includes/rac-stepper.php';
     </div>
 </section>
 
-<script src="/assets/js/rac-flow.js?v=2"></script>
+<script src="/assets/js/rac-flow.js?v=3"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = window.RAC_FLOW.requireVehicle('/rent-a-car.php');
@@ -150,11 +154,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('reserveNoData').classList.add('d-none');
     document.getElementById('reserveMain').classList.remove('d-none');
-    document.getElementById('reserveMain').classList.remove('d-none');
 
     const { vehicle, criteria } = ctx;
-    const days = window.RAC_FLOW.calcDays(criteria.pickupDate, criteria.returnDate);
+    const calendarDays = window.RAC_FLOW.calcDays(criteria.pickupDate, criteria.returnDate);
+    const days = window.RAC_FLOW.vehicleBilledDays(vehicle, calendarDays);
     const totals = extras.totals || {};
+    const covLabel = extras.protection === 'NONE'
+        ? 'Sin protección adicional'
+        : (extras.coverage_name || extras.protection || 'Protección');
     const mandatoryLines = (extras.mandatoryCharges || []).map(function (c) {
         return '<div class="d-flex justify-content-between"><span>' + c.label + '</span><span>' +
             window.RAC_FLOW.fmtMoney(c.amount) + '</span></div>';
@@ -177,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="d-flex justify-content-between"><span>Tarifa base</span><span>${window.RAC_FLOW.fmtMoney(totals.base)}</span></div>
             ${totals.saf > 0 ? `<div class="d-flex justify-content-between"><span>SAF</span><span>${window.RAC_FLOW.fmtMoney(totals.saf)}</span></div>` : ''}
             ${mandatoryLines}
-            <div class="d-flex justify-content-between"><span>${extras.coverage_name || extras.protection || 'Protección'}</span><span>${window.RAC_FLOW.fmtMoney(totals.coverage)}</span></div>
+            ${extras.protection && extras.protection !== 'NONE' ? `<div class="d-flex justify-content-between"><span>${covLabel}</span><span>${window.RAC_FLOW.fmtMoney(totals.coverage)}</span></div>` : ''}
             ${totals.drivers > 0 ? `<div class="d-flex justify-content-between"><span>Conductor adicional</span><span>${window.RAC_FLOW.fmtMoney(totals.drivers)}</span></div>` : ''}
             ${totals.equipment > 0 ? `<div class="d-flex justify-content-between"><span>Otros extras</span><span>${window.RAC_FLOW.fmtMoney(totals.equipment)}</span></div>` : ''}
             <div class="d-flex justify-content-between"><span>ITBMS (7%)</span><span>${window.RAC_FLOW.fmtMoney(totals.itbms)}</span></div>
@@ -236,12 +243,13 @@ function submitCheckoutBooking(e) {
         doc_type: document.getElementById('docType').value,
         doc_number: document.getElementById('docNumber').value.trim(),
         country_code: document.getElementById('countryCode').value,
+        birth_date: document.getElementById('birthDate').value || null,
         flight_number: document.getElementById('flightNumber').value.trim(),
         airline_code: document.getElementById('airlineCode').value.trim(),
         customer_comments: document.getElementById('checkoutComments').value.trim(),
         remarks: document.getElementById('checkoutComments').value.trim(),
-        coverage_code: extras.protection,
-        coverage_name: extras.coverage_name || '',
+        coverage_code: extras.protection === 'NONE' ? '' : extras.protection,
+        coverage_name: extras.protection === 'NONE' ? 'Sin protección adicional' : (extras.coverage_name || ''),
         coverage_amount: extras.totals?.coverage,
         coverage_deductible: extras.coverage_deductible,
         price_rental_base: extras.totals?.base,

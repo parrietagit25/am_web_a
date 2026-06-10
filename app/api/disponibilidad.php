@@ -42,7 +42,7 @@ if ($returnLocation === '') {
 }
 
 if ($pickupLocation === '' || $pickupDate === '' || $returnDate === '') {
-    http_response_code(422);
+    http_response_code(400);
     echo json_encode([
         'success' => false,
         'message' => 'Faltan campos obligatorios: locationCode, pickupDate, returnDate.',
@@ -51,19 +51,37 @@ if ($pickupLocation === '' || $pickupDate === '' || $returnDate === '') {
 }
 
 if (!in_array($age, ['23', '25'], true)) {
-    http_response_code(422);
+    http_response_code(400);
     echo json_encode([
         'success' => false,
-        'message' => 'Edad no válida. Seleccione 23-24 años o 25+ años.',
+        'message' => 'Edad no válida. Solo se admiten 23-24 años o 25+ años en línea.',
     ]);
     exit;
 }
 
 if ($pickupDate >= $returnDate) {
-    http_response_code(422);
+    http_response_code(400);
     echo json_encode([
         'success' => false,
         'message' => 'La fecha de devolución debe ser posterior al retiro.',
+    ]);
+    exit;
+}
+
+if (!preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $pickupTime)) {
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Hora de retiro inválida. Use formato HH:MM (24h).',
+    ]);
+    exit;
+}
+
+if (!preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $returnTime)) {
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Hora de devolución inválida. Use formato HH:MM (24h).',
     ]);
     exit;
 }

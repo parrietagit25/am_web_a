@@ -39,7 +39,9 @@ $code = strtoupper(trim($_GET['code'] ?? ''));
                         <i class="bi bi-printer me-1"></i> Imprimir comprobante
                     </button>
                     <a href="/mi-reserva.php" class="btn btn-outline-danger rounded-pill px-4 py-2 fw-semibold">Mi reserva</a>
+                    <a href="#" id="btnPaymentStub" class="btn btn-outline-navy rounded-pill px-4 py-2 fw-semibold d-none">Pago con tarjeta (demo)</a>
                 </div>
+                <p class="text-muted small mt-3 mb-0" id="paymentStubNote"></p>
             </div>
         </div>
     </div>
@@ -50,7 +52,7 @@ $code = strtoupper(trim($_GET['code'] ?? ''));
     #confirmCard { box-shadow: none !important; border: 1px solid #ddd !important; }
 </style>
 
-<script src="/assets/js/rac-flow.js?v=1"></script>
+<script src="/assets/js/rac-flow.js?v=3"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const params = new URLSearchParams(window.location.search);
@@ -69,8 +71,20 @@ document.addEventListener('DOMContentLoaded', function() {
             '<br><span class="text-warning">Su solicitud fue registrada; un asesor confirmará los detalles finales.</span>';
     }
 
-    if (code) {
-        fetch('/api/rac-reservation-lookup.php?code=' + encodeURIComponent(code))
+    const lastName = last?.last_name || '';
+    const payBtn = document.getElementById('btnPaymentStub');
+    const payNote = document.getElementById('paymentStubNote');
+    if (payBtn && code) {
+        payBtn.href = '/pago-seguro.php?ref=' + encodeURIComponent(code);
+        payBtn.classList.remove('d-none');
+        if (payNote) {
+            payNote.textContent = 'El pago en línea es opcional (demo): valida la tarjeta pero no realiza un cobro real.';
+        }
+    }
+
+    if (code && lastName) {
+        const qs = new URLSearchParams({ code: code, lastName: lastName });
+        fetch('/api/rac-reservation-lookup.php?' + qs.toString())
             .then(r => r.json())
             .then(data => {
                 if (!data.success || !data.reservation) return;

@@ -110,7 +110,67 @@
         return '$' + Number(n || 0).toFixed(2);
     }
 
-    const UNDERAGE_FALLBACK = 75;
+    const UNDERAGE_PER_DAY = 25;
+
+    function vehicleBilledDays(vehicle, calendarDays) {
+        const rd = parseInt(vehicle?.rentalDays, 10);
+        return rd > 0 ? rd : (calendarDays || 1);
+    }
+
+    function resolveVendorRateId(vehicle, rateType) {
+        if (rateType === 'counter' && Array.isArray(vehicle?.rates)) {
+            const counter = vehicle.rates.find(function (r) {
+                const rc = String(r.rateCode || '').toUpperCase();
+                return rc !== 'WEB' && rc !== 'BEST' && r.available !== false && r.vendorRateId;
+            });
+            if (counter?.vendorRateId) return String(counter.vendorRateId);
+        }
+        return String(vehicle?.vendorRateId || vehicle?.pricing?.quoteToken || '');
+    }
+
+    /** Tarifa del período según WebExclusivo o mostrador (sin mandatory ni cobertura). */
+    function resolveRentalBase(vehicle, rateType, billedDays) {
+        const days = Math.max(billedDays || 1, 1);
+        if (rateType === 'counter') {
+            if (vehicle?.priceCounterTotal != null) return parseFloat(vehicle.priceCounterTotal) || 0;
+            const p = vehicle?.pricing || {};
+            if (p.rateBaseCounter != null) return parseFloat(p.rateBaseCounter) || 0;
+            return (parseFloat(vehicle?.priceCounter || 0) || 0) * days;
+        }
+        if (vehicle?.priceTotal != null) return parseFloat(vehicle.priceTotal) || 0;
+        const p = vehicle?.pricing || {};
+        if (p.rateBase != null) return parseFloat(p.rateBase) || 0;
+        return (parseFloat(vehicle?.priceWeb || 0) || 0) * days;
+    }
+
+    function buildAvailabilityPayload(criteria) {
+        if (!criteria) return null;
+        return {
+            locationCode: criteria.locationCode,
+            returnLocationCode: criteria.returnLocationCode || criteria.locationCode,
+            pickupDate: criteria.pickupDate,
+            pickupTime: criteria.pickupTime || '10:00',
+            returnDate: criteria.returnDate,
+            returnTime: criteria.returnTime || '10:00',
+            age: criteria.age || '25',
+            promoCode: criteria.promoCode || ''
+        };
+    }
+
+    function fetchAvailability(criteria) {
+        const payload = buildAvailabilityPayload(criteria);
+        if (!payload?.locationCode) return Promise.reject(new Error('missing criteria'));
+        return fetch('/api/disponibilidad.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(function (r) { return r.json(); });
+    }
+
+    function findVehicleInResults(data, sippCode) {
+        const list = data?.vehicles || [];
+        return list.find(function (v) { return v.sippCode === sippCode; }) || null;
+    }
 
     function isOneWayRental(criteria) {
         if (!criteria) return false;
@@ -150,8 +210,9 @@
      * Cargos obligatorios de la API (UD, dropoff, etc.) excluyendo SAF.
      * UD solo aplica con edad 23; dropoff solo en devolución en otra sucursal.
      */
-    function getBillableMandatoryCharges(vehicle, criteria) {
+    function getBillableMandatoryCharges(vehicle, criteria, billedDays) {
         const age = String(criteria?.age || '25');
+        const days = Math.max(billedDays || 1, 1);
         const oneWay = isOneWayRental(criteria);
         const mandatory = vehicle?.mandatoryCharges || [];
         const optional = vehicle?.optionalCharges || [];
@@ -191,7 +252,7 @@
                 result.push({
                     code: 'UD',
                     label: 'Cargo por edad (23-24 años)',
-                    amount: UNDERAGE_FALLBACK
+                    amount: UNDERAGE_PER_DAY * days
                 });
             }
         }
@@ -199,10 +260,30 @@
         return result;
     }
 
-    function sumBillableMandatory(vehicle, criteria) {
-        return getBillableMandatoryCharges(vehicle, criteria).reduce(function (s, c) {
+    function sumBillableMandatory(vehicle, criteria, billedDays) {
+        return getBillableMandatoryCharges(vehicle, criteria, billedDays).reduce(function (s, c) {
             return s + c.amount;
         }, 0);
+    }
+
+    /** SAF + UD + dropoff… Preferir pricing.mandatoryTotal del API. */
+    function resolveMandatoryTotal(vehicle, criteria, billedDays) {
+        const mt = parseFloat(vehicle?.pricing?.mandatoryTotal ?? NaN);
+        if (!isNaN(mt) && mt >= 0) return mt;
+        return resolveSafAmount(vehicle) + sumBillableMandatory(vehicle, criteria, billedDays);
+    }
+
+    /** Líneas de desglose: SAF + cargos no-SAF (UD, dropoff). */
+    function resolveMandatoryLines(vehicle, criteria, billedDays) {
+        const lines = [];
+        const saf = resolveSafAmount(vehicle);
+        if (saf > 0) {
+            lines.push({ code: 'SAF', label: 'Cargo Administrativo (SAF)', amount: saf });
+        }
+        getBillableMandatoryCharges(vehicle, criteria, billedDays).forEach(function (c) {
+            lines.push(c);
+        });
+        return lines;
     }
 
     function resolveSafAmount(vehicle) {
@@ -215,14 +296,15 @@
     }
 
     /** Tarifa + SAF + cargos obligatorios (sin cobertura ni extras opcionales). */
-    function rentalSubtotalBeforeCoverage(vehicle, criteria, days) {
-        const rateBase = parseFloat(vehicle?.pricing?.rateBase ?? vehicle?.priceTotal ?? 0)
-            || (parseFloat(vehicle?.priceWeb ?? 0) || 0) * Math.max(days || 1, 1);
-        return rateBase + resolveSafAmount(vehicle) + sumBillableMandatory(vehicle, criteria);
+    function rentalSubtotalBeforeCoverage(vehicle, criteria, days, rateType) {
+        const billed = vehicleBilledDays(vehicle, days);
+        const base = resolveRentalBase(vehicle, rateType || 'web', billed);
+        return base + resolveMandatoryTotal(vehicle, criteria, billed);
     }
 
     global.RAC_FLOW = {
         calcDays,
+        vehicleBilledDays,
         branchLabel,
         formatDateDisplay,
         formatTimeDisplay,
@@ -238,8 +320,15 @@
         getBillableMandatoryCharges,
         sumBillableMandatory,
         resolveSafAmount,
+        resolveRentalBase,
+        resolveMandatoryTotal,
+        resolveMandatoryLines,
+        resolveVendorRateId,
         rentalSubtotalBeforeCoverage,
-        UNDERAGE_FALLBACK,
+        buildAvailabilityPayload,
+        fetchAvailability,
+        findVehicleInResults,
+        UNDERAGE_PER_DAY,
         IMG_BASE
     };
 })(window);

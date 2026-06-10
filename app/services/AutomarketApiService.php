@@ -170,6 +170,12 @@ class AutomarketApiService {
                 $v['image'] = $this->imageBase . $img;
             }
         }
+        if (!$isFallback && !isset($v['priceCounterTotal']) && isset($v['priceTotal'])) {
+            $v['priceCounterTotal'] = round((float) $v['priceTotal'] * 1.07, 2);
+        }
+        if ($isFallback && isset($v['basePrice']) && !isset($v['base_price'])) {
+            $v['base_price'] = $v['basePrice'];
+        }
         $v['_isFallback'] = $isFallback;
         return $v;
     }

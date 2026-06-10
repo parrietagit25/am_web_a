@@ -72,7 +72,7 @@ require_once __DIR__ . '/../includes/rac-stepper.php';
     </div>
 </section>
 
-<script src="/assets/js/rac-flow.js?v=2"></script>
-<script src="/assets/js/rac-results.js?v=4"></script>
+<script src="/assets/js/rac-flow.js?v=3"></script>
+<script src="/assets/js/rac-results.js?v=6"></script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

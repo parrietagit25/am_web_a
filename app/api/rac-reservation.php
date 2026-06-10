@@ -68,6 +68,9 @@ if (empty($vehicle['name']) && empty($vehicle['sippCode'])) {
 $pricing = $vehicle['pricing'] ?? [];
 $rateType = ($input['rate_type'] ?? 'web') === 'counter' ? 'counter' : 'web';
 $coverageCode = trim($input['coverage_code'] ?? ($extras['protection'] ?? ''));
+if (strtoupper($coverageCode) === 'NONE') {
+    $coverageCode = '';
+}
 $coverageName = trim($input['coverage_name'] ?? '');
 $coverageAmount = $input['coverage_amount'] ?? ($extras['totals']['coverage'] ?? null);
 $coverageDeductible = $input['coverage_deductible'] ?? null;
@@ -176,6 +179,7 @@ try {
             'alert_sent' => $mailAdmin['sent'] ?? false,
             'customer_email_sent' => $mailCustomer['sent'] ?? false,
             'message' => 'Su solicitud fue registrada. Un asesor confirmará los detalles pronto.',
+            'last_name' => $lastName,
             'bars_error' => $barsError,
         ], JSON_UNESCAPED_UNICODE);
         exit;
@@ -192,6 +196,7 @@ try {
         'alert_sent' => $mailAdmin['sent'] ?? false,
         'customer_email_sent' => $mailCustomer['sent'] ?? false,
         'message' => 'Reserva confirmada correctamente.',
+        'last_name' => $lastName,
         'redirect' => '/confirmacion.php?code=' . rawurlencode($displayCode),
     ], JSON_UNESCAPED_UNICODE);
 } catch (Exception $e) {

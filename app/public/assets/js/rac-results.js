@@ -57,14 +57,62 @@
         return b ? b.name : code;
     }
 
-    function renderCard(vehicle, days, vehicleIndex, criteria) {
-        const isFallback = vehicle._isFallback === true;
-        const rateBase = vehicle.priceTotal != null ? vehicle.priceTotal : (vehicle.priceWeb || 0) * days;
-        let webTotal = rateBase;
-        if (window.RAC_FLOW && criteria && !isFallback) {
-            webTotal = window.RAC_FLOW.rentalSubtotalBeforeCoverage(vehicle, criteria, days);
+    function criteriaKey(c) {
+        if (!c || !c.locationCode) return '';
+        return [
+            c.locationCode,
+            c.returnLocationCode || c.locationCode,
+            c.pickupDate,
+            c.pickupTime || '10:00',
+            c.returnDate,
+            c.returnTime || '10:00',
+            c.age || '25',
+            c.promoCode || ''
+        ].join('|');
+    }
+
+    function vehicleBilledDays(vehicle, calendarDays) {
+        if (window.RAC_FLOW?.vehicleBilledDays) {
+            return window.RAC_FLOW.vehicleBilledDays(vehicle, calendarDays);
         }
-        const counterTotal = vehicle.priceCounter != null ? (vehicle.priceCounter * days) : webTotal * 1.07;
+        const rd = parseInt(vehicle.rentalDays, 10);
+        return rd > 0 ? rd : calendarDays;
+    }
+
+    /** Paso 2: solo tarifa del período (priceTotal / priceCounterTotal), sin mandatory. */
+    function vehicleRateTotals(vehicle, calendarDays) {
+        const billedDays = vehicleBilledDays(vehicle, calendarDays);
+        const isFallback = vehicle._isFallback === true;
+
+        if (isFallback) {
+            const daily = parseFloat(vehicle.basePrice ?? vehicle.priceWeb ?? 0) || 0;
+            const webTotal = daily * billedDays;
+            return { webTotal, counterTotal: webTotal * 1.07, billedDays, webPerDay: daily, counterPerDay: daily * 1.07 };
+        }
+
+        const webTotal = vehicle.priceTotal != null
+            ? parseFloat(vehicle.priceTotal)
+            : (parseFloat(vehicle.priceWeb || 0) * billedDays);
+
+        let counterTotal = vehicle.priceCounterTotal != null
+            ? parseFloat(vehicle.priceCounterTotal)
+            : NaN;
+        if (isNaN(counterTotal)) {
+            counterTotal = parseFloat(vehicle.priceCounter || 0) * billedDays;
+        }
+
+        const webPerDay = billedDays > 0 ? webTotal / billedDays : parseFloat(vehicle.priceWeb || 0);
+        const counterPerDay = billedDays > 0 ? counterTotal / billedDays : parseFloat(vehicle.priceCounter || 0);
+
+        return { webTotal, counterTotal, billedDays, webPerDay, counterPerDay };
+    }
+
+    function renderCard(vehicle, calendarDays, vehicleIndex) {
+        const isFallback = vehicle._isFallback === true;
+        const rates = vehicleRateTotals(vehicle, calendarDays);
+        const webTotal = rates.webTotal;
+        const counterTotal = rates.counterTotal;
+        const billedDays = rates.billedDays;
 
         const img = vehicle.image
             ? `<img src="${vehicle.image}" class="img-fluid vehicle-image-card" alt="" style="max-height:140px;object-fit:contain">`
@@ -91,13 +139,13 @@
                         <div class="col-6 border-end">
                             <small class="text-muted d-block">WebExclusivo</small>
                             <span class="fs-4 fw-bold text-navy">$${fmt(webTotal)}</span>
-                            <small class="text-muted d-block">$${fmt(vehicle.priceWeb || 0)}/día · ${days} días</small>
+                            <small class="text-muted d-block">$${fmt(rates.webPerDay)}/día · ${billedDays} día${billedDays !== 1 ? 's' : ''}</small>
                             <button type="button" class="btn btn-theme btn-sm w-100 mt-2 rounded-pill rac-select-btn" data-rate="web" data-vehicle-index="${vehicleIndex}">Reservar Web</button>
                         </div>
                         <div class="col-6">
                             <small class="text-muted d-block">En mostrador</small>
                             <span class="fs-4 fw-bold text-navy">$${fmt(counterTotal)}</span>
-                            <small class="text-muted d-block">$${fmt(vehicle.priceCounter || 0)}/día · ${days} días</small>
+                            <small class="text-muted d-block">$${fmt(rates.counterPerDay)}/día · ${billedDays} día${billedDays !== 1 ? 's' : ''}</small>
                             <button type="button" class="btn btn-outline-dark btn-sm w-100 mt-2 rounded-pill rac-select-btn" data-rate="counter" data-vehicle-index="${vehicleIndex}">Reservar</button>
                         </div>
                     </div>
@@ -152,7 +200,13 @@
             if (!vehicle) return;
             btn.addEventListener('click', () => {
                 const rate = btn.getAttribute('data-rate') || 'web';
-                const enriched = Object.assign({}, vehicle, { _selectedRateType: rate });
+                const vendorRateId = window.RAC_FLOW?.resolveVendorRateId
+                    ? window.RAC_FLOW.resolveVendorRateId(vehicle, rate)
+                    : (vehicle.vendorRateId || '');
+                const enriched = Object.assign({}, vehicle, {
+                    _selectedRateType: rate,
+                    vendorRateId: vendorRateId
+                });
                 sessionStorage.setItem('selectedVehicle', JSON.stringify(enriched));
                 sessionStorage.setItem('selectedRateType', rate);
                 sessionStorage.removeItem('extrasSelection');
@@ -172,7 +226,11 @@
         let results = null;
         try {
             criteria = JSON.parse(sessionStorage.getItem('searchCriteria') || 'null');
-            results = JSON.parse(sessionStorage.getItem('searchResults') || 'null');
+            const activeKey = criteria ? criteriaKey(criteria) : '';
+            const storedKey = sessionStorage.getItem('searchCriteriaKey') || '';
+            if (activeKey && storedKey === activeKey) {
+                results = JSON.parse(sessionStorage.getItem('searchResults') || 'null');
+            }
         } catch (e) { /* ignore */ }
 
         if (!criteria || !criteria.locationCode) {
@@ -205,6 +263,7 @@
                 .then(data => {
                     sessionStorage.setItem('searchResults', JSON.stringify(data));
                     sessionStorage.setItem('searchCriteria', JSON.stringify(criteria));
+                    sessionStorage.setItem('searchCriteriaKey', criteriaKey(criteria));
                     render(data, criteria);
                 })
                 .catch(() => {
@@ -226,15 +285,17 @@
 
         if (loader) loader.classList.add('d-none');
 
-        const days = calcDays(criteria.pickupDate, criteria.returnDate);
+        const calendarDays = calcDays(criteria.pickupDate, criteria.returnDate);
         const loc = criteria.locationCode;
         const ret = criteria.returnLocationCode || loc;
+        const firstVehicle = (results.vehicles || [])[0] || (results.catalogFallback || [])[0];
+        const displayDays = firstVehicle ? vehicleBilledDays(firstVehicle, calendarDays) : calendarDays;
 
         if (summary) {
             summary.innerHTML = `<i class="bi bi-geo-alt-fill me-1"></i> Retiro: <strong>${branchLabel(loc)}</strong>` +
                 (loc !== ret ? ` · Devolución: <strong>${branchLabel(ret)}</strong>` : '') +
                 ` | <i class="bi bi-calendar-check me-1"></i> ${criteria.pickupDate} ${criteria.pickupTime} → ${criteria.returnDate} ${criteria.returnTime}` +
-                ` · <strong>${days}</strong> día(s)`;
+                ` · <strong>${displayDays}</strong> día(s)`;
         }
 
         if (debugBadges && (new URLSearchParams(location.search).get('debug') === '1')) {
@@ -255,7 +316,7 @@
                 statusBox.classList.remove('d-none');
             }
             vehicles = results.catalogFallback;
-            setTimeout(() => location.reload(), 30000);
+            scheduleMissRetry(criteria);
         } else if (vehicles.length === 0) {
             if (statusBox) {
                 statusBox.className = 'alert alert-warning rounded-4';
@@ -268,7 +329,7 @@
             statusBox.classList.add('d-none');
         }
 
-        vehicles.forEach((v, i) => { html += renderCard(v, days, i, criteria); });
+        vehicles.forEach((v, i) => { html += renderCard(v, calendarDays, i); });
         grid.innerHTML = html;
         bindSelectButtons(vehicles);
 
@@ -276,7 +337,7 @@
             sessionStorage.setItem('searchResultsVehicles', JSON.stringify(vehicles));
         } catch (e) { /* ignore */ }
 
-        renderSidebar(criteria, days);
+        renderSidebar(criteria, displayDays);
         renderCategoryFilters(vehicles);
 
         document.querySelectorAll('.filter-category-btn').forEach(btn => {
@@ -293,6 +354,35 @@
                 });
             });
         });
+    }
+
+    let missRetryTimer = null;
+
+    function scheduleMissRetry(criteria) {
+        if (missRetryTimer) clearTimeout(missRetryTimer);
+        missRetryTimer = setTimeout(function () {
+            fetch('/api/disponibilidad.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    locationCode: criteria.locationCode,
+                    returnLocationCode: criteria.returnLocationCode || criteria.locationCode,
+                    pickupDate: criteria.pickupDate,
+                    pickupTime: criteria.pickupTime || '10:00',
+                    returnDate: criteria.returnDate,
+                    returnTime: criteria.returnTime || '10:00',
+                    age: criteria.age || '25',
+                    promoCode: criteria.promoCode || ''
+                })
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    sessionStorage.setItem('searchResults', JSON.stringify(data));
+                    sessionStorage.setItem('searchCriteriaKey', criteriaKey(criteria));
+                    render(data, criteria);
+                })
+                .catch(function () { /* ignore */ });
+        }, 30000);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
