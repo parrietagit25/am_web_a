@@ -15,7 +15,7 @@
 
     const DRIVER_FALLBACK_PER_UNIT = 15;
     /** Solo equipos opcionales ofrecidos en línea (el API devuelve más). */
-    const ALLOWED_EQUIPMENT_CODES = ['SILLA', 'PPASS', 'DELIVERY'];
+    const ALLOWED_EQUIPMENT_CODES = ['SILLA', 'PPASS', 'DELIVERY', 'AMAS'];
     const PROTECTION_ORDER = ['BASIC', 'STANDARD', 'PREMIUM'];
     const PROTECTION_LABELS = {
         BASIC: 'Protección Básica',
@@ -47,10 +47,24 @@
     }
 
     function resolveEquipmentList(vehicle) {
-        return (vehicle.availableEquipment || []).filter(function (e) {
-            const code = (e.code || '').toUpperCase();
-            return ALLOWED_EQUIPMENT_CODES.indexOf(code) !== -1;
+        const allowed = ALLOWED_EQUIPMENT_CODES;
+        const merged = [];
+        const seen = new Set();
+
+        function pushIfAllowed(item) {
+            const code = (item.code || '').toUpperCase();
+            if (!code || seen.has(code) || allowed.indexOf(code) === -1) return;
+            seen.add(code);
+            merged.push(item);
+        }
+
+        (vehicle.availableEquipment || []).forEach(pushIfAllowed);
+        // AMAS suele venir en availableCoverages, no en availableEquipment
+        (vehicle.availableCoverages || []).forEach(function (c) {
+            if ((c.code || '').toUpperCase() === 'AMAS') pushIfAllowed(c);
         });
+
+        return merged;
     }
 
     function findCondadicCharge(vehicle) {
