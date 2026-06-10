@@ -14,6 +14,8 @@
     };
 
     const DRIVER_FALLBACK_PER_UNIT = 15;
+    /** Solo equipos opcionales ofrecidos en línea (el API devuelve más). */
+    const ALLOWED_EQUIPMENT_CODES = ['SILLA', 'PPASS', 'DELIVERY'];
     const PROTECTION_ORDER = ['BASIC', 'STANDARD', 'PREMIUM'];
     const PROTECTION_LABELS = {
         BASIC: 'Protección Básica',
@@ -41,31 +43,14 @@
         const pricing = vehicle.pricing || {};
         const fromPricing = filterProtectionPackages(pricing.coveragePackages);
         if (fromPricing.length) return fromPricing;
-        const fromCov = filterProtectionPackages(vehicle.availableCoverages);
-        if (fromCov.length) return fromCov;
-        return (vehicle.availableCoverages || []).filter(function (c) {
-            return String(c.group || '').toLowerCase() === 'paquete';
-        });
+        return filterProtectionPackages(vehicle.availableCoverages);
     }
 
     function resolveEquipmentList(vehicle) {
-        const fromEquip = vehicle.availableEquipment || [];
-        const fromCov = (vehicle.availableCoverages || []).filter(function (c) {
-            const code = protectionCode(c);
-            const group = String(c.group || '').toLowerCase();
-            if (PROTECTION_ORDER.indexOf(code) !== -1) return false;
-            if (group === 'paquete') return false;
-            return true;
-        });
-        const seen = new Set();
-        const merged = [];
-        fromEquip.concat(fromCov).forEach(function (e) {
+        return (vehicle.availableEquipment || []).filter(function (e) {
             const code = (e.code || '').toUpperCase();
-            if (!code || seen.has(code)) return;
-            seen.add(code);
-            merged.push(e);
+            return ALLOWED_EQUIPMENT_CODES.indexOf(code) !== -1;
         });
-        return merged;
     }
 
     function findCondadicCharge(vehicle) {
