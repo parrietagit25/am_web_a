@@ -30,7 +30,7 @@ return [
         'activeClass' => 'active-rentacar',
         'heroTitle' => 'Te acompañamos a tu destino',
         'heroSubtitle' => 'Reserva tu vehículo en línea en segundos con la flota más moderna',
-        'ctaText' => 'Ver Flota'
+        'ctaText' => 'VER FLOTA'
     ],
     'seminuevos' => [
         'key' => 'seminuevos',
@@ -49,7 +49,7 @@ return [
         'activeClass' => 'active-seminuevos',
         'heroTitle' => 'Encuentra tu próximo auto seminuevo',
         'heroSubtitle' => 'Calidad, garantía y financiamiento a tu medida',
-        'ctaText' => 'Ver inventario',
+        'ctaText' => 'VER INVENTARIO',
         'ctaLink' => '/inventario.php'
     ],
     'leasing' => [
@@ -68,7 +68,7 @@ return [
         'activeClass' => 'active-leasing',
         'heroTitle' => 'Optimiza la flota de tu empresa',
         'heroSubtitle' => 'Soluciones integrales de movilidad y gestión de flota comercial',
-        'ctaText' => 'Cotizar Leasing'
+        'ctaText' => 'COTIZAR LEASING'
     ],
     'renting' => [
         'key' => 'renting',

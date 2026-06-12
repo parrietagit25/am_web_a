@@ -246,7 +246,7 @@ $themeRgb = "$r, $g, $b";
                         <?php
                             $ctaLink = $currentUnit['ctaLink'] ?? '/' . ($currentUnit['slug'] ?? '') . '#cta-hero';
                         ?>
-                        <a href="<?php echo esc($ctaLink); ?>" class="btn btn-theme px-4 py-2 rounded-pill fw-bold text-white shadow-sm transition-all text-center d-block">
+                        <a href="<?php echo esc($ctaLink); ?>" class="btn btn-theme px-4 py-2 rounded-pill fw-bold text-white shadow-sm transition-all text-center d-block text-uppercase">
                             <?php echo esc(t_cta($currentUnit['ctaText'])); ?>
                         </a>
                     </li>

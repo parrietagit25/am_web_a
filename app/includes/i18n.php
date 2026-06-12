@@ -39,14 +39,25 @@ function t_unit(string $unitKey, string $defaultLabel): string {
 }
 
 function t_cta(string $ctaText): string {
+    $trimmed = trim($ctaText);
     $map = [
         'Buscar vehículo' => 'cta.buscar_vehiculo',
         'Ver Flota' => 'cta.ver_flota',
         'Ver inventario' => 'cta.ver_inventario',
         'Cotizar Leasing' => 'cta.cotizar_leasing',
     ];
-    $key = $map[trim($ctaText)] ?? null;
-    return $key ? t($key, $ctaText) : $ctaText;
+    $key = $map[$trimmed] ?? null;
+    if (!$key) {
+        $upper = mb_strtoupper($trimmed, 'UTF-8');
+        foreach ($map as $label => $translationKey) {
+            if (mb_strtoupper($label, 'UTF-8') === $upper) {
+                $key = $translationKey;
+                break;
+            }
+        }
+    }
+    $text = $key ? t($key, $trimmed) : $trimmed;
+    return mb_strtoupper($text, 'UTF-8');
 }
 
 function lang_url(string $lang): string {
