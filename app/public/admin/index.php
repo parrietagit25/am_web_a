@@ -49,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $siteData['global']['footer_copyright'] = trim($_POST['footer_copyright'] ?? '');
         $siteData['global']['whatsapp_number'] = preg_replace('/\D/', '', $_POST['whatsapp_number'] ?? '');
         $siteData['global']['whatsapp_label'] = trim($_POST['whatsapp_label'] ?? '');
+        $siteData['global']['whatsapp_vehicle_prefix'] = trim($_POST['whatsapp_vehicle_prefix'] ?? 'Hola, estoy interesado en el');
         $siteData['global']['tracking_codes'] = [
             'head_html' => trim($_POST['tracking_head_html'] ?? ''),
             'body_start_html' => trim($_POST['tracking_body_start_html'] ?? ''),
@@ -2815,6 +2816,18 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                     <div class="col-md-6">
                                         <label for="whatsapp_label" class="form-label">Mensaje flotante de WhatsApp</label>
                                         <input type="text" id="whatsapp_label" name="whatsapp_label" class="form-control form-control-premium" value="<?php echo esc($global['whatsapp_label'] ?? '¿En qué podemos ayudarte?'); ?>" required>
+                                    </div>
+
+                                    <!-- WhatsApp — prefijo mensaje venta de autos (detalle vehículo) -->
+                                    <div class="col-12">
+                                        <label for="whatsapp_vehicle_prefix" class="form-label">Mensaje inicial — Venta de Autos (WhatsApp)</label>
+                                        <input type="text" id="whatsapp_vehicle_prefix" name="whatsapp_vehicle_prefix" class="form-control form-control-premium" value="<?php echo esc($global['whatsapp_vehicle_prefix'] ?? 'Hola, estoy interesado en el'); ?>" maxlength="200" required>
+                                        <small class="text-muted d-block mt-1">
+                                            Texto que el cliente envía al abrir WhatsApp desde la ficha del vehículo. Lo demás se completa automáticamente:
+                                            <em>marca, modelo, año, placa y enlace</em>.
+                                            Ejemplo completo:
+                                            <code>Hola, estoy interesado en el KIA SOLUTO 2026 con Placa EQ6317. Link: …</code>
+                                        </small>
                                     </div>
 
                                     <!-- Phone Number Display -->

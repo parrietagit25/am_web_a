@@ -452,6 +452,7 @@ class ContentService {
             'global' => [
                 'whatsapp_number' => '5072792700',
                 'whatsapp_label' => '¿En qué podemos ayudarte?',
+                'whatsapp_vehicle_prefix' => 'Hola, estoy interesado en el',
                 'phone_display' => '(507) 279-2700',
                 'toll_free' => '1-866-700-9904',
                 'email' => 'info@automarket.com.pa',

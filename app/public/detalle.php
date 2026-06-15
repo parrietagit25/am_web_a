@@ -228,9 +228,20 @@ $spinUrl = "https://spins.impel.io/automarketpanama/" . urlencode($spinPlaca);
 
                 <!-- CTA Actions -->
                 <div class="d-flex flex-column gap-2 mt-4">
-                    <?php 
-                    $wpText = urlencode("Hola, estoy interesado en el " . $fullName . " " . $vehicle['Year'] . " con Placa " . $vehicle['LicensePlate'] . ". Link: " . (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
-                    $wpLink = "https://wa.me/50767313059?text=" . $wpText;
+                    <?php
+                    $wpPrefix = trim($siteGlobal['whatsapp_vehicle_prefix'] ?? 'Hola, estoy interesado en el');
+                    if ($wpPrefix === '') {
+                        $wpPrefix = 'Hola, estoy interesado en el';
+                    }
+                    $pageUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+                        . '://' . ($_SERVER['HTTP_HOST'] ?? 'automarket.com.pa')
+                        . ($_SERVER['REQUEST_URI'] ?? '');
+                    $wpMessage = $wpPrefix . ' '
+                        . trim($fullName . ' ' . ($vehicle['Year'] ?? ''))
+                        . ' con Placa ' . ($vehicle['LicensePlate'] ?? '')
+                        . '. Link: ' . $pageUrl;
+                    $wpNumber = preg_replace('/\D/', '', $siteGlobal['whatsapp_number'] ?? '5072792700');
+                    $wpLink = 'https://wa.me/' . $wpNumber . '?text=' . rawurlencode(trim($wpMessage));
                     ?>
                     <a href="<?php echo $wpLink; ?>" target="_blank" class="btn btn-cta-red w-100 text-center text-uppercase">
                         CONTACTAR A UN AGENTE
