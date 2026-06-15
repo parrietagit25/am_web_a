@@ -30,12 +30,19 @@ $landingBase = $scheme . '://' . $host . '/l/';
                     <textarea id="landing_excerpt" name="landing_excerpt" rows="2" class="form-control form-control-premium"></textarea>
                 </div>
                 <div class="col-12">
-                    <label class="form-label">Contenido HTML</label>
-                    <textarea id="landing_content_html" name="landing_content_html" rows="16" class="form-control form-control-premium js-summernote-landing font-monospace" placeholder="<section>...</section>"></textarea>
+                    <label class="form-label d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <span>Contenido HTML</span>
+                        <span class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="landingInsertTemplateBtn">Insertar plantilla</button>
+                            <a href="#" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary d-none" id="landingPreviewLink">Vista previa</a>
+                        </span>
+                    </label>
+                    <textarea id="landing_content_html" name="landing_content_html" rows="20" class="form-control form-control-premium font-monospace js-landing-html-editor" style="font-size:13px;line-height:1.45;" placeholder="<section class=&quot;landing-hero&quot;>...</section>"></textarea>
                     <div class="form-text">
-                        Acepta etiquetas HTML: <code>&lt;section&gt;</code>, <code>&lt;div&gt;</code>, <code>&lt;style&gt;</code>, imágenes, etc.
-                        Use el botón <strong>&lt;/&gt; Código</strong> del editor para pegar HTML completo o un documento con <code>&lt;html&gt;</code>.
-                        Los campos título/resumen/imagen de abajo solo sirven para <strong>SEO</strong> (meta tags), no se muestran como marco del sitio.
+                        Editor HTML directo (sin WYSIWYG) para no perder etiquetas ni estilos. La página carga
+                        <code>/assets/css/landing-base.css</code> automáticamente. Use clases como
+                        <code>landing-hero</code>, <code>landing-features</code>, <code>landing-feature</code> y <code>btn-landing</code>.
+                        Los campos título/resumen/imagen de abajo solo sirven para <strong>SEO</strong> (meta tags).
                     </div>
                 </div>
                 <div class="col-md-6">

@@ -6669,10 +6669,10 @@ function initEditLanding(landing) {
     document.getElementById('landing_og_image').value = seo.og_image || '';
 
     if (window.jQuery && jQuery('#landing_content_html').next('.note-editor').length) {
-        jQuery('#landing_content_html').summernote('code', landing.content_html || '');
-    } else {
-        document.getElementById('landing_content_html').value = landing.content_html || '';
+        jQuery('#landing_content_html').summernote('destroy');
     }
+    document.getElementById('landing_content_html').value = landing.content_html || '';
+    updateLandingPreviewLink(landing.slug || '');
 
     document.getElementById('landingImageHelp').innerHTML = (landing.image_url ? ('Imagen actual: <code>' + landing.image_url + '</code>') : 'Opcional. Puedes subir imagen o usar URL.');
     document.getElementById('landingCancelBtn').classList.remove('d-none');
@@ -6689,10 +6689,10 @@ function resetLandingForm() {
     document.getElementById('landing_sort_order').value = 99;
     document.getElementById('landingImageHelp').innerHTML = 'Opcional. Puedes subir imagen o usar URL.';
     if (window.jQuery && jQuery('#landing_content_html').next('.note-editor').length) {
-        jQuery('#landing_content_html').summernote('code', '');
-    } else {
-        document.getElementById('landing_content_html').value = '';
+        jQuery('#landing_content_html').summernote('destroy');
     }
+    document.getElementById('landing_content_html').value = '';
+    updateLandingPreviewLink('');
     document.getElementById('landingCancelBtn').classList.add('d-none');
     document.getElementById('landingSubmitBtn').className = 'btn btn-premium d-inline-flex align-items-center gap-2';
     document.getElementById('landingSubmitText').innerText = 'Crear landing';
@@ -6853,26 +6853,61 @@ document.addEventListener('DOMContentLoaded', function () {
                 ['view', ['codeview']]
             ]
         });
-        jQuery('.js-summernote-landing').summernote({
-            height: 420,
-            placeholder: 'Pega aquí tu HTML (secciones, estilos, imágenes)...',
-            toolbar: [
-                ['view', ['codeview', 'fullscreen']],
-                ['style', ['bold', 'italic', 'underline', 'clear']],
-                ['font', ['fontsize', 'color']],
-                ['para', ['ul', 'ol', 'paragraph']],
-                ['insert', ['link', 'picture', 'table', 'hr']],
-                ['misc', ['undo', 'redo']]
-            ]
-        });
-        const landingForm = document.getElementById('landingForm');
-        if (landingForm) {
-            landingForm.addEventListener('submit', function () {
-                if (jQuery('#landing_content_html').next('.note-editor').length) {
-                    jQuery('#landing_content_html').val(jQuery('#landing_content_html').summernote('code'));
-                }
-            });
+    }
+
+    const landingHtmlTemplate = `<section class="landing-hero">
+  <h1>Compra inteligente</h1>
+  <p>Opciones para ciudad, familia y trabajo.</p>
+</section>
+<section class="landing-features">
+  <div class="landing-feature">
+    <h3>Desde $14,900</h3>
+    <p>Vehículos económicos y confiables para tu día a día.</p>
+  </div>
+  <div class="landing-feature">
+    <h3>Financiamiento rápido</h3>
+    <p>Te ayudamos con la preaprobación bancaria.</p>
+  </div>
+  <div class="landing-feature">
+    <h3>Garantía incluida</h3>
+    <p>Vehículos inspeccionados antes de la entrega.</p>
+  </div>
+</section>
+<div class="landing-cta-wrap">
+  <a href="/contactos.php" class="btn-landing">Cotiza ahora</a>
+</div>`;
+
+    function updateLandingPreviewLink(slug) {
+        const link = document.getElementById('landingPreviewLink');
+        if (!link) return;
+        const clean = (slug || '').trim();
+        if (!clean) {
+            link.classList.add('d-none');
+            link.removeAttribute('href');
+            return;
         }
+        link.href = '/l/' + encodeURIComponent(clean);
+        link.classList.remove('d-none');
+    }
+
+    const landingSlugInput = document.getElementById('landing_slug');
+    if (landingSlugInput) {
+        landingSlugInput.addEventListener('input', function () {
+            updateLandingPreviewLink(this.value);
+        });
+    }
+
+    const landingTemplateBtn = document.getElementById('landingInsertTemplateBtn');
+    if (landingTemplateBtn) {
+        landingTemplateBtn.addEventListener('click', function () {
+            const field = document.getElementById('landing_content_html');
+            if (!field) return;
+            if (field.value.trim() !== '' && !confirm('¿Reemplazar el HTML actual con la plantilla?')) {
+                return;
+            }
+            field.value = landingHtmlTemplate;
+            field.focus();
+        });
     }
 
     const urlParams = new URLSearchParams(window.location.search);

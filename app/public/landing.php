@@ -85,9 +85,14 @@ $ogImage = trim($seo['og_image'] ?? '') ?: trim($landing['image_url'] ?? '');
 
 $rawContent = $landing['content_html'] ?? '';
 $bodyHtml = renderLandingBodyContent($rawContent);
+[$bodyHtml, $embeddedStyles] = extractLandingEmbeddedStyles($bodyHtml);
 
 if (isLandingFullDocument($rawContent)) {
     $doc = sanitizeLandingHtml(normalizeLandingRawContent($rawContent));
+    if (stripos($doc, 'landing-base.css') === false && stripos($doc, '</head>') !== false) {
+        $baseCss = '<link rel="stylesheet" href="/assets/css/landing-base.css?v=1">';
+        $doc = preg_replace('/<\/head>/i', $baseCss . "\n</head>", $doc, 1);
+    }
     $headHtml = trim($trackingCodes['head_html'] ?? '');
     if ($headHtml !== '' && stripos($doc, '</head>') !== false) {
         $doc = preg_replace('/<\/head>/i', $headHtml . "\n</head>", $doc, 1);
@@ -129,16 +134,22 @@ if (isLandingFullDocument($rawContent)) {
     <?php endif; ?>
     <meta property="og:url" content="<?php echo esc($canonical); ?>">
     <?php landing_output_tracking($trackingCodes['head_html'] ?? '', 'head'); ?>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/landing-base.css?v=2">
+    <?php if ($embeddedStyles !== ''): echo $embeddedStyles; endif; ?>
     <style>
         *, *::before, *::after { box-sizing: border-box; }
-        body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #1a1a1a; line-height: 1.6; }
+        body { margin: 0; background: #f4f6f9; }
         img { max-width: 100%; height: auto; }
-        a { color: inherit; }
     </style>
 </head>
 <body>
 <?php landing_output_tracking($trackingCodes['body_start_html'] ?? '', 'body_start'); ?>
+<main class="landing-page">
 <?php echo $bodyHtml; ?>
+</main>
 <?php landing_output_tracking($trackingCodes['body_end_html'] ?? '', 'body_end'); ?>
 </body>
 </html>
