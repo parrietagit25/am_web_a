@@ -6844,7 +6844,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (window.jQuery && jQuery.fn && jQuery.fn.summernote) {
         jQuery('.js-summernote-mini').summernote({
             height: 240,
-            placeholder: 'Escribe el contenido de la landing...',
+            placeholder: 'Escribe el contenido...',
             toolbar: [
                 ['style', ['bold', 'italic', 'underline', 'clear']],
                 ['font', ['fontsize', 'color']],
@@ -6853,6 +6853,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 ['view', ['codeview']]
             ]
         });
+        jQuery('.js-summernote-landing').summernote({
+            height: 420,
+            placeholder: 'Pega aquí tu HTML (secciones, estilos, imágenes)...',
+            toolbar: [
+                ['view', ['codeview', 'fullscreen']],
+                ['style', ['bold', 'italic', 'underline', 'clear']],
+                ['font', ['fontsize', 'color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['insert', ['link', 'picture', 'table', 'hr']],
+                ['misc', ['undo', 'redo']]
+            ]
+        });
+        const landingForm = document.getElementById('landingForm');
+        if (landingForm) {
+            landingForm.addEventListener('submit', function () {
+                if (jQuery('#landing_content_html').next('.note-editor').length) {
+                    jQuery('#landing_content_html').val(jQuery('#landing_content_html').summernote('code'));
+                }
+            });
+        }
     }
 
     const urlParams = new URLSearchParams(window.location.search);

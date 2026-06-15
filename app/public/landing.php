@@ -1,104 +1,144 @@
 <?php
 /**
- * Landing page pública dinámica
+ * Landing page pública — documento independiente (sin menú ni pie del sitio).
+ * URL: /l/{slug}  o  /landing.php?slug={slug}
  */
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/ContentService.php';
+require_once __DIR__ . '/../includes/landing-render.php';
 
-$activeUnit = 'rentacar';
 $contentService = new ContentService();
-$siteData = $contentService->getAll();
+$siteGlobal = $contentService->get('global');
+$trackingCodes = $siteGlobal['tracking_codes'] ?? [];
+
 $slug = trim($_GET['slug'] ?? '');
-$landings = $siteData['landings'] ?? [];
+if ($slug === '' && !empty($_SERVER['PATH_INFO'])) {
+    $slug = trim($_SERVER['PATH_INFO'], '/');
+}
+
+$landings = $contentService->get('landings', []);
+if (!is_array($landings)) {
+    $landings = [];
+}
 
 $landing = null;
 foreach ($landings as $item) {
-    if (($item['slug'] ?? '') === $slug && (($item['active'] ?? false) === true || ($item['active'] ?? false) === 1 || ($item['active'] ?? false) === '1')) {
+    if (!is_array($item) || ($item['slug'] ?? '') !== $slug) {
+        continue;
+    }
+    $active = $item['active'] ?? false;
+    if ($active === true || $active === 1 || $active === '1') {
         $landing = $item;
         break;
     }
 }
 
-if (!$landing) {
+function landing_output_tracking(?string $html, string $position): void {
+    $html = trim($html ?? '');
+    if ($html !== '') {
+        echo $html;
+    }
+}
+
+function landing_render_404(): void {
     http_response_code(404);
-    $seoOverride = [
-        'title' => 'Landing no encontrada | Automarket',
-        'description' => 'La landing solicitada no existe o no está activa.',
-        'robots' => 'noindex,nofollow',
-    ];
-    require_once __DIR__ . '/../includes/header.php';
     ?>
-    <section class="container py-5 my-5">
-        <div class="text-center">
-            <h1 class="fw-bold mb-3">Landing no encontrada</h1>
-            <p class="text-muted">La página no existe o está inactiva.</p>
-            <a href="/rent-a-car.php" class="btn btn-theme rounded-pill px-4">Volver al inicio</a>
-        </div>
-    </section>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Página no encontrada</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f4f6f9; color: #1a2744; }
+        .box { text-align: center; padding: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>Página no encontrada</h1>
+        <p>La landing no existe o está inactiva.</p>
+    </div>
+</body>
+</html>
     <?php
-    require_once __DIR__ . '/../includes/footer.php';
     exit;
 }
 
-$seo = $landing['seo'] ?? [];
-$seoOverride = [
-    'title' => trim($seo['title'] ?? ''),
-    'description' => trim($seo['description'] ?? ($landing['excerpt'] ?? '')),
-    'keywords' => trim($seo['keywords'] ?? ''),
-    'robots' => trim($seo['robots'] ?? 'index,follow'),
-    'canonical' => trim($seo['canonical_url'] ?? ''),
-    'og_title' => trim($seo['og_title'] ?? ''),
-    'og_description' => trim($seo['og_description'] ?? ''),
-    'og_image' => trim($seo['og_image'] ?? ($landing['image_url'] ?? '')),
-];
-
-if ($seoOverride['canonical'] === '') {
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $seoOverride['canonical'] = $scheme . '://' . $host . '/landing.php?slug=' . urlencode($landing['slug'] ?? '');
+if (!$landing) {
+    landing_render_404();
 }
 
-require_once __DIR__ . '/../includes/header.php';
-?>
-
-<style>
-.landing-hero {
-    min-height: 300px;
-    background-size: cover;
-    background-position: center;
-    border-radius: 16px;
+$seo = is_array($landing['seo'] ?? null) ? $landing['seo'] : [];
+$pageTitle = trim($seo['title'] ?? '') ?: trim($landing['title'] ?? 'Landing');
+$description = trim($seo['description'] ?? '') ?: trim($landing['excerpt'] ?? '');
+$keywords = trim($seo['keywords'] ?? '');
+$robots = trim($seo['robots'] ?? 'index,follow');
+$canonical = trim($seo['canonical_url'] ?? '');
+if ($canonical === '') {
+    $canonical = landing_public_url($landing['slug'] ?? '');
 }
-.landing-content {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 16px;
-    padding: 28px;
+$ogTitle = trim($seo['og_title'] ?? '') ?: $pageTitle;
+$ogDescription = trim($seo['og_description'] ?? '') ?: $description;
+$ogImage = trim($seo['og_image'] ?? '') ?: trim($landing['image_url'] ?? '');
+
+$rawContent = $landing['content_html'] ?? '';
+$bodyHtml = renderLandingBodyContent($rawContent);
+
+if (isLandingFullDocument($rawContent)) {
+    $doc = sanitizeLandingHtml(normalizeLandingRawContent($rawContent));
+    $headHtml = trim($trackingCodes['head_html'] ?? '');
+    if ($headHtml !== '' && stripos($doc, '</head>') !== false) {
+        $doc = preg_replace('/<\/head>/i', $headHtml . "\n</head>", $doc, 1);
+    }
+    $bodyStart = trim($trackingCodes['body_start_html'] ?? '');
+    if ($bodyStart !== '' && preg_match('/<body[^>]*>/i', $doc, $m, PREG_OFFSET_CAPTURE)) {
+        $pos = $m[0][1] + strlen($m[0][0]);
+        $doc = substr($doc, 0, $pos) . $bodyStart . substr($doc, $pos);
+    }
+    $bodyEnd = trim($trackingCodes['body_end_html'] ?? '');
+    if ($bodyEnd !== '' && stripos($doc, '</body>') !== false) {
+        $doc = preg_replace('/<\/body>/i', $bodyEnd . "\n</body>", $doc, 1);
+    }
+    echo $doc;
+    exit;
 }
-</style>
 
-<section class="container py-5">
-    <?php if (!empty($landing['image_url'] ?? '')): ?>
-        <div class="landing-hero mb-4 d-flex align-items-end p-4 text-white" style="background-image: linear-gradient(180deg, rgba(10,20,35,.2), rgba(10,20,35,.65)), url('<?php echo esc($landing['image_url']); ?>');">
-            <h1 class="fw-bold mb-0"><?php echo esc($landing['title'] ?? 'Landing'); ?></h1>
-        </div>
-    <?php else: ?>
-        <h1 class="fw-bold mb-4"><?php echo esc($landing['title'] ?? 'Landing'); ?></h1>
+?><!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo esc($pageTitle); ?></title>
+    <?php if ($description !== ''): ?>
+    <meta name="description" content="<?php echo esc($description); ?>">
     <?php endif; ?>
-
-    <?php if (!empty($landing['excerpt'] ?? '')): ?>
-        <p class="lead text-muted mb-4"><?php echo esc($landing['excerpt']); ?></p>
+    <?php if ($keywords !== ''): ?>
+    <meta name="keywords" content="<?php echo esc($keywords); ?>">
     <?php endif; ?>
-
-    <div class="landing-content mb-4">
-        <?php echo $landing['content_html'] ?? ''; ?>
-    </div>
-
-    <?php if (!empty($landing['cta_text'] ?? '') && !empty($landing['cta_url'] ?? '')): ?>
-        <div class="text-center">
-            <a href="<?php echo esc($landing['cta_url']); ?>" class="btn btn-theme btn-lg rounded-pill px-5"><?php echo esc($landing['cta_text']); ?></a>
-        </div>
+    <meta name="robots" content="<?php echo esc($robots); ?>">
+    <link rel="canonical" href="<?php echo esc($canonical); ?>">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="<?php echo esc($ogTitle); ?>">
+    <?php if ($ogDescription !== ''): ?>
+    <meta property="og:description" content="<?php echo esc($ogDescription); ?>">
     <?php endif; ?>
-</section>
-
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
-
+    <?php if ($ogImage !== ''): ?>
+    <meta property="og:image" content="<?php echo esc($ogImage); ?>">
+    <?php endif; ?>
+    <meta property="og:url" content="<?php echo esc($canonical); ?>">
+    <?php landing_output_tracking($trackingCodes['head_html'] ?? '', 'head'); ?>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #1a1a1a; line-height: 1.6; }
+        img { max-width: 100%; height: auto; }
+        a { color: inherit; }
+    </style>
+</head>
+<body>
+<?php landing_output_tracking($trackingCodes['body_start_html'] ?? '', 'body_start'); ?>
+<?php echo $bodyHtml; ?>
+<?php landing_output_tracking($trackingCodes['body_end_html'] ?? '', 'body_end'); ?>
+</body>
+</html>

@@ -1,13 +1,18 @@
 <?php
+require_once __DIR__ . '/landing-render.php';
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-$landingBase = $scheme . '://' . $host . '/landing.php?slug=';
+$landingBase = $scheme . '://' . $host . '/l/';
 ?>
 <div class="tab-pane fade" id="tab-landings" role="tabpanel" aria-labelledby="tab-landings-nav">
     <div class="admin-card">
-        <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+        <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
             <i class="bi bi-bullseye me-2 text-danger"></i>Crear / Editar Landing Page
         </h5>
+        <p class="text-muted small mb-4">
+            Cada landing es una <strong>página independiente</strong> (sin menú ni pie del sitio). URL pública:
+            <code><?php echo esc($landingBase); ?>mi-campana</code>
+        </p>
         <form id="landingForm" method="POST" action="?tab=landings" enctype="multipart/form-data">
             <input type="hidden" id="landingFormAction" name="action" value="add_landing_page">
             <input type="hidden" id="landingId" name="landing_id" value="">
@@ -25,8 +30,13 @@ $landingBase = $scheme . '://' . $host . '/landing.php?slug=';
                     <textarea id="landing_excerpt" name="landing_excerpt" rows="2" class="form-control form-control-premium"></textarea>
                 </div>
                 <div class="col-12">
-                    <label class="form-label">Contenido (Editor)</label>
-                    <textarea id="landing_content_html" name="landing_content_html" rows="10" class="form-control form-control-premium js-summernote-mini"></textarea>
+                    <label class="form-label">Contenido HTML</label>
+                    <textarea id="landing_content_html" name="landing_content_html" rows="16" class="form-control form-control-premium js-summernote-landing font-monospace" placeholder="<section>...</section>"></textarea>
+                    <div class="form-text">
+                        Acepta etiquetas HTML: <code>&lt;section&gt;</code>, <code>&lt;div&gt;</code>, <code>&lt;style&gt;</code>, imágenes, etc.
+                        Use el botón <strong>&lt;/&gt; Código</strong> del editor para pegar HTML completo o un documento con <code>&lt;html&gt;</code>.
+                        Los campos título/resumen/imagen de abajo solo sirven para <strong>SEO</strong> (meta tags), no se muestran como marco del sitio.
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Imagen destacada (archivo)</label>
@@ -129,8 +139,11 @@ $landingBase = $scheme . '://' . $host . '/landing.php?slug=';
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <?php $publicUrl = $landingBase . urlencode($landing['slug'] ?? ''); ?>
-                                <a href="<?php echo esc($publicUrl); ?>" target="_blank" class="small"><?php echo esc($publicUrl); ?></a>
+                                <?php
+                                $slug = $landing['slug'] ?? '';
+                                $publicUrl = landing_public_url($slug);
+                                ?>
+                                <a href="<?php echo esc($publicUrl); ?>" target="_blank" rel="noopener" class="small"><?php echo esc($publicUrl); ?></a>
                             </td>
                             <td>
                                 <?php if (($landing['active'] ?? false) === true): ?>
