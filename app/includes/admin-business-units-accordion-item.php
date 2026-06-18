@@ -36,23 +36,23 @@ $collapseId = 'collapse-' . preg_replace('/[^a-z0-9_-]/i', '-', $key);
                 </div>
                 <div class="col-md-8">
                     <label class="form-label">Página principal (slug / URL)</label>
-                    <input type="text" name="business_units[<?php echo esc($key); ?>][slug]" class="form-control form-control-premium bg-white bu-unit-slug-input" value="<?php echo esc($unit['slug'] ?? ''); ?>" required>
+                    <input type="text" name="business_units[<?php echo esc($key); ?>][slug]" class="form-control form-control-premium bg-white bu-unit-slug-input" value="<?php echo esc($unit['slug'] ?? ''); ?>">
                     <div class="form-text">Por defecto: <code>unidad.php?u=<?php echo esc($key); ?></code></div>
                 </div>
                 <?php endif; ?>
 
                 <div class="col-md-4">
                     <label class="form-label">Etiqueta de Menú Superior</label>
-                    <input type="text" name="business_units[<?php echo esc($key); ?>][label]" class="form-control form-control-premium bg-white bu-unit-label-input" value="<?php echo esc($unit['label']); ?>" required>
+                    <input type="text" name="business_units[<?php echo esc($key); ?>][label]" class="form-control form-control-premium bg-white bu-unit-label-input" value="<?php echo esc($unit['label']); ?>">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Sub-título del Logo (Header)</label>
-                    <input type="text" name="business_units[<?php echo esc($key); ?>][logo_subtitle]" class="form-control form-control-premium bg-white" value="<?php echo esc($unit['logo_subtitle']); ?>" required>
+                    <input type="text" name="business_units[<?php echo esc($key); ?>][logo_subtitle]" class="form-control form-control-premium bg-white" value="<?php echo esc($unit['logo_subtitle']); ?>">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Color de Tema (Hexadecimal)</label>
                     <div class="d-flex gap-2">
-                        <input type="color" name="business_units[<?php echo esc($key); ?>][color]" class="form-control form-control-color bu-unit-color-input" value="<?php echo esc($unit['color']); ?>" required style="height: 43px; width: 60px;">
+                        <input type="color" name="business_units[<?php echo esc($key); ?>][color]" class="form-control form-control-color bu-unit-color-input" value="<?php echo esc($unit['color']); ?>" style="height: 43px; width: 60px;">
                         <input type="text" class="form-control form-control-premium bg-white flex-grow-1 bu-unit-color-text" value="<?php echo esc($unit['color']); ?>" readonly>
                     </div>
                 </div>

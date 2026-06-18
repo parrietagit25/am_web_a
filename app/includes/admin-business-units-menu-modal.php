@@ -18,7 +18,7 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label for="buMenuModalLabelInput" class="form-label">Texto del enlace</label>
-                        <input type="text" id="buMenuModalLabelInput" class="form-control form-control-premium" placeholder="Ej: ALQUILERES" required>
+                        <input type="text" id="buMenuModalLabelInput" class="form-control form-control-premium" placeholder="Ej: ALQUILERES">
                     </div>
                     <div class="col-md-6">
                         <label for="buMenuModalLinkInput" class="form-label">URL o ancla</label>
@@ -369,6 +369,9 @@
     const globalForm = document.querySelector('#tab-global form');
     if (globalForm) {
         globalForm.addEventListener('submit', function () {
+            document.querySelectorAll('#buUnitModal input, #buMenuItemModal input').forEach(function (el) {
+                el.disabled = true;
+            });
             syncAllHiddenFields();
         });
     }

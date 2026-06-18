@@ -17,11 +17,11 @@ require_once __DIR__ . '/business-units-registry.php';
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label for="buUnitModalLabelInput" class="form-label">Etiqueta del menú superior</label>
-                        <input type="text" id="buUnitModalLabelInput" class="form-control form-control-premium" placeholder="Ej: FUNDACIÓN" required>
+                        <input type="text" id="buUnitModalLabelInput" class="form-control form-control-premium" placeholder="Ej: FUNDACIÓN">
                     </div>
                     <div class="col-md-6">
                         <label for="buUnitModalKey" class="form-label">Clave interna</label>
-                        <input type="text" id="buUnitModalKey" class="form-control form-control-premium font-monospace" placeholder="fundacion" pattern="[a-z][a-z0-9_]*">
+                        <input type="text" id="buUnitModalKey" class="form-control form-control-premium font-monospace" placeholder="fundacion">
                         <div class="form-text">Solo minúsculas, números y guión bajo. Se genera automáticamente.</div>
                     </div>
                     <div class="col-md-6">
@@ -166,10 +166,10 @@ require_once __DIR__ . '/business-units-registry.php';
             + '    <div class="accordion-body bg-light-gray p-4"><div class="row g-3">'
             + '      <input type="hidden" name="business_units[' + escHtml(key) + '][is_custom]" value="1">'
             + '      <div class="col-md-4"><label class="form-label">Clave interna</label><input type="text" class="form-control form-control-premium bg-white" value="' + escHtml(key) + '" readonly></div>'
-            + '      <div class="col-md-8"><label class="form-label">Página principal (slug / URL)</label><input type="text" name="business_units[' + escHtml(key) + '][slug]" class="form-control form-control-premium bg-white bu-unit-slug-input" value="' + escHtml(slug) + '" required></div>'
-            + '      <div class="col-md-4"><label class="form-label">Etiqueta de Menú Superior</label><input type="text" name="business_units[' + escHtml(key) + '][label]" class="form-control form-control-premium bg-white bu-unit-label-input" value="' + escHtml(label) + '" required></div>'
-            + '      <div class="col-md-4"><label class="form-label">Sub-título del Logo (Header)</label><input type="text" name="business_units[' + escHtml(key) + '][logo_subtitle]" class="form-control form-control-premium bg-white" value="' + escHtml(logoSubtitle) + '" required></div>'
-            + '      <div class="col-md-4"><label class="form-label">Color de Tema</label><div class="d-flex gap-2"><input type="color" name="business_units[' + escHtml(key) + '][color]" class="form-control form-control-color bu-unit-color-input" value="' + escHtml(color) + '" required style="height:43px;width:60px;"><input type="text" class="form-control form-control-premium bg-white flex-grow-1 bu-unit-color-text" value="' + escHtml(color) + '" readonly></div></div>'
+            + '      <div class="col-md-8"><label class="form-label">Página principal (slug / URL)</label><input type="text" name="business_units[' + escHtml(key) + '][slug]" class="form-control form-control-premium bg-white bu-unit-slug-input" value="' + escHtml(slug) + '"></div>'
+            + '      <div class="col-md-4"><label class="form-label">Etiqueta de Menú Superior</label><input type="text" name="business_units[' + escHtml(key) + '][label]" class="form-control form-control-premium bg-white bu-unit-label-input" value="' + escHtml(label) + '"></div>'
+            + '      <div class="col-md-4"><label class="form-label">Sub-título del Logo (Header)</label><input type="text" name="business_units[' + escHtml(key) + '][logo_subtitle]" class="form-control form-control-premium bg-white" value="' + escHtml(logoSubtitle) + '"></div>'
+            + '      <div class="col-md-4"><label class="form-label">Color de Tema</label><div class="d-flex gap-2"><input type="color" name="business_units[' + escHtml(key) + '][color]" class="form-control form-control-color bu-unit-color-input" value="' + escHtml(color) + '" style="height:43px;width:60px;"><input type="text" class="form-control form-control-premium bg-white flex-grow-1 bu-unit-color-text" value="' + escHtml(color) + '" readonly></div></div>'
             + '      <div class="col-md-6"><label class="form-label">Título Hero Principal</label><input type="text" name="business_units[' + escHtml(key) + '][heroTitle]" class="form-control form-control-premium bg-white" value="' + escHtml(heroTitle) + '"></div>'
             + '      <div class="col-md-6"><label class="form-label">Subtítulo Hero Principal</label><input type="text" name="business_units[' + escHtml(key) + '][heroSubtitle]" class="form-control form-control-premium bg-white" value="' + escHtml(heroSubtitle) + '"></div>'
             + '      <div class="col-12 mt-4"><div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3"><h6 class="fw-bold mb-0 text-navy-light"><i class="bi bi-link-45deg me-1"></i>Enlaces del Menú Secundario</h6><button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 bu-menu-add-btn" data-unit="' + escHtml(key) + '"><i class="bi bi-plus-lg me-1"></i>Agregar enlace</button></div><p class="text-muted small mb-2">Arrastra para cambiar el orden. Usa editar para agregar submenús.</p><div class="bu-menu-sortable list-group mb-2" data-unit="' + escHtml(key) + '"></div><div class="bu-menu-fields" data-unit="' + escHtml(key) + '" aria-hidden="true"></div></div>'
@@ -289,7 +289,12 @@ require_once __DIR__ . '/business-units-registry.php';
     accordion?.querySelectorAll('.bu-unit-item').forEach(bindUnitPanel);
 
     const globalForm = document.querySelector('#tab-global form');
-    globalForm?.addEventListener('submit', syncOrderFromDom);
+    globalForm?.addEventListener('submit', function () {
+        document.querySelectorAll('#buUnitModal input, #buMenuItemModal input').forEach(function (el) {
+            el.disabled = true;
+        });
+        syncOrderFromDom();
+    });
 
     document.addEventListener('DOMContentLoaded', function () {
         initUnitSortable();
