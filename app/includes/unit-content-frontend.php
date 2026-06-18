@@ -33,6 +33,15 @@ function unit_content_unit_label(ContentService $contentService, string $unitKey
     return UnitContentService::unitLabel($siteData, $unitKey);
 }
 
+/** @return array{banner: string, kicker: string, title: string, subtitle: string, align: string} */
+function unit_content_get_page_header(ContentService $contentService, string $unitKey, string $type): array
+{
+    $siteData = $contentService->getAll();
+    UnitContentService::ensureMigrated($siteData, $unitKey);
+
+    return UnitContentService::getPageHeader($siteData, $unitKey, $type);
+}
+
 /** @param array<string, mixed> $item */
 function unit_content_to_card(array $item): array
 {

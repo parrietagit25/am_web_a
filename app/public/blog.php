@@ -15,9 +15,6 @@ $unitLabel = unit_content_unit_label($contentService, $unitKey);
 $unitHome = unit_content_unit_home_url($contentService, $unitKey);
 $items = unit_content_get_items($contentService, $unitKey, 'blog');
 
-$ucLayoutClass = 'hubspot';
-$ucPageTitle = 'Blog';
-$ucPageSubtitle = 'Artículos, guías y contenido permanente para inspirarte.';
 $ucActiveType = 'blog';
 require __DIR__ . '/../includes/unit-content-page-shell.php';
 require __DIR__ . '/../includes/unit-content-list-blog.php';

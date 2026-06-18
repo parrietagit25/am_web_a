@@ -15,9 +15,6 @@ $unitLabel = unit_content_unit_label($contentService, $unitKey);
 $unitHome = unit_content_unit_home_url($contentService, $unitKey);
 $items = unit_content_get_items($contentService, $unitKey, 'latest');
 
-$ucLayoutClass = 'expedia';
-$ucPageTitle = 'Contenido más reciente';
-$ucPageSubtitle = 'Promociones, eventos e información destacada de ' . $unitLabel . '.';
 $ucActiveType = 'latest';
 require __DIR__ . '/../includes/unit-content-page-shell.php';
 require __DIR__ . '/../includes/unit-content-list-latest.php';

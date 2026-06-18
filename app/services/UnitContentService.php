@@ -451,6 +451,98 @@ class UnitContentService
         return $item;
     }
 
+    /** @return array<string, array{banner: string, kicker: string, title: string, subtitle: string, align: string}> */
+    public static function defaultPageHeaders(string $unitLabel = ''): array
+    {
+        $label = trim($unitLabel) !== '' ? trim($unitLabel) : 'Automarket';
+
+        return [
+            'news' => [
+                'banner' => '',
+                'kicker' => 'Actualidad',
+                'title' => 'Noticias',
+                'subtitle' => 'Comunicados, novedades y actualidad de ' . $label . '.',
+                'align' => 'left',
+            ],
+            'blog' => [
+                'banner' => '',
+                'kicker' => 'Recursos',
+                'title' => 'Blog',
+                'subtitle' => 'Artículos, guías y contenido permanente.',
+                'align' => 'center',
+            ],
+            'latest' => [
+                'banner' => '',
+                'kicker' => 'Destacados',
+                'title' => 'Contenido más reciente',
+                'subtitle' => 'Promociones, eventos e información destacada de ' . $label . '.',
+                'align' => 'center',
+            ],
+        ];
+    }
+
+    /** @param array<string, mixed> $row */
+    public static function normalizePageHeader(array $row, string $type): array
+    {
+        if (!self::isValidType($type)) {
+            $type = 'news';
+        }
+
+        $defaults = self::defaultPageHeaders()[$type];
+        $align = trim((string) ($row['align'] ?? $defaults['align']));
+        if (!in_array($align, ['left', 'center', 'right'], true)) {
+            $align = $defaults['align'];
+        }
+
+        $title = trim((string) ($row['title'] ?? ''));
+        if ($title === '') {
+            $title = $defaults['title'];
+        }
+
+        return [
+            'banner' => trim((string) ($row['banner'] ?? '')),
+            'kicker' => trim((string) ($row['kicker'] ?? $defaults['kicker'])),
+            'title' => $title,
+            'subtitle' => trim((string) ($row['subtitle'] ?? '')),
+            'align' => $align,
+        ];
+    }
+
+    /** @param array<string, mixed> $headers */
+    public static function normalizePageHeaders(array $headers, ?string $unitLabel = null): array
+    {
+        $defaults = self::defaultPageHeaders($unitLabel ?? '');
+        $normalized = [];
+
+        foreach (self::TYPES as $type) {
+            $row = is_array($headers[$type] ?? null) ? $headers[$type] : [];
+            $normalized[$type] = self::normalizePageHeader(array_merge($defaults[$type], $row), $type);
+            if ($normalized[$type]['subtitle'] === '' && $unitLabel !== null) {
+                $normalized[$type]['subtitle'] = $defaults[$type]['subtitle'];
+            }
+        }
+
+        return $normalized;
+    }
+
+    /** @param array<string, mixed> $siteData @return array{banner: string, kicker: string, title: string, subtitle: string, align: string} */
+    public static function getPageHeader(array $siteData, string $unitKey, string $type): array
+    {
+        if (!self::isValidType($type)) {
+            $type = 'news';
+        }
+
+        $unitLabel = self::unitLabel($siteData, $unitKey);
+        $settings = self::getContentNode($siteData, $unitKey)['settings'] ?? [];
+        $headers = self::normalizePageHeaders($settings['page_headers'] ?? [], $unitLabel);
+        $header = $headers[$type];
+        if ($header['subtitle'] === '') {
+            $header['subtitle'] = self::defaultPageHeaders($unitLabel)[$type]['subtitle'];
+        }
+
+        return $header;
+    }
+
     /** @param array<string, mixed> $settings @param array<string, mixed> $overrides */
     public static function normalizeSettings(array $settings, array $overrides = []): array
     {
@@ -467,6 +559,7 @@ class UnitContentService
             'home_rotation_interval_ms' => max(3000, intval($settings['home_rotation_interval_ms'] ?? 6000)),
             'latest_show_on_home' => !isset($settings['latest_show_on_home']) || filter_var($settings['latest_show_on_home'], FILTER_VALIDATE_BOOLEAN),
             'latest_home_limit' => max(1, min(12, intval($settings['latest_home_limit'] ?? 4))),
+            'page_headers' => self::normalizePageHeaders($settings['page_headers'] ?? []),
         ];
 
         foreach ($overrides as $key => $value) {

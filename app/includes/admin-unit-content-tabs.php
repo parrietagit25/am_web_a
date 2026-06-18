@@ -11,6 +11,7 @@ $ucHomePath = UnitContentService::unitHomePath($siteData, $ucUnitKey);
 $ucDomUnit = preg_replace('/[^a-z0-9_-]/i', '-', $ucUnitKey);
 $ucContent = UnitContentService::getContentNode($siteData, $ucUnitKey);
 $ucSettings = $ucContent['settings'] ?? [];
+$ucPageHeaders = UnitContentService::normalizePageHeaders($ucSettings['page_headers'] ?? [], $ucUnitLabel);
 $ucTaxonomy = $ucContent['taxonomy'] ?? ['categories' => [], 'tags' => [], 'topics' => []];
 $ucPickerItems = UnitContentService::getAllPublishedForPicker($siteData, $ucUnitKey);
 $ucRotation = $ucSettings['home_rotation'] ?? [];
@@ -33,9 +34,57 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
     </div>
 
     <div class="admin-card">
-        <form method="POST" action="?tab=<?php echo esc($ucConfigTab); ?>">
+        <form method="POST" action="?tab=<?php echo esc($ucConfigTab); ?>" enctype="multipart/form-data">
             <input type="hidden" name="action" value="save_unit_content_settings">
             <input type="hidden" name="content_unit" value="<?php echo esc($ucUnitKey); ?>">
+
+            <h6 class="fw-bold text-navy mb-3 font-montserrat border-bottom pb-2">
+                <i class="bi bi-image me-2 text-danger"></i>Cabeceras — Noticias, Blog y Cont. Reciente
+            </h6>
+            <p class="text-muted small mb-4">
+                Imagen de fondo, textos y alineación del banner superior en <code>noticias.php</code>, <code>blog.php</code> y <code>contenido-reciente.php</code> de esta unidad.
+            </p>
+
+            <?php
+            $ucPageHeaderLabels = ['news' => 'Noticias', 'blog' => 'Blog', 'latest' => 'Cont. Reciente'];
+            foreach (UnitContentService::TYPES as $phType):
+                $ph = $ucPageHeaders[$phType] ?? [];
+                $phLabel = $ucPageHeaderLabels[$phType] ?? $phType;
+            ?>
+            <div class="border rounded-3 p-3 p-md-4 mb-3 bg-light">
+                <div class="fw-semibold mb-3 text-navy"><i class="bi bi-layout-text-window me-2"></i><?php echo esc($phLabel); ?></div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Imagen de cabecera</label>
+                        <input type="file" name="content_page_banner_<?php echo esc($phType); ?>" class="form-control form-control-premium" accept="image/*">
+                        <?php if (!empty($ph['banner'])): ?>
+                            <div class="small text-muted mt-2">Actual: <code><?php echo esc($ph['banner']); ?></code></div>
+                            <img src="<?php echo esc($ph['banner']); ?>" alt="" class="img-fluid rounded mt-2 border" style="max-height:120px;object-fit:cover;">
+                        <?php endif; ?>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Etiqueta superior (kicker)</label>
+                        <input type="text" name="content_page_kicker_<?php echo esc($phType); ?>" class="form-control form-control-premium" value="<?php echo esc($ph['kicker'] ?? ''); ?>" placeholder="Ej: Actualidad">
+                        <label class="form-label mt-3">Título principal</label>
+                        <input type="text" name="content_page_title_<?php echo esc($phType); ?>" class="form-control form-control-premium" value="<?php echo esc($ph['title'] ?? ''); ?>" placeholder="<?php echo esc($phLabel); ?>">
+                        <label class="form-label mt-3">Subtítulo / descripción</label>
+                        <textarea name="content_page_subtitle_<?php echo esc($phType); ?>" class="form-control form-control-premium" rows="2" placeholder="Texto bajo el título"><?php echo esc($ph['subtitle'] ?? ''); ?></textarea>
+                        <label class="form-label mt-3">Alineación del texto</label>
+                        <select name="content_page_align_<?php echo esc($phType); ?>" class="form-select form-control-premium">
+                            <option value="left" <?php echo ($ph['align'] ?? '') === 'left' ? 'selected' : ''; ?>>Izquierda</option>
+                            <option value="center" <?php echo ($ph['align'] ?? '') === 'center' ? 'selected' : ''; ?>>Centro</option>
+                            <option value="right" <?php echo ($ph['align'] ?? '') === 'right' ? 'selected' : ''; ?>>Derecha</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+
+            <hr class="my-4">
+
+            <h6 class="fw-bold text-navy mb-3 font-montserrat">
+                <i class="bi bi-house me-2 text-danger"></i>Bloques en la página principal
+            </h6>
 
             <div class="row g-3">
                 <div class="col-12">

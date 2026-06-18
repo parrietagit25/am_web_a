@@ -66,6 +66,44 @@ function unit_content_parse_item_from_post(string $type): array
     return $row;
 }
 
+/** @param array<string, array<string, mixed>> $pageHeaders */
+function unit_content_parse_page_headers_from_post(array $pageHeaders): array
+{
+    foreach (UnitContentService::TYPES as $type) {
+        if (!isset($pageHeaders[$type]) || !is_array($pageHeaders[$type])) {
+            $pageHeaders[$type] = [];
+        }
+
+        $pageHeaders[$type]['kicker'] = trim($_POST['content_page_kicker_' . $type] ?? ($pageHeaders[$type]['kicker'] ?? ''));
+        $pageHeaders[$type]['title'] = trim($_POST['content_page_title_' . $type] ?? ($pageHeaders[$type]['title'] ?? ''));
+        $pageHeaders[$type]['subtitle'] = trim($_POST['content_page_subtitle_' . $type] ?? '');
+
+        $align = trim($_POST['content_page_align_' . $type] ?? ($pageHeaders[$type]['align'] ?? 'left'));
+        if (!in_array($align, ['left', 'center', 'right'], true)) {
+            $align = 'left';
+        }
+        $pageHeaders[$type]['align'] = $align;
+    }
+
+    return UnitContentService::normalizePageHeaders($pageHeaders);
+}
+
+/** @param array<string, array<string, mixed>> $pageHeaders */
+function unit_content_apply_page_header_uploads(array &$pageHeaders, ContentService $contentService, string $unitKey): void
+{
+    foreach (UnitContentService::TYPES as $type) {
+        $field = 'content_page_banner_' . $type;
+        if (!isset($_FILES[$field]) || $_FILES[$field]['error'] !== UPLOAD_ERR_OK) {
+            continue;
+        }
+
+        $uploaded = $contentService->uploadImage($_FILES[$field], 'uc_banner_' . preg_replace('/[^a-z0-9_-]/i', '-', $unitKey) . '_' . $type . '_');
+        if ($uploaded) {
+            $pageHeaders[$type]['banner'] = $uploaded;
+        }
+    }
+}
+
 function unit_content_apply_uploads(array &$row, ContentService $contentService, ?array $existing = null): void
 {
     $existing = $existing ?? [];
@@ -142,6 +180,13 @@ function unit_content_handle_post(
                 }
             }
 
+            $existingHeaders = UnitContentService::normalizePageHeaders(
+                ($current['settings']['page_headers'] ?? []),
+                UnitContentService::unitLabel($siteData, $unitKey)
+            );
+            $pageHeaders = unit_content_parse_page_headers_from_post($existingHeaders);
+            unit_content_apply_page_header_uploads($pageHeaders, $contentService, $unitKey);
+
             $current['settings'] = UnitContentService::normalizeSettings($current['settings'] ?? [], [
                 'home_block_enabled' => isset($_POST['home_block_enabled']),
                 'home_display_mode' => $mode,
@@ -153,13 +198,14 @@ function unit_content_handle_post(
                 'home_rotation_interval_ms' => max(3000, intval($_POST['home_rotation_interval_ms'] ?? 6000)),
                 'latest_show_on_home' => isset($_POST['latest_show_on_home']),
                 'latest_home_limit' => max(1, min(12, intval($_POST['latest_home_limit'] ?? 4))),
+                'page_headers' => $pageHeaders,
             ]);
 
             UnitContentService::setContentNode($siteData, $unitKey, $current);
             unit_content_after_save($siteData, $unitKey);
 
             if ($contentService->saveAll($siteData)) {
-                $successMsg = 'Configuración de contenido en página principal guardada.';
+                $successMsg = 'Configuración de contenido guardada correctamente.';
             } else {
                 $errorMsg = 'Error al guardar la configuración de contenido.';
             }

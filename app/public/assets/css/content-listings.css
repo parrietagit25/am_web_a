@@ -1,54 +1,112 @@
 /* ==========================================================================
-   Content listing pages — Engadget (news) | HubSpot (blog) | Expedia (latest)
+   Content listing pages — configurable hero + styled list bodies
    ========================================================================== */
 
-/* --- Shared type nav pills --- */
-.uc-type-nav {
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    padding: 0.25rem;
-    background: rgba(255, 255, 255, 0.12);
-    border-radius: 999px;
-    backdrop-filter: blur(6px);
+/* --- Configurable page hero (admin: Contenido > Configuración) --- */
+.uc-page-hero {
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1f2e 100%);
+    min-height: 220px;
 }
 
-.uc-list-hero--hubspot .uc-type-nav {
-    background: #eef1f8;
+.uc-page-hero--has-image {
+    background: #0a0a0a;
 }
 
-.uc-type-nav__link {
-    display: inline-block;
-    padding: 0.45rem 1rem;
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 600;
+.uc-page-hero__bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    transform: scale(1.02);
+}
+
+.uc-page-hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(8, 16, 38, 0.88) 0%, rgba(0, 0, 0, 0.55) 55%, rgba(var(--theme-primary-rgb), 0.35) 100%);
+}
+
+.uc-page-hero--has-image .uc-page-hero__overlay {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.78) 0%, rgba(8, 16, 38, 0.62) 50%, rgba(0, 0, 0, 0.45) 100%);
+}
+
+.uc-page-hero__breadcrumb .breadcrumb-item a {
+    color: rgba(255, 255, 255, 0.75);
     text-decoration: none;
-    color: rgba(255, 255, 255, 0.85);
-    transition: background 0.2s, color 0.2s;
 }
 
-.uc-list-hero--hubspot .uc-type-nav__link {
-    color: #4a5568;
+.uc-page-hero__breadcrumb .breadcrumb-item.active {
+    color: rgba(255, 255, 255, 0.95);
 }
 
-.uc-type-nav__link:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.15);
+.uc-page-hero__content {
+    max-width: 720px;
 }
 
-.uc-list-hero--hubspot .uc-type-nav__link:hover {
-    color: var(--navy);
-    background: #fff;
+.uc-page-hero--align-center .uc-page-hero__content {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
 }
 
-.uc-type-nav__link.is-active {
-    background: var(--theme-primary);
-    color: #fff;
-    box-shadow: 0 4px 14px rgba(var(--theme-primary-rgb), 0.35);
+.uc-page-hero--align-right .uc-page-hero__content {
+    margin-left: auto;
+    text-align: right;
 }
 
-/* --- Hero headers --- */
+.uc-page-hero--align-center .uc-page-hero__breadcrumb,
+.uc-page-hero--align-right .uc-page-hero__breadcrumb {
+    justify-content: flex-start;
+}
+
+.uc-page-hero--align-center nav[aria-label="breadcrumb"] {
+    display: flex;
+    justify-content: center;
+}
+
+.uc-page-hero--align-right nav[aria-label="breadcrumb"] {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.uc-page-hero__kicker {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #ff6b6b;
+    margin-bottom: 0.75rem;
+}
+
+.uc-page-hero__title {
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.uc-page-hero__subtitle {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 36rem;
+}
+
+.uc-page-hero--align-center .uc-page-hero__subtitle {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.uc-page-hero--align-right .uc-page-hero__subtitle {
+    margin-left: auto;
+}
+
+/* --- Legacy hero styles (unused, kept for list bodies) --- */
 .uc-list-hero--engadget {
     background: linear-gradient(135deg, #0a0a0a 0%, #1a1f2e 100%);
     color: #fff;

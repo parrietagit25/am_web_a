@@ -15,9 +15,6 @@ $unitLabel = unit_content_unit_label($contentService, $unitKey);
 $unitHome = unit_content_unit_home_url($contentService, $unitKey);
 $items = unit_content_get_items($contentService, $unitKey, 'news');
 
-$ucLayoutClass = 'engadget';
-$ucPageTitle = 'Noticias';
-$ucPageSubtitle = 'Comunicados, novedades y actualidad de ' . $unitLabel . '.';
 $ucActiveType = 'news';
 require __DIR__ . '/../includes/unit-content-page-shell.php';
 require __DIR__ . '/../includes/unit-content-list-news.php';
