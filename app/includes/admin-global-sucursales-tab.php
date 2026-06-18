@@ -21,18 +21,27 @@ if (!is_array($globalSucursales)) {
             <input type="hidden" name="global_sucursal_id" id="globalSucursalFormId" value="">
 
             <div class="row g-3">
-                <div class="col-md-6">
+                <div class="col-12">
                     <label for="global_sucursal_name" class="form-label fw-semibold">Nombre de sucursal <span class="text-danger">*</span></label>
                     <input type="text" id="global_sucursal_name" name="global_sucursal_name" class="form-control form-control-premium" placeholder="Ej: Sucursal Costa del Este" required>
                 </div>
-                <div class="col-md-6">
-                    <label for="global_sucursal_image" class="form-label fw-semibold">Foto (opcional)</label>
-                    <input type="file" id="global_sucursal_image" name="global_sucursal_image" class="form-control form-control-premium" accept="image/*">
-                    <div class="form-text">JPG, PNG, GIF o WEBP. Máx. 5MB.</div>
-                    <div id="globalSucursalImagePreview" class="mt-2 d-none">
-                        <img src="" alt="" class="img-thumbnail" style="max-height: 100px;">
+
+                <div class="col-12">
+                    <label for="global_sucursal_image" class="form-label fw-semibold">
+                        <i class="bi bi-image me-1"></i>Foto de la sucursal <span class="text-muted fw-normal">(opcional)</span>
+                    </label>
+                    <div class="border rounded-3 p-3 bg-light-gray">
+                        <input type="file" id="global_sucursal_image" name="global_sucursal_image" class="form-control form-control-premium" accept="image/jpeg,image/png,image/gif,image/webp">
+                        <div class="form-text mt-2 mb-0">
+                            Puede subir una imagen de la sucursal o dejar este campo vacío. Formatos: JPG, PNG, GIF o WEBP. Máx. 5MB.
+                        </div>
+                        <div id="globalSucursalImagePreview" class="mt-3 d-none">
+                            <span class="small text-muted d-block mb-1" id="globalSucursalImagePreviewLabel">Vista previa:</span>
+                            <img src="" alt="Vista previa sucursal" class="img-thumbnail" style="max-height: 140px;">
+                        </div>
                     </div>
                 </div>
+
                 <div class="col-md-6">
                     <label for="global_sucursal_lat" class="form-label fw-semibold">Latitud (opcional)</label>
                     <input type="text" id="global_sucursal_lat" name="global_sucursal_lat" class="form-control form-control-premium" placeholder="Ej: 9.066325">
@@ -113,6 +122,34 @@ if (!is_array($globalSucursales)) {
 </div>
 
 <script>
+function showGlobalSucursalPreview(src, label) {
+    const preview = document.getElementById('globalSucursalImagePreview');
+    const img = preview.querySelector('img');
+    const labelEl = document.getElementById('globalSucursalImagePreviewLabel');
+    if (!src) {
+        preview.classList.add('d-none');
+        img.src = '';
+        return;
+    }
+    img.src = src;
+    if (labelEl) {
+        labelEl.textContent = label || 'Vista previa:';
+    }
+    preview.classList.remove('d-none');
+}
+
+document.getElementById('global_sucursal_image')?.addEventListener('change', function () {
+    const file = this.files && this.files[0] ? this.files[0] : null;
+    if (!file) {
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        showGlobalSucursalPreview(e.target?.result || '', 'Nueva imagen seleccionada:');
+    };
+    reader.readAsDataURL(file);
+});
+
 function resetGlobalSucursalForm() {
     document.getElementById('globalSucursalForm').reset();
     document.getElementById('globalSucursalFormAction').value = 'add_global_sucursal';
@@ -121,9 +158,7 @@ function resetGlobalSucursalForm() {
     document.getElementById('globalSucursalSubmitText').textContent = 'Agregar sucursal';
     document.getElementById('globalSucursalSubmitBtn').querySelector('i').className = 'bi bi-plus-lg';
     document.getElementById('globalSucursalCancelBtn').classList.add('d-none');
-    const preview = document.getElementById('globalSucursalImagePreview');
-    preview.classList.add('d-none');
-    preview.querySelector('img').src = '';
+    showGlobalSucursalPreview('');
 }
 
 function initEditGlobalSucursal(suc) {
@@ -137,14 +172,10 @@ function initEditGlobalSucursal(suc) {
     document.getElementById('globalSucursalSubmitBtn').querySelector('i').className = 'bi bi-save';
     document.getElementById('globalSucursalCancelBtn').classList.remove('d-none');
 
-    const preview = document.getElementById('globalSucursalImagePreview');
-    const img = preview.querySelector('img');
     if (suc.image_url) {
-        img.src = suc.image_url;
-        preview.classList.remove('d-none');
+        showGlobalSucursalPreview(suc.image_url, 'Foto actual (suba otra para reemplazarla):');
     } else {
-        img.src = '';
-        preview.classList.add('d-none');
+        showGlobalSucursalPreview('');
     }
 
     document.getElementById('globalSucursalForm').scrollIntoView({ behavior: 'smooth', block: 'start' });

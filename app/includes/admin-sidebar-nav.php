@@ -78,7 +78,7 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
                 <i class="bi bi-gear-fill me-2"></i> Configuración Global
             </button>
             <?php endif; ?>
-            <?php if (admin_can('global_sucursales')): ?>
+            <?php if (admin_can('global_sucursales') || admin_can('global')): ?>
             <button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('global-sucursales', $defaultAdminTab); ?>" id="tab-global-sucursales-nav" data-bs-toggle="pill" data-bs-target="#tab-global-sucursales" type="button" role="tab" data-admin-perm="global_sucursales">
                 <i class="bi bi-geo-alt-fill me-2"></i> Sucursales
             </button>

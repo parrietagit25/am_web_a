@@ -129,6 +129,9 @@ class AdminUserService
         if (self::isSuperAdmin()) {
             return true;
         }
+        if ($permission === 'global_sucursales' && in_array('global', self::permissions(), true)) {
+            return true;
+        }
         return in_array($permission, self::permissions(), true);
     }
 
