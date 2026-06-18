@@ -115,7 +115,10 @@ class AdminPermissionRegistry
 
     public static function permissionForTab(string $tabSlug): ?string
     {
-        if ($tabSlug === 'rentacar-content') {
+        if ($tabSlug === 'rentacar-content' || $tabSlug === 'news') {
+            return 'news';
+        }
+        if (str_starts_with($tabSlug, 'rentacar-content-')) {
             return 'news';
         }
 

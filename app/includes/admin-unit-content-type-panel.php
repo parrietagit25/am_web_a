@@ -12,8 +12,17 @@ $ucTypeLabel = UnitContentService::TYPE_LABELS[$ucType] ?? $ucType;
 $ucIsBlog = $ucType === 'blog';
 $ucIsLatest = $ucType === 'latest';
 $ucIsNews = $ucType === 'news';
+$ucTabSlug = $ucTabSlug ?? ('rentacar-content-' . $ucType);
+$ucTabActive = ($defaultAdminTab ?? '') === $ucTabSlug;
 ?>
-<div class="tab-pane fade" id="<?php echo esc($ucDomPrefix); ?>-panel" role="tabpanel">
+<div class="tab-pane fade<?php echo $ucTabActive ? ' show active' : ''; ?>" id="tab-<?php echo esc($ucTabSlug); ?>" role="tabpanel" aria-labelledby="tab-<?php echo esc($ucTabSlug); ?>-nav">
+    <div class="admin-card mb-4">
+        <h5 class="fw-bold mb-2 font-montserrat text-navy">
+            <i class="bi bi-<?php echo $ucIsBlog ? 'journal-text' : ($ucIsNews ? 'newspaper' : 'lightning-charge'); ?> me-2 text-danger"></i><?php echo esc($ucTypeLabel); ?>
+        </h5>
+        <p class="text-muted small mb-0">Gestión de <?php echo esc(strtolower($ucTypeLabel)); ?> para Rent A Car.</p>
+    </div>
+
     <?php if ($ucIsBlog): ?>
     <div class="admin-card mb-4">
         <h6 class="fw-bold text-navy mb-3"><i class="bi bi-tags me-2 text-danger"></i>Taxonomía del blog</h6>
@@ -22,7 +31,7 @@ $ucIsNews = $ucType === 'news';
             <div class="col-lg-4">
                 <div class="border rounded-3 p-3 h-100 bg-light">
                     <div class="fw-semibold mb-2"><?php echo esc($taxLabel); ?></div>
-                    <form method="POST" action="?tab=rentacar-content" class="d-flex gap-2 mb-2">
+                    <form method="POST" action="?tab=<?php echo esc($ucTabSlug); ?>" class="d-flex gap-2 mb-2">
                         <input type="hidden" name="action" value="add_unit_content_taxonomy">
                         <input type="hidden" name="content_unit" value="<?php echo esc($ucUnitKey); ?>">
                         <input type="hidden" name="taxonomy_kind" value="<?php echo esc($taxKind); ?>">
@@ -37,7 +46,7 @@ $ucIsNews = $ucType === 'news';
                             <?php foreach ($taxList as $taxRow): ?>
                             <li class="d-flex justify-content-between align-items-center py-1 border-bottom">
                                 <span><?php echo esc($taxRow['name'] ?? ''); ?></span>
-                                <form method="POST" action="?tab=rentacar-content" class="d-inline" onsubmit="return confirm('¿Eliminar?');">
+                                <form method="POST" action="?tab=<?php echo esc($ucTabSlug); ?>" class="d-inline" onsubmit="return confirm('¿Eliminar?');">
                                     <input type="hidden" name="action" value="delete_unit_content_taxonomy">
                                     <input type="hidden" name="content_unit" value="<?php echo esc($ucUnitKey); ?>">
                                     <input type="hidden" name="taxonomy_kind" value="<?php echo esc($taxKind); ?>">
@@ -59,7 +68,7 @@ $ucIsNews = $ucType === 'news';
         <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="<?php echo esc($ucDomPrefix); ?>-form-title">
             <i class="bi bi-file-plus me-2 text-danger"></i>Agregar <?php echo esc($ucTypeLabel); ?>
         </h5>
-        <form method="POST" action="?tab=rentacar-content" enctype="multipart/form-data" id="<?php echo esc($ucDomPrefix); ?>-form">
+        <form method="POST" action="?tab=<?php echo esc($ucTabSlug); ?>" enctype="multipart/form-data" id="<?php echo esc($ucDomPrefix); ?>-form">
             <input type="hidden" name="action" id="<?php echo esc($ucDomPrefix); ?>-form-action" value="add_unit_content_item">
             <input type="hidden" name="content_unit" value="<?php echo esc($ucUnitKey); ?>">
             <input type="hidden" name="content_type" value="<?php echo esc($ucType); ?>">
@@ -163,8 +172,9 @@ $ucIsNews = $ucType === 'news';
                 <?php endif; ?>
 
                 <div class="col-12">
-                    <label class="form-label">Contenido detallado</label>
-                    <textarea name="content_body" id="<?php echo esc($ucDomPrefix); ?>-body" class="form-control form-control-premium font-monospace" rows="10" required></textarea>
+                    <label class="form-label">Contenido detallado (HTML permitido)</label>
+                    <textarea name="content_body" id="<?php echo esc($ucDomPrefix); ?>-body" class="form-control form-control-premium js-unit-content-editor" rows="10"></textarea>
+                    <div class="form-text">Use el editor visual o la vista de código para insertar etiquetas HTML. Se renderiza de forma segura en el sitio público.</div>
                 </div>
 
                 <div class="col-md-4">
@@ -235,7 +245,7 @@ $ucIsNews = $ucType === 'news';
                         </td>
                         <?php if ($ucIsLatest): ?>
                         <td class="text-center">
-                            <form method="POST" action="?tab=rentacar-content" class="d-inline">
+                            <form method="POST" action="?tab=<?php echo esc($ucTabSlug); ?>" class="d-inline">
                                 <input type="hidden" name="action" value="toggle_unit_content_home">
                                 <input type="hidden" name="content_unit" value="<?php echo esc($ucUnitKey); ?>">
                                 <input type="hidden" name="content_type" value="<?php echo esc($ucType); ?>">
@@ -247,7 +257,7 @@ $ucIsNews = $ucType === 'news';
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-1">
                                 <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditUnitContent("<?php echo esc($ucDomPrefix); ?>", <?php echo json_encode($item, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'><i class="bi bi-pencil-fill"></i></button>
-                                <form method="POST" action="?tab=rentacar-content" onsubmit="return confirm('¿Eliminar este contenido?');" class="d-inline">
+                                <form method="POST" action="?tab=<?php echo esc($ucTabSlug); ?>" onsubmit="return confirm('¿Eliminar este contenido?');" class="d-inline">
                                     <input type="hidden" name="action" value="delete_unit_content_item">
                                     <input type="hidden" name="content_unit" value="<?php echo esc($ucUnitKey); ?>">
                                     <input type="hidden" name="content_type" value="<?php echo esc($ucType); ?>">

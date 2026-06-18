@@ -53,7 +53,8 @@ $showGenerales = admin_can('global')
     || $showMainTelemetry;
 
 $generalesTabs = ['global', 'global-sucursales', 'translations', 'seo', 'landings', 'footer', 'users', 'audit-log', 'telemetry'];
-$rentacarTabs = ['hero', 'rentacar-content', 'opinions', 'vehicles', 'sucursales', 'terms', 'requirements', 'contact', 'payments', 'rac-reservations'];
+$rentacarContentTabs = ['rentacar-content-config', 'rentacar-content-latest', 'rentacar-content-news', 'rentacar-content-blog'];
+$rentacarTabs = array_merge(['hero'], $rentacarContentTabs, ['opinions', 'vehicles', 'sucursales', 'terms', 'requirements', 'contact', 'payments', 'rac-reservations']);
 $seminuevosTabs = ['semi-home', 'semi-inventory', 'semi-opinions', 'semi-financing', 'semi-team', 'semi-contact'];
 $leasingTabs = ['leasing-home', 'leasing-sucursales', 'leasing-flota', 'leasing-equipo', 'leasing-contacto'];
 $rentingTabs = ['renting-home', 'renting-servicios', 'renting-sobre', 'renting-publicaciones', 'renting-contacto', 'renting-cotizaciones', 'renting-marcas', 'renting-opiniones'];
@@ -133,7 +134,23 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
         </div>
         <div class="<?php echo admin_submenu_collapse_class($rentacarTabs, $defaultAdminTab); ?>" id="rentacar-submenu" data-bs-parent="#admin-sidebar-accordion">
             <?php if (admin_can('hero')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('hero', $defaultAdminTab); ?>" id="tab-hero-nav" data-bs-toggle="pill" data-bs-target="#tab-hero" type="button" role="tab" data-admin-perm="hero"><i class="bi bi-house-door-fill me-2"></i> Principal (Hero y Eventos)</button><?php endif; ?>
-            <?php if (admin_can('news')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('rentacar-content', $defaultAdminTab); ?>" id="tab-rentacar-content-nav" data-bs-toggle="pill" data-bs-target="#tab-rentacar-content" type="button" role="tab" data-admin-perm="news"><i class="bi bi-collection me-2"></i> Contenido</button><?php endif; ?>
+            <?php if (admin_can('news')): ?>
+            <div class="px-3 py-2 text-white-50 d-flex align-items-center justify-content-between"
+                 data-bs-toggle="collapse"
+                 data-bs-target="#rentacar-content-submenu"
+                 aria-expanded="<?php echo admin_submenu_aria_expanded($rentacarContentTabs, $defaultAdminTab); ?>"
+                 aria-controls="rentacar-content-submenu"
+                 style="cursor: pointer; font-size: 0.82rem;">
+                <span><i class="bi bi-collection me-2"></i> Contenido</span>
+                <i class="bi bi-chevron-down small"></i>
+            </div>
+            <div class="<?php echo admin_submenu_collapse_class($rentacarContentTabs, $defaultAdminTab); ?> pb-1" id="rentacar-content-submenu">
+                <button class="nav-link text-start w-100 border-0 bg-transparent ps-4<?php echo admin_nav_active('rentacar-content-config', $defaultAdminTab); ?>" id="tab-rentacar-content-config-nav" data-bs-toggle="pill" data-bs-target="#tab-rentacar-content-config" type="button" role="tab" data-admin-perm="news"><i class="bi bi-sliders me-2"></i> Configuración</button>
+                <button class="nav-link text-start w-100 border-0 bg-transparent ps-4<?php echo admin_nav_active('rentacar-content-latest', $defaultAdminTab); ?>" id="tab-rentacar-content-latest-nav" data-bs-toggle="pill" data-bs-target="#tab-rentacar-content-latest" type="button" role="tab" data-admin-perm="news"><i class="bi bi-lightning-charge me-2"></i> Contenido más reciente</button>
+                <button class="nav-link text-start w-100 border-0 bg-transparent ps-4<?php echo admin_nav_active('rentacar-content-news', $defaultAdminTab); ?>" id="tab-rentacar-content-news-nav" data-bs-toggle="pill" data-bs-target="#tab-rentacar-content-news" type="button" role="tab" data-admin-perm="news"><i class="bi bi-newspaper me-2"></i> Noticias</button>
+                <button class="nav-link text-start w-100 border-0 bg-transparent ps-4<?php echo admin_nav_active('rentacar-content-blog', $defaultAdminTab); ?>" id="tab-rentacar-content-blog-nav" data-bs-toggle="pill" data-bs-target="#tab-rentacar-content-blog" type="button" role="tab" data-admin-perm="news"><i class="bi bi-journal-text me-2"></i> Blog</button>
+            </div>
+            <?php endif; ?>
             <?php if (admin_can('opinions')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('opinions', $defaultAdminTab); ?>" id="tab-opinions-nav" data-bs-toggle="pill" data-bs-target="#tab-opinions" type="button" role="tab" data-admin-perm="opinions"><i class="bi bi-chat-right-quote-fill me-2"></i> Opiniones de Clientes</button><?php endif; ?>
             <?php if (admin_can('vehicles')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('vehicles', $defaultAdminTab); ?>" id="tab-vehicles-nav" data-bs-toggle="pill" data-bs-target="#tab-vehicles" type="button" role="tab" data-admin-perm="vehicles"><i class="bi bi-car-front-fill me-2"></i> Vehículos / Flota</button><?php endif; ?>
             <?php if (admin_can('sucursales')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('sucursales', $defaultAdminTab); ?>" id="tab-sucursales-nav" data-bs-toggle="pill" data-bs-target="#tab-sucursales" type="button" role="tab" data-admin-perm="sucursales"><i class="bi bi-geo-alt-fill me-2"></i> Sucursales</button><?php endif; ?>

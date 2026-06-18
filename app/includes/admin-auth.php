@@ -80,8 +80,8 @@ function admin_flash_consume(): array
 function admin_sanitize_tab_slug(string $tab): ?string
 {
     $tab = trim($tab);
-    if ($tab === 'news') {
-        $tab = 'rentacar-content';
+    if ($tab === 'news' || $tab === 'rentacar-content') {
+        $tab = 'rentacar-content-config';
     }
     if ($tab === '' || !AdminUserService::canTab($tab)) {
         return null;

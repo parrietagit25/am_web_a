@@ -14,8 +14,8 @@ AdminAuditService::ensureSchema();
 admin_require_login();
 
 $requestedTab = trim($_GET['tab'] ?? '');
-if ($requestedTab === 'news') {
-    $requestedTab = 'rentacar-content';
+if ($requestedTab === 'news' || $requestedTab === 'rentacar-content') {
+    $requestedTab = 'rentacar-content-config';
 }
 $defaultAdminTab = AdminUserService::firstAllowedTabSlug();
 if ($requestedTab !== '' && AdminUserService::canTab($requestedTab)) {

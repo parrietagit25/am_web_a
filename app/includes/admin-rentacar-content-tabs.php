@@ -12,23 +12,21 @@ $ucTaxonomy = $ucContent['taxonomy'] ?? ['categories' => [], 'tags' => [], 'topi
 $ucPickerItems = UnitContentService::getAllPublishedForPicker($siteData, $ucUnitKey);
 $ucRotation = $ucSettings['home_rotation'] ?? [];
 $ucSingle = $ucSettings['home_single'] ?? ['source_type' => 'news', 'item_id' => 0];
+$ucConfigTab = 'rentacar-content-config';
+$ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
 ?>
-<div class="tab-pane fade" id="tab-rentacar-content" role="tabpanel" aria-labelledby="tab-rentacar-content-nav">
+<div class="tab-pane fade<?php echo $ucConfigActive ? ' show active' : ''; ?>" id="tab-rentacar-content-config" role="tabpanel" aria-labelledby="tab-rentacar-content-config-nav">
     <div class="admin-card mb-4">
         <h5 class="fw-bold mb-3 font-montserrat text-navy">
-            <i class="bi bi-collection me-2 text-danger"></i>Contenido — <?php echo esc($ucUnitLabel); ?>
+            <i class="bi bi-sliders me-2 text-danger"></i>Configuración — Contenido <?php echo esc($ucUnitLabel); ?>
         </h5>
         <p class="text-muted small mb-0">
-            Gestione <strong>contenido más reciente</strong>, <strong>blog</strong> y <strong>noticias</strong> por separado.
-            Configure qué aparece en la página principal (destacado único o rotación mixta).
+            Define qué contenido aparece en <code>rent-a-car.php</code>: destacado único, rotación mixta o bloque de «más reciente».
         </p>
     </div>
 
-    <div class="admin-card mb-4">
-        <h5 class="fw-bold mb-3 font-montserrat border-bottom pb-2 text-navy">
-            <i class="bi bi-house-door me-2 text-danger"></i>Destacado en página principal
-        </h5>
-        <form method="POST" action="?tab=rentacar-content">
+    <div class="admin-card">
+        <form method="POST" action="?tab=<?php echo esc($ucConfigTab); ?>">
             <input type="hidden" name="action" value="save_unit_content_settings">
             <input type="hidden" name="content_unit" value="<?php echo esc($ucUnitKey); ?>">
 
@@ -80,7 +78,7 @@ $ucSingle = $ucSettings['home_single'] ?? ['source_type' => 'news', 'item_id' =>
                                 <select name="home_single_id" class="form-select form-control-premium">
                                     <option value="0">— Seleccione publicación —</option>
                                     <?php foreach ($ucPickerItems as $pick): ?>
-                                    <option value="<?php echo intval($pick['item_id']); ?>" data-type="<?php echo esc($pick['source_type']); ?>" <?php echo (intval($ucSingle['item_id'] ?? 0) === intval($pick['item_id']) && ($ucSingle['source_type'] ?? '') === ($pick['source_type'] ?? '')) ? 'selected' : ''; ?>>
+                                    <option value="<?php echo intval($pick['item_id']); ?>" <?php echo (intval($ucSingle['item_id'] ?? 0) === intval($pick['item_id']) && ($ucSingle['source_type'] ?? '') === ($pick['source_type'] ?? '')) ? 'selected' : ''; ?>>
                                         [<?php echo esc($pick['type_label']); ?>] <?php echo esc($pick['title']); ?>
                                     </option>
                                     <?php endforeach; ?>
@@ -107,12 +105,10 @@ $ucSingle = $ucSettings['home_single'] ?? ['source_type' => 'news', 'item_id' =>
                                     </select>
                                 </div>
                                 <div class="col-md-7">
-                                    <select name="home_rotation_id[]" class="form-select form-control-premium uc-rotation-picker">
+                                    <select name="home_rotation_id[]" class="form-select form-control-premium">
                                         <option value="0">— Seleccione —</option>
                                         <?php foreach ($ucPickerItems as $pick): ?>
-                                        <option value="<?php echo intval($pick['item_id']); ?>" data-type="<?php echo esc($pick['source_type']); ?>">
-                                            [<?php echo esc($pick['type_label']); ?>] <?php echo esc($pick['title']); ?>
-                                        </option>
+                                        <option value="<?php echo intval($pick['item_id']); ?>">[<?php echo esc($pick['type_label']); ?>] <?php echo esc($pick['title']); ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
@@ -131,10 +127,10 @@ $ucSingle = $ucSettings['home_single'] ?? ['source_type' => 'news', 'item_id' =>
                                     </select>
                                 </div>
                                 <div class="col-md-7">
-                                    <select name="home_rotation_id[]" class="form-select form-control-premium uc-rotation-picker">
+                                    <select name="home_rotation_id[]" class="form-select form-control-premium">
                                         <option value="0">— Seleccione —</option>
                                         <?php foreach ($ucPickerItems as $pick): ?>
-                                        <option value="<?php echo intval($pick['item_id']); ?>" data-type="<?php echo esc($pick['source_type']); ?>" <?php echo (intval($rot['item_id'] ?? 0) === intval($pick['item_id']) && ($rot['source_type'] ?? '') === ($pick['source_type'] ?? '')) ? 'selected' : ''; ?>>
+                                        <option value="<?php echo intval($pick['item_id']); ?>" <?php echo (intval($rot['item_id'] ?? 0) === intval($pick['item_id']) && ($rot['source_type'] ?? '') === ($pick['source_type'] ?? '')) ? 'selected' : ''; ?>>
                                             [<?php echo esc($pick['type_label']); ?>] <?php echo esc($pick['title']); ?>
                                         </option>
                                         <?php endforeach; ?>
@@ -152,26 +148,19 @@ $ucSingle = $ucSettings['home_single'] ?? ['source_type' => 'news', 'item_id' =>
             </div>
 
             <div class="text-end mt-3">
-                <button type="submit" class="btn btn-premium"><i class="bi bi-save2"></i> Guardar configuración del home</button>
+                <button type="submit" class="btn btn-premium"><i class="bi bi-save2"></i> Guardar configuración</button>
             </div>
         </form>
     </div>
-
-    <ul class="nav nav-pills flex-wrap gap-1 mb-4" role="tablist">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#uc-rentacar-latest-panel" type="button">Contenido más reciente</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#uc-rentacar-blog-panel" type="button">Blog</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#uc-rentacar-news-panel" type="button">Noticias</button></li>
-    </ul>
-
-    <div class="tab-content">
-        <?php
-        foreach (UnitContentService::TYPES as $ucType) {
-            $ucItems = UnitContentService::getItems($siteData, $ucUnitKey, $ucType);
-            require __DIR__ . '/admin-unit-content-type-panel.php';
-        }
-        ?>
-    </div>
 </div>
+
+<?php
+foreach (UnitContentService::TYPES as $ucType) {
+    $ucItems = UnitContentService::getItems($siteData, $ucUnitKey, $ucType);
+    $ucTabSlug = 'rentacar-content-' . $ucType;
+    require __DIR__ . '/admin-unit-content-type-panel.php';
+}
+?>
 
 <template id="uc-rotation-row-template">
     <div class="row g-2 mb-2 uc-rotation-row">
@@ -183,12 +172,10 @@ $ucSingle = $ucSettings['home_single'] ?? ['source_type' => 'news', 'item_id' =>
             </select>
         </div>
         <div class="col-md-7">
-            <select name="home_rotation_id[]" class="form-select form-control-premium uc-rotation-picker">
+            <select name="home_rotation_id[]" class="form-select form-control-premium">
                 <option value="0">— Seleccione —</option>
                 <?php foreach ($ucPickerItems as $pick): ?>
-                <option value="<?php echo intval($pick['item_id']); ?>" data-type="<?php echo esc($pick['source_type']); ?>">
-                    [<?php echo esc($pick['type_label']); ?>] <?php echo esc($pick['title']); ?>
-                </option>
+                <option value="<?php echo intval($pick['item_id']); ?>">[<?php echo esc($pick['type_label']); ?>] <?php echo esc($pick['title']); ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
@@ -216,6 +203,35 @@ function addUnitContentRotationRow() {
     container.appendChild(tpl.content.cloneNode(true));
 }
 
+function unitContentSetBody(prefix, html) {
+    const el = document.getElementById(prefix + '-body');
+    if (!el) return;
+    if (window.jQuery && jQuery(el).next('.note-editor').length) {
+        jQuery(el).summernote('code', html || '');
+    } else {
+        el.value = html || '';
+    }
+}
+
+function initUnitContentEditors() {
+    if (!window.jQuery || !jQuery.fn.summernote) return;
+    jQuery('.js-unit-content-editor').each(function () {
+        const $ta = jQuery(this);
+        if ($ta.next('.note-editor').length) return;
+        $ta.summernote({
+            height: 300,
+            placeholder: 'Escriba el contenido (acepta HTML)...',
+            toolbar: [
+                ['style', ['style', 'bold', 'italic', 'underline', 'clear']],
+                ['font', ['fontsize', 'color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['insert', ['link', 'picture', 'video', 'table', 'hr']],
+                ['view', ['codeview', 'fullscreen']]
+            ]
+        });
+    });
+}
+
 function resetUnitContentForm(prefix) {
     const form = document.getElementById(prefix + '-form');
     if (!form) return;
@@ -227,6 +243,7 @@ function resetUnitContentForm(prefix) {
     document.getElementById(prefix + '-submit-text').textContent = 'Publicar';
     document.getElementById(prefix + '-thumb-help').textContent = '';
     document.getElementById(prefix + '-banner-help').textContent = '';
+    unitContentSetBody(prefix, '');
     const thumb = document.getElementById(prefix + '-thumbnail');
     if (thumb) thumb.required = true;
 }
@@ -241,7 +258,7 @@ function initEditUnitContent(prefix, item) {
     document.getElementById(prefix + '-link-text').value = item.link_text || 'Ver Más';
     document.getElementById(prefix + '-subheading').value = item.subheading || '';
     document.getElementById(prefix + '-description').value = item.description || '';
-    document.getElementById(prefix + '-body').value = item.content || '';
+    unitContentSetBody(prefix, item.content || '');
     document.getElementById(prefix + '-sort').value = item.sort_order || 0;
     document.getElementById(prefix + '-published').checked = (item.published === true || item.published === 'true' || item.published == 1);
     const showHome = document.getElementById(prefix + '-show-home');
@@ -276,5 +293,6 @@ document.addEventListener('DOMContentLoaded', function () {
         mode.addEventListener('change', toggleUnitContentHomeMode);
         toggleUnitContentHomeMode();
     }
+    initUnitContentEditors();
 });
 </script>
