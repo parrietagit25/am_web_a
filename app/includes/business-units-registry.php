@@ -66,6 +66,9 @@ function am_normalize_custom_business_unit(string $key, array $unit): array
         'ctaText' => trim((string) ($unit['ctaText'] ?? '')),
         'ctaLink' => trim((string) ($unit['ctaLink'] ?? '')),
         'sort_order' => intval($unit['sort_order'] ?? 60),
+        'hero_image_url' => trim((string) ($unit['hero_image_url'] ?? '')),
+        'body_html' => (string) ($unit['body_html'] ?? ''),
+        'pages' => is_array($unit['pages'] ?? null) ? $unit['pages'] : [],
         'is_custom' => true,
     ];
 }
@@ -122,6 +125,124 @@ function am_merge_business_units(array $stored): array
     }
 
     return am_sort_business_units($merged);
+}
+
+/** @param array<string, array<string, mixed>> $units */
+function am_custom_business_units(array $units): array
+{
+    $custom = [];
+    foreach ($units as $key => $unit) {
+        if (!is_string($key) || !is_array($unit) || am_is_builtin_business_unit($key)) {
+            continue;
+        }
+        $custom[$key] = $unit;
+    }
+
+    return am_sort_business_units($custom);
+}
+
+function am_normalize_custom_unit_page_slug(string $raw): string
+{
+    $slug = strtolower(trim($raw));
+    $slug = preg_replace('/[^a-z0-9_-]+/', '-', $slug);
+    $slug = trim((string) $slug, '-');
+
+    return $slug;
+}
+
+function am_parse_custom_unit_page_slug_from_link(string $link, string $unitKey): ?string
+{
+    $link = trim($link);
+    if ($link === '' || stripos($link, 'unidad.php') === false) {
+        return null;
+    }
+
+    $path = parse_url($link, PHP_URL_PATH) ?: $link;
+    if (!preg_match('/unidad\.php$/i', basename((string) $path))) {
+        return null;
+    }
+
+    $query = parse_url($link, PHP_URL_QUERY);
+    if (!is_string($query) || $query === '') {
+        return null;
+    }
+
+    parse_str($query, $params);
+    $u = am_normalize_business_unit_key((string) ($params['u'] ?? ''));
+    if ($u !== $unitKey) {
+        return null;
+    }
+
+    $page = am_normalize_custom_unit_page_slug((string) ($params['p'] ?? ''));
+    if ($page === '') {
+        return null;
+    }
+
+    return $page;
+}
+
+/**
+ * @return array<string, array{slug: string, label: string, tab_slug: string}>
+ */
+function am_custom_unit_editable_pages(array $unit, string $unitKey): array
+{
+    $pages = [
+        '__main__' => [
+            'slug' => '',
+            'label' => 'Principal',
+            'tab_slug' => 'unit-' . $unitKey,
+        ],
+    ];
+
+    $menuItems = [];
+    foreach ($unit['menu'] ?? [] as $item) {
+        if (is_array($item)) {
+            $menuItems[] = $item;
+            foreach ($item['submenu'] ?? [] as $sub) {
+                if (is_array($sub)) {
+                    $menuItems[] = $sub;
+                }
+            }
+        }
+    }
+
+    foreach ($menuItems as $item) {
+        $pageSlug = am_parse_custom_unit_page_slug_from_link((string) ($item['link'] ?? ''), $unitKey);
+        if ($pageSlug === null || $pageSlug === '' || isset($pages[$pageSlug])) {
+            continue;
+        }
+        $pages[$pageSlug] = [
+            'slug' => $pageSlug,
+            'label' => trim((string) ($item['label'] ?? $pageSlug)),
+            'tab_slug' => 'unit-' . $unitKey . '-' . $pageSlug,
+        ];
+    }
+
+    return $pages;
+}
+
+/**
+ * @return array{heroTitle: string, heroSubtitle: string, hero_image_url: string, body_html: string}
+ */
+function am_custom_unit_page_content(array $unit, string $pageSlug): array
+{
+    if ($pageSlug === '') {
+        return [
+            'heroTitle' => trim((string) ($unit['heroTitle'] ?? '')),
+            'heroSubtitle' => trim((string) ($unit['heroSubtitle'] ?? '')),
+            'hero_image_url' => trim((string) ($unit['hero_image_url'] ?? '')),
+            'body_html' => (string) ($unit['body_html'] ?? ''),
+        ];
+    }
+
+    $page = is_array($unit['pages'][$pageSlug] ?? null) ? $unit['pages'][$pageSlug] : [];
+
+    return [
+        'heroTitle' => trim((string) ($page['heroTitle'] ?? $page['label'] ?? '')),
+        'heroSubtitle' => trim((string) ($page['heroSubtitle'] ?? '')),
+        'hero_image_url' => trim((string) ($page['hero_image_url'] ?? '')),
+        'body_html' => (string) ($page['body_html'] ?? ''),
+    ];
 }
 
 /** @deprecated Use am_merge_business_units() */
@@ -202,6 +323,9 @@ function am_build_business_units_from_post(array $posted, array $existing, array
             $unit['logo_title'] = $base['logo_title'] ?? 'Automarket';
             $unit['ctaText'] = trim((string) ($unitData['ctaText'] ?? $base['ctaText'] ?? ''));
             $unit['ctaLink'] = trim((string) ($unitData['ctaLink'] ?? $base['ctaLink'] ?? ''));
+            $unit['hero_image_url'] = trim((string) ($base['hero_image_url'] ?? ''));
+            $unit['body_html'] = (string) ($base['body_html'] ?? '');
+            $unit['pages'] = is_array($base['pages'] ?? null) ? $base['pages'] : [];
         }
 
         if (isset($unitData['menu']) && is_array($unitData['menu'])) {

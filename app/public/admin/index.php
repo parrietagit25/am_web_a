@@ -2494,6 +2494,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../../includes/admin-footer-actions.php';
     require __DIR__ . '/../../includes/admin-rac-actions.php';
     require __DIR__ . '/../../includes/admin-chatbot-actions.php';
+    require __DIR__ . '/../../includes/admin-custom-unit-actions.php';
 
     admin_log_post_result($action, $successMsg, $errorMsg);
 
@@ -2641,7 +2642,8 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
         .sidebar-heading[aria-expanded="true"] #leasing-chevron,
         .sidebar-heading[aria-expanded="true"] #renting-chevron,
         .sidebar-heading[aria-expanded="true"] #taller-chevron,
-        .sidebar-heading[aria-expanded="true"] #chatbot-chevron {
+        .sidebar-heading[aria-expanded="true"] #chatbot-chevron,
+        .sidebar-heading[aria-expanded="true"] [id^="custom-unit-chevron-"] {
             transform: rotate(180deg);
         }
         #rentacar-chevron {
@@ -2652,7 +2654,8 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
         #leasing-chevron,
         #renting-chevron,
         #taller-chevron,
-        #chatbot-chevron {
+        #chatbot-chevron,
+        [id^="custom-unit-chevron-"] {
             transition: transform 0.2s ease;
             display: inline-block;
         }
@@ -5712,6 +5715,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
 
                     <?php require __DIR__ . '/../../includes/admin-renting-tabs.php'; ?>
                     <?php require __DIR__ . '/../../includes/admin-taller-tabs.php'; ?>
+                    <?php require __DIR__ . '/../../includes/admin-custom-units-tabs.php'; ?>
 
                 </div>
                 

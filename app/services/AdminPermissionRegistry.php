@@ -114,6 +114,10 @@ class AdminPermissionRegistry
 
     public static function permissionForTab(string $tabSlug): ?string
     {
+        if (preg_match('/^unit-[a-z0-9_]+(?:-[a-z0-9_-]+)?$/', $tabSlug)) {
+            return 'global';
+        }
+
         $perm = self::tabSlugToPermission($tabSlug);
         return in_array($perm, self::allPermissionKeys(), true) ? $perm : null;
     }
@@ -180,6 +184,7 @@ class AdminPermissionRegistry
             'toggle_rac_alert_email' => 'rac_reservations',
             'update_rac_reservation_status' => 'rac_reservations',
             'delete_chatbot_session' => 'chatbot_sessions',
+            'save_custom_unit_content' => 'global',
             'save_admin_user' => 'users',
             'delete_admin_user' => 'users',
             'toggle_admin_user' => 'users',

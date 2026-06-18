@@ -152,6 +152,8 @@ $showChatbot = admin_group_visible('chatbot');
         </div>
     <?php endif; ?>
 
+    <?php require __DIR__ . '/admin-custom-units-sidebar.php'; ?>
+
     <?php if ($showChatbot): ?>
         <div class="sidebar-heading px-3 py-2 mt-3 text-uppercase text-white-50 fw-bold d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#chatbot-submenu" aria-expanded="false" style="cursor: pointer; font-size: 0.75rem; letter-spacing: 0.5px;">
             <span>Chatbot IA</span>
