@@ -1614,12 +1614,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $siteData['leasing']['intro_text'] = trim($_POST['leasing_intro_text'] ?? '');
         $siteData['leasing']['lead_title'] = trim($_POST['leasing_lead_title'] ?? '');
 
-        if (isset($_FILES['leasing_hero_image']) && $_FILES['leasing_hero_image']['error'] === UPLOAD_ERR_OK) {
-            $uploadedPath = $contentService->uploadImage($_FILES['leasing_hero_image'], 'leasing_hero_');
-            if ($uploadedPath) {
-                $siteData['leasing']['hero']['image_url'] = $uploadedPath;
-            } else {
-                $errorMsg = 'No se pudo subir la imagen de cabecera de Leasing.';
+        if (empty($errorMsg)) {
+            require_once __DIR__ . '/../../services/HeaderBannerService.php';
+            $hbErr = HeaderBannerService::applyPostAtPath(
+                $siteData,
+                ['leasing', 'hero'],
+                'hb_leasing_home',
+                $_POST,
+                $_FILES,
+                $contentService,
+                'leasing_hb_'
+            );
+            if ($hbErr !== null) {
+                $errorMsg = $hbErr;
             }
         }
 
@@ -4926,15 +4933,14 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                 <input type="hidden" name="action" value="save_leasing_home">
 
                                 <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label for="leasing_hero_image" class="form-label fw-semibold">Imagen de Cabecera</label>
-                                        <input type="file" id="leasing_hero_image" name="leasing_hero_image" class="form-control form-control-premium" accept="image/*">
-                                        <div class="form-text">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
-                                        <?php if (!empty($leasing['hero']['image_url'] ?? '')): ?>
-                                            <div class="mt-2">
-                                                <img src="<?php echo esc($leasing['hero']['image_url']); ?>" alt="Cabecera Leasing" class="img-thumbnail" style="max-height: 100px;">
-                                            </div>
-                                        <?php endif; ?>
+                                    <div class="col-12">
+                                        <?php
+                                        require_once __DIR__ . '/../../services/HeaderBannerService.php';
+                                        $hbConfig = HeaderBannerService::normalizeFromNode($leasing['hero'] ?? []);
+                                        $hbPrefix = 'hb_leasing_home';
+                                        $hbDomId = 'hb-leasing-home';
+                                        require __DIR__ . '/../../includes/admin-header-banner-section.php';
+                                        ?>
                                     </div>
 
                                     <div class="col-md-6">

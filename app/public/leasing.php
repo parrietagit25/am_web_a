@@ -7,7 +7,8 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/leasing-posts.php';
 
 $leasingData = $contentService->get('leasing', []);
-$heroImage = $leasingData['hero']['image_url'] ?? 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?q=80&w=1200&auto=format&fit=crop';
+require_once __DIR__ . '/../services/HeaderBannerService.php';
+$hbConfig = HeaderBannerService::normalizeFromNode($leasingData['hero'] ?? []);
 $introText = $leasingData['intro_text'] ?? 'Soluciones de Movilidad para Empresas para el desarrollo de sus operaciones a lo largo y ancho del país';
 $leadTitle = $leasingData['lead_title'] ?? 'Más de 20 años liderando el mercado de alquiler y leasing operativo en Panamá';
 $leasingPosts = getLeasingPosts($contentService);
@@ -39,26 +40,18 @@ $leasingOpiniones = $leasingData['opiniones'] ?? [];
         height: 90px;
     }
 }
+.hero-banner-slider { min-height: 360px; }
 </style>
 
-<!-- Hero Section -->
-<section class="hero-wrapper text-center text-lg-start d-flex align-items-center" style="background: url('<?php echo esc($heroImage); ?>') no-repeat center center; background-size: cover;" id="cta-hero">
-    <div class="container py-5">
-        <div class="row align-items-center">
-            <div class="col-lg-7 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">
-                <h1 class="display-3 fw-bold mb-3 font-montserrat leading-tight">
-                    Optimiza la flota<br>de tu empresa
-                </h1>
-                <p class="fs-4 mb-4 opacity-90 font-poppins">
-                    Soluciones integrales de Leasing Operativo y administración de vehículos corporativos en Panamá.
-                </p>
-                <a href="#soluciones" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg fs-5">
-                    Conocer Soluciones <i class="bi bi-chevron-down ms-2"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
+<?php
+$hbSectionId = 'cta-hero';
+$hbInnerHtml = '<div class="row align-items-center"><div class="col-lg-7 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">'
+    . '<h1 class="display-3 fw-bold mb-3 font-montserrat leading-tight">Optimiza la flota<br>de tu empresa</h1>'
+    . '<p class="fs-4 mb-4 opacity-90 font-poppins">Soluciones integrales de Leasing Operativo y administración de vehículos corporativos en Panamá.</p>'
+    . '<a href="#soluciones" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg fs-5">Conocer Soluciones <i class="bi bi-chevron-down ms-2"></i></a>'
+    . '</div></div>';
+require __DIR__ . '/../includes/render-header-banner.php';
+?>
 
 <section class="py-5 bg-white border-bottom">
     <div class="container text-center">
