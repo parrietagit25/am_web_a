@@ -46,6 +46,8 @@ function am_default_business_unit_sort_orders(): array
  */
 function am_normalize_custom_business_unit(string $key, array $unit): array
 {
+    require_once __DIR__ . '/../services/UnitContentService.php';
+
     $label = trim((string) ($unit['label'] ?? strtoupper($key)));
     $slug = trim((string) ($unit['slug'] ?? ''));
     if ($slug === '') {
@@ -69,6 +71,7 @@ function am_normalize_custom_business_unit(string $key, array $unit): array
         'hero_image_url' => trim((string) ($unit['hero_image_url'] ?? '')),
         'body_html' => (string) ($unit['body_html'] ?? ''),
         'pages' => is_array($unit['pages'] ?? null) ? $unit['pages'] : [],
+        'content' => is_array($unit['content'] ?? null) ? $unit['content'] : UnitContentService::defaultContentNode(),
         'is_custom' => true,
     ];
 }

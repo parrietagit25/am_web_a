@@ -1,5 +1,7 @@
 <?php
 /** @var string $defaultAdminTab slug sin prefijo tab- (ej. global, renting-home) */
+require_once __DIR__ . '/../services/UnitContentService.php';
+
 $defaultAdminTab = $defaultAdminTab ?? AdminUserService::firstAllowedTabSlug();
 
 function admin_nav_active(string $slug, string $default): string
@@ -53,12 +55,16 @@ $showGenerales = admin_can('global')
     || $showMainTelemetry;
 
 $generalesTabs = ['global', 'global-sucursales', 'translations', 'seo', 'landings', 'footer', 'users', 'audit-log', 'telemetry'];
-$rentacarContentTabs = ['rentacar-content-config', 'rentacar-content-latest', 'rentacar-content-news', 'rentacar-content-blog'];
+$rentacarContentTabs = UnitContentService::contentTabSlugs('rentacar');
 $rentacarTabs = array_merge(['hero'], $rentacarContentTabs, ['opinions', 'vehicles', 'sucursales', 'terms', 'requirements', 'contact', 'payments', 'rac-reservations']);
-$seminuevosTabs = ['semi-home', 'semi-inventory', 'semi-opinions', 'semi-financing', 'semi-team', 'semi-contact'];
-$leasingTabs = ['leasing-home', 'leasing-sucursales', 'leasing-flota', 'leasing-equipo', 'leasing-contacto'];
-$rentingTabs = ['renting-home', 'renting-servicios', 'renting-sobre', 'renting-publicaciones', 'renting-contacto', 'renting-cotizaciones', 'renting-marcas', 'renting-opiniones'];
-$tallerTabs = ['taller-home', 'taller-contacto', 'taller-sobre', 'taller-sucursales'];
+$seminuevosContentTabs = UnitContentService::contentTabSlugs('seminuevos');
+$seminuevosTabs = array_merge(['semi-home'], $seminuevosContentTabs, ['semi-inventory', 'semi-opinions', 'semi-financing', 'semi-team', 'semi-contact']);
+$leasingContentTabs = UnitContentService::contentTabSlugs('leasing');
+$leasingTabs = array_merge(['leasing-home'], $leasingContentTabs, ['leasing-sucursales', 'leasing-flota', 'leasing-equipo', 'leasing-contacto']);
+$rentingContentTabs = UnitContentService::contentTabSlugs('renting');
+$rentingTabs = array_merge(['renting-home'], $rentingContentTabs, ['renting-servicios', 'renting-sobre', 'renting-publicaciones', 'renting-contacto', 'renting-cotizaciones', 'renting-marcas', 'renting-opiniones']);
+$tallerContentTabs = UnitContentService::contentTabSlugs('taller');
+$tallerTabs = array_merge(['taller-home'], $tallerContentTabs, ['taller-contacto', 'taller-sobre', 'taller-sucursales']);
 $chatbotTabs = ['chatbot', 'chatbot-sessions'];
 ?>
 <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
@@ -134,23 +140,7 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
         </div>
         <div class="<?php echo admin_submenu_collapse_class($rentacarTabs, $defaultAdminTab); ?>" id="rentacar-submenu" data-bs-parent="#admin-sidebar-accordion">
             <?php if (admin_can('hero')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('hero', $defaultAdminTab); ?>" id="tab-hero-nav" data-bs-toggle="pill" data-bs-target="#tab-hero" type="button" role="tab" data-admin-perm="hero"><i class="bi bi-house-door-fill me-2"></i> Principal (Hero y Eventos)</button><?php endif; ?>
-            <?php if (admin_can('news')): ?>
-            <div class="px-3 py-2 text-white-50 d-flex align-items-center justify-content-between"
-                 data-bs-toggle="collapse"
-                 data-bs-target="#rentacar-content-submenu"
-                 aria-expanded="<?php echo admin_submenu_aria_expanded($rentacarContentTabs, $defaultAdminTab); ?>"
-                 aria-controls="rentacar-content-submenu"
-                 style="cursor: pointer; font-size: 0.82rem;">
-                <span><i class="bi bi-collection me-2"></i> Contenido</span>
-                <i class="bi bi-chevron-down small"></i>
-            </div>
-            <div class="<?php echo admin_submenu_collapse_class($rentacarContentTabs, $defaultAdminTab); ?> pb-1" id="rentacar-content-submenu">
-                <button class="nav-link text-start w-100 border-0 bg-transparent ps-4<?php echo admin_nav_active('rentacar-content-config', $defaultAdminTab); ?>" id="tab-rentacar-content-config-nav" data-bs-toggle="pill" data-bs-target="#tab-rentacar-content-config" type="button" role="tab" data-admin-perm="news"><i class="bi bi-sliders me-2"></i> Configuración</button>
-                <button class="nav-link text-start w-100 border-0 bg-transparent ps-4<?php echo admin_nav_active('rentacar-content-latest', $defaultAdminTab); ?>" id="tab-rentacar-content-latest-nav" data-bs-toggle="pill" data-bs-target="#tab-rentacar-content-latest" type="button" role="tab" data-admin-perm="news"><i class="bi bi-lightning-charge me-2"></i> Contenido más reciente</button>
-                <button class="nav-link text-start w-100 border-0 bg-transparent ps-4<?php echo admin_nav_active('rentacar-content-news', $defaultAdminTab); ?>" id="tab-rentacar-content-news-nav" data-bs-toggle="pill" data-bs-target="#tab-rentacar-content-news" type="button" role="tab" data-admin-perm="news"><i class="bi bi-newspaper me-2"></i> Noticias</button>
-                <button class="nav-link text-start w-100 border-0 bg-transparent ps-4<?php echo admin_nav_active('rentacar-content-blog', $defaultAdminTab); ?>" id="tab-rentacar-content-blog-nav" data-bs-toggle="pill" data-bs-target="#tab-rentacar-content-blog" type="button" role="tab" data-admin-perm="news"><i class="bi bi-journal-text me-2"></i> Blog</button>
-            </div>
-            <?php endif; ?>
+            <?php $ucUnitKey = 'rentacar'; $ucSubmenuId = 'rentacar-content-submenu'; require __DIR__ . '/admin-unit-content-submenu.php'; ?>
             <?php if (admin_can('opinions')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('opinions', $defaultAdminTab); ?>" id="tab-opinions-nav" data-bs-toggle="pill" data-bs-target="#tab-opinions" type="button" role="tab" data-admin-perm="opinions"><i class="bi bi-chat-right-quote-fill me-2"></i> Opiniones de Clientes</button><?php endif; ?>
             <?php if (admin_can('vehicles')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('vehicles', $defaultAdminTab); ?>" id="tab-vehicles-nav" data-bs-toggle="pill" data-bs-target="#tab-vehicles" type="button" role="tab" data-admin-perm="vehicles"><i class="bi bi-car-front-fill me-2"></i> Vehículos / Flota</button><?php endif; ?>
             <?php if (admin_can('sucursales')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('sucursales', $defaultAdminTab); ?>" id="tab-sucursales-nav" data-bs-toggle="pill" data-bs-target="#tab-sucursales" type="button" role="tab" data-admin-perm="sucursales"><i class="bi bi-geo-alt-fill me-2"></i> Sucursales</button><?php endif; ?>
@@ -174,6 +164,7 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
         </div>
         <div class="<?php echo admin_submenu_collapse_class($seminuevosTabs, $defaultAdminTab); ?>" id="seminuevos-submenu" data-bs-parent="#admin-sidebar-accordion">
             <?php if (admin_can('semi_home')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('semi-home', $defaultAdminTab); ?>" id="tab-semi-home-nav" data-bs-toggle="pill" data-bs-target="#tab-semi-home" type="button" role="tab" data-admin-perm="semi_home"><i class="bi bi-house-door-fill me-2"></i> Principal (Banner y Anatomía)</button><?php endif; ?>
+            <?php $ucUnitKey = 'seminuevos'; $ucSubmenuId = 'seminuevos-content-submenu'; require __DIR__ . '/admin-unit-content-submenu.php'; ?>
             <?php if (admin_can('semi_inventory')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('semi-inventory', $defaultAdminTab); ?>" id="tab-semi-inventory-nav" data-bs-toggle="pill" data-bs-target="#tab-semi-inventory" type="button" role="tab" data-admin-perm="semi_inventory"><i class="bi bi-car-front-fill me-2"></i> Inventario de Autos</button><?php endif; ?>
             <?php if (admin_can('semi_opinions')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('semi-opinions', $defaultAdminTab); ?>" id="tab-semi-opinions-nav" data-bs-toggle="pill" data-bs-target="#tab-semi-opinions" type="button" role="tab" data-admin-perm="semi_opinions"><i class="bi bi-chat-right-quote-fill me-2"></i> Opiniones de Clientes</button><?php endif; ?>
             <?php if (admin_can('semi_financing')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('semi-financing', $defaultAdminTab); ?>" id="tab-semi-financing-nav" data-bs-toggle="pill" data-bs-target="#tab-semi-financing" type="button" role="tab" data-admin-perm="semi_financing"><i class="bi bi-bank2 me-2"></i> Requisitos y Aliados Bancarios</button><?php endif; ?>
@@ -194,6 +185,7 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
         </div>
         <div class="<?php echo admin_submenu_collapse_class($leasingTabs, $defaultAdminTab); ?>" id="leasing-submenu" data-bs-parent="#admin-sidebar-accordion">
             <?php if (admin_can('leasing_home')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('leasing-home', $defaultAdminTab); ?>" id="tab-leasing-home-nav" data-bs-toggle="pill" data-bs-target="#tab-leasing-home" type="button" role="tab" data-admin-perm="leasing_home"><i class="bi bi-house-door-fill me-2"></i> Principal</button><?php endif; ?>
+            <?php $ucUnitKey = 'leasing'; $ucSubmenuId = 'leasing-content-submenu'; require __DIR__ . '/admin-unit-content-submenu.php'; ?>
             <?php if (admin_can('leasing_sucursales')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('leasing-sucursales', $defaultAdminTab); ?>" id="tab-leasing-sucursales-nav" data-bs-toggle="pill" data-bs-target="#tab-leasing-sucursales" type="button" role="tab" data-admin-perm="leasing_sucursales"><i class="bi bi-geo-alt-fill me-2"></i> Sucursales</button><?php endif; ?>
             <?php if (admin_can('leasing_flota')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('leasing-flota', $defaultAdminTab); ?>" id="tab-leasing-flota-nav" data-bs-toggle="pill" data-bs-target="#tab-leasing-flota" type="button" role="tab" data-admin-perm="leasing_flota"><i class="bi bi-car-front-fill me-2"></i> Nuestra Flota</button><?php endif; ?>
             <?php if (admin_can('leasing_equipo')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('leasing-equipo', $defaultAdminTab); ?>" id="tab-leasing-equipo-nav" data-bs-toggle="pill" data-bs-target="#tab-leasing-equipo" type="button" role="tab" data-admin-perm="leasing_equipo"><i class="bi bi-people-fill me-2"></i> Nuestro Equipo</button><?php endif; ?>
@@ -213,6 +205,7 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
         </div>
         <div class="<?php echo admin_submenu_collapse_class($rentingTabs, $defaultAdminTab); ?>" id="renting-submenu" data-bs-parent="#admin-sidebar-accordion">
             <?php if (admin_can('renting_home')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('renting-home', $defaultAdminTab); ?>" id="tab-renting-home-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-home" type="button" role="tab" data-admin-perm="renting_home"><i class="bi bi-house-door-fill me-2"></i> Principal</button><?php endif; ?>
+            <?php $ucUnitKey = 'renting'; $ucSubmenuId = 'renting-content-submenu'; require __DIR__ . '/admin-unit-content-submenu.php'; ?>
             <?php if (admin_can('renting_servicios')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('renting-servicios', $defaultAdminTab); ?>" id="tab-renting-servicios-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-servicios" type="button" role="tab" data-admin-perm="renting_servicios"><i class="bi bi-grid-1x2-fill me-2"></i> Nuestros Servicios</button><?php endif; ?>
             <?php if (admin_can('renting_sobre')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('renting-sobre', $defaultAdminTab); ?>" id="tab-renting-sobre-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-sobre" type="button" role="tab" data-admin-perm="renting_sobre"><i class="bi bi-people-fill me-2"></i> Sobre Nosotros</button><?php endif; ?>
             <?php if (admin_can('renting_publicaciones')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('renting-publicaciones', $defaultAdminTab); ?>" id="tab-renting-publicaciones-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-publicaciones" type="button" role="tab" data-admin-perm="renting_publicaciones"><i class="bi bi-file-post-fill me-2"></i> Publicaciones</button><?php endif; ?>
@@ -235,6 +228,7 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
         </div>
         <div class="<?php echo admin_submenu_collapse_class($tallerTabs, $defaultAdminTab); ?>" id="taller-submenu" data-bs-parent="#admin-sidebar-accordion">
             <?php if (admin_can('taller_home')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('taller-home', $defaultAdminTab); ?>" id="tab-taller-home-nav" data-bs-toggle="pill" data-bs-target="#tab-taller-home" type="button" role="tab" data-admin-perm="taller_home"><i class="bi bi-tools me-2"></i> Principal</button><?php endif; ?>
+            <?php $ucUnitKey = 'taller'; $ucSubmenuId = 'taller-content-submenu'; require __DIR__ . '/admin-unit-content-submenu.php'; ?>
             <?php if (admin_can('taller_contacto')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('taller-contacto', $defaultAdminTab); ?>" id="tab-taller-contacto-nav" data-bs-toggle="pill" data-bs-target="#tab-taller-contacto" type="button" role="tab" data-admin-perm="taller_contacto"><i class="bi bi-envelope-fill me-2"></i> Contacto</button><?php endif; ?>
             <?php if (admin_can('taller_sobre')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('taller-sobre', $defaultAdminTab); ?>" id="tab-taller-sobre-nav" data-bs-toggle="pill" data-bs-target="#tab-taller-sobre" type="button" role="tab" data-admin-perm="taller_sobre"><i class="bi bi-people-fill me-2"></i> Sobre Nosotros</button><?php endif; ?>
             <?php if (admin_can('taller_sucursales')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('taller-sucursales', $defaultAdminTab); ?>" id="tab-taller-sucursales-nav" data-bs-toggle="pill" data-bs-target="#tab-taller-sucursales" type="button" role="tab" data-admin-perm="taller_sucursales"><i class="bi bi-geo-alt-fill me-2"></i> Sucursales</button><?php endif; ?>

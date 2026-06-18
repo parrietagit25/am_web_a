@@ -12,7 +12,9 @@ $ucTypeLabel = UnitContentService::TYPE_LABELS[$ucType] ?? $ucType;
 $ucIsBlog = $ucType === 'blog';
 $ucIsLatest = $ucType === 'latest';
 $ucIsNews = $ucType === 'news';
-$ucTabSlug = $ucTabSlug ?? ('rentacar-content-' . $ucType);
+$ucTabSlug = $ucTabSlug ?? ($ucUnitKey . '-content-' . $ucType);
+$ucUnitLabelPanel = UnitContentService::unitLabel($siteData, $ucUnitKey);
+$ucHomePathPanel = UnitContentService::unitHomePath($siteData, $ucUnitKey);
 $ucTabActive = ($defaultAdminTab ?? '') === $ucTabSlug;
 ?>
 <div class="tab-pane fade<?php echo $ucTabActive ? ' show active' : ''; ?>" id="tab-<?php echo esc($ucTabSlug); ?>" role="tabpanel" aria-labelledby="tab-<?php echo esc($ucTabSlug); ?>-nav">
@@ -20,9 +22,9 @@ $ucTabActive = ($defaultAdminTab ?? '') === $ucTabSlug;
         <h5 class="fw-bold mb-2 font-montserrat text-navy">
             <i class="bi bi-<?php echo $ucIsBlog ? 'journal-text' : ($ucIsNews ? 'newspaper' : 'lightning-charge'); ?> me-2 text-danger"></i><?php echo esc($ucTypeLabel); ?>
         </h5>
-        <p class="text-muted small mb-0">Gestión de <?php echo esc(strtolower($ucTypeLabel)); ?> para Rent A Car.</p>
+        <p class="text-muted small mb-0">Gestión de <?php echo esc(strtolower($ucTypeLabel)); ?> para <?php echo esc($ucUnitLabelPanel); ?>.</p>
         <p class="text-muted small mt-2 mb-0">
-            <i class="bi bi-eye-fill text-success"></i> Active <strong>Mostrar en bloque «más reciente» del home</strong> (o el ojo verde en la tabla) para que aparezca en la grilla de <code>rent-a-car.php</code>.
+            <i class="bi bi-eye-fill text-success"></i> Active <strong>Mostrar en bloque «más reciente» del home</strong> (o el ojo verde en la tabla) para que aparezca en la grilla de <code><?php echo esc(ltrim($ucHomePathPanel, '/')); ?></code>.
             Máximo: <?php echo intval($ucContent['settings']['latest_home_limit'] ?? 4); ?> ítems en total (mezcla más reciente, blog y noticias).
         </p>
     </div>

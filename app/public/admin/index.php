@@ -17,6 +17,9 @@ $requestedTab = trim($_GET['tab'] ?? '');
 if ($requestedTab === 'news' || $requestedTab === 'rentacar-content') {
     $requestedTab = 'rentacar-content-config';
 }
+if (preg_match('/^([a-z0-9_]+)-content$/', $requestedTab, $ucTabMatch)) {
+    $requestedTab = $ucTabMatch[1] . '-content-config';
+}
 $defaultAdminTab = AdminUserService::firstAllowedTabSlug();
 if ($requestedTab !== '' && AdminUserService::canTab($requestedTab)) {
     $defaultAdminTab = $requestedTab;
@@ -25,6 +28,27 @@ if ($requestedTab !== '' && AdminUserService::canTab($requestedTab)) {
 
 $contentService = new ContentService();
 $siteData = $contentService->getAll();
+
+require_once __DIR__ . '/../../services/UnitContentService.php';
+$ucDataChanged = false;
+foreach (UnitContentService::listAllUnitKeys($siteData) as $ucMigrateKey) {
+    if (UnitContentService::ensureMigrated($siteData, $ucMigrateKey)) {
+        $ucDataChanged = true;
+    }
+}
+if ($ucDataChanged) {
+    $contentService->saveAll($siteData);
+}
+
+$tabPermMap = AdminUserService::tabSlugOrder();
+foreach (UnitContentService::listAllUnitKeys($siteData) as $ucMapKey) {
+    if (!UnitContentService::isCustomUnit($ucMapKey)) {
+        continue;
+    }
+    foreach (UnitContentService::contentTabSlugs($ucMapKey) as $ucMapSlug) {
+        $tabPermMap[$ucMapSlug] = UnitContentService::contentPermissionKey($ucMapKey);
+    }
+}
 
 $successMsg = '';
 $errorMsg = '';
@@ -3126,8 +3150,16 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                         </div>
                     </div>
                     
-                    <!-- TAB: RENT A CAR — CONTENIDO -->
-                    <?php require __DIR__ . '/../../includes/admin-rentacar-content-tabs.php'; ?>
+                    <!-- TAB: CONTENIDO POR UNIDAD -->
+                    <?php
+                    foreach (UnitContentService::listAllUnitKeys($siteData) as $ucUnitKey) {
+                        if (!AdminUserService::can(UnitContentService::contentPermissionKey($ucUnitKey))) {
+                            continue;
+                        }
+                        require __DIR__ . '/../../includes/admin-unit-content-tabs.php';
+                    }
+                    require __DIR__ . '/../../includes/admin-unit-content-scripts.php';
+                    ?>
                     
                     <!-- TAB 4: OPINIONES DE CLIENTES -->
                     <div class="tab-pane fade" id="tab-opinions" role="tabpanel" aria-labelledby="tab-opinions-nav">
@@ -6663,7 +6695,7 @@ function showSemiMessageDetail(msg) {
 
 // On page load, check URL parameter 'tab' to activate the correct tab
 document.addEventListener('DOMContentLoaded', function () {
-    const tabPermMap = <?php echo json_encode(AdminUserService::tabSlugOrder(), JSON_UNESCAPED_UNICODE); ?>;
+    const tabPermMap = <?php echo json_encode($tabPermMap, JSON_UNESCAPED_UNICODE); ?>;
     const allowedPerms = <?php echo json_encode(AdminUserService::permissions(), JSON_UNESCAPED_UNICODE); ?>;
     const isSuperAdmin = <?php echo AdminUserService::isSuperAdmin() ? 'true' : 'false'; ?>;
     const defaultTab = <?php echo json_encode($defaultAdminTab, JSON_UNESCAPED_UNICODE); ?>;

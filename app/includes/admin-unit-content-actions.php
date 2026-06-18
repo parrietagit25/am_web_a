@@ -1,24 +1,19 @@
 <?php
 /**
- * Handlers POST — gestor de contenido por unidad (piloto: rentacar).
+ * Handlers POST — gestor de contenido por unidad de negocio.
  */
 require_once __DIR__ . '/../services/UnitContentService.php';
 
-function unit_content_data_key(string $unitKey): string
+function unit_content_validate_unit(array $siteData, string $unitKey): bool
 {
-    return UnitContentService::unitDataKey($unitKey);
+    $unitKey = trim($unitKey);
+
+    return $unitKey !== '' && UnitContentService::isSupportedUnit($unitKey, $siteData);
 }
 
 function unit_content_ensure_node(array &$siteData, string $unitKey): void
 {
     UnitContentService::ensureMigrated($siteData, $unitKey);
-    $dataKey = unit_content_data_key($unitKey);
-    if (!isset($siteData[$dataKey]) || !is_array($siteData[$dataKey])) {
-        $siteData[$dataKey] = [];
-    }
-    if (!isset($siteData[$dataKey]['content']) || !is_array($siteData[$dataKey]['content'])) {
-        $siteData[$dataKey]['content'] = UnitContentService::getContentNode($siteData, $unitKey);
-    }
 }
 
 function unit_content_after_save(array &$siteData, string $unitKey): void
@@ -110,13 +105,12 @@ function unit_content_handle_post(
     switch ($action) {
         case 'save_unit_content_settings':
             $unitKey = trim($_POST['content_unit'] ?? '');
-            if ($unitKey !== 'rentacar') {
-                $errorMsg = 'Unidad no soportada en esta fase.';
+            if (!unit_content_validate_unit($siteData, $unitKey)) {
+                $errorMsg = 'Unidad no válida.';
                 break;
             }
 
             unit_content_ensure_node($siteData, $unitKey);
-            $dataKey = unit_content_data_key($unitKey);
             $current = UnitContentService::getContentNode($siteData, $unitKey);
 
             $mode = trim($_POST['home_display_mode'] ?? 'rotation');
@@ -161,7 +155,7 @@ function unit_content_handle_post(
                 'latest_home_limit' => max(1, min(12, intval($_POST['latest_home_limit'] ?? 4))),
             ]);
 
-            $siteData[$dataKey]['content'] = $current;
+            UnitContentService::setContentNode($siteData, $unitKey, $current);
             unit_content_after_save($siteData, $unitKey);
 
             if ($contentService->saveAll($siteData)) {
@@ -175,13 +169,12 @@ function unit_content_handle_post(
         case 'edit_unit_content_item':
             $unitKey = trim($_POST['content_unit'] ?? '');
             $type = trim($_POST['content_type'] ?? '');
-            if ($unitKey !== 'rentacar' || !UnitContentService::isValidType($type)) {
+            if (!unit_content_validate_unit($siteData, $unitKey) || !UnitContentService::isValidType($type)) {
                 $errorMsg = 'Solicitud de contenido inválida.';
                 break;
             }
 
             unit_content_ensure_node($siteData, $unitKey);
-            $dataKey = unit_content_data_key($unitKey);
             $content = UnitContentService::getContentNode($siteData, $unitKey);
             $items = $content[$type] ?? [];
 
@@ -236,7 +229,7 @@ function unit_content_handle_post(
             }
 
             $content[$type] = $items;
-            $siteData[$dataKey]['content'] = $content;
+            UnitContentService::setContentNode($siteData, $unitKey, $content);
             unit_content_after_save($siteData, $unitKey);
 
             if ($contentService->saveAll($siteData)) {
@@ -253,13 +246,12 @@ function unit_content_handle_post(
             $unitKey = trim($_POST['content_unit'] ?? '');
             $type = trim($_POST['content_type'] ?? '');
             $itemId = intval($_POST['content_id'] ?? 0);
-            if ($unitKey !== 'rentacar' || !UnitContentService::isValidType($type) || $itemId <= 0) {
+            if (!unit_content_validate_unit($siteData, $unitKey) || !UnitContentService::isValidType($type) || $itemId <= 0) {
                 $errorMsg = 'Solicitud de eliminación inválida.';
                 break;
             }
 
             unit_content_ensure_node($siteData, $unitKey);
-            $dataKey = unit_content_data_key($unitKey);
             $content = UnitContentService::getContentNode($siteData, $unitKey);
             $items = array_values(array_filter($content[$type] ?? [], static function ($item) use ($itemId) {
                 return intval($item['id'] ?? 0) !== $itemId;
@@ -275,7 +267,7 @@ function unit_content_handle_post(
             }));
             $content['settings'] = $settings;
 
-            $siteData[$dataKey]['content'] = $content;
+            UnitContentService::setContentNode($siteData, $unitKey, $content);
             unit_content_after_save($siteData, $unitKey);
 
             if ($contentService->saveAll($siteData)) {
@@ -289,13 +281,12 @@ function unit_content_handle_post(
             $unitKey = trim($_POST['content_unit'] ?? '');
             $type = trim($_POST['content_type'] ?? '');
             $itemId = intval($_POST['content_id'] ?? 0);
-            if ($unitKey !== 'rentacar' || !UnitContentService::isValidType($type) || $itemId <= 0) {
+            if (!unit_content_validate_unit($siteData, $unitKey) || !UnitContentService::isValidType($type) || $itemId <= 0) {
                 $errorMsg = 'Solicitud inválida.';
                 break;
             }
 
             unit_content_ensure_node($siteData, $unitKey);
-            $dataKey = unit_content_data_key($unitKey);
             $content = UnitContentService::getContentNode($siteData, $unitKey);
             $found = false;
             foreach ($content[$type] as $idx => $item) {
@@ -312,7 +303,7 @@ function unit_content_handle_post(
                 break;
             }
 
-            $siteData[$dataKey]['content'] = $content;
+            UnitContentService::setContentNode($siteData, $unitKey, $content);
             unit_content_after_save($siteData, $unitKey);
 
             if ($contentService->saveAll($siteData)) {
@@ -326,13 +317,12 @@ function unit_content_handle_post(
             $unitKey = trim($_POST['content_unit'] ?? '');
             $kind = trim($_POST['taxonomy_kind'] ?? '');
             $name = trim($_POST['taxonomy_name'] ?? '');
-            if ($unitKey !== 'rentacar' || !in_array($kind, ['categories', 'tags', 'topics'], true) || $name === '') {
+            if (!unit_content_validate_unit($siteData, $unitKey) || !in_array($kind, ['categories', 'tags', 'topics'], true) || $name === '') {
                 $errorMsg = 'Datos de taxonomía inválidos.';
                 break;
             }
 
             unit_content_ensure_node($siteData, $unitKey);
-            $dataKey = unit_content_data_key($unitKey);
             $content = UnitContentService::getContentNode($siteData, $unitKey);
             $list = $content['taxonomy'][$kind] ?? [];
             foreach ($list as $row) {
@@ -347,7 +337,7 @@ function unit_content_handle_post(
                 'slug' => UnitContentService::slugify($name),
             ];
             $content['taxonomy'][$kind] = $list;
-            $siteData[$dataKey]['content'] = $content;
+            UnitContentService::setContentNode($siteData, $unitKey, $content);
 
             if ($contentService->saveAll($siteData)) {
                 $successMsg = 'Etiqueta agregada correctamente.';
@@ -360,13 +350,12 @@ function unit_content_handle_post(
             $unitKey = trim($_POST['content_unit'] ?? '');
             $kind = trim($_POST['taxonomy_kind'] ?? '');
             $taxId = intval($_POST['taxonomy_id'] ?? 0);
-            if ($unitKey !== 'rentacar' || !in_array($kind, ['categories', 'tags', 'topics'], true) || $taxId <= 0) {
+            if (!unit_content_validate_unit($siteData, $unitKey) || !in_array($kind, ['categories', 'tags', 'topics'], true) || $taxId <= 0) {
                 $errorMsg = 'Solicitud de taxonomía inválida.';
                 break;
             }
 
             unit_content_ensure_node($siteData, $unitKey);
-            $dataKey = unit_content_data_key($unitKey);
             $content = UnitContentService::getContentNode($siteData, $unitKey);
             $content['taxonomy'][$kind] = array_values(array_filter($content['taxonomy'][$kind] ?? [], static function ($row) use ($taxId) {
                 return intval($row['id'] ?? 0) !== $taxId;
@@ -383,7 +372,7 @@ function unit_content_handle_post(
                 }
             }
 
-            $siteData[$dataKey]['content'] = $content;
+            UnitContentService::setContentNode($siteData, $unitKey, $content);
 
             if ($contentService->saveAll($siteData)) {
                 $successMsg = 'Etiqueta eliminada.';

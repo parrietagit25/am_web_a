@@ -156,4 +156,6 @@ require __DIR__ . '/../includes/render-header-banner.php';
     </div>
 </section>
 
+<?php $ucUnitKey = 'taller'; require __DIR__ . '/../includes/unit-content-home-sections.php'; ?>
+
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

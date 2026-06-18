@@ -1,11 +1,16 @@
 <?php
 /**
- * News Article Detail Page
+ * Detalle de artículo por unidad de negocio
  */
-$activeUnit = 'rentacar';
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../services/ContentService.php';
+require_once __DIR__ . '/../includes/unit-content-frontend.php';
+
+$preContent = new ContentService();
+$unitKey = unit_content_resolve_unit_key($preContent, 'rentacar');
+$activeUnit = $unitKey;
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/article-content.php';
-require_once __DIR__ . '/../includes/unit-content-frontend.php';
 
 $newsId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $type = trim($_GET['type'] ?? 'news');
@@ -13,15 +18,25 @@ if (!in_array($type, ['latest', 'blog', 'news'], true)) {
     $type = 'news';
 }
 
-$article = unit_content_find_article($contentService, 'rentacar', $type, $newsId);
+$article = unit_content_find_article($contentService, $unitKey, $type, $newsId);
+$unitHome = unit_content_unit_home_url($contentService, $unitKey);
+$unitQuery = $unitKey !== 'rentacar' ? ('?unit=' . rawurlencode($unitKey)) : '';
 
 if (!$article) {
-    echo "<script>window.location.href='/rent-a-car.php';</script>";
+    echo "<script>window.location.href='" . addslashes($unitHome) . "';</script>";
     exit;
 }
 
-$backUrl = $type === 'blog' ? '/blog.php' : ($type === 'latest' ? '/rent-a-car.php' : '/noticias.php');
-$backLabel = $type === 'blog' ? 'Volver al Blog' : ($type === 'latest' ? 'Volver al inicio' : 'Volver a Noticias');
+if ($type === 'blog') {
+    $backUrl = '/blog.php' . $unitQuery;
+    $backLabel = 'Volver al Blog';
+} elseif ($type === 'latest') {
+    $backUrl = $unitHome;
+    $backLabel = 'Volver al inicio';
+} else {
+    $backUrl = '/noticias.php' . $unitQuery;
+    $backLabel = 'Volver a Noticias';
+}
 ?>
 
 <style>

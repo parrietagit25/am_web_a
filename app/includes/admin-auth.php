@@ -33,6 +33,24 @@ function admin_guard_post_action(string $action): bool
     if ($action === '') {
         return true;
     }
+
+    $unitContentActions = [
+        'save_unit_content_settings',
+        'add_unit_content_item',
+        'edit_unit_content_item',
+        'delete_unit_content_item',
+        'toggle_unit_content_home',
+        'add_unit_content_taxonomy',
+        'delete_unit_content_taxonomy',
+    ];
+    if (in_array($action, $unitContentActions, true)) {
+        require_once __DIR__ . '/../services/UnitContentService.php';
+        $unitKey = trim($_POST['content_unit'] ?? '');
+        if ($unitKey !== '') {
+            return AdminUserService::can(UnitContentService::contentPermissionKey($unitKey));
+        }
+    }
+
     if (AdminUserService::canAction($action)) {
         return true;
     }
@@ -82,6 +100,9 @@ function admin_sanitize_tab_slug(string $tab): ?string
     $tab = trim($tab);
     if ($tab === 'news' || $tab === 'rentacar-content') {
         $tab = 'rentacar-content-config';
+    }
+    if (preg_match('/^([a-z0-9_]+)-content$/', $tab, $m)) {
+        $tab = $m[1] . '-content-config';
     }
     if ($tab === '' || !AdminUserService::canTab($tab)) {
         return null;

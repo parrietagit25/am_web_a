@@ -84,4 +84,8 @@ require __DIR__ . '/../includes/render-header-banner.php';
     </div>
 </section>
 
+<?php if ($pageSlug === ''): ?>
+<?php $ucUnitKey = $unitKey; require __DIR__ . '/../includes/unit-content-home-sections.php'; ?>
+<?php endif; ?>
+
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

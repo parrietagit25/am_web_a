@@ -1,24 +1,31 @@
 <?php
 /**
- * Automarket - Blog (Rent A Car)
+ * Automarket - Blog por unidad de negocio
  */
-$activeUnit = 'rentacar';
-require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../services/ContentService.php';
 require_once __DIR__ . '/../includes/unit-content-frontend.php';
 
-$articulos = unit_content_get_items($contentService, 'rentacar', 'blog');
+$preContent = new ContentService();
+$unitKey = unit_content_resolve_unit_key($preContent, 'rentacar');
+$activeUnit = $unitKey;
+require_once __DIR__ . '/../includes/header.php';
+
+$unitLabel = unit_content_unit_label($contentService, $unitKey);
+$unitHome = unit_content_unit_home_url($contentService, $unitKey);
+$articulos = unit_content_get_items($contentService, $unitKey, 'blog');
 ?>
 
 <section class="py-5" style="background-color: #f8f9fc;">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-2 font-poppins">
-                <li class="breadcrumb-item"><a href="/rent-a-car.php" class="text-danger text-decoration-none fw-semibold">Rent A Car</a></li>
+                <li class="breadcrumb-item"><a href="<?php echo esc($unitHome); ?>" class="text-danger text-decoration-none fw-semibold"><?php echo esc($unitLabel); ?></a></li>
                 <li class="breadcrumb-item active" aria-current="page">Blog</li>
             </ol>
         </nav>
         <h1 class="display-5 fw-bold text-navy font-montserrat mb-0" style="font-size: 2.30rem; letter-spacing: -0.5px;">Blog</h1>
-        <p class="text-muted font-poppins mt-2 mb-0">Artículos, guías y contenido permanente sobre movilidad y viajes.</p>
+        <p class="text-muted font-poppins mt-2 mb-0">Artículos, guías y contenido permanente.</p>
     </div>
 </section>
 

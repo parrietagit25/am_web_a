@@ -32,6 +32,89 @@ class UnitContentService
         return self::$unitDataKeys[$unitKey] ?? $unitKey;
     }
 
+    public static function isCustomUnit(string $unitKey): bool
+    {
+        require_once __DIR__ . '/../includes/business-units-registry.php';
+
+        return !am_is_builtin_business_unit($unitKey);
+    }
+
+    /** @param array<string, mixed> $siteData */
+    public static function isSupportedUnit(string $unitKey, array $siteData): bool
+    {
+        if (self::isCustomUnit($unitKey)) {
+            $custom = $siteData['global']['business_units'] ?? [];
+
+            return is_array($custom) && isset($custom[$unitKey]);
+        }
+
+        return isset(self::$unitDataKeys[$unitKey]);
+    }
+
+    /** @return string[] */
+    public static function contentTabSlugs(string $unitKey): array
+    {
+        return [
+            $unitKey . '-content-config',
+            $unitKey . '-content-latest',
+            $unitKey . '-content-news',
+            $unitKey . '-content-blog',
+        ];
+    }
+
+    public static function contentPermissionKey(string $unitKey): string
+    {
+        static $map = [
+            'rentacar' => 'news',
+            'seminuevos' => 'semi_home',
+            'leasing' => 'leasing_home',
+            'renting' => 'renting_publicaciones',
+            'taller' => 'taller_home',
+        ];
+
+        return $map[$unitKey] ?? 'global';
+    }
+
+    /** @param array<string, mixed> $siteData @return list<string> */
+    public static function listAllUnitKeys(array $siteData): array
+    {
+        require_once __DIR__ . '/../includes/business-units-registry.php';
+        $merged = am_merge_business_units($siteData['global']['business_units'] ?? []);
+
+        return array_keys($merged);
+    }
+
+    /** @param array<string, mixed> $siteData */
+    public static function unitLabel(array $siteData, string $unitKey): string
+    {
+        require_once __DIR__ . '/../includes/business-units-registry.php';
+        $merged = am_merge_business_units($siteData['global']['business_units'] ?? []);
+        $label = trim((string) ($merged[$unitKey]['label'] ?? ''));
+
+        return $label !== '' ? $label : strtoupper($unitKey);
+    }
+
+    /** @param array<string, mixed> $siteData */
+    public static function unitHomePath(array $siteData, string $unitKey): string
+    {
+        require_once __DIR__ . '/../includes/business-units-registry.php';
+        $merged = am_merge_business_units($siteData['global']['business_units'] ?? []);
+        $slug = trim((string) ($merged[$unitKey]['slug'] ?? ''));
+        if ($slug === '') {
+            return '/unidad.php?u=' . rawurlencode($unitKey);
+        }
+        if (str_contains($slug, '?')) {
+            return '/' . ltrim($slug, '/');
+        }
+
+        return '/' . ltrim($slug, '/');
+    }
+
+    public static function defaultContentNode(): array
+    {
+        return self::mergeDefaultContent([]);
+    }
+
     public static function isValidType(string $type): bool
     {
         return in_array($type, self::TYPES, true);
@@ -40,11 +123,28 @@ class UnitContentService
     /** @param array<string, mixed> $siteData */
     public static function ensureMigrated(array &$siteData, string $unitKey): bool
     {
-        if ($unitKey !== 'rentacar') {
+        if (!self::isSupportedUnit($unitKey, $siteData)) {
             return false;
         }
 
-        $dataKey = self::unitDataKey($unitKey);
+        $changed = false;
+        if ($unitKey === 'rentacar') {
+            $changed = self::migrateRentacarNoticias($siteData) || $changed;
+        }
+        if (in_array($unitKey, ['leasing', 'renting'], true)) {
+            $changed = self::migrateLegacyPostsToBlog($siteData, $unitKey) || $changed;
+        }
+        if (self::ensureContentInitialized($siteData, $unitKey)) {
+            $changed = true;
+        }
+
+        return $changed;
+    }
+
+    /** @param array<string, mixed> $siteData */
+    private static function migrateRentacarNoticias(array &$siteData): bool
+    {
+        $dataKey = self::unitDataKey('rentacar');
         if (!isset($siteData[$dataKey]) || !is_array($siteData[$dataKey])) {
             $siteData[$dataKey] = [];
         }
@@ -62,8 +162,9 @@ class UnitContentService
         $legacy = $siteData[$dataKey]['noticias'] ?? [];
         if (!is_array($legacy) || empty($legacy)) {
             $content['_migrated_from_noticias'] = true;
-            $siteData[$dataKey]['content'] = self::mergeDefaultContent($content);
-            return true;
+            self::setContentNode($siteData, 'rentacar', $content);
+
+            return $changed;
         }
 
         $news = [];
@@ -100,10 +201,118 @@ class UnitContentService
 
         $content['settings'] = self::normalizeSettings($content['settings'] ?? [], $settingsOverrides);
 
-        $siteData[$dataKey]['content'] = self::mergeDefaultContent($content);
+        self::setContentNode($siteData, 'rentacar', $content);
         self::syncRentacarLegacyNoticias($siteData);
 
         return $changed;
+    }
+
+    /** @param array<string, mixed> $siteData */
+    private static function migrateLegacyPostsToBlog(array &$siteData, string $unitKey): bool
+    {
+        $raw = self::getRawContentArray($siteData, $unitKey);
+        if (!empty($raw['_migrated_from_posts'])) {
+            return false;
+        }
+
+        $dataKey = self::unitDataKey($unitKey);
+        $posts = $siteData[$dataKey]['posts'] ?? [];
+        if (!is_array($posts) || empty($posts)) {
+            $raw['_migrated_from_posts'] = true;
+            self::setContentNode($siteData, $unitKey, $raw);
+
+            return true;
+        }
+
+        $blog = is_array($raw['blog'] ?? null) ? $raw['blog'] : [];
+        foreach ($posts as $post) {
+            if (!is_array($post)) {
+                continue;
+            }
+            $blog[] = self::legacyPostToBlog($post);
+        }
+
+        $raw['blog'] = $blog;
+        $raw['_migrated_from_posts'] = true;
+        self::setContentNode($siteData, $unitKey, $raw);
+
+        return true;
+    }
+
+    /** @param array<string, mixed> $siteData */
+    private static function ensureContentInitialized(array &$siteData, string $unitKey): bool
+    {
+        if (self::hasContentStorage($siteData, $unitKey)) {
+            return false;
+        }
+
+        self::setContentNode($siteData, $unitKey, []);
+
+        return true;
+    }
+
+    /** @param array<string, mixed> $siteData */
+    private static function hasContentStorage(array $siteData, string $unitKey): bool
+    {
+        if (self::isCustomUnit($unitKey)) {
+            return isset($siteData['global']['business_units'][$unitKey]['content']);
+        }
+
+        $dataKey = self::unitDataKey($unitKey);
+
+        return isset($siteData[$dataKey]['content']);
+    }
+
+    /** @param array<string, mixed> $siteData @return array<string, mixed> */
+    private static function getRawContentArray(array $siteData, string $unitKey): array
+    {
+        if (self::isCustomUnit($unitKey)) {
+            $content = $siteData['global']['business_units'][$unitKey]['content'] ?? [];
+        } else {
+            $dataKey = self::unitDataKey($unitKey);
+            $content = $siteData[$dataKey]['content'] ?? [];
+        }
+
+        return is_array($content) ? $content : [];
+    }
+
+    /** @param array<string, mixed> $siteData @param array<string, mixed> $content */
+    public static function setContentNode(array &$siteData, string $unitKey, array $content): void
+    {
+        $merged = self::mergeDefaultContent($content);
+        if (self::isCustomUnit($unitKey)) {
+            if (!isset($siteData['global']['business_units'][$unitKey]) || !is_array($siteData['global']['business_units'][$unitKey])) {
+                $siteData['global']['business_units'][$unitKey] = ['key' => $unitKey];
+            }
+            $siteData['global']['business_units'][$unitKey]['content'] = $merged;
+
+            return;
+        }
+
+        $dataKey = self::unitDataKey($unitKey);
+        if (!isset($siteData[$dataKey]) || !is_array($siteData[$dataKey])) {
+            $siteData[$dataKey] = [];
+        }
+        $siteData[$dataKey]['content'] = $merged;
+    }
+
+    /** @param array<string, mixed> $legacy */
+    public static function legacyPostToBlog(array $legacy): array
+    {
+        return self::normalizeItem([
+            'id' => $legacy['id'] ?? time(),
+            'title' => $legacy['title'] ?? '',
+            'slug' => $legacy['slug'] ?? '',
+            'date' => $legacy['date'] ?? '',
+            'excerpt' => $legacy['excerpt'] ?? '',
+            'link_text' => $legacy['link_text'] ?? 'Ver Más',
+            'thumbnail' => $legacy['image_url'] ?? ($legacy['thumbnail'] ?? ''),
+            'banner' => $legacy['image_url'] ?? ($legacy['banner'] ?? ''),
+            'content' => $legacy['content'] ?? '',
+            'published' => $legacy['published'] ?? true,
+            'show_on_home' => $legacy['show_on_home'] ?? false,
+            'sort_order' => $legacy['sort_order'] ?? 0,
+        ], 'blog');
     }
 
     /**
@@ -122,13 +331,7 @@ class UnitContentService
     /** @param array<string, mixed> $siteData */
     public static function getContentNode(array $siteData, string $unitKey): array
     {
-        $dataKey = self::unitDataKey($unitKey);
-        $content = $siteData[$dataKey]['content'] ?? [];
-        if (!is_array($content)) {
-            $content = [];
-        }
-
-        return self::mergeDefaultContent($content);
+        return self::mergeDefaultContent(self::getRawContentArray($siteData, $unitKey));
     }
 
     /** @param array<string, mixed> $siteData @return list<array<string, mixed>> */
@@ -493,6 +696,7 @@ class UnitContentService
             'blog' => [],
             'news' => [],
             '_migrated_from_noticias' => !empty($content['_migrated_from_noticias']),
+            '_migrated_from_posts' => !empty($content['_migrated_from_posts']),
         ];
 
         foreach (self::TYPES as $type) {

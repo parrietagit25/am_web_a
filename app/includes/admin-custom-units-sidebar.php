@@ -3,6 +3,7 @@
  * Submenú lateral para unidades de negocio personalizadas.
  */
 require_once __DIR__ . '/business-units-registry.php';
+require_once __DIR__ . '/../services/UnitContentService.php';
 
 $customUnitsNav = am_custom_business_units($global['business_units'] ?? []);
 $showCustomUnits = admin_can('global') && !empty($customUnitsNav);
@@ -17,8 +18,10 @@ foreach ($customUnitsNav as $unitKey => $unit):
     $editablePages = am_custom_unit_editable_pages($unit, $unitKey);
     $headingLabel = trim((string) ($unit['label'] ?? strtoupper($unitKey)));
     $unitTabPrefix = 'unit-' . $unitKey;
+    $unitContentTabs = UnitContentService::contentTabSlugs($unitKey);
     $unitSubmenuOpen = ($defaultAdminTab ?? '') === $unitTabPrefix
-        || strncmp((string) ($defaultAdminTab ?? ''), $unitTabPrefix . '-', strlen($unitTabPrefix) + 1) === 0;
+        || strncmp((string) ($defaultAdminTab ?? ''), $unitTabPrefix . '-', strlen($unitTabPrefix) + 1) === 0
+        || in_array($defaultAdminTab ?? '', $unitContentTabs, true);
 ?>
     <div class="sidebar-heading px-3 py-2 mt-3 text-uppercase text-white-50 fw-bold d-flex align-items-center justify-content-between"
          data-bs-toggle="collapse"
@@ -47,5 +50,6 @@ foreach ($customUnitsNav as $unitKey => $unit):
             <?php echo esc($pageLabel); ?>
         </button>
         <?php endforeach; ?>
+        <?php $ucUnitKey = $unitKey; $ucSubmenuId = 'custom-unit-content-submenu-' . preg_replace('/[^a-z0-9_-]/i', '-', $unitKey); require __DIR__ . '/admin-unit-content-submenu.php'; ?>
     </div>
 <?php endforeach; ?>

@@ -118,8 +118,11 @@ class AdminPermissionRegistry
         if ($tabSlug === 'rentacar-content' || $tabSlug === 'news') {
             return 'news';
         }
-        if (str_starts_with($tabSlug, 'rentacar-content-')) {
-            return 'news';
+
+        if (preg_match('/^([a-z0-9_]+)-content(?:-|$)/', $tabSlug, $m)) {
+            require_once __DIR__ . '/UnitContentService.php';
+
+            return UnitContentService::contentPermissionKey($m[1]);
         }
 
         if (preg_match('/^unit-[a-z0-9_]+(?:-[a-z0-9_-]+)?$/', $tabSlug)) {

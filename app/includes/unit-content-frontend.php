@@ -4,6 +4,35 @@
  */
 require_once __DIR__ . '/../services/UnitContentService.php';
 
+function unit_content_resolve_unit_key(ContentService $contentService, string $default = 'rentacar'): string
+{
+    require_once __DIR__ . '/business-units-registry.php';
+    $siteData = $contentService->getAll();
+    $key = am_normalize_business_unit_key((string) ($_GET['unit'] ?? ''));
+    if ($key === '') {
+        return $default;
+    }
+    if (UnitContentService::isSupportedUnit($key, $siteData)) {
+        return $key;
+    }
+
+    return $default;
+}
+
+function unit_content_unit_home_url(ContentService $contentService, string $unitKey): string
+{
+    $siteData = $contentService->getAll();
+
+    return UnitContentService::unitHomePath($siteData, $unitKey);
+}
+
+function unit_content_unit_label(ContentService $contentService, string $unitKey): string
+{
+    $siteData = $contentService->getAll();
+
+    return UnitContentService::unitLabel($siteData, $unitKey);
+}
+
 /** @param array<string, mixed> $item */
 function unit_content_to_card(array $item): array
 {

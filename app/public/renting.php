@@ -521,4 +521,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<?php $ucUnitKey = 'renting'; require __DIR__ . '/../includes/unit-content-home-sections.php'; ?>
+
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
