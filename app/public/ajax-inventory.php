@@ -143,7 +143,7 @@ if (empty($vehicles)): ?>
                     <?php echo esc($tipoCompra); ?>
                 </span>
                 
-                <a href="/detalle.php?placa=<?php echo urlencode($vehicle['LicensePlate']); ?>" class="vehicle-img-container text-center overflow-hidden d-block">
+                <a href="/detalle.php?placa=<?php echo urlencode($vehicle['LicensePlate']); ?>" class="vehicle-img-container overflow-hidden d-block">
                     <img src="<?php echo esc($photoUrl); ?>" alt="<?php echo esc($fullName); ?>">
                 </a>
                 

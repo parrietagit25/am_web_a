@@ -187,18 +187,21 @@ $totalPages = ceil($totalMatches / $limit);
     border-top: 1px solid #e2e8f0;
 }
 .vehicle-card .vehicle-img-container {
-    height: 200px;
+    display: block;
+    width: 100%;
+    height: 220px;
     overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f8f9fc;
+    padding: 0;
+    margin: 0;
+    line-height: 0;
+    background-color: #ffffff;
+    border: none;
 }
 .vehicle-card .vehicle-img-container img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    object-position: center;
+    object-fit: cover;
+    object-position: center center;
     display: block;
     transition: transform 0.3s ease;
 }
@@ -427,7 +430,7 @@ $totalPages = ceil($totalMatches / $limit);
                                         <?php echo esc($tipoCompra); ?>
                                     </span>
                                     
-                                    <a href="/detalle.php?placa=<?php echo urlencode($vehicle['LicensePlate']); ?>" class="vehicle-img-container text-center overflow-hidden d-block">
+                                    <a href="/detalle.php?placa=<?php echo urlencode($vehicle['LicensePlate']); ?>" class="vehicle-img-container overflow-hidden d-block">
                                         <img src="<?php echo esc($photoUrl); ?>" alt="<?php echo esc($fullName); ?>">
                                     </a>
                                     
