@@ -66,21 +66,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $siteData['global']['business_units'][$key]['heroTitle'] = trim($unitData['heroTitle'] ?? '');
                     $siteData['global']['business_units'][$key]['heroSubtitle'] = trim($unitData['heroSubtitle'] ?? '');
                     
-                    // Parse sub-menus
+                    // Parse menu items (incluye submenús y orden)
                     if (isset($unitData['menu']) && is_array($unitData['menu'])) {
                         $parsedMenu = [];
-                        foreach ($unitData['menu'] as $idx => $menuItem) {
-                            if (!empty($menuItem['label']) && !empty($menuItem['link'])) {
-                                $existingItem = $siteData['global']['business_units'][$key]['menu'][$idx] ?? [];
-                                $newItem = [
-                                    'label' => trim($menuItem['label']),
-                                    'link' => trim($menuItem['link'])
-                                ];
-                                if (isset($existingItem['submenu'])) {
-                                    $newItem['submenu'] = $existingItem['submenu'];
-                                }
-                                $parsedMenu[] = $newItem;
+                        foreach ($unitData['menu'] as $menuItem) {
+                            $label = trim($menuItem['label'] ?? '');
+                            $link = trim($menuItem['link'] ?? '');
+                            if ($label === '' || $link === '') {
+                                continue;
                             }
+                            $newItem = [
+                                'label' => $label,
+                                'link' => $link,
+                            ];
+                            if (isset($menuItem['submenu']) && is_array($menuItem['submenu'])) {
+                                $submenu = [];
+                                foreach ($menuItem['submenu'] as $sub) {
+                                    $subLabel = trim($sub['label'] ?? '');
+                                    $subLink = trim($sub['link'] ?? '');
+                                    if ($subLabel !== '' && $subLink !== '') {
+                                        $submenu[] = [
+                                            'label' => $subLabel,
+                                            'link' => $subLink,
+                                        ];
+                                    }
+                                }
+                                if (!empty($submenu)) {
+                                    $newItem['submenu'] = $submenu;
+                                }
+                            }
+                            $parsedMenu[] = $newItem;
                         }
                         $siteData['global']['business_units'][$key]['menu'] = $parsedMenu;
                     }
@@ -2736,6 +2751,21 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
             padding: 12px;
             margin-bottom: 10px;
         }
+        .bu-menu-handle,
+        .bu-submenu-handle {
+            cursor: grab;
+        }
+        .bu-menu-handle:active,
+        .bu-submenu-handle:active {
+            cursor: grabbing;
+        }
+        .bu-menu-sortable .list-group-item {
+            border-left: 3px solid transparent;
+        }
+        .bu-menu-sortable .sortable-ghost {
+            opacity: 0.5;
+            border-left-color: var(--primary-red, #c51f17);
+        }
         .text-navy {
             color: var(--navy) !important;
         }
@@ -2922,33 +2952,15 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                                         <input type="text" name="business_units[<?php echo esc($key); ?>][heroSubtitle]" class="form-control form-control-premium bg-white" value="<?php echo esc($unit['heroSubtitle'] ?? ''); ?>">
                                                     </div>
 
-                                                    <div class="col-12 mt-4">
-                                                        <h6 class="fw-bold mb-2 text-navy-light"><i class="bi bi-link-45deg me-1"></i>Enlaces del Menú Secundario (Máximo 4)</h6>
-                                                        <div class="menu-items-wrapper">
-                                                            <?php 
-                                                            for ($i = 0; $i < 4; $i++): 
-                                                                $item = $unit['menu'][$i] ?? ['label' => '', 'link' => ''];
-                                                            ?>
-                                                            <div class="row g-2 align-items-center mb-2 menu-item-row bg-white shadow-none">
-                                                                <div class="col-md-5">
-                                                                    <input type="text" name="business_units[<?php echo esc($key); ?>][menu][<?php echo $i; ?>][label]" class="form-control form-control-premium form-control-sm" placeholder="Texto del enlace" value="<?php echo esc($item['label']); ?>">
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <input type="text" name="business_units[<?php echo esc($key); ?>][menu][<?php echo $i; ?>][link]" class="form-control form-control-premium form-control-sm" placeholder="URL o Ancla (Ej: #alquileres)" value="<?php echo esc($item['link']); ?>">
-                                                                </div>
-                                                                <div class="col-md-1 text-center">
-                                                                    <i class="bi bi-grip-vertical text-muted fs-4"></i>
-                                                                </div>
-                                                            </div>
-                                                            <?php endfor; ?>
-                                                        </div>
-                                                    </div>
+                                                    <?php require __DIR__ . '/../../includes/admin-business-units-menu-list.php'; ?>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     <?php endforeach; ?>
                                 </div>
+
+                                <?php require __DIR__ . '/../../includes/admin-business-units-menu-modal.php'; ?>
 
                                 <div class="text-end mt-4">
                                     <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
