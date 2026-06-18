@@ -6717,13 +6717,20 @@ document.addEventListener('DOMContentLoaded', function () {
             const collapseParent = btn.closest('.collapse');
             if (collapseParent && collapseParent.id) {
                 document.querySelectorAll('#admin-sidebar-accordion .collapse.show').forEach(function (el) {
-                    if (el !== collapseParent) {
-                        const other = bootstrap.Collapse.getOrCreateInstance(el, { toggle: false });
-                        other.hide();
-                    }
+                    if (el === collapseParent) return;
+                    if (el.contains(collapseParent)) return;
+                    if (collapseParent.contains(el)) return;
+                    const other = bootstrap.Collapse.getOrCreateInstance(el, { toggle: false });
+                    other.hide();
                 });
-                const current = bootstrap.Collapse.getOrCreateInstance(collapseParent, { toggle: false });
-                current.show();
+                let collapseEl = collapseParent;
+                while (collapseEl) {
+                    const current = bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false });
+                    current.show();
+                    collapseEl = collapseEl.parentElement
+                        ? collapseEl.parentElement.closest('.collapse')
+                        : null;
+                }
             }
         });
     });
@@ -6833,11 +6840,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 targetPane.classList.add('show', 'active');
             }
             
-            // If it is inside a collapse, expand the collapse
-            const collapseParent = tabButton.closest('.collapse');
-            if (collapseParent) {
-                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseParent, { toggle: false });
+            // Expandir este collapse y todos los ancestros (p. ej. Rent A Car + Contenido)
+            let collapseEl = tabButton.closest('.collapse');
+            while (collapseEl) {
+                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false });
                 bsCollapse.show();
+                collapseEl = collapseEl.parentElement
+                    ? collapseEl.parentElement.closest('.collapse')
+                    : null;
             }
         }
     }
