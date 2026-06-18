@@ -1,6 +1,6 @@
 <?php
 /**
- * Claves oficiales de unidades de negocio (config/business-units.php).
+ * Unidades de negocio: oficiales (config) + personalizadas (site_data.json).
  */
 
 /** @return list<string> */
@@ -14,32 +14,238 @@ function am_builtin_business_unit_keys(): array
     return $keys;
 }
 
-/** @param array<string, mixed> $units */
-function am_filter_builtin_business_units(array $units): array
+function am_is_builtin_business_unit(string $key): bool
 {
-    $filtered = [];
-    foreach (am_builtin_business_unit_keys() as $key) {
-        if (isset($units[$key]) && is_array($units[$key])) {
-            $filtered[$key] = $units[$key];
-        }
-    }
-
-    return $filtered;
+    return in_array($key, am_builtin_business_unit_keys(), true);
 }
 
-/** @param array<string, mixed> $siteData */
-function am_strip_custom_business_units(array &$siteData): bool
+function am_normalize_business_unit_key(string $raw): string
+{
+    $key = strtolower(trim($raw));
+    $key = preg_replace('/[^a-z0-9_]+/', '_', $key);
+    $key = trim((string) $key, '_');
+
+    return $key !== '' ? $key : 'unidad';
+}
+
+/** @return array<string, int> */
+function am_default_business_unit_sort_orders(): array
+{
+    return [
+        'rentacar' => 10,
+        'seminuevos' => 20,
+        'leasing' => 30,
+        'renting' => 40,
+        'taller' => 50,
+    ];
+}
+
+/**
+ * @param array<string, mixed> $unit
+ * @return array<string, mixed>
+ */
+function am_normalize_custom_business_unit(string $key, array $unit): array
+{
+    $label = trim((string) ($unit['label'] ?? strtoupper($key)));
+    $slug = trim((string) ($unit['slug'] ?? ''));
+    if ($slug === '') {
+        $slug = 'unidad.php?u=' . rawurlencode($key);
+    }
+
+    return [
+        'key' => $key,
+        'label' => $label !== '' ? $label : strtoupper($key),
+        'slug' => $slug,
+        'color' => trim((string) ($unit['color'] ?? '#1f347f')) ?: '#1f347f',
+        'logo_title' => trim((string) ($unit['logo_title'] ?? 'Automarket')) ?: 'Automarket',
+        'logo_subtitle' => trim((string) ($unit['logo_subtitle'] ?? $label)) ?: $label,
+        'menu' => is_array($unit['menu'] ?? null) ? $unit['menu'] : [],
+        'activeClass' => trim((string) ($unit['activeClass'] ?? ('active-' . $key))),
+        'heroTitle' => trim((string) ($unit['heroTitle'] ?? '')),
+        'heroSubtitle' => trim((string) ($unit['heroSubtitle'] ?? '')),
+        'ctaText' => trim((string) ($unit['ctaText'] ?? '')),
+        'ctaLink' => trim((string) ($unit['ctaLink'] ?? '')),
+        'sort_order' => intval($unit['sort_order'] ?? 60),
+        'is_custom' => true,
+    ];
+}
+
+/**
+ * @param array<string, array<string, mixed>> $units
+ * @return array<string, array<string, mixed>>
+ */
+function am_sort_business_units(array $units): array
+{
+    uasort($units, static function (array $a, array $b): int {
+        $order = intval($a['sort_order'] ?? 99) <=> intval($b['sort_order'] ?? 99);
+        if ($order !== 0) {
+            return $order;
+        }
+
+        return strcmp((string) ($a['label'] ?? ''), (string) ($b['label'] ?? ''));
+    });
+
+    return $units;
+}
+
+/**
+ * @param array<string, array<string, mixed>> $stored
+ * @return array<string, array<string, mixed>>
+ */
+function am_merge_business_units(array $stored): array
+{
+    $defaults = require __DIR__ . '/../config/business-units.php';
+    $sortDefaults = am_default_business_unit_sort_orders();
+    $merged = [];
+
+    foreach ($defaults as $key => $default) {
+        $unit = (isset($stored[$key]) && is_array($stored[$key]))
+            ? array_merge($default, $stored[$key])
+            : $default;
+        $unit['key'] = $key;
+        $unit['is_custom'] = false;
+        if (!isset($unit['sort_order'])) {
+            $unit['sort_order'] = $sortDefaults[$key] ?? 99;
+        }
+        $merged[$key] = $unit;
+    }
+
+    foreach ($stored as $key => $unit) {
+        if (!is_string($key) || am_is_builtin_business_unit($key) || !is_array($unit)) {
+            continue;
+        }
+        $normalizedKey = am_normalize_business_unit_key($key);
+        if ($normalizedKey === '' || isset($merged[$normalizedKey])) {
+            continue;
+        }
+        $merged[$normalizedKey] = am_normalize_custom_business_unit($normalizedKey, $unit);
+    }
+
+    return am_sort_business_units($merged);
+}
+
+/** @deprecated Use am_merge_business_units() */
+function am_filter_builtin_business_units(array $units): array
+{
+    return am_merge_business_units($units);
+}
+
+/**
+ * @param array<string, mixed> $siteData
+ */
+function am_ensure_business_units_sort_order(array &$siteData): bool
 {
     if (!isset($siteData['global']['business_units']) || !is_array($siteData['global']['business_units'])) {
         return false;
     }
 
-    $filtered = am_filter_builtin_business_units($siteData['global']['business_units']);
-    if ($filtered === $siteData['global']['business_units']) {
-        return false;
+    $modified = false;
+    $sortDefaults = am_default_business_unit_sort_orders();
+    foreach ($siteData['global']['business_units'] as $key => &$unit) {
+        if (!is_array($unit)) {
+            continue;
+        }
+        if (!isset($unit['sort_order'])) {
+            $unit['sort_order'] = $sortDefaults[$key] ?? 60;
+            $modified = true;
+        }
+    }
+    unset($unit);
+
+    return $modified;
+}
+
+/** @param array<string, mixed> $siteData */
+function am_strip_custom_business_units(array &$siteData): bool
+{
+    return false;
+}
+
+/**
+ * @param array<string, mixed> $posted
+ * @param array<string, array<string, mixed>> $existing
+ * @return array<string, array<string, mixed>>
+ */
+function am_build_business_units_from_post(array $posted, array $existing, array $orderKeys): array
+{
+    $mergedExisting = am_merge_business_units($existing);
+    $updated = [];
+    $seen = [];
+
+    foreach ($orderKeys as $rawKey) {
+        $key = am_normalize_business_unit_key((string) $rawKey);
+        if ($key === '' || isset($seen[$key]) || !isset($posted[$key]) || !is_array($posted[$key])) {
+            continue;
+        }
+        $seen[$key] = true;
+        $unitData = $posted[$key];
+        $base = $mergedExisting[$key] ?? am_normalize_custom_business_unit($key, []);
+
+        $unit = $base;
+        $unit['label'] = trim((string) ($unitData['label'] ?? $base['label']));
+        $unit['logo_subtitle'] = trim((string) ($unitData['logo_subtitle'] ?? $base['logo_subtitle']));
+        $unit['color'] = trim((string) ($unitData['color'] ?? $base['color']));
+        $unit['heroTitle'] = trim((string) ($unitData['heroTitle'] ?? $base['heroTitle'] ?? ''));
+        $unit['heroSubtitle'] = trim((string) ($unitData['heroSubtitle'] ?? $base['heroSubtitle'] ?? ''));
+        $unit['sort_order'] = (count($updated) + 1) * 10;
+
+        if (am_is_builtin_business_unit($key)) {
+            $unit['is_custom'] = false;
+            $unit['slug'] = $base['slug'];
+            $unit['activeClass'] = $base['activeClass'] ?? ('active-' . $key);
+        } else {
+            $unit['is_custom'] = true;
+            $unit['key'] = $key;
+            $slug = trim((string) ($unitData['slug'] ?? $base['slug'] ?? ''));
+            $unit['slug'] = $slug !== '' ? $slug : ('unidad.php?u=' . rawurlencode($key));
+            $unit['activeClass'] = 'active-' . $key;
+            $unit['logo_title'] = $base['logo_title'] ?? 'Automarket';
+            $unit['ctaText'] = trim((string) ($unitData['ctaText'] ?? $base['ctaText'] ?? ''));
+            $unit['ctaLink'] = trim((string) ($unitData['ctaLink'] ?? $base['ctaLink'] ?? ''));
+        }
+
+        if (isset($unitData['menu']) && is_array($unitData['menu'])) {
+            $parsedMenu = [];
+            foreach ($unitData['menu'] as $menuItem) {
+                $label = trim((string) ($menuItem['label'] ?? ''));
+                $link = trim((string) ($menuItem['link'] ?? ''));
+                if ($label === '' || $link === '') {
+                    continue;
+                }
+                $newItem = [
+                    'label' => $label,
+                    'link' => $link,
+                ];
+                if (isset($menuItem['submenu']) && is_array($menuItem['submenu'])) {
+                    $submenu = [];
+                    foreach ($menuItem['submenu'] as $sub) {
+                        $subLabel = trim((string) ($sub['label'] ?? ''));
+                        $subLink = trim((string) ($sub['link'] ?? ''));
+                        if ($subLabel !== '' && $subLink !== '') {
+                            $submenu[] = [
+                                'label' => $subLabel,
+                                'link' => $subLink,
+                            ];
+                        }
+                    }
+                    if (!empty($submenu)) {
+                        $newItem['submenu'] = $submenu;
+                    }
+                }
+                $parsedMenu[] = $newItem;
+            }
+            $unit['menu'] = $parsedMenu;
+        }
+
+        unset($unit['is_custom']);
+        $updated[$key] = $unit;
     }
 
-    $siteData['global']['business_units'] = $filtered;
+    foreach (am_builtin_business_unit_keys() as $builtinKey) {
+        if (!isset($updated[$builtinKey]) && isset($mergedExisting[$builtinKey])) {
+            $updated[$builtinKey] = $mergedExisting[$builtinKey];
+        }
+    }
 
-    return true;
+    return am_sort_business_units($updated);
 }

@@ -96,6 +96,17 @@
         });
     }
 
+    function registerUnit(unitKey, items) {
+        buMenuData[unitKey] = Array.isArray(items) ? items.map(normalizeItem) : [];
+        renderMenuList(unitKey);
+    }
+
+    function removeUnit(unitKey) {
+        delete buMenuData[unitKey];
+        document.querySelector('.bu-menu-fields[data-unit="' + unitKey + '"]')?.remove();
+        document.querySelector('.bu-menu-sortable[data-unit="' + unitKey + '"]')?.remove();
+    }
+
     function appendHidden(container, name, value) {
         const input = document.createElement('input');
         input.type = 'hidden';
@@ -364,5 +375,11 @@
 
     initData();
     renderAllLists();
+
+    window.BuMenuManager = {
+        registerUnit,
+        removeUnit,
+        syncAll: syncAllHiddenFields,
+    };
 })();
 </script>

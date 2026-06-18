@@ -54,7 +54,7 @@ class ContentService {
                 }
 
                 require_once __DIR__ . '/../includes/business-units-registry.php';
-                if (am_strip_custom_business_units($data)) {
+                if (am_ensure_business_units_sort_order($data)) {
                     $modified = true;
                 }
                 

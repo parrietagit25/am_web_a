@@ -10,7 +10,7 @@ $contentService = new ContentService();
 $siteGlobal = $contentService->get('global');
 $trackingCodes = $siteGlobal['tracking_codes'] ?? [];
 require_once __DIR__ . '/business-units-registry.php';
-$businessUnits = am_filter_builtin_business_units(
+$businessUnits = am_merge_business_units(
     $siteGlobal['business_units'] ?? require __DIR__ . '/../config/business-units.php'
 );
 

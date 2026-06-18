@@ -56,55 +56,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'body_end_html' => trim($_POST['tracking_body_end_html'] ?? ''),
         ];
 
-        // Update business units labels and colors
-        if (isset($_POST['business_units']) && is_array($_POST['business_units'])) {
-            foreach ($_POST['business_units'] as $key => $unitData) {
-                if (isset($siteData['global']['business_units'][$key])) {
-                    $siteData['global']['business_units'][$key]['label'] = trim($unitData['label'] ?? '');
-                    $siteData['global']['business_units'][$key]['color'] = trim($unitData['color'] ?? '');
-                    $siteData['global']['business_units'][$key]['logo_subtitle'] = trim($unitData['logo_subtitle'] ?? '');
-                    $siteData['global']['business_units'][$key]['heroTitle'] = trim($unitData['heroTitle'] ?? '');
-                    $siteData['global']['business_units'][$key]['heroSubtitle'] = trim($unitData['heroSubtitle'] ?? '');
-                    
-                    // Parse menu items (incluye submenús y orden)
-                    if (isset($unitData['menu']) && is_array($unitData['menu'])) {
-                        $parsedMenu = [];
-                        foreach ($unitData['menu'] as $menuItem) {
-                            $label = trim($menuItem['label'] ?? '');
-                            $link = trim($menuItem['link'] ?? '');
-                            if ($label === '' || $link === '') {
-                                continue;
-                            }
-                            $newItem = [
-                                'label' => $label,
-                                'link' => $link,
-                            ];
-                            if (isset($menuItem['submenu']) && is_array($menuItem['submenu'])) {
-                                $submenu = [];
-                                foreach ($menuItem['submenu'] as $sub) {
-                                    $subLabel = trim($sub['label'] ?? '');
-                                    $subLink = trim($sub['link'] ?? '');
-                                    if ($subLabel !== '' && $subLink !== '') {
-                                        $submenu[] = [
-                                            'label' => $subLabel,
-                                            'link' => $subLink,
-                                        ];
-                                    }
-                                }
-                                if (!empty($submenu)) {
-                                    $newItem['submenu'] = $submenu;
-                                }
-                            }
-                            $parsedMenu[] = $newItem;
-                        }
-                        $siteData['global']['business_units'][$key]['menu'] = $parsedMenu;
-                    }
-                }
-            }
-        }
-
+        // Update business units (oficiales + personalizadas)
         require_once __DIR__ . '/../../includes/business-units-registry.php';
-        am_strip_custom_business_units($siteData);
+        $postedUnits = (isset($_POST['business_units']) && is_array($_POST['business_units']))
+            ? $_POST['business_units']
+            : [];
+        $orderKeys = json_decode((string) ($_POST['business_units_order'] ?? '[]'), true);
+        if (!is_array($orderKeys)) {
+            $orderKeys = [];
+        }
+        if (empty($orderKeys) && !empty($postedUnits)) {
+            $orderKeys = array_keys($postedUnits);
+        }
+        if (!empty($postedUnits)) {
+            $siteData['global']['business_units'] = am_build_business_units_from_post(
+                $postedUnits,
+                $siteData['global']['business_units'] ?? [],
+                $orderKeys
+            );
+        }
 
         if ($contentService->saveAll($siteData)) {
             $successMsg = 'Configuración global actualizada correctamente.';
@@ -2536,7 +2506,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $siteData = $contentService->getAll();
 $global = $siteData['global'];
 require_once __DIR__ . '/../../includes/business-units-registry.php';
-$global['business_units'] = am_filter_builtin_business_units($global['business_units'] ?? []);
+$global['business_units'] = am_merge_business_units($global['business_units'] ?? []);
 $homepage = $siteData['homepage'];
 $landingPages = $siteData['landings'] ?? [];
 usort($landingPages, function ($a, $b) {
@@ -2752,11 +2722,13 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
             margin-bottom: 10px;
         }
         .bu-menu-handle,
-        .bu-submenu-handle {
+        .bu-submenu-handle,
+        .bu-unit-handle {
             cursor: grab;
         }
         .bu-menu-handle:active,
-        .bu-submenu-handle:active {
+        .bu-submenu-handle:active,
+        .bu-unit-handle:active {
             cursor: grabbing;
         }
         .bu-menu-sortable .list-group-item {
@@ -2912,55 +2884,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                     </div>
                                 </div>
 
-                                <h5 class="fw-bold mt-5 mb-4 font-montserrat border-bottom pb-2 text-navy"><i class="bi bi-list-stars me-2 text-danger"></i>Menú y Sub-títulos de Unidades de Negocio</h5>
-
-                                <div class="accordion" id="businessUnitsAccordion">
-                                    <?php foreach ($global['business_units'] as $key => $unit): ?>
-                                    <div class="accordion-item border rounded-3 mb-2 overflow-hidden">
-                                        <h2 class="accordion-header">
-                                            <button class="accordion-button collapsed fw-bold text-navy-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-<?php echo esc($key); ?>">
-                                                <span class="badge me-3" style="background-color: <?php echo esc($unit['color']); ?>; width: 15px; height: 15px; border-radius: 50%; padding: 0;"> </span>
-                                                <?php echo esc($unit['label']); ?>
-                                            </button>
-                                        </h2>
-                                        <div id="collapse-<?php echo esc($key); ?>" class="accordion-collapse collapse" data-bs-parent="#businessUnitsAccordion">
-                                            <div class="accordion-body bg-light-gray p-4">
-                                                <div class="row g-3">
-                                                    <div class="col-md-4">
-                                                        <label class="form-label">Etiqueta de Menú Superior</label>
-                                                        <input type="text" name="business_units[<?php echo esc($key); ?>][label]" class="form-control form-control-premium bg-white" value="<?php echo esc($unit['label']); ?>" required>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <label class="form-label">Sub-título del Logo (Header)</label>
-                                                        <input type="text" name="business_units[<?php echo esc($key); ?>][logo_subtitle]" class="form-control form-control-premium bg-white" value="<?php echo esc($unit['logo_subtitle']); ?>" required>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <label class="form-label">Color de Tema (Hexadecimal)</label>
-                                                        <div class="d-flex gap-2">
-                                                            <input type="color" name="business_units[<?php echo esc($key); ?>][color]" class="form-control form-control-color" value="<?php echo esc($unit['color']); ?>" required style="height: 43px; width: 60px;">
-                                                            <input type="text" class="form-control form-control-premium bg-white flex-grow-1" value="<?php echo esc($unit['color']); ?>" readonly>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">Título Hero Principal</label>
-                                                        <input type="text" name="business_units[<?php echo esc($key); ?>][heroTitle]" class="form-control form-control-premium bg-white" value="<?php echo esc($unit['heroTitle'] ?? ''); ?>">
-                                                    </div>
-                                                    
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">Subtítulo Hero Principal</label>
-                                                        <input type="text" name="business_units[<?php echo esc($key); ?>][heroSubtitle]" class="form-control form-control-premium bg-white" value="<?php echo esc($unit['heroSubtitle'] ?? ''); ?>">
-                                                    </div>
-
-                                                    <?php require __DIR__ . '/../../includes/admin-business-units-menu-list.php'; ?>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <?php endforeach; ?>
-                                </div>
-
-                                <?php require __DIR__ . '/../../includes/admin-business-units-menu-modal.php'; ?>
+                                <?php require __DIR__ . '/../../includes/admin-business-units-section.php'; ?>
 
                                 <div class="text-end mt-4">
                                     <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">

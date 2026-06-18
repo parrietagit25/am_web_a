@@ -5,7 +5,7 @@ $chatbotSessionSvc = new ChatbotSessionService();
 $chatbotSessionsList = $chatbotSessionSvc->listSessions(250);
 
 require_once __DIR__ . '/business-units-registry.php';
-$businessUnits = am_filter_builtin_business_units(
+$businessUnits = am_merge_business_units(
     $siteData['global']['business_units'] ?? require __DIR__ . '/../config/business-units.php'
 );
 $unitLabels = [];
