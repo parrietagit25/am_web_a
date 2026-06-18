@@ -263,10 +263,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $siteData['homepage']['fleet_carousel']['interval'] = intval($_POST['fleet_interval'] ?? 3000);
 
             if (isset($_POST['fleet_items']) && is_array($_POST['fleet_items'])) {
+                require_once __DIR__ . '/../../includes/fleet-categories.php';
                 foreach ($_POST['fleet_items'] as $id => $itemData) {
                     foreach ($siteData['homepage']['fleet_carousel']['items'] as $idx => $item) {
                         if (intval($item['id']) === intval($id)) {
-                            $siteData['homepage']['fleet_carousel']['items'][$idx]['label'] = trim($itemData['label'] ?? '');
+                            $oldCategory = trim((string) ($item['category'] ?? $item['label'] ?? ''));
+                            $newLabel = trim($itemData['label'] ?? '');
+                            $siteData['homepage']['fleet_carousel']['items'][$idx]['label'] = $newLabel;
+                            $siteData['homepage']['fleet_carousel']['items'][$idx]['category'] = $newLabel;
+                            if ($oldCategory !== '' && $oldCategory !== $newLabel) {
+                                am_rename_fleet_vehicle_category($siteData, $oldCategory, $newLabel);
+                            }
                             
                             $fileKey = 'fleet_image_' . $id;
                             if (isset($_FILES[$fileKey]) && $_FILES[$fileKey]['error'] === UPLOAD_ERR_OK) {
@@ -282,6 +289,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }
                 }
+                $siteData['homepage']['fleet_carousel']['items'] = am_fleet_categories_sorted(
+                    $siteData['homepage']['fleet_carousel']['items'] ?? []
+                );
             }
         }
 
@@ -712,6 +722,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } else {
             $errorMsg = 'Vehículo no encontrado.';
+        }
+    }
+
+    // 9b. SAVE FLEET CATEGORIES (order + names)
+    elseif ($action === 'save_fleet_categories') {
+        require_once __DIR__ . '/../../includes/fleet-categories.php';
+        $postedCategories = $_POST['fleet_categories'] ?? [];
+        if (!is_array($postedCategories)) {
+            $postedCategories = [];
+        }
+
+        if (empty($errorMsg)) {
+            $catErr = am_apply_fleet_categories_from_post($siteData, $postedCategories);
+            if ($catErr !== null) {
+                $errorMsg = $catErr;
+            }
+        }
+
+        if (empty($errorMsg)) {
+            if ($contentService->saveAll($siteData)) {
+                $successMsg = 'Categorías de flota actualizadas correctamente.';
+                $_GET['tab'] = 'vehicles';
+            } else {
+                $errorMsg = 'Error al guardar las categorías de flota.';
+            }
         }
     }
 
@@ -2622,6 +2657,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST'
 require_once __DIR__ . '/../../includes/business-units-registry.php';
 $global['business_units'] = am_merge_business_units($global['business_units'] ?? []);
 $homepage = $siteData['homepage'];
+require_once __DIR__ . '/../../includes/fleet-categories.php';
+$fleetCategoryItems = am_fleet_categories_sorted($homepage['fleet_carousel']['items'] ?? []);
 $landingPages = $siteData['landings'] ?? [];
 usort($landingPages, function ($a, $b) {
     return intval($a['sort_order'] ?? 99) <=> intval($b['sort_order'] ?? 99);
@@ -3102,7 +3139,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                     <div class="col-12 mt-4">
                                         <h6 class="fw-bold text-navy-light mb-3"><i class="bi bi-images me-1"></i>Imágenes y Nombres de Categorías (6 elementos)</h6>
                                         <div class="row g-3">
-                                            <?php foreach (($fc['items'] ?? []) as $item): ?>
+                                            <?php foreach (am_fleet_categories_sorted($fc['items'] ?? []) as $item): ?>
                                             <div class="col-md-6">
                                                 <div class="p-3 border rounded-3 bg-light-gray" style="background-color: #f9fafb;">
                                                     <div class="d-flex align-items-center gap-3">
@@ -3306,6 +3343,82 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
 
                     <!-- TAB 5: VEHICLES / FLEET CRUD -->
                     <div class="tab-pane fade" id="tab-vehicles" role="tabpanel" aria-labelledby="tab-vehicles-nav">
+                        <!-- Fleet Categories Card -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-tags-fill me-2 text-danger"></i>Categorías de la Flota
+                            </h5>
+                            <p class="text-muted small mb-4">
+                                Define el nombre y el orden de las categorías. Se reflejan en el carrusel de la home, en los filtros de
+                                <a href="/flota.php" target="_blank" rel="noopener" class="text-danger fw-semibold">/flota.php</a>
+                                y en el selector al agregar vehículos.
+                            </p>
+
+                            <form method="POST" action="?tab=vehicles">
+                                <input type="hidden" name="action" value="save_fleet_categories">
+
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width: 110px;">Orden</th>
+                                                <th>Nombre de categoría</th>
+                                                <th style="width: 120px;">Vista previa</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php if (empty($fleetCategoryItems)): ?>
+                                                <tr>
+                                                    <td colspan="3" class="text-center py-4 text-muted">No hay categorías configuradas.</td>
+                                                </tr>
+                                            <?php else: ?>
+                                                <?php foreach ($fleetCategoryItems as $catItem): ?>
+                                                <tr>
+                                                    <td>
+                                                        <input type="number"
+                                                               name="fleet_categories[<?php echo intval($catItem['id']); ?>][sort_order]"
+                                                               class="form-control form-control-premium form-control-sm"
+                                                               value="<?php echo intval($catItem['sort_order']); ?>"
+                                                               min="1"
+                                                               max="999"
+                                                               step="1"
+                                                               required>
+                                                    </td>
+                                                    <td>
+                                                        <input type="text"
+                                                               name="fleet_categories[<?php echo intval($catItem['id']); ?>][label]"
+                                                               class="form-control form-control-premium"
+                                                               value="<?php echo esc($catItem['label']); ?>"
+                                                               required
+                                                               placeholder="Nombre de categoría">
+                                                    </td>
+                                                    <td>
+                                                        <?php if (!empty($catItem['image_url'])): ?>
+                                                            <img src="<?php echo esc($catItem['image_url']); ?>"
+                                                                 alt="<?php echo esc($catItem['label']); ?>"
+                                                                 class="img-thumbnail"
+                                                                 style="max-height: 48px; max-width: 96px; object-fit: contain;">
+                                                        <?php else: ?>
+                                                            <span class="text-muted small">Sin imagen</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                </tr>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="form-text mt-2">Menor número = aparece primero. Al renombrar una categoría, los vehículos asignados se actualizan automáticamente.</div>
+
+                                <div class="text-end mt-4">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save2"></i> Guardar categorías
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
                         <!-- Vehicle Form Card -->
                         <div class="admin-card">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="vehicleFormTitle">
@@ -3327,12 +3440,9 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                     <div class="col-md-6">
                                         <label for="vehicle_category" class="form-label">Categoría</label>
                                         <select id="vehicle_category" name="vehicle_category" class="form-select form-control-premium" required>
-                                            <option value="Sedanes">Sedanes</option>
-                                            <option value="SUV">SUV</option>
-                                            <option value="Familiares">Familiares</option>
-                                            <option value="Comerciales">Comerciales</option>
-                                            <option value="Promociones">Promociones</option>
-                                            <option value="SUV Mini">SUV Mini</option>
+                                            <?php foreach ($fleetCategoryItems as $catItem): ?>
+                                                <option value="<?php echo esc($catItem['category']); ?>"><?php echo esc($catItem['label']); ?></option>
+                                            <?php endforeach; ?>
                                         </select>
                                     </div>
 

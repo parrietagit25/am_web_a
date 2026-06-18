@@ -193,6 +193,7 @@ class AdminPermissionRegistry
             'add_vehicle' => 'vehicles',
             'edit_vehicle' => 'vehicles',
             'delete_vehicle' => 'vehicles',
+            'save_fleet_categories' => 'vehicles',
             'add_sucursal' => 'sucursales',
             'edit_sucursal' => 'sucursales',
             'delete_sucursal' => 'sucursales',

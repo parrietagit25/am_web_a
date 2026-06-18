@@ -106,6 +106,8 @@ $fleetCarousel = $contentService->get('homepage.fleet_carousel', [
     'interval' => 3000,
     'items' => []
 ]);
+require_once __DIR__ . '/../includes/fleet-categories.php';
+$fleetCategoryItems = am_fleet_categories_sorted($fleetCarousel['items'] ?? []);
 $autoplayVal = ($fleetCarousel['autoplay'] ?? true) ? 'true' : 'false';
 $directionVal = esc($fleetCarousel['direction'] ?? 'right');
 $intervalVal = intval($fleetCarousel['interval'] ?? 3000);
@@ -131,7 +133,7 @@ $intervalVal = intval($fleetCarousel['interval'] ?? 3000);
                  data-direction="<?php echo $directionVal; ?>" 
                  data-interval="<?php echo $intervalVal; ?>">
                 
-                <?php foreach (($fleetCarousel['items'] ?? []) as $item):
+                <?php foreach ($fleetCategoryItems as $item):
                     $fleetCat = trim((string)($item['category'] ?? $item['label'] ?? ''));
                     $fleetCatUrl = $fleetCat !== '' ? '/flota.php?categoria=' . rawurlencode($fleetCat) : '/flota.php';
                 ?>

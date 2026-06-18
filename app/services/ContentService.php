@@ -558,37 +558,43 @@ class ContentService {
                             'id' => 1,
                             'category' => 'Sedanes',
                             'label' => 'Sedanes',
-                            'image_url' => '/assets/img/carrusel/sedan.webp'
+                            'image_url' => '/assets/img/carrusel/sedan.webp',
+                            'sort_order' => 10,
                         ],
                         [
                             'id' => 2,
                             'category' => 'SUV',
                             'label' => 'SUV',
-                            'image_url' => '/assets/img/carrusel/suv.webp'
+                            'image_url' => '/assets/img/carrusel/suv.webp',
+                            'sort_order' => 20,
                         ],
                         [
                             'id' => 3,
                             'category' => 'SUV Mini',
                             'label' => 'SUV Mini',
-                            'image_url' => '/assets/img/carrusel/suvmini.webp'
+                            'image_url' => '/assets/img/carrusel/suvmini.webp',
+                            'sort_order' => 30,
                         ],
                         [
                             'id' => 4,
                             'category' => 'Familiares',
                             'label' => 'Familiares',
-                            'image_url' => '/assets/img/carrusel/familiares.webp'
+                            'image_url' => '/assets/img/carrusel/familiares.webp',
+                            'sort_order' => 40,
                         ],
                         [
                             'id' => 5,
                             'category' => 'Comerciales',
                             'label' => 'Comerciales',
-                            'image_url' => '/assets/img/carrusel/comerciales.webp'
+                            'image_url' => '/assets/img/carrusel/comerciales.webp',
+                            'sort_order' => 50,
                         ],
                         [
                             'id' => 6,
                             'category' => 'Promociones',
                             'label' => 'Promociones',
-                            'image_url' => '/assets/img/carrusel/promociones.webp'
+                            'image_url' => '/assets/img/carrusel/promociones.webp',
+                            'sort_order' => 60,
                         ]
                     ]
                 ],

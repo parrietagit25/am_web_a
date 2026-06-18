@@ -4,9 +4,12 @@
  */
 $activeUnit = 'rentacar';
 require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/fleet-categories.php';
 
 // Fetch vehicles list
 $vehicles = $contentService->get('homepage.vehicles', []);
+$fleetCarousel = $contentService->get('homepage.fleet_carousel', ['items' => []]);
+$fleetCategoryItems = am_fleet_categories_sorted($fleetCarousel['items'] ?? []);
 ?>
 
 <!-- 1. Page Header -->
@@ -22,12 +25,9 @@ $vehicles = $contentService->get('homepage.vehicles', []);
     <div class="fleet-filter-bar-wrapper p-1 mb-4" style="background-color: #ffffff; border: 1px solid #e3e6f0; border-radius: 12px; box-shadow: 0 4px 10px rgba(8,16,38,0.02);">
         <div class="d-flex overflow-x-auto text-nowrap gap-1 pb-1 scrollbar-hidden" style="-webkit-overflow-scrolling: touch;">
             <button class="btn fleet-filter-btn active" data-category="all">Todos</button>
-            <button class="btn fleet-filter-btn" data-category="Sedanes">Sedanes</button>
-            <button class="btn fleet-filter-btn" data-category="SUV">SUV</button>
-            <button class="btn fleet-filter-btn" data-category="Familiares">Familiares</button>
-            <button class="btn fleet-filter-btn" data-category="Comerciales">Comerciales</button>
-            <button class="btn fleet-filter-btn" data-category="Promociones">Promociones</button>
-            <button class="btn fleet-filter-btn" data-category="SUV Mini">SUV Mini</button>
+            <?php foreach ($fleetCategoryItems as $catItem): ?>
+                <button class="btn fleet-filter-btn" data-category="<?php echo esc($catItem['category']); ?>"><?php echo esc($catItem['label']); ?></button>
+            <?php endforeach; ?>
         </div>
     </div>
 

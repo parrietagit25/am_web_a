@@ -18,6 +18,7 @@ class AdminAuditActionCatalog
             'save_seo_global' => ['label' => 'Guardó SEO global', 'type' => 'settings', 'entity' => 'seo'],
             'save_seo_page' => ['label' => 'Guardó SEO de página', 'type' => 'settings', 'entity' => 'seo_page'],
             'save_homepage' => ['label' => 'Guardó principal Rent A Car (hero/eventos)', 'type' => 'settings', 'entity' => 'homepage'],
+            'save_fleet_categories' => ['label' => 'Guardó categorías de flota RAC', 'type' => 'settings', 'entity' => 'fleet_categories'],
             'save_news_home_settings' => ['label' => 'Guardó ajustes de noticias en home', 'type' => 'settings', 'entity' => 'news_home'],
             'save_contact_settings' => ['label' => 'Guardó ajustes de contacto RAC', 'type' => 'settings', 'entity' => 'contact'],
             'save_terms' => ['label' => 'Guardó términos y condiciones RAC', 'type' => 'settings', 'entity' => 'terms'],
