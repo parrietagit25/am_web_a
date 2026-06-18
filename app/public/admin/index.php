@@ -1389,6 +1389,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!empty($name)) {
+            $branch = trim($_POST['agent_branch'] ?? '');
+            require_once __DIR__ . '/../../services/GlobalSucursalesService.php';
+            if ($branch === '' || !GlobalSucursalesService::isValidBranch($siteData, $branch)) {
+                $errorMsg = 'Seleccione una sucursal del listado general (Generales → Sucursales).';
+            }
+        }
+
+        if (empty($errorMsg) && !empty($name)) {
             if (!isset($siteData['seminuevos']['team']['agents'])) {
                 $siteData['seminuevos']['team']['agents'] = [];
             }
@@ -1399,7 +1407,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'role' => $role,
                 'email' => $email,
                 'phone' => $phone,
-                'branch' => trim($_POST['agent_branch'] ?? ''),
+                'branch' => $branch,
                 'image_url' => $image_url,
                 'active' => $active
             ];
@@ -1409,7 +1417,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $errorMsg = 'Error al guardar el asesor.';
             }
-        } else {
+        } elseif (empty($errorMsg)) {
             $errorMsg = 'El nombre del asesor es obligatorio.';
         }
     }
@@ -1447,13 +1455,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if (!empty($name)) {
+                $branch = trim($_POST['agent_branch'] ?? '');
+                require_once __DIR__ . '/../../services/GlobalSucursalesService.php';
+                if ($branch === '' || !GlobalSucursalesService::isValidBranch($siteData, $branch)) {
+                    $errorMsg = 'Seleccione una sucursal del listado general (Generales → Sucursales).';
+                }
+            }
+
+            if (empty($errorMsg) && !empty($name)) {
                 $siteData['seminuevos']['team']['agents'][$foundIdx] = [
                     'id' => $id,
                     'name' => $name,
                     'role' => $role,
                     'email' => $email,
                     'phone' => $phone,
-                    'branch' => trim($_POST['agent_branch'] ?? ''),
+                    'branch' => $branch,
                     'image_url' => $image_url,
                     'active' => $active
                 ];
@@ -1463,7 +1479,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $errorMsg = 'Error al actualizar el asesor.';
                 }
-            } else {
+            } elseif (empty($errorMsg)) {
                 $errorMsg = 'El nombre del asesor es obligatorio.';
             }
         } else {
@@ -4551,6 +4567,10 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
 
                     <!-- TAB 14: SEMINUEVOS TEAM & AGENTS CRUD -->
                     <div class="tab-pane fade" id="tab-semi-team" role="tabpanel" aria-labelledby="tab-semi-team-nav">
+                        <?php
+                        require_once __DIR__ . '/../../services/GlobalSucursalesService.php';
+                        $globalSucursalNames = GlobalSucursalesService::getNames($siteData);
+                        ?>
                         
                         <!-- General team content form -->
                         <div class="admin-card">
@@ -4642,7 +4662,20 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                         
                                         <div class="mb-3">
                                             <label for="semi_agent_branch" class="form-label">Sucursal</label>
-                                            <input type="text" id="semi_agent_branch" name="agent_branch" class="form-control form-control-premium" placeholder="Ej: Tumba Muerto, Vía Israel, etc." required>
+                                            <?php if (empty($globalSucursalNames)): ?>
+                                            <select id="semi_agent_branch" name="agent_branch" class="form-select form-control-premium" disabled>
+                                                <option value="">No hay sucursales registradas</option>
+                                            </select>
+                                            <div class="form-text text-danger">Registre sucursales en <strong>Generales → Sucursales</strong> primero.</div>
+                                            <?php else: ?>
+                                            <select id="semi_agent_branch" name="agent_branch" class="form-select form-control-premium" required>
+                                                <option value="">Seleccione sucursal...</option>
+                                                <?php foreach ($globalSucursalNames as $sucursalName): ?>
+                                                <option value="<?php echo esc($sucursalName); ?>"><?php echo esc($sucursalName); ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <div class="form-text">Listado desde <strong>Generales → Sucursales</strong>.</div>
+                                            <?php endif; ?>
                                         </div>
                                         
                                         <div class="mb-3">
@@ -6562,6 +6595,23 @@ function resetSemiBankForm() {
     document.getElementById('semiBankSubmitBtn').querySelector('i').className = 'bi bi-plus-lg';
 }
 
+function ensureSemiAgentBranchOption(value) {
+    const select = document.getElementById('semi_agent_branch');
+    if (!select || !value) {
+        return;
+    }
+    const exists = Array.from(select.options).some(function (opt) {
+        return opt.value === value;
+    });
+    if (!exists) {
+        const opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = value + ' (registro anterior)';
+        select.appendChild(opt);
+    }
+    select.value = value;
+}
+
 function initEditSemiAgent(agent) {
     document.getElementById('semiAgentFormTitle').innerHTML = '<i class="bi bi-pencil-square me-2 text-danger"></i>Editar Asesor de Ventas';
     document.getElementById('semiAgentFormAction').value = 'edit_semi_agent';
@@ -6571,7 +6621,7 @@ function initEditSemiAgent(agent) {
     document.getElementById('semi_agent_role').value = agent.role || 'Asesor de Ventas';
     document.getElementById('semi_agent_email').value = agent.email || '';
     document.getElementById('semi_agent_phone').value = agent.phone || '';
-    document.getElementById('semi_agent_branch').value = agent.branch || '';
+    ensureSemiAgentBranchOption(agent.branch || '');
     
     if (agent.image_url) {
         document.getElementById('semiAgentPhotoHelp').innerHTML = 'Foto actual: <code>' + agent.image_url + '</code>';
@@ -6595,6 +6645,15 @@ function resetSemiAgentForm() {
     document.getElementById('semiAgentFormTitle').innerHTML = '<i class="bi bi-plus-circle-fill me-2 text-danger"></i>Agregar Asesor de Ventas';
     document.getElementById('semiAgentFormAction').value = 'add_semi_agent';
     document.getElementById('semiAgentFormId').value = '';
+    const branchSelect = document.getElementById('semi_agent_branch');
+    if (branchSelect) {
+        Array.from(branchSelect.options).forEach(function (opt) {
+            if (opt.textContent.indexOf('(registro anterior)') !== -1) {
+                opt.remove();
+            }
+        });
+        branchSelect.value = '';
+    }
     
     document.getElementById('semiAgentPhotoHelp').innerHTML = 'Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.';
     document.getElementById('semi_agent_active').checked = true;

@@ -69,6 +69,34 @@ class GlobalSucursalesService
         return !empty(self::collectSourceRows($siteData));
     }
 
+    /**
+     * @param array<string, mixed> $siteData
+     * @return list<string>
+     */
+    public static function getNames(array $siteData): array
+    {
+        $names = [];
+        foreach ($siteData['global']['sucursales'] ?? [] as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $name = trim((string) ($row['name'] ?? ''));
+            if ($name !== '') {
+                $names[] = $name;
+            }
+        }
+
+        usort($names, 'strcasecmp');
+
+        return array_values(array_unique($names));
+    }
+
+    /** @param array<string, mixed> $siteData */
+    public static function isValidBranch(array $siteData, string $branch): bool
+    {
+        return in_array($branch, self::getNames($siteData), true);
+    }
+
     /** @param array{imported: int, merged: int, total: int} $stats */
     public static function formatImportMessage(array $stats): string
     {
