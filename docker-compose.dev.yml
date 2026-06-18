@@ -1,0 +1,6 @@
+# Desarrollo local: http://localhost:8082
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+services:
+  web:
+    ports:
+      - "8082:80"
