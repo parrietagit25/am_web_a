@@ -2637,22 +2637,29 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
             letter-spacing: 0.5px;
             color: rgba(255, 255, 255, 0.4);
         }
+        #generales-submenu .nav-link,
         #rentacar-submenu .nav-link,
         #seminuevos-submenu .nav-link,
         #leasing-submenu .nav-link,
         #renting-submenu .nav-link,
-        #taller-submenu .nav-link {
+        #taller-submenu .nav-link,
+        #chatbot-submenu .nav-link,
+        [id^="custom-unit-submenu-"] .nav-link {
             padding-left: 28px;
             font-size: 0.85rem;
         }
+        #generales-submenu .nav-link.active,
         #rentacar-submenu .nav-link.active,
         #seminuevos-submenu .nav-link.active,
         #leasing-submenu .nav-link.active,
         #renting-submenu .nav-link.active,
-        #taller-submenu .nav-link.active {
+        #taller-submenu .nav-link.active,
+        #chatbot-submenu .nav-link.active,
+        [id^="custom-unit-submenu-"] .nav-link.active {
             border-left: 4px solid var(--primary-red);
             margin-left: 0;
         }
+        .sidebar-heading[aria-expanded="true"] #generales-chevron,
         .sidebar-heading[aria-expanded="true"] #rentacar-chevron {
             transform: rotate(180deg);
         }
@@ -2666,6 +2673,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
         .sidebar-heading[aria-expanded="true"] [id^="custom-unit-chevron-"] {
             transform: rotate(180deg);
         }
+        #generales-chevron,
         #rentacar-chevron {
             transition: transform 0.2s ease;
             display: inline-block;
@@ -6786,6 +6794,18 @@ document.addEventListener('DOMContentLoaded', function () {
             const target = btn.getAttribute('data-bs-target') || '';
             if (target.startsWith('#tab-')) {
                 syncAdminTabUrl(target.slice(5));
+            }
+
+            const collapseParent = btn.closest('.collapse');
+            if (collapseParent && collapseParent.id) {
+                document.querySelectorAll('#admin-sidebar-accordion .collapse.show').forEach(function (el) {
+                    if (el !== collapseParent) {
+                        const other = bootstrap.Collapse.getOrCreateInstance(el, { toggle: false });
+                        other.hide();
+                    }
+                });
+                const current = bootstrap.Collapse.getOrCreateInstance(collapseParent, { toggle: false });
+                current.show();
             }
         });
     });
