@@ -2515,6 +2515,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../../includes/admin-rac-actions.php';
     require __DIR__ . '/../../includes/admin-chatbot-actions.php';
     require __DIR__ . '/../../includes/admin-custom-unit-actions.php';
+    require __DIR__ . '/../../includes/admin-global-sucursales-actions.php';
 
     admin_log_post_result($action, $successMsg, $errorMsg);
 
@@ -2931,6 +2932,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                     <?php require_once __DIR__ . '/../../includes/admin-chatbot-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-chatbot-sessions-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-landings-tab.php'; ?>
+                    <?php require_once __DIR__ . '/../../includes/admin-global-sucursales-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-footer-tab.php'; ?>
                     <?php if (admin_can('users')) { require_once __DIR__ . '/../../includes/admin-users-tab.php'; } ?>
                     <?php if (admin_can('audit_log')) { require_once __DIR__ . '/../../includes/admin-audit-tab.php'; } ?>

@@ -177,6 +177,7 @@ class AdminUserService
     {
         return [
             'global' => 'global',
+            'global-sucursales' => 'global_sucursales',
             'translations' => 'translations',
             'seo' => 'seo',
             'landings' => 'landings',

@@ -43,6 +43,7 @@ $showTaller = admin_group_visible('taller');
 $showChatbot = admin_group_visible('chatbot');
 
 $showGenerales = admin_can('global')
+    || admin_can('global_sucursales')
     || admin_can('translations')
     || admin_can('seo')
     || admin_can('landings')
@@ -51,7 +52,7 @@ $showGenerales = admin_can('global')
     || $showMainAudit
     || $showMainTelemetry;
 
-$generalesTabs = ['global', 'translations', 'seo', 'landings', 'footer', 'users', 'audit-log', 'telemetry'];
+$generalesTabs = ['global', 'global-sucursales', 'translations', 'seo', 'landings', 'footer', 'users', 'audit-log', 'telemetry'];
 $rentacarTabs = ['hero', 'news', 'opinions', 'vehicles', 'sucursales', 'terms', 'requirements', 'contact', 'payments', 'rac-reservations'];
 $seminuevosTabs = ['semi-home', 'semi-inventory', 'semi-opinions', 'semi-financing', 'semi-team', 'semi-contact'];
 $leasingTabs = ['leasing-home', 'leasing-sucursales', 'leasing-flota', 'leasing-equipo', 'leasing-contacto'];
@@ -75,6 +76,11 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
             <?php if (admin_can('global')): ?>
             <button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('global', $defaultAdminTab); ?>" id="tab-global-nav" data-bs-toggle="pill" data-bs-target="#tab-global" type="button" role="tab" aria-controls="tab-global" aria-selected="<?php echo admin_nav_selected('global', $defaultAdminTab); ?>" data-admin-perm="global">
                 <i class="bi bi-gear-fill me-2"></i> Configuración Global
+            </button>
+            <?php endif; ?>
+            <?php if (admin_can('global_sucursales')): ?>
+            <button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('global-sucursales', $defaultAdminTab); ?>" id="tab-global-sucursales-nav" data-bs-toggle="pill" data-bs-target="#tab-global-sucursales" type="button" role="tab" data-admin-perm="global_sucursales">
+                <i class="bi bi-geo-alt-fill me-2"></i> Sucursales
             </button>
             <?php endif; ?>
             <?php if (admin_can('translations')): ?>

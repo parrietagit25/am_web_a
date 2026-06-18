@@ -12,6 +12,7 @@ class AdminPermissionRegistry
                 'label' => 'Menú principal',
                 'permissions' => [
                     'global' => 'Configuración global',
+                    'global_sucursales' => 'Sucursales (global)',
                     'translations' => 'Traducciones (ES / EN)',
                     'seo' => 'SEO',
                     'landings' => 'Landing pages',
@@ -145,6 +146,9 @@ class AdminPermissionRegistry
     {
         return [
             'save_global' => 'global',
+            'add_global_sucursal' => 'global_sucursales',
+            'edit_global_sucursal' => 'global_sucursales',
+            'delete_global_sucursal' => 'global_sucursales',
             'save_translations' => 'translations',
             'save_chatbot' => 'chatbot',
             'save_seo_global' => 'seo',

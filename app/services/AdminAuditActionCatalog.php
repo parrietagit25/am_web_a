@@ -9,6 +9,9 @@ class AdminAuditActionCatalog
     {
         return [
             'save_global' => ['label' => 'Guardó configuración global', 'type' => 'settings', 'entity' => 'global'],
+            'add_global_sucursal' => ['label' => 'Agregó sucursal global', 'type' => 'create', 'entity' => 'global_sucursal'],
+            'edit_global_sucursal' => ['label' => 'Editó sucursal global', 'type' => 'update', 'entity' => 'global_sucursal'],
+            'delete_global_sucursal' => ['label' => 'Eliminó sucursal global', 'type' => 'delete', 'entity' => 'global_sucursal'],
             'save_translations' => ['label' => 'Guardó traducciones ES/EN', 'type' => 'settings', 'entity' => 'translations'],
             'save_chatbot' => ['label' => 'Guardó configuración del chatbot', 'type' => 'settings', 'entity' => 'chatbot'],
             'save_seo_global' => ['label' => 'Guardó SEO global', 'type' => 'settings', 'entity' => 'seo'],
