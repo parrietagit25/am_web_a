@@ -189,7 +189,7 @@ class AdminUserService
             'audit-log' => 'audit_log',
             'telemetry' => 'telemetry',
             'hero' => 'hero',
-            'news' => 'news',
+            'rentacar-content' => 'news',
             'opinions' => 'opinions',
             'vehicles' => 'vehicles',
             'sucursales' => 'sucursales',

@@ -14,6 +14,9 @@ AdminAuditService::ensureSchema();
 admin_require_login();
 
 $requestedTab = trim($_GET['tab'] ?? '');
+if ($requestedTab === 'news') {
+    $requestedTab = 'rentacar-content';
+}
 $defaultAdminTab = AdminUserService::firstAllowedTabSlug();
 if ($requestedTab !== '' && AdminUserService::canTab($requestedTab)) {
     $defaultAdminTab = $requestedTab;
@@ -2532,6 +2535,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../../includes/admin-chatbot-actions.php';
     require __DIR__ . '/../../includes/admin-custom-unit-actions.php';
     require __DIR__ . '/../../includes/admin-global-sucursales-actions.php';
+    require __DIR__ . '/../../includes/admin-unit-content-actions.php';
+
+    if (unit_content_handle_post($action, $siteData, $contentService, $successMsg, $errorMsg)) {
+        // manejado por gestor de contenido unificado
+    }
 
     admin_log_post_result($action, $successMsg, $errorMsg);
 
@@ -3118,179 +3126,8 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                         </div>
                     </div>
                     
-                    <!-- TAB 3: NOTICIAS / BLOG MANAGEMENT -->
-                    <div class="tab-pane fade" id="tab-news" role="tabpanel" aria-labelledby="tab-news-nav">
-                        <?php
-                        $noticiasShowOnHome = array_key_exists('noticias_show_on_home', $homepage)
-                            ? (bool) $homepage['noticias_show_on_home']
-                            : true;
-                        ?>
-                        <div class="admin-card mb-4">
-                            <h5 class="fw-bold mb-3 font-montserrat border-bottom pb-2 text-navy">
-                                <i class="bi bi-house-door me-2 text-danger"></i>Sección en página principal
-                            </h5>
-                            <form method="POST" action="" class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                                <input type="hidden" name="action" value="save_news_home_settings">
-                                <div class="form-check form-switch mb-0">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="noticias_show_on_home" name="noticias_show_on_home" value="1" <?php echo $noticiasShowOnHome ? 'checked' : ''; ?>>
-                                    <label class="form-check-label fw-semibold" for="noticias_show_on_home">
-                                        Mostrar bloque «Últimas Noticias» en <code>rent-a-car.php</code>
-                                    </label>
-                                </div>
-                                <p class="text-muted small mb-0 w-100">
-                                    Si lo desactivas, las noticias siguen en <a href="/blog.php" target="_blank" rel="noopener">/blog.php</a> pero no aparecen en el home de Rent a Car.
-                                </p>
-                                <button type="submit" class="btn btn-premium btn-sm ms-auto">
-                                    <i class="bi bi-save2"></i> Guardar preferencia
-                                </button>
-                            </form>
-                        </div>
-
-                        <!-- Add News Form -->
-                        <div class="admin-card">
-                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="newsFormTitle"><i class="bi bi-file-plus me-2 text-danger"></i>Agregar Nueva Noticia</h5>
-                            
-                            <form method="POST" action="" enctype="multipart/form-data" id="newsForm">
-                                <input type="hidden" name="action" id="newsFormAction" value="add_news">
-                                <input type="hidden" name="news_id" id="newsFormId" value="">
-                                
-                                <div class="row g-3">
-                                    <div class="col-md-4">
-                                        <label for="news_date" class="form-label">Fecha de Publicación</label>
-                                        <input type="text" id="news_date" name="news_date" class="form-control form-control-premium" placeholder="Ej: 25 Mayo, 2026" required>
-                                    </div>
-
-                                    <div class="col-md-8">
-                                        <label for="news_title" class="form-label">Título de la Noticia (Card / Detail)</label>
-                                        <input type="text" id="news_title" name="news_title" class="form-control form-control-premium" placeholder="Ej: Automarket Asistencia AMAS" required>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label for="news_desc" class="form-label">Subtítulo / Breve Descripción (Card)</label>
-                                        <input type="text" id="news_desc" name="news_desc" class="form-control form-control-premium" placeholder="Ej: Asistencia para viajeros" required>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label for="news_link_text" class="form-label">Texto del Enlace (Ej: Ver Más: Asistencia AMAS)</label>
-                                        <input type="text" id="news_link_text" name="news_link_text" class="form-control form-control-premium" placeholder="Ej: Ver Más: Asistencia AMAS" required>
-                                    </div>
-
-                                    <hr class="my-3">
-                                    <h6 class="fw-bold text-navy-light mb-0"><i class="bi bi-file-text me-1"></i>Contenido de la Página de Detalle</h6>
-
-                                    <div class="col-md-6">
-                                        <label for="news_subheading" class="form-label">Subtítulo / Encabezado Interno</label>
-                                        <input type="text" id="news_subheading" name="news_subheading" class="form-control form-control-premium" placeholder="Ej: Paquete de Asistencia al Viajero">
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label for="news_description" class="form-label">Párrafo Introductorio Destacado</label>
-                                        <input type="text" id="news_description" name="news_description" class="form-control form-control-premium" placeholder="Breve introducción para el detalle">
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label for="news_thumbnail" class="form-label">Imagen de la Tarjeta (Thumbnail)</label>
-                                        <input type="file" id="news_thumbnail" name="news_thumbnail" class="form-control form-control-premium" accept="image/*" required>
-                                        <div class="form-text" id="newsThumbnailHelp"></div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label for="news_banner" class="form-label">Imagen del Banner Interno (Opcional - Fallback a Thumbnail)</label>
-                                        <input type="file" id="news_banner" name="news_banner" class="form-control form-control-premium" accept="image/*">
-                                        <div class="form-text" id="newsBannerHelp"></div>
-                                    </div>
-
-                                    <div class="col-12">
-                                        <label for="news_content" class="form-label">Contenido Detallado del Artículo (HTML, saltos de línea o viñetas)</label>
-                                        <textarea id="news_content" name="news_content" class="form-control form-control-premium font-monospace" rows="12" placeholder="Puede pegar HTML (&lt;p&gt;, &lt;img&gt;, &lt;section&gt;…) o texto con **negrita** y viñetas con -" required></textarea>
-                                        <div class="form-text">Se renderiza HTML seguro (sin scripts). Imágenes relativas (ej. <code>archivo.webp</code>) se buscan en <code>/assets/img/uploads/</code>.</div>
-                                    </div>
-
-                                    <div class="col-12">
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" role="switch" id="news_show_on_home" name="news_show_on_home" value="1" checked>
-                                            <label class="form-check-label fw-semibold" for="news_show_on_home">
-                                                Mostrar esta noticia en «Últimas Noticias» del home (rent-a-car.php)
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                                    <button type="button" class="btn btn-outline-secondary d-none" id="newsCancelBtn" onclick="resetNewsForm()">Cancelar</button>
-                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2" id="newsSubmitBtn">
-                                        <i class="bi bi-plus-lg"></i> <span id="newsSubmitText">Publicar Noticia</span>
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-
-                        <!-- News List -->
-                        <div class="admin-card">
-                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy"><i class="bi bi-card-text me-2 text-danger"></i>Noticias Publicadas</h5>
-                            
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th style="width: 100px;">Miniatura</th>
-                                            <th style="width: 150px;">Fecha</th>
-                                            <th>Título</th>
-                                            <th>Subtítulo (Card)</th>
-                                            <th style="width: 110px;" class="text-center">En home</th>
-                                            <th style="width: 120px;" class="text-center">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php if (empty($homepage['noticias'])): ?>
-                                            <tr>
-                                                <td colspan="6" class="text-center py-4 text-muted">No hay noticias publicadas.</td>
-                                            </tr>
-                                        <?php else: ?>
-                                            <?php foreach ($homepage['noticias'] as $noticia):
-                                                $newsOnHome = !array_key_exists('show_on_home', $noticia)
-                                                    || ($noticia['show_on_home'] !== false && $noticia['show_on_home'] !== 0 && $noticia['show_on_home'] !== '0');
-                                            ?>
-                                            <tr>
-                                                <td>
-                                                    <?php if (!empty($noticia['thumbnail'])): ?>
-                                                        <img src="<?php echo esc($noticia['thumbnail']); ?>" alt="Miniatura" class="rounded border shadow-sm" style="height: 50px; width: 75px; object-fit: cover;">
-                                                    <?php else: ?>
-                                                        <div class="bg-light-gray rounded border text-center text-muted" style="height: 50px; width: 75px; display: flex; align-items: center; justify-content: center;">
-                                                            <i class="bi bi-image fs-5"></i>
-                                                        </div>
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td><small class="fw-semibold text-muted"><?php echo esc($noticia['date'] ?? ''); ?></small></td>
-                                                <td><strong><?php echo esc($noticia['title'] ?? ''); ?></strong></td>
-                                                <td><small class="text-muted"><?php echo esc($noticia['desc'] ?? ''); ?></small></td>
-                                                <td class="text-center">
-                                                    <form method="POST" action="" class="d-inline">
-                                                        <input type="hidden" name="action" value="toggle_news_home">
-                                                        <input type="hidden" name="news_id" value="<?php echo intval($noticia['id']); ?>">
-                                                        <button type="submit" class="btn btn-sm <?php echo $newsOnHome ? 'btn-success' : 'btn-outline-secondary'; ?>" title="<?php echo $newsOnHome ? 'Visible en home — clic para ocultar' : 'Oculta en home — clic para mostrar'; ?>">
-                                                            <i class="bi <?php echo $newsOnHome ? 'bi-eye-fill' : 'bi-eye-slash'; ?>"></i>
-                                                        </button>
-                                                    </form>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="d-flex justify-content-center gap-1">
-                                                        <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditNews(<?php echo json_encode($noticia, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'><i class="bi bi-pencil-fill"></i></button>
-                                                        <form method="POST" action="" onsubmit="return confirm('¿Está seguro de eliminar esta noticia?');" style="display:inline;">
-                                                            <input type="hidden" name="action" value="delete_news">
-                                                            <input type="hidden" name="news_id" value="<?php echo intval($noticia['id']); ?>">
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash3-fill"></i></button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <?php endforeach; ?>
-                                        <?php endif; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- TAB: RENT A CAR — CONTENIDO -->
+                    <?php require __DIR__ . '/../../includes/admin-rentacar-content-tabs.php'; ?>
                     
                     <!-- TAB 4: OPINIONES DE CLIENTES -->
                     <div class="tab-pane fade" id="tab-opinions" role="tabpanel" aria-labelledby="tab-opinions-nav">

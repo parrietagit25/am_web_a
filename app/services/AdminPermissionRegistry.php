@@ -26,7 +26,7 @@ class AdminPermissionRegistry
                 'label' => 'Rent A Car',
                 'permissions' => [
                     'hero' => 'Principal (Hero y eventos)',
-                    'news' => 'Noticias / Blog',
+                    'news' => 'Contenido (reciente, blog, noticias)',
                     'opinions' => 'Opiniones de clientes',
                     'vehicles' => 'Vehículos / Flota',
                     'sucursales' => 'Sucursales',
@@ -115,6 +115,10 @@ class AdminPermissionRegistry
 
     public static function permissionForTab(string $tabSlug): ?string
     {
+        if ($tabSlug === 'rentacar-content') {
+            return 'news';
+        }
+
         if (preg_match('/^unit-[a-z0-9_]+(?:-[a-z0-9_-]+)?$/', $tabSlug)) {
             return 'global';
         }
@@ -170,6 +174,13 @@ class AdminPermissionRegistry
             'edit_news' => 'news',
             'delete_news' => 'news',
             'toggle_news_home' => 'news',
+            'save_unit_content_settings' => 'news',
+            'add_unit_content_item' => 'news',
+            'edit_unit_content_item' => 'news',
+            'delete_unit_content_item' => 'news',
+            'toggle_unit_content_home' => 'news',
+            'add_unit_content_taxonomy' => 'news',
+            'delete_unit_content_taxonomy' => 'news',
             'add_opinion' => 'opinions',
             'edit_opinion' => 'opinions',
             'delete_opinion' => 'opinions',

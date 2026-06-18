@@ -5,24 +5,23 @@
 $activeUnit = 'rentacar';
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/article-content.php';
+require_once __DIR__ . '/../includes/unit-content-frontend.php';
 
 $newsId = isset($_GET['id']) ? intval($_GET['id']) : 0;
-$noticias = $contentService->get('homepage.noticias', []);
-$article = null;
-
-// Find news by ID
-foreach ($noticias as $noticia) {
-    if (intval($noticia['id']) === $newsId) {
-        $article = $noticia;
-        break;
-    }
+$type = trim($_GET['type'] ?? 'news');
+if (!in_array($type, ['latest', 'blog', 'news'], true)) {
+    $type = 'news';
 }
 
-// Redirect to home if not found
+$article = unit_content_find_article($contentService, 'rentacar', $type, $newsId);
+
 if (!$article) {
     echo "<script>window.location.href='/rent-a-car.php';</script>";
     exit;
 }
+
+$backUrl = $type === 'blog' ? '/blog.php' : ($type === 'latest' ? '/rent-a-car.php' : '/noticias.php');
+$backLabel = $type === 'blog' ? 'Volver al Blog' : ($type === 'latest' ? 'Volver al inicio' : 'Volver a Noticias');
 ?>
 
 <style>
@@ -31,29 +30,24 @@ if (!$article) {
 .article-rich-content h1, .article-rich-content h2, .article-rich-content h3 { margin-top: 1rem; margin-bottom: .75rem; }
 </style>
 
-<!-- Article Header Section -->
 <section class="container py-5 mt-4">
     <div class="text-center mb-4">
-        <a href="/blog.php" class="btn btn-sm btn-outline-secondary rounded-pill px-3 mb-3">
-            <i class="bi bi-arrow-left me-1"></i> Volver a Noticias
+        <a href="<?php echo esc($backUrl); ?>" class="btn btn-sm btn-outline-secondary rounded-pill px-3 mb-3">
+            <i class="bi bi-arrow-left me-1"></i> <?php echo esc($backLabel); ?>
         </a>
         <h1 class="display-5 fw-bold text-navy font-montserrat px-3"><?php echo esc($article['title']); ?></h1>
         <small class="text-muted font-poppins d-block mt-2"><i class="bi bi-calendar-event me-1"></i> Publicado el <?php echo esc($article['date']); ?></small>
     </div>
 
-    <!-- Article Content Box -->
     <div class="row justify-content-center">
         <div class="col-lg-10 col-xl-9">
             <div class="card border-1 rounded-4 shadow-sm overflow-hidden bg-white p-3 p-md-5">
-                
-                <!-- Large Banner Image -->
                 <?php if (!empty($article['banner'])): ?>
                     <div class="mb-5 rounded-3 overflow-hidden text-center">
                         <img src="<?php echo esc($article['banner']); ?>" alt="<?php echo esc($article['title']); ?>" class="img-fluid w-100" style="max-height: 480px; object-fit: cover;">
                     </div>
                 <?php endif; ?>
 
-                <!-- Subheading and Body -->
                 <div class="px-2 px-md-4">
                     <?php if (!empty($article['subheading'])): ?>
                         <h3 class="fw-bold text-navy mb-4 font-montserrat"><?php echo esc($article['subheading']); ?></h3>
@@ -71,7 +65,6 @@ if (!$article) {
                         </div>
                     <?php endif; ?>
                 </div>
-
             </div>
         </div>
     </div>

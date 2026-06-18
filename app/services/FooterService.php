@@ -66,8 +66,16 @@ class FooterService
         $site = $this->content->getAll();
         $posts = [];
 
-        foreach ($site['homepage']['noticias'] ?? [] as $item) {
-            $posts[] = $this->normalizePost($item, 'rentacar', 'Rent A Car', '/noticia.php?id=', 'thumbnail');
+        require_once __DIR__ . '/UnitContentService.php';
+        UnitContentService::ensureMigrated($site, 'rentacar');
+
+        foreach (UnitContentService::getItems($site, 'rentacar', 'news') as $item) {
+            $legacy = UnitContentService::newsToLegacyNoticia($item);
+            $posts[] = $this->normalizePost($legacy, 'rentacar', 'Rent A Car', '/noticia.php?id=', 'thumbnail');
+        }
+        foreach (UnitContentService::getItems($site, 'rentacar', 'blog') as $item) {
+            $legacy = UnitContentService::newsToLegacyNoticia($item);
+            $posts[] = $this->normalizePost($legacy, 'rentacar', 'Rent A Car', '/noticia.php?type=blog&id=', 'thumbnail');
         }
         foreach ($site['leasing']['posts'] ?? [] as $item) {
             $id = $item['id'] ?? 0;

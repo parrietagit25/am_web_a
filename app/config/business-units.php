@@ -19,6 +19,7 @@ return [
                     ['label' => 'Nuestra flota', 'link' => '/flota.php'],
                     ['label' => 'Sucursales', 'link' => '/sucursales.php'],
                     ['label' => 'Blog', 'link' => '/blog.php'],
+                    ['label' => 'Noticias', 'link' => '/noticias.php'],
                     ['label' => 'Términos y condiciones', 'link' => '/terminos-condiciones.php'],
                 ],
             ],
