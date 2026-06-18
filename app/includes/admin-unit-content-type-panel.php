@@ -21,12 +21,10 @@ $ucTabActive = ($defaultAdminTab ?? '') === $ucTabSlug;
             <i class="bi bi-<?php echo $ucIsBlog ? 'journal-text' : ($ucIsNews ? 'newspaper' : 'lightning-charge'); ?> me-2 text-danger"></i><?php echo esc($ucTypeLabel); ?>
         </h5>
         <p class="text-muted small mb-0">Gestión de <?php echo esc(strtolower($ucTypeLabel)); ?> para Rent A Car.</p>
-        <?php if ($ucIsLatest): ?>
         <p class="text-muted small mt-2 mb-0">
-            <i class="bi bi-eye-fill text-success"></i> Solo los registros con el ojo <strong>verde (En home)</strong> aparecen en la grilla del front.
-            Máximo según <em>Configuración → Límite bloque «más reciente»</em> (ahora <?php echo intval($ucContent['settings']['latest_home_limit'] ?? 4); ?>).
+            <i class="bi bi-eye-fill text-success"></i> Active <strong>Mostrar en bloque «más reciente» del home</strong> (o el ojo verde en la tabla) para que aparezca en la grilla de <code>rent-a-car.php</code>.
+            Máximo: <?php echo intval($ucContent['settings']['latest_home_limit'] ?? 4); ?> ítems en total (mezcla más reciente, blog y noticias).
         </p>
-        <?php endif; ?>
     </div>
 
     <?php if ($ucIsBlog): ?>
@@ -189,14 +187,12 @@ $ucTabActive = ($defaultAdminTab ?? '') === $ucTabSlug;
                         <label class="form-check-label" for="<?php echo esc($ucDomPrefix); ?>-published">Publicado</label>
                     </div>
                 </div>
-                <?php if ($ucIsLatest): ?>
-                <div class="col-md-4">
+                <div class="col-md-8">
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="content_show_on_home" id="<?php echo esc($ucDomPrefix); ?>-show-home" value="1" checked>
+                        <input class="form-check-input" type="checkbox" name="content_show_on_home" id="<?php echo esc($ucDomPrefix); ?>-show-home" value="1" <?php echo $ucIsLatest ? 'checked' : ''; ?>>
                         <label class="form-check-label" for="<?php echo esc($ucDomPrefix); ?>-show-home">Mostrar en bloque «más reciente» del home</label>
                     </div>
                 </div>
-                <?php endif; ?>
             </div>
 
             <div class="text-end mt-4 d-flex justify-content-end gap-2">
@@ -221,16 +217,16 @@ $ucTabActive = ($defaultAdminTab ?? '') === $ucTabSlug;
                         <th>Título</th>
                         <?php if ($ucIsLatest): ?><th>Subtipo</th><?php endif; ?>
                         <th style="width:90px;" class="text-center">Estado</th>
-                        <?php if ($ucIsLatest): ?><th style="width:90px;" class="text-center">En home</th><?php endif; ?>
+                        <th style="width:100px;" class="text-center">Más reciente</th>
                         <th style="width:110px;" class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($ucItems)): ?>
-                    <tr><td colspan="<?php echo $ucIsLatest ? 7 : ($ucIsBlog ? 5 : 5); ?>" class="text-center py-4 text-muted">Sin registros.</td></tr>
+                    <tr><td colspan="<?php echo $ucIsLatest ? 7 : 6; ?>" class="text-center py-4 text-muted">Sin registros.</td></tr>
                     <?php else: ?>
                     <?php foreach ($ucItems as $item):
-                        $onHome = !isset($item['show_on_home']) || filter_var($item['show_on_home'], FILTER_VALIDATE_BOOLEAN);
+                        $onHome = UnitContentService::showsOnLatestHomeBlock($item, $ucType);
                         $published = !isset($item['published']) || filter_var($item['published'], FILTER_VALIDATE_BOOLEAN);
                     ?>
                     <tr>
@@ -249,17 +245,17 @@ $ucTabActive = ($defaultAdminTab ?? '') === $ucTabSlug;
                         <td class="text-center">
                             <span class="badge <?php echo $published ? 'bg-success' : 'bg-secondary'; ?>"><?php echo $published ? 'Publicado' : 'Borrador'; ?></span>
                         </td>
-                        <?php if ($ucIsLatest): ?>
                         <td class="text-center">
                             <form method="POST" action="?tab=<?php echo esc($ucTabSlug); ?>" class="d-inline">
                                 <input type="hidden" name="action" value="toggle_unit_content_home">
                                 <input type="hidden" name="content_unit" value="<?php echo esc($ucUnitKey); ?>">
                                 <input type="hidden" name="content_type" value="<?php echo esc($ucType); ?>">
                                 <input type="hidden" name="content_id" value="<?php echo intval($item['id']); ?>">
-                                <button type="submit" class="btn btn-sm <?php echo $onHome ? 'btn-success' : 'btn-outline-secondary'; ?>"><i class="bi <?php echo $onHome ? 'bi-eye-fill' : 'bi-eye-slash'; ?>"></i></button>
+                                <button type="submit" class="btn btn-sm <?php echo $onHome ? 'btn-success' : 'btn-outline-secondary'; ?>" title="<?php echo $onHome ? 'Visible en bloque más reciente' : 'Oculto del bloque más reciente'; ?>">
+                                    <i class="bi <?php echo $onHome ? 'bi-eye-fill' : 'bi-eye-slash'; ?>"></i>
+                                </button>
                             </form>
                         </td>
-                        <?php endif; ?>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-1">
                                 <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditUnitContent("<?php echo esc($ucDomPrefix); ?>", <?php echo json_encode($item, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'><i class="bi bi-pencil-fill"></i></button>

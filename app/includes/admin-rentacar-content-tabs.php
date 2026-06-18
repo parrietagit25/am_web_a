@@ -25,7 +25,7 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
         </p>
         <ul class="text-muted small mb-0">
             <li><strong>Destacados</strong> — carrusel o pieza grande arriba (usa la rotación o el destacado único de abajo).</li>
-            <li><strong>Contenido más reciente</strong> — grilla de tarjetas (solo ítems creados en esa sección del menú, con el ojo <i class="bi bi-eye-fill"></i> activo).</li>
+            <li><strong>Contenido más reciente</strong> — grilla de tarjetas (ítems de más reciente, blog o noticias con el ojo <i class="bi bi-eye-fill"></i> activo).</li>
         </ul>
     </div>
 

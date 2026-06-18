@@ -74,6 +74,11 @@ function unit_content_get_spotlight(ContentService $contentService, string $unit
     return $cards;
 }
 
+function unit_content_item_shows_on_latest_home(array $item, string $type): bool
+{
+    return UnitContentService::showsOnLatestHomeBlock($item, $type);
+}
+
 function unit_content_get_latest_home(ContentService $contentService, string $unitKey, int $limit = 4): array
 {
     $siteData = $contentService->getAll();
@@ -84,18 +89,34 @@ function unit_content_get_latest_home(ContentService $contentService, string $un
     }
 
     $limit = max(1, min(12, intval($settings['latest_home_limit'] ?? $limit)));
+    $pool = [];
+
+    foreach (UnitContentService::TYPES as $type) {
+        foreach (UnitContentService::getItems($siteData, $unitKey, $type) as $item) {
+            if (empty($item['published']) || !UnitContentService::isWithinSchedule($item)) {
+                continue;
+            }
+            if (!unit_content_item_shows_on_latest_home($item, $type)) {
+                continue;
+            }
+            $item['detail_url'] = UnitContentService::detailUrl($unitKey, $type, intval($item['id'] ?? 0));
+            $item['source_type'] = $type;
+            $pool[] = $item;
+        }
+    }
+
+    usort($pool, static function (array $a, array $b): int {
+        $orderA = intval($a['sort_order'] ?? 999);
+        $orderB = intval($b['sort_order'] ?? 999);
+        if ($orderA !== $orderB) {
+            return $orderA - $orderB;
+        }
+        return strcmp((string) ($b['date'] ?? ''), (string) ($a['date'] ?? ''));
+    });
+
     $items = [];
-    foreach (UnitContentService::getItems($siteData, $unitKey, 'latest') as $item) {
-        if (empty($item['published']) || !UnitContentService::isWithinSchedule($item)) {
-            continue;
-        }
-        if (!empty($item['show_on_home']) || !isset($item['show_on_home'])) {
-            $item['detail_url'] = UnitContentService::detailUrl($unitKey, 'latest', intval($item['id'] ?? 0));
-            $items[] = unit_content_to_card($item);
-        }
-        if (count($items) >= $limit) {
-            break;
-        }
+    foreach (array_slice($pool, 0, $limit) as $item) {
+        $items[] = unit_content_to_card($item);
     }
 
     return $items;

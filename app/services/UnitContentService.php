@@ -224,7 +224,9 @@ class UnitContentService
             'description' => trim((string) ($row['description'] ?? '')),
             'content' => (string) ($row['content'] ?? ''),
             'published' => !isset($row['published']) || filter_var($row['published'], FILTER_VALIDATE_BOOLEAN),
-            'show_on_home' => !isset($row['show_on_home']) || filter_var($row['show_on_home'], FILTER_VALIDATE_BOOLEAN),
+            'show_on_home' => array_key_exists('show_on_home', $row)
+                ? filter_var($row['show_on_home'], FILTER_VALIDATE_BOOLEAN)
+                : ($type === 'latest'),
             'publish_from' => trim((string) ($row['publish_from'] ?? '')),
             'publish_until' => trim((string) ($row['publish_until'] ?? '')),
             'category_ids' => self::normalizeIdList($row['category_ids'] ?? []),
@@ -397,6 +399,16 @@ class UnitContentService
         }
 
         return $picker;
+    }
+
+    /** @param array<string, mixed> $item */
+    public static function showsOnLatestHomeBlock(array $item, string $type): bool
+    {
+        if (!isset($item['show_on_home'])) {
+            return $type === 'latest';
+        }
+
+        return filter_var($item['show_on_home'], FILTER_VALIDATE_BOOLEAN);
     }
 
     /** @param array<string, mixed> $item */
