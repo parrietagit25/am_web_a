@@ -74,15 +74,14 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                 <input type="hidden" name="action" value="save_renting_home">
 
                                 <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label for="renting_hero_image" class="form-label fw-semibold">Imagen de cabecera (hero)</label>
-                                        <input type="file" id="renting_hero_image" name="renting_hero_image" class="form-control form-control-premium" accept="image/*">
-                                        <div class="form-text">Formatos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
-                                        <?php if (!empty($renting['hero']['image_url'] ?? '')): ?>
-                                            <div class="mt-2">
-                                                <img src="<?php echo esc($renting['hero']['image_url']); ?>" alt="Hero Renting" class="img-thumbnail" style="max-height: 100px;">
-                                            </div>
-                                        <?php endif; ?>
+                                    <div class="col-12">
+                                        <?php
+                                        require_once __DIR__ . '/../services/HeaderBannerService.php';
+                                        $hbConfig = HeaderBannerService::normalizeFromNode($renting['hero'] ?? []);
+                                        $hbPrefix = 'hb_renting_home';
+                                        $hbDomId = 'hb-renting-home';
+                                        require __DIR__ . '/admin-header-banner-section.php';
+                                        ?>
                                     </div>
 
                                     <div class="col-md-6">

@@ -7,7 +7,8 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/renting-posts.php';
 
 $renting = $contentService->get('renting', []);
-$heroImage = $renting['hero']['image_url'] ?? 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=1200&auto=format&fit=crop';
+require_once __DIR__ . '/../services/HeaderBannerService.php';
+$hbConfig = HeaderBannerService::normalizeFromNode($renting['hero'] ?? []);
 $introTitle = $renting['intro_title'] ?? 'Renting de Autos en Panamá — Anda Siempre en Auto Nuevo';
 $introText = $renting['intro_text'] ?? 'En Automarket Renting te ofrecemos una solución de movilidad simple, eficiente y confiable: accede a un auto nuevo 0 km pagando una cuota mensual fija con todo incluido, sin abono inicial, sin preocupaciones. Solo tienes que elegir tu auto y disfrutar de conducirlo nosotros nos ocupamos del resto.';
 $carsTitle = $renting['cars_section_title'] ?? 'Renting de Autos en Panamá';
@@ -218,18 +219,18 @@ $rentingOpiniones = array_values(array_filter($renting['opiniones'] ?? [], funct
     object-fit: cover;
 }
 .renting-opinion-stars { color: #2563eb; letter-spacing: 1px; }
+.hero-banner-slider { min-height: 360px; }
 </style>
 
-<!-- Hero -->
-<section class="hero-wrapper text-center text-lg-start d-flex align-items-center" style="background: url('<?php echo esc($heroImage); ?>') no-repeat center center; background-size: cover;" id="cta-hero">
-    <div class="container py-5">
-        <div class="col-lg-8 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">
-            <h1 class="display-4 fw-bold mb-3 font-montserrat">Automarket Renting</h1>
-            <p class="fs-5 mb-4 opacity-90 font-poppins">Tu auto nuevo, una cuota mensual con todo incluido.</p>
-            <a href="#cotizar-seccion" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg">Cotizar ahora</a>
-        </div>
-    </div>
-</section>
+<?php
+$hbSectionId = 'cta-hero';
+$hbInnerHtml = '<div class="col-lg-8 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">'
+    . '<h1 class="display-4 fw-bold mb-3 font-montserrat">Automarket Renting</h1>'
+    . '<p class="fs-5 mb-4 opacity-90 font-poppins">Tu auto nuevo, una cuota mensual con todo incluido.</p>'
+    . '<a href="#cotizar-seccion" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg">Cotizar ahora</a>'
+    . '</div>';
+require __DIR__ . '/../includes/render-header-banner.php';
+?>
 
 <!-- Intro -->
 <section class="py-5 bg-white">

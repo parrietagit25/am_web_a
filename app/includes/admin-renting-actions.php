@@ -22,12 +22,19 @@ if ($action === 'save_renting_home') {
     $siteData['renting']['brands_title'] = trim($_POST['renting_brands_title'] ?? 'MARCAS ALIADAS');
     $siteData['renting']['opinions_title'] = trim($_POST['renting_opinions_title'] ?? 'Lo que opinan nuestros clientes de nosotros...');
 
-    if (isset($_FILES['renting_hero_image']) && $_FILES['renting_hero_image']['error'] === UPLOAD_ERR_OK) {
-        $uploadedPath = $contentService->uploadImage($_FILES['renting_hero_image'], 'renting_hero_');
-        if ($uploadedPath) {
-            $siteData['renting']['hero']['image_url'] = $uploadedPath;
-        } else {
-            $errorMsg = 'No se pudo subir la imagen de cabecera de Renting.';
+    if (empty($errorMsg)) {
+        require_once __DIR__ . '/../services/HeaderBannerService.php';
+        $hbErr = HeaderBannerService::applyPostAtPath(
+            $siteData,
+            ['renting', 'hero'],
+            'hb_renting_home',
+            $_POST,
+            $_FILES,
+            $contentService,
+            'renting_hb_'
+        );
+        if ($hbErr !== null) {
+            $errorMsg = $hbErr;
         }
     }
 
