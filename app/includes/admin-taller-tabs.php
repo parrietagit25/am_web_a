@@ -53,6 +53,10 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
         <form method="POST" action="?tab=taller-home" enctype="multipart/form-data">
             <input type="hidden" name="action" value="save_taller_home">
             <div class="row g-3">
+                <?php
+                $navLogoUnitKey = 'taller';
+                require __DIR__ . '/admin-unit-nav-logo-field.php';
+                ?>
                 <div class="col-12">
                     <?php
                     require_once __DIR__ . '/../services/HeaderBannerService.php';

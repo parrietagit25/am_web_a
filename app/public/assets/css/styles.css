@@ -133,6 +133,20 @@ header.navbar {
 .navbar-brand:hover .brand-logo-icon {
     transform: rotate(-10deg) scale(1.1);
 }
+.unit-nav-logo {
+    display: block;
+    max-height: 32px;
+    width: auto;
+    max-width: 180px;
+    object-fit: contain;
+    border-left: 2px solid #dee2e6 !important;
+}
+.unit-nav-logo-preview {
+    max-height: 48px;
+    max-width: 220px;
+    object-fit: contain;
+    background: #fff;
+}
 .navbar-nav .nav-link {
     font-size: 0.9rem;
     transition: all 0.2s ease;

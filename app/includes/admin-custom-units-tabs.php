@@ -43,6 +43,12 @@ foreach ($customUnitsForTabs as $unitKey => $unit):
                                 <input type="hidden" name="tab_slug" value="<?php echo esc($tabSlug); ?>">
 
                                 <div class="row g-3">
+                                    <?php if ($isMain): ?>
+                                        <?php
+                                        $navLogoUnitKey = $unitKey;
+                                        require __DIR__ . '/admin-unit-nav-logo-field.php';
+                                        ?>
+                                    <?php endif; ?>
                                     <div class="col-12">
                                         <?php
                                         require_once __DIR__ . '/../services/HeaderBannerService.php';

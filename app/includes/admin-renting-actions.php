@@ -38,6 +38,14 @@ if ($action === 'save_renting_home') {
         }
     }
 
+    if (empty($errorMsg)) {
+        require_once __DIR__ . '/unit-nav-logo.php';
+        $navLogoErr = am_apply_unit_nav_logo_from_post($siteData, 'renting', $contentService);
+        if ($navLogoErr !== null) {
+            $errorMsg = $navLogoErr;
+        }
+    }
+
     if (isset($_FILES['renting_quote_side_image']) && $_FILES['renting_quote_side_image']['error'] === UPLOAD_ERR_OK) {
         $uploadedPath = $contentService->uploadImage($_FILES['renting_quote_side_image'], 'renting_quote_');
         if ($uploadedPath) {

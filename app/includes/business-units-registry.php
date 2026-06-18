@@ -61,6 +61,7 @@ function am_normalize_custom_business_unit(string $key, array $unit): array
         'color' => trim((string) ($unit['color'] ?? '#1f347f')) ?: '#1f347f',
         'logo_title' => trim((string) ($unit['logo_title'] ?? 'Automarket')) ?: 'Automarket',
         'logo_subtitle' => trim((string) ($unit['logo_subtitle'] ?? $label)) ?: $label,
+        'nav_logo_url' => trim((string) ($unit['nav_logo_url'] ?? '')),
         'menu' => is_array($unit['menu'] ?? null) ? $unit['menu'] : [],
         'activeClass' => trim((string) ($unit['activeClass'] ?? ('active-' . $key))),
         'heroTitle' => trim((string) ($unit['heroTitle'] ?? '')),

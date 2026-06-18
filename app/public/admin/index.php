@@ -248,6 +248,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        if (empty($errorMsg)) {
+            require_once __DIR__ . '/../../includes/unit-nav-logo.php';
+            $navLogoErr = am_apply_unit_nav_logo_from_post($siteData, 'rentacar', $contentService);
+            if ($navLogoErr !== null) {
+                $errorMsg = $navLogoErr;
+            }
+        }
+
         // Save fleet carousel settings and items
         if (empty($errorMsg)) {
             $siteData['homepage']['fleet_carousel']['autoplay'] = isset($_POST['fleet_autoplay']) && $_POST['fleet_autoplay'] == '1';
@@ -906,6 +914,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
             if ($hbErr !== null) {
                 $errorMsg = $hbErr;
+            }
+        }
+
+        if (empty($errorMsg)) {
+            require_once __DIR__ . '/../../includes/unit-nav-logo.php';
+            $navLogoErr = am_apply_unit_nav_logo_from_post($siteData, 'seminuevos', $contentService);
+            if ($navLogoErr !== null) {
+                $errorMsg = $navLogoErr;
             }
         }
 
@@ -1683,6 +1699,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
             if ($hbErr !== null) {
                 $errorMsg = $hbErr;
+            }
+        }
+
+        if (empty($errorMsg)) {
+            require_once __DIR__ . '/../../includes/unit-nav-logo.php';
+            $navLogoErr = am_apply_unit_nav_logo_from_post($siteData, 'leasing', $contentService);
+            if ($navLogoErr !== null) {
+                $errorMsg = $navLogoErr;
             }
         }
 
@@ -3015,6 +3039,10 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                 <input type="hidden" name="action" value="save_homepage">
                                 
                                 <div class="row g-3 mb-5">
+                                    <?php
+                                    $navLogoUnitKey = 'rentacar';
+                                    require __DIR__ . '/../../includes/admin-unit-nav-logo-field.php';
+                                    ?>
                                     <div class="col-12">
                                         <label for="hero_title" class="form-label">Título Principal (Hero)</label>
                                         <textarea id="hero_title" name="hero_title" class="form-control form-control-premium" rows="2" required><?php echo esc($homepage['hero']['title'] ?? ''); ?></textarea>
@@ -3824,6 +3852,10 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                 <input type="hidden" name="action" value="save_seminuevos_home">
                                 
                                 <div class="row g-3 mb-4">
+                                    <?php
+                                    $navLogoUnitKey = 'seminuevos';
+                                    require __DIR__ . '/../../includes/admin-unit-nav-logo-field.php';
+                                    ?>
                                     <div class="col-12">
                                         <?php
                                         require_once __DIR__ . '/../../services/HeaderBannerService.php';
@@ -4876,6 +4908,10 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                 <input type="hidden" name="action" value="save_leasing_home">
 
                                 <div class="row g-3">
+                                    <?php
+                                    $navLogoUnitKey = 'leasing';
+                                    require __DIR__ . '/../../includes/admin-unit-nav-logo-field.php';
+                                    ?>
                                     <div class="col-12">
                                         <?php
                                         require_once __DIR__ . '/../../services/HeaderBannerService.php';

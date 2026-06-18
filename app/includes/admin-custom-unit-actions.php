@@ -63,6 +63,14 @@ if ($action === 'save_custom_unit_content') {
             }
         }
 
+        if (empty($errorMsg) && $pageSlug === '') {
+            require_once __DIR__ . '/unit-nav-logo.php';
+            $navLogoErr = am_apply_unit_nav_logo_from_post($siteData, $unitKey, $contentService);
+            if ($navLogoErr !== null) {
+                $errorMsg = $navLogoErr;
+            }
+        }
+
         if (empty($errorMsg) && $contentService->saveAll($siteData)) {
             $successMsg = 'Contenido de la unidad guardado correctamente.';
             $_GET['tab'] = $tabSlug;

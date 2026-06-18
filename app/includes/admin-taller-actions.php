@@ -38,6 +38,14 @@ if ($action === 'save_taller_home') {
         }
     }
 
+    if (empty($errorMsg)) {
+        require_once __DIR__ . '/unit-nav-logo.php';
+        $navLogoErr = am_apply_unit_nav_logo_from_post($siteData, 'taller', $contentService);
+        if ($navLogoErr !== null) {
+            $errorMsg = $navLogoErr;
+        }
+    }
+
     $existingTeamImages = $siteData['taller']['team']['images'] ?? ['', '', ''];
     while (count($existingTeamImages) < 3) {
         $existingTeamImages[] = '';

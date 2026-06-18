@@ -11,6 +11,7 @@ $siteGlobal = $contentService->get('global');
 $trackingCodes = $siteGlobal['tracking_codes'] ?? [];
 require_once __DIR__ . '/business-units-registry.php';
 require_once __DIR__ . '/unit-content-menu.php';
+require_once __DIR__ . '/unit-nav-logo.php';
 $businessUnits = am_merge_business_units(
     $siteGlobal['business_units'] ?? require __DIR__ . '/../config/business-units.php'
 );
@@ -47,6 +48,7 @@ if (!isset($activeUnit) || !array_key_exists($activeUnit, $businessUnits)) {
     $activeUnit = 'rentacar';
 }
 $currentUnit = $businessUnits[$activeUnit];
+$unitNavLogoUrl = am_unit_nav_logo_url($currentUnit);
 $seoService = new SeoService($contentService);
 $seo = $seoService->resolveForRequest(
     (string)($currentUnit['heroTitle'] ?? 'Automarket'),
@@ -191,12 +193,18 @@ $themeRgb = "$r, $g, $b";
     <header class="navbar navbar-expand-lg navbar-light bg-white sticky-top py-3 shadow-sm border-bottom">
         <div class="container">
             <!-- Brand Logo -->
-            <a class="navbar-brand d-flex align-items-center" href="/rent-a-car.php">
+            <a class="navbar-brand d-flex align-items-center" href="/<?php echo esc($currentUnit['slug']); ?>">
                 <div class="d-flex align-items-center logo-wrapper-div">
                     <img src="/assets/img/logo.png" alt="Automarket Logo" height="32" class="me-2">
-                    <span class="d-block text-uppercase fw-semibold tracking-wider font-poppins brand-sub border-start ps-2 ms-2" style="color: var(--theme-primary); font-size: 0.75rem; letter-spacing: 0.1em; border-left: 2px solid #dee2e6 !important;">
-                        <?php echo esc($currentUnit['logo_subtitle']); ?>
-                    </span>
+                    <?php if ($unitNavLogoUrl !== ''): ?>
+                        <img src="<?php echo esc($unitNavLogoUrl); ?>"
+                             alt="<?php echo esc($currentUnit['logo_subtitle']); ?>"
+                             class="unit-nav-logo border-start ps-2 ms-2">
+                    <?php else: ?>
+                        <span class="d-block text-uppercase fw-semibold tracking-wider font-poppins brand-sub border-start ps-2 ms-2" style="color: var(--theme-primary); font-size: 0.75rem; letter-spacing: 0.1em; border-left: 2px solid #dee2e6 !important;">
+                            <?php echo esc($currentUnit['logo_subtitle']); ?>
+                        </span>
+                    <?php endif; ?>
                 </div>
             </a>
 

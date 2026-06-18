@@ -74,6 +74,10 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                 <input type="hidden" name="action" value="save_renting_home">
 
                                 <div class="row g-3">
+                                    <?php
+                                    $navLogoUnitKey = 'renting';
+                                    require __DIR__ . '/admin-unit-nav-logo-field.php';
+                                    ?>
                                     <div class="col-12">
                                         <?php
                                         require_once __DIR__ . '/../services/HeaderBannerService.php';
