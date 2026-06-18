@@ -1160,6 +1160,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':location' => $location,
                     ':photo' => $photo
                 ]);
+
+                require_once __DIR__ . '/../../services/InventoryHighlightService.php';
+                InventoryHighlightService::setAssignment(
+                    $siteData,
+                    ['id' => $newId, 'VIN' => '', 'LicensePlate' => ''],
+                    trim($_POST['highlight_tag'] ?? '')
+                );
+                $contentService->saveAll($siteData);
+
                 $successMsg = 'Vehículo de inventario agregado correctamente.';
             } catch (Exception $e) {
                 $errorMsg = 'Error al agregar vehículo: ' . $e->getMessage();
@@ -1229,6 +1238,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':photo' => $photo,
                     ':id' => $id
                 ]);
+
+                require_once __DIR__ . '/../../services/InventoryHighlightService.php';
+                $vehicleKeys = $db->selectOne(
+                    "SELECT id, VIN, LicensePlate FROM Automarket_Invs_web WHERE id = :id LIMIT 1",
+                    [':id' => $id]
+                ) ?: ['id' => $id, 'VIN' => '', 'LicensePlate' => ''];
+                InventoryHighlightService::setAssignment($siteData, $vehicleKeys, trim($_POST['highlight_tag'] ?? ''));
+                $contentService->saveAll($siteData);
+
                 $successMsg = 'Vehículo de inventario actualizado correctamente.';
             } else {
                 $errorMsg = 'Faltan campos obligatorios para el vehículo.';
@@ -1247,6 +1265,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $successMsg = 'Vehículo de inventario eliminado correctamente.';
         } catch (Exception $e) {
             $errorMsg = 'Error al eliminar vehículo: ' . $e->getMessage();
+        }
+    }
+
+    // 23b. SAVE INVENTORY HIGHLIGHT TAG (quick assign from table)
+    elseif ($action === 'save_inventory_highlight') {
+        $vehicleId = intval($_POST['vehicle_id'] ?? 0);
+        $highlightTag = trim($_POST['highlight_tag'] ?? '');
+
+        if ($vehicleId <= 0) {
+            $errorMsg = 'Vehículo no válido.';
+        } else {
+            try {
+                require_once __DIR__ . '/../../services/InventoryHighlightService.php';
+                $db = Database::getInstance();
+                $vehicleKeys = $db->selectOne(
+                    "SELECT id, VIN, LicensePlate FROM Automarket_Invs_web WHERE id = :id LIMIT 1",
+                    [':id' => $vehicleId]
+                );
+
+                if (!$vehicleKeys) {
+                    $errorMsg = 'Vehículo no encontrado.';
+                } else {
+                    InventoryHighlightService::setAssignment($siteData, $vehicleKeys, $highlightTag);
+                    if ($contentService->saveAll($siteData)) {
+                        $successMsg = 'Etiqueta de resaltado guardada correctamente.';
+                        $_GET['tab'] = 'semi-inventory';
+                    } else {
+                        $errorMsg = 'Error al guardar la etiqueta de resaltado.';
+                    }
+                }
+            } catch (Exception $e) {
+                $errorMsg = 'Error al guardar la etiqueta: ' . $e->getMessage();
+            }
         }
     }
 
@@ -2705,6 +2756,10 @@ $totalVehicles = intval($totalCountRow['count'] ?? 0);
 $totalPages = ceil($totalVehicles / $limit);
 
 $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause ORDER BY id DESC LIMIT $limit OFFSET $offset", $queryParams);
+
+require_once __DIR__ . '/../../services/InventoryHighlightService.php';
+$inventoryHighlightCatalog = InventoryHighlightService::catalog();
+$inventoryHighlightAssignments = InventoryHighlightService::getAssignments($seminuevos);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -2830,6 +2885,21 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
             margin-bottom: 25px;
             padding: 25px;
         }
+        .inv-highlight-preview {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .inv-highlight--nuevo { background: linear-gradient(135deg, #059669, #10b981); }
+        .inv-highlight--ultimas { background: linear-gradient(135deg, #dc2626, #f97316); }
+        .inv-highlight--pocas { background: linear-gradient(135deg, #c2410c, #fb923c); }
+        .inv-highlight--oferta { background: linear-gradient(135deg, #be123c, #f43f5e); }
+        .inv-highlight--destacado { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
         .form-label {
             font-weight: 600;
             font-size: 0.9rem;
@@ -4150,6 +4220,23 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
 
                     <!-- TAB 12: SEMINUEVOS INVENTORY -->
                     <div class="tab-pane fade" id="tab-semi-inventory" role="tabpanel" aria-labelledby="tab-semi-inventory-nav">
+                        <!-- Highlight tags reference -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-lightning-charge-fill me-2 text-danger"></i>Etiquetas de resaltado
+                            </h5>
+                            <p class="text-muted small mb-3">
+                                Asigne una etiqueta por vehículo. Se muestra en
+                                <a href="/inventario.php" target="_blank" rel="noopener" class="text-danger fw-semibold">/inventario.php</a>
+                                y en la ficha de detalle. Las asignaciones se guardan por VIN/placa y no se pierden al sincronizar inventario.
+                            </p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <?php foreach ($inventoryHighlightCatalog as $badge): ?>
+                                    <span class="inv-highlight-preview <?php echo esc($badge['class']); ?>"><?php echo esc($badge['label']); ?></span>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
                         <!-- Add/Edit Inventory Form -->
                         <div class="admin-card">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="semiInvFormTitle"><i class="bi bi-plus-circle-fill me-2 text-danger"></i>Agregar Vehículo al Inventario Seminuevos</h5>
@@ -4242,6 +4329,17 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                         <label for="semi_inv_photo_url" class="form-label">O URL de Foto</label>
                                         <input type="text" id="semi_inv_photo_url" name="photo_url" class="form-control form-control-premium" placeholder="https://example.com/image.jpg">
                                     </div>
+
+                                    <div class="col-md-6">
+                                        <label for="semi_inv_highlight" class="form-label">Etiqueta de resaltado</label>
+                                        <select id="semi_inv_highlight" name="highlight_tag" class="form-select form-control-premium">
+                                            <option value="">Sin etiqueta</option>
+                                            <?php foreach ($inventoryHighlightCatalog as $badgeKey => $badge): ?>
+                                                <option value="<?php echo esc($badgeKey); ?>"><?php echo esc($badge['label']); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <div class="form-text">Opcional. Visible en la tarjeta del inventario público.</div>
+                                    </div>
                                 </div>
 
                                 <div class="form-text mt-2" id="semiInvPhotoHelp">Subir una imagen o colocar un enlace externo. Si se sube archivo, éste tendrá prioridad.</div>
@@ -4281,21 +4379,24 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                             <th>Precio</th>
                                             <th>Ubicación</th>
                                             <th>Estado</th>
+                                            <th style="min-width: 190px;">Resaltado</th>
                                             <th style="width: 100px;" class="text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty($inventoryVehicles)): ?>
                                             <tr>
-                                                <td colspan="7" class="text-center py-4 text-muted">No se encontraron vehículos en el inventario.</td>
+                                                <td colspan="8" class="text-center py-4 text-muted">No se encontraron vehículos en el inventario.</td>
                                             </tr>
                                         <?php else: ?>
                                             <?php foreach ($inventoryVehicles as $vehicle): ?>
-                                                <?php 
+                                                <?php
                                                 $img = !empty($vehicle['Photo']) ? $vehicle['Photo'] : 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=600&auto=format&fit=crop';
                                                 if (!empty($vehicle['foto_impel'])) {
                                                     $img = $vehicle['foto_impel'];
                                                 }
+                                                $vehicleForEdit = $vehicle;
+                                                $vehicleForEdit['_highlight_tag'] = InventoryHighlightService::resolveBadgeKey($vehicle, $inventoryHighlightAssignments);
                                                 ?>
                                                 <tr>
                                                     <td>
@@ -4323,9 +4424,24 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                                         ?>
                                                         <span class="badge <?php echo $statusClass; ?> text-uppercase"><?php echo esc($vehicle['Status']); ?></span>
                                                     </td>
+                                                    <td>
+                                                        <?php
+                                                        $currentHighlight = InventoryHighlightService::resolveBadgeKey($vehicle, $inventoryHighlightAssignments);
+                                                        ?>
+                                                        <form method="POST" action="?tab=semi-inventory" class="d-flex gap-1 align-items-center">
+                                                            <input type="hidden" name="action" value="save_inventory_highlight">
+                                                            <input type="hidden" name="vehicle_id" value="<?php echo intval($vehicle['id']); ?>">
+                                                            <select name="highlight_tag" class="form-select form-select-sm form-control-premium" onchange="this.form.submit()">
+                                                                <option value="">Sin etiqueta</option>
+                                                                <?php foreach ($inventoryHighlightCatalog as $badgeKey => $badge): ?>
+                                                                    <option value="<?php echo esc($badgeKey); ?>" <?php echo $currentHighlight === $badgeKey ? 'selected' : ''; ?>><?php echo esc($badge['label']); ?></option>
+                                                                <?php endforeach; ?>
+                                                            </select>
+                                                        </form>
+                                                    </td>
                                                     <td class="text-center">
                                                         <div class="d-flex justify-content-center gap-1">
-                                                            <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditSemiInventory(<?php echo json_encode($vehicle, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'><i class="bi bi-pencil-fill"></i></button>
+                                                            <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditSemiInventory(<?php echo json_encode($vehicleForEdit, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'><i class="bi bi-pencil-fill"></i></button>
                                                             <form method="POST" action="?tab=semi-inventory" onsubmit="return confirm('¿Está seguro de eliminar este vehículo del inventario?');" style="display:inline;">
                                                                 <input type="hidden" name="action" value="delete_semi_inventory">
                                                                 <input type="hidden" name="id" value="<?php echo intval($vehicle['id']); ?>">
@@ -6542,6 +6658,7 @@ function initEditSemiInventory(vehicle) {
     document.getElementById('semi_inv_color').value = vehicle.Color || '';
     document.getElementById('semi_inv_location').value = vehicle.LocationName || 'Via Israel';
     document.getElementById('semi_inv_photo_url').value = vehicle.Photo || '';
+    document.getElementById('semi_inv_highlight').value = vehicle._highlight_tag || '';
 
     if (vehicle.Photo) {
         document.getElementById('semiInvPhotoHelp').innerHTML = 'Foto actual: <code>' + vehicle.Photo + '</code>';
@@ -6563,6 +6680,7 @@ function resetSemiInvForm() {
     document.getElementById('semiInvFormTitle').innerHTML = '<i class="bi bi-plus-circle-fill me-2 text-danger"></i>Agregar Vehículo al Inventario Seminuevos';
     document.getElementById('semiInvFormAction').value = 'add_semi_inventory';
     document.getElementById('semiInvFormId').value = '';
+    document.getElementById('semi_inv_highlight').value = '';
 
     document.getElementById('semiInvPhotoHelp').innerHTML = 'Subir una imagen o colocar un enlace externo. Si se sube archivo, éste tendrá prioridad.';
 

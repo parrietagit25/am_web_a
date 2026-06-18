@@ -5,6 +5,7 @@
 $activeUnit = 'seminuevos';
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../services/Database.php';
+require_once __DIR__ . '/../services/InventoryHighlightService.php';
 
 $db = Database::getInstance();
 $placa = trim($_GET['placa'] ?? '');
@@ -51,6 +52,8 @@ if (!empty($vehicle['foto_impel'])) {
 
 $spinPlaca = strtolower($vehicle['LicensePlate']);
 $spinUrl = "https://spins.impel.io/automarketpanama/" . urlencode($spinPlaca);
+$inventoryHighlightAssignments = InventoryHighlightService::getAssignments($contentService->get('seminuevos', []));
+$vehicleHighlightBadge = InventoryHighlightService::resolveBadge($vehicle, $inventoryHighlightAssignments);
 ?>
 
 <style>
@@ -133,6 +136,39 @@ $spinUrl = "https://spins.impel.io/automarketpanama/" . urlencode($spinPlaca);
     border-radius: 24px;
     border: 1px solid rgba(8, 16, 38, 0.04);
 }
+.inv-highlight-tag {
+    display: inline-block;
+    color: #ffffff;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-family: 'Montserrat', sans-serif;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+}
+.inv-highlight-tag--detail {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    margin-bottom: 12px;
+}
+.inv-highlight-tag--card {
+    position: absolute;
+    top: 10px;
+    right: 0;
+    z-index: 11;
+    padding: 5px 12px 5px 16px;
+    border-radius: 999px 0 0 999px;
+    font-size: 0.62rem;
+    max-width: 92%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.inv-highlight--nuevo { background: linear-gradient(135deg, #059669, #10b981, #34d399); }
+.inv-highlight--ultimas { background: linear-gradient(135deg, #dc2626, #ef4444, #f97316); }
+.inv-highlight--pocas { background: linear-gradient(135deg, #c2410c, #ea580c, #fb923c); }
+.inv-highlight--oferta { background: linear-gradient(135deg, #be123c, #e11d48, #f43f5e); }
+.inv-highlight--destacado { background: linear-gradient(135deg, #7c3aed, #8b5cf6, #a78bfa); }
 </style>
 
 <!-- Navigation Header -->
@@ -151,6 +187,11 @@ $spinUrl = "https://spins.impel.io/automarketpanama/" . urlencode($spinPlaca);
     <div class="row g-4">
         <!-- Left Column: 360 iframe Spin Viewer -->
         <div class="col-lg-9">
+            <?php
+            $highlightBadge = $vehicleHighlightBadge;
+            $highlightVariant = 'detail';
+            require __DIR__ . '/../includes/inventory-highlight-badge.php';
+            ?>
             <h2 class="display-6 fw-bold text-navy mb-4 font-montserrat text-uppercase"><?php echo esc($fullName) . " " . esc($vehicle['Year']); ?></h2>
             
             <div class="viewer-360-container">

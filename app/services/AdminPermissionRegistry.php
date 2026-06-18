@@ -194,6 +194,7 @@ class AdminPermissionRegistry
             'edit_vehicle' => 'vehicles',
             'delete_vehicle' => 'vehicles',
             'save_fleet_categories' => 'vehicles',
+            'save_inventory_highlight' => 'semi_inventory',
             'add_sucursal' => 'sucursales',
             'edit_sucursal' => 'sucursales',
             'delete_sucursal' => 'sucursales',
