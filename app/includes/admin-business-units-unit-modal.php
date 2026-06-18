@@ -4,11 +4,11 @@
  */
 require_once __DIR__ . '/business-units-registry.php';
 ?>
-<div class="modal fade" id="buUnitModal" tabindex="-1" aria-labelledby="buUnitModalLabel" aria-hidden="true">
+<div class="modal fade" id="buUnitModal" tabindex="-1" aria-labelledby="buUnitModalHeading" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header text-white py-3" style="background-color: #081026;">
-                <h5 class="modal-title fw-bold font-montserrat" id="buUnitModalLabel">
+                <h5 class="modal-title fw-bold font-montserrat" id="buUnitModalHeading">
                     <i class="bi bi-building-add me-2"></i>Nueva unidad de negocio
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -16,8 +16,8 @@ require_once __DIR__ . '/business-units-registry.php';
             <div class="modal-body p-4">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label for="buUnitModalLabel" class="form-label">Etiqueta del menú superior</label>
-                        <input type="text" id="buUnitModalLabel" class="form-control form-control-premium" placeholder="Ej: FUNDACIÓN" required>
+                        <label for="buUnitModalLabelInput" class="form-label">Etiqueta del menú superior</label>
+                        <input type="text" id="buUnitModalLabelInput" class="form-control form-control-premium" placeholder="Ej: FUNDACIÓN" required>
                     </div>
                     <div class="col-md-6">
                         <label for="buUnitModalKey" class="form-label">Clave interna</label>
@@ -188,13 +188,22 @@ require_once __DIR__ . '/business-units-registry.php';
     }
 
     function openUnitModal() {
-        document.getElementById('buUnitModalLabel').value = '';
-        document.getElementById('buUnitModalKey').value = '';
+        const labelInput = document.getElementById('buUnitModalLabelInput');
+        const keyInput = document.getElementById('buUnitModalKey');
+        const slugInput = document.getElementById('buUnitModalSlug');
+        if (labelInput) labelInput.value = '';
+        if (keyInput) {
+            keyInput.value = '';
+            delete keyInput.dataset.touched;
+        }
         document.getElementById('buUnitModalLogoSubtitle').value = '';
         document.getElementById('buUnitModalColor').value = '#1f347f';
         document.getElementById('buUnitModalHeroTitle').value = '';
         document.getElementById('buUnitModalHeroSubtitle').value = '';
-        document.getElementById('buUnitModalSlug').value = '';
+        if (slugInput) {
+            slugInput.value = '';
+            delete slugInput.dataset.touched;
+        }
         if (!unitModal) {
             unitModal = new bootstrap.Modal(document.getElementById('buUnitModal'));
         }
@@ -202,7 +211,7 @@ require_once __DIR__ . '/business-units-registry.php';
     }
 
     function saveUnitModal() {
-        const label = document.getElementById('buUnitModalLabel').value.trim();
+        const label = document.getElementById('buUnitModalLabelInput')?.value.trim() || '';
         if (!label) {
             alert('La etiqueta del menú es obligatoria.');
             return;
@@ -245,7 +254,7 @@ require_once __DIR__ . '/business-units-registry.php';
     document.getElementById('buUnitAddBtn')?.addEventListener('click', openUnitModal);
     document.getElementById('buUnitModalSaveBtn')?.addEventListener('click', saveUnitModal);
 
-    document.getElementById('buUnitModalLabel')?.addEventListener('input', function () {
+    document.getElementById('buUnitModalLabelInput')?.addEventListener('input', function () {
         const keyInput = document.getElementById('buUnitModalKey');
         const slugInput = document.getElementById('buUnitModalSlug');
         if (keyInput && !keyInput.dataset.touched) {
