@@ -21,6 +21,12 @@ $ucTabActive = ($defaultAdminTab ?? '') === $ucTabSlug;
             <i class="bi bi-<?php echo $ucIsBlog ? 'journal-text' : ($ucIsNews ? 'newspaper' : 'lightning-charge'); ?> me-2 text-danger"></i><?php echo esc($ucTypeLabel); ?>
         </h5>
         <p class="text-muted small mb-0">Gestión de <?php echo esc(strtolower($ucTypeLabel)); ?> para Rent A Car.</p>
+        <?php if ($ucIsLatest): ?>
+        <p class="text-muted small mt-2 mb-0">
+            <i class="bi bi-eye-fill text-success"></i> Solo los registros con el ojo <strong>verde (En home)</strong> aparecen en la grilla del front.
+            Máximo según <em>Configuración → Límite bloque «más reciente»</em> (ahora <?php echo intval($ucContent['settings']['latest_home_limit'] ?? 4); ?>).
+        </p>
+        <?php endif; ?>
     </div>
 
     <?php if ($ucIsBlog): ?>

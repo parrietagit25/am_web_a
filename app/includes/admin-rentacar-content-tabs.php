@@ -20,9 +20,13 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
         <h5 class="fw-bold mb-3 font-montserrat text-navy">
             <i class="bi bi-sliders me-2 text-danger"></i>Configuración — Contenido <?php echo esc($ucUnitLabel); ?>
         </h5>
-        <p class="text-muted small mb-0">
-            Define qué contenido aparece en <code>rent-a-car.php</code>: destacado único, rotación mixta o bloque de «más reciente».
+        <p class="text-muted small mb-3">
+            En <code>rent-a-car.php</code> hay <strong>dos bloques independientes</strong>. Configúralos por separado:
         </p>
+        <ul class="text-muted small mb-0">
+            <li><strong>Destacados</strong> — carrusel o pieza grande arriba (usa la rotación o el destacado único de abajo).</li>
+            <li><strong>Contenido más reciente</strong> — grilla de tarjetas (solo ítems creados en esa sección del menú, con el ojo <i class="bi bi-eye-fill"></i> activo).</li>
+        </ul>
     </div>
 
     <div class="admin-card">
@@ -31,6 +35,12 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
             <input type="hidden" name="content_unit" value="<?php echo esc($ucUnitKey); ?>">
 
             <div class="row g-3">
+                <div class="col-12">
+                    <div class="alert alert-light border small mb-0 py-2">
+                        <i class="bi bi-info-circle text-danger me-1"></i>
+                        La <strong>rotación</strong> de abajo solo aplica al bloque <strong>Destacados</strong>. No llena la grilla «Contenido más reciente».
+                    </div>
+                </div>
                 <div class="col-12">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="home_block_enabled" id="uc_home_block_enabled" value="1" <?php echo !empty($ucSettings['home_block_enabled']) ? 'checked' : ''; ?>>
