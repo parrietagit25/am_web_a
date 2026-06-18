@@ -147,4 +147,167 @@ class InventoryHighlightService
             $assignments[$storageKey] = $badgeKey;
         }
     }
+
+    /**
+     * Tras el pase de inventario: re-enlaza etiquetas al VIN/placa/id actuales
+     * y conserva anclas por VIN aunque el vehículo salga temporalmente del inventario.
+     *
+     * @return array{relinked: int, restored: int, vin_preserved: int, saved: bool}
+     */
+    public static function reconcileAfterInventorySync(): array
+    {
+        require_once __DIR__ . '/ContentService.php';
+        require_once __DIR__ . '/Database.php';
+
+        $contentService = new ContentService();
+        $siteData = $contentService->getAll();
+        $db = Database::getInstance();
+
+        $assignments = self::getAssignments($siteData['seminuevos'] ?? []);
+        $vehicles = $db->select(
+            'SELECT id, VIN, LicensePlate FROM Automarket_Invs_web'
+        );
+
+        $vinAnchors = self::buildVinAnchors($assignments, $vehicles);
+        $idsInDb = [];
+        $platesInDb = [];
+        $vinsInDb = [];
+
+        foreach ($vehicles as $vehicle) {
+            $idsInDb[intval($vehicle['id'] ?? 0)] = true;
+            $vin = strtoupper(trim((string) ($vehicle['VIN'] ?? '')));
+            $plate = strtoupper(trim((string) ($vehicle['LicensePlate'] ?? '')));
+            if ($vin !== '') {
+                $vinsInDb[$vin] = true;
+            }
+            if ($plate !== '') {
+                $platesInDb[$plate] = true;
+            }
+        }
+
+        $relinked = 0;
+        $restored = 0;
+
+        foreach ($vehicles as $vehicle) {
+            $vin = strtoupper(trim((string) ($vehicle['VIN'] ?? '')));
+            $currentBadge = self::resolveBadgeKey($vehicle, $assignments);
+
+            if ($currentBadge === '' && $vin !== '' && isset($vinAnchors[$vin])) {
+                self::setAssignment($siteData, $vehicle, $vinAnchors[$vin]);
+                $assignments = self::getAssignments($siteData['seminuevos'] ?? []);
+                $restored++;
+                continue;
+            }
+
+            if ($currentBadge !== '') {
+                self::setAssignment($siteData, $vehicle, $currentBadge);
+                $assignments = self::getAssignments($siteData['seminuevos'] ?? []);
+                if ($vin !== '') {
+                    $vinAnchors[$vin] = $currentBadge;
+                }
+                $relinked++;
+            }
+        }
+
+        if (!isset($siteData['seminuevos']['inventory_highlights']['assignments'])
+            || !is_array($siteData['seminuevos']['inventory_highlights']['assignments'])) {
+            $siteData['seminuevos']['inventory_highlights']['assignments'] = [];
+        }
+
+        $assignments = &$siteData['seminuevos']['inventory_highlights']['assignments'];
+
+        foreach ($vinAnchors as $vin => $badge) {
+            $assignments['vin:' . $vin] = $badge;
+        }
+
+        foreach (array_keys($assignments) as $storageKey) {
+            if (str_starts_with($storageKey, 'id:')) {
+                $id = intval(substr($storageKey, 3));
+                if ($id <= 0 || !isset($idsInDb[$id])) {
+                    unset($assignments[$storageKey]);
+                }
+                continue;
+            }
+
+            if (str_starts_with($storageKey, 'plate:')) {
+                $plate = substr($storageKey, 6);
+                if ($plate === '' || !isset($platesInDb[$plate])) {
+                    unset($assignments[$storageKey]);
+                }
+            }
+        }
+
+        $vinPreserved = count($vinAnchors);
+        $saved = $contentService->saveAll($siteData);
+
+        if ($relinked > 0 || $restored > 0) {
+            am_log(sprintf(
+                'Inventory highlights reconcile: %d re-enlazadas, %d restauradas, %d anclas VIN',
+                $relinked,
+                $restored,
+                $vinPreserved
+            ));
+        }
+
+        return [
+            'relinked' => $relinked,
+            'restored' => $restored,
+            'vin_preserved' => $vinPreserved,
+            'saved' => $saved,
+        ];
+    }
+
+    /**
+     * @param array<string, string> $assignments
+     * @param list<array<string, mixed>> $vehicles
+     * @return array<string, string> VIN => badge key
+     */
+    private static function buildVinAnchors(array $assignments, array $vehicles): array
+    {
+        $anchors = [];
+
+        foreach ($assignments as $storageKey => $badge) {
+            if (str_starts_with($storageKey, 'vin:')) {
+                $vin = substr($storageKey, 4);
+                if ($vin !== '') {
+                    $anchors[$vin] = $badge;
+                }
+            }
+        }
+
+        $byId = [];
+        $byPlate = [];
+        foreach ($vehicles as $vehicle) {
+            $byId[intval($vehicle['id'] ?? 0)] = $vehicle;
+            $plate = strtoupper(trim((string) ($vehicle['LicensePlate'] ?? '')));
+            if ($plate !== '') {
+                $byPlate[$plate] = $vehicle;
+            }
+        }
+
+        foreach ($assignments as $storageKey => $badge) {
+            if (str_starts_with($storageKey, 'id:')) {
+                $id = intval(substr($storageKey, 3));
+                if ($id > 0 && isset($byId[$id])) {
+                    $vin = strtoupper(trim((string) ($byId[$id]['VIN'] ?? '')));
+                    if ($vin !== '') {
+                        $anchors[$vin] = $badge;
+                    }
+                }
+                continue;
+            }
+
+            if (str_starts_with($storageKey, 'plate:')) {
+                $plate = substr($storageKey, 6);
+                if ($plate !== '' && isset($byPlate[$plate])) {
+                    $vin = strtoupper(trim((string) ($byPlate[$plate]['VIN'] ?? '')));
+                    if ($vin !== '') {
+                        $anchors[$vin] = $badge;
+                    }
+                }
+            }
+        }
+
+        return $anchors;
+    }
 }

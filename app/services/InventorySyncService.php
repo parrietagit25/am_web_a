@@ -171,7 +171,22 @@ class InventorySyncService
             throw $e;
         }
 
+        $highlightStats = ['relinked' => 0, 'restored' => 0, 'vin_preserved' => 0, 'saved' => false];
+        try {
+            require_once __DIR__ . '/InventoryHighlightService.php';
+            $highlightStats = InventoryHighlightService::reconcileAfterInventorySync();
+        } catch (Throwable $e) {
+            am_log('Inventory highlights reconcile error: ' . $e->getMessage(), 'ERROR');
+        }
+
         $msg = "Pase completado: {$inserted} insertados, {$updated} actualizados, {$deleted} eliminados.";
+        if ($highlightStats['saved']) {
+            $msg .= sprintf(
+                ' Etiquetas: %d re-enlazadas, %d restauradas.',
+                $highlightStats['relinked'],
+                $highlightStats['restored']
+            );
+        }
         am_log($msg);
 
         return [
@@ -181,6 +196,7 @@ class InventorySyncService
             'updated' => $updated,
             'deleted' => $deleted,
             'total_temp' => $totalAutos,
+            'highlights' => $highlightStats,
         ];
     }
 
