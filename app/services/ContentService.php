@@ -52,6 +52,11 @@ class ContentService {
                     $data['homepage']['sucursales'] = $defaultData['homepage']['sucursales'];
                     $modified = true;
                 }
+
+                require_once __DIR__ . '/../includes/business-units-registry.php';
+                if (am_strip_custom_business_units($data)) {
+                    $modified = true;
+                }
                 
                 if ($modified) {
                     $this->saveAll($data);

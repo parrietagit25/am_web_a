@@ -4,7 +4,10 @@ require_once __DIR__ . '/../services/ChatbotSessionService.php';
 $chatbotSessionSvc = new ChatbotSessionService();
 $chatbotSessionsList = $chatbotSessionSvc->listSessions(250);
 
-$businessUnits = $siteData['global']['business_units'] ?? require __DIR__ . '/../config/business-units.php';
+require_once __DIR__ . '/business-units-registry.php';
+$businessUnits = am_filter_builtin_business_units(
+    $siteData['global']['business_units'] ?? require __DIR__ . '/../config/business-units.php'
+);
 $unitLabels = [];
 foreach ($businessUnits as $key => $unit) {
     $unitLabels[$key] = $unit['label'] ?? $key;

@@ -88,6 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        require_once __DIR__ . '/../../includes/business-units-registry.php';
+        am_strip_custom_business_units($siteData);
+
         if ($contentService->saveAll($siteData)) {
             $successMsg = 'Configuración global actualizada correctamente.';
         } else {
@@ -2517,6 +2520,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Reload site data for rendering
 $siteData = $contentService->getAll();
 $global = $siteData['global'];
+require_once __DIR__ . '/../../includes/business-units-registry.php';
+$global['business_units'] = am_filter_builtin_business_units($global['business_units'] ?? []);
 $homepage = $siteData['homepage'];
 $landingPages = $siteData['landings'] ?? [];
 usort($landingPages, function ($a, $b) {

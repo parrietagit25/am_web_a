@@ -9,7 +9,10 @@ require_once __DIR__ . '/../services/SeoService.php';
 $contentService = new ContentService();
 $siteGlobal = $contentService->get('global');
 $trackingCodes = $siteGlobal['tracking_codes'] ?? [];
-$businessUnits = $siteGlobal['business_units'] ?? require __DIR__ . '/../config/business-units.php';
+require_once __DIR__ . '/business-units-registry.php';
+$businessUnits = am_filter_builtin_business_units(
+    $siteGlobal['business_units'] ?? require __DIR__ . '/../config/business-units.php'
+);
 
 /**
  * Submenú: oculta Requisitos de alquiler y deja Términos y condiciones al final.
