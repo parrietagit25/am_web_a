@@ -205,13 +205,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Upload hero background image if provided
-        if (isset($_FILES['hero_image']) && $_FILES['hero_image']['error'] === UPLOAD_ERR_OK) {
-            $uploadedPath = $contentService->uploadImage($_FILES['hero_image'], 'hero_bg_');
-            if ($uploadedPath) {
-                $siteData['homepage']['hero']['image_url'] = $uploadedPath;
-            } else {
-                $errorMsg = 'No se pudo subir la imagen de fondo del Hero (formato inválido o supera los 5MB).';
+        if (empty($errorMsg)) {
+            require_once __DIR__ . '/../../services/HeaderBannerService.php';
+            $hbErr = HeaderBannerService::applyPostAtPath(
+                $siteData,
+                ['homepage', 'hero'],
+                'hb_rentacar_home',
+                $_POST,
+                $_FILES,
+                $contentService,
+                'rentacar_hb_'
+            );
+            if ($hbErr !== null) {
+                $errorMsg = $hbErr;
             }
         }
 
@@ -2936,14 +2942,13 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                     </div>
 
                                     <div class="col-12">
-                                        <label for="hero_image" class="form-label">Imagen de Fondo (Hero)</label>
-                                        <input type="file" id="hero_image" name="hero_image" class="form-control form-control-premium" accept="image/*">
-                                        <div class="form-text">Imagen de fondo actual. Puedes subir un nuevo archivo para cambiarla.</div>
-                                        <?php if (!empty($homepage['hero']['image_url'])): ?>
-                                            <div class="mt-2">
-                                                <img src="<?php echo esc($homepage['hero']['image_url']); ?>" alt="Fondo Hero actual" class="img-thumbnail" style="max-height: 120px;">
-                                            </div>
-                                        <?php endif; ?>
+                                        <?php
+                                        require_once __DIR__ . '/../../services/HeaderBannerService.php';
+                                        $hbConfig = HeaderBannerService::normalizeFromNode($homepage['hero'] ?? []);
+                                        $hbPrefix = 'hb_rentacar_home';
+                                        $hbDomId = 'hb-rentacar-home';
+                                        require __DIR__ . '/../../includes/admin-header-banner-section.php';
+                                        ?>
                                     </div>
                                 </div>
 

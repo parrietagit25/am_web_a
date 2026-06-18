@@ -4,28 +4,26 @@
  */
 $activeUnit = 'rentacar';
 require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../services/HeaderBannerService.php';
+
+$homepageHero = $contentService->get('homepage.hero', []);
+$hbConfig = HeaderBannerService::normalizeFromNode(is_array($homepageHero) ? $homepageHero : []);
+$heroTitle = $homepageHero['title'] ?? 'Te acompañamos a tu destino';
+$heroSubtitle = $homepageHero['subtitle'] ?? 'Reserva tu vehículo en línea en segundos con la flota más moderna';
 ?>
 
-<!-- 1. Hero Principal -->
+<style>
+.hero-banner-slider { min-height: 360px; }
+</style>
+
 <?php
-$heroTitle = $contentService->get('homepage.hero.title', 'Te acompañamos a tu destino');
-$heroSubtitle = $contentService->get('homepage.hero.subtitle', 'Reserva tu vehículo en línea en segundos con la flota más moderna');
-$heroImage = $contentService->get('homepage.hero.image_url', 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=1920&auto=format&fit=crop');
+$hbSectionId = 'cta-hero';
+$hbInnerHtml = '<div class="row align-items-center"><div class="col-lg-7 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">'
+    . '<h1 class="display-3 fw-bold mb-3 font-montserrat leading-tight">' . nl2br(esc($heroTitle)) . '</h1>'
+    . '<p class="fs-4 mb-0 opacity-90 font-poppins">' . esc($heroSubtitle) . '</p>'
+    . '</div></div>';
+require __DIR__ . '/../includes/render-header-banner.php';
 ?>
-<section class="hero-wrapper text-center text-lg-start d-flex align-items-center" id="cta-hero" style="background: url('<?php echo esc($heroImage); ?>') no-repeat center center; background-size: cover;">
-    <div class="container py-5">
-        <div class="row align-items-center">
-            <div class="col-lg-7 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">
-                <h1 class="display-3 fw-bold mb-3 font-montserrat leading-tight">
-                    <?php echo nl2br(esc($heroTitle)); ?>
-                </h1>
-                <p class="fs-4 mb-0 opacity-90 font-poppins">
-                    <?php echo esc($heroSubtitle); ?>
-                </p>
-            </div>
-        </div>
-    </div>
-</section>
 
 <div id="search-anchor"></div>
 
