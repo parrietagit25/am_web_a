@@ -57,6 +57,11 @@ class ContentService {
                 if (am_ensure_business_units_sort_order($data)) {
                     $modified = true;
                 }
+                if (isset($data['global']['business_units']) && is_array($data['global']['business_units'])) {
+                    if (am_normalize_all_custom_unit_menus($data['global']['business_units'])) {
+                        $modified = true;
+                    }
+                }
                 
                 if ($modified) {
                     $this->saveAll($data);

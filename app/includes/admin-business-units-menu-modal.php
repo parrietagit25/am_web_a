@@ -22,7 +22,7 @@
                     </div>
                     <div class="col-md-6">
                         <label for="buMenuModalLinkInput" class="form-label">URL o ancla</label>
-                        <input type="text" id="buMenuModalLinkInput" class="form-control form-control-premium" placeholder="Ej: /flota.php o #">
+                        <input type="text" id="buMenuModalLinkInput" class="form-control form-control-premium" placeholder="Ej: musica.php o /ruta-externa">
                     </div>
                     <div class="col-12">
                         <div class="form-check">
@@ -273,6 +273,42 @@
         modalInstance.show();
     }
 
+    function isCustomUnit(unitKey) {
+        const el = document.querySelector('.bu-unit-item[data-unit-key="' + unitKey + '"]');
+        return !!(el && el.getAttribute('data-is-custom') === '1');
+    }
+
+    function slugifyPage(label) {
+        return String(label || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
+
+    function suggestCustomUnitLink(unitKey, label, link) {
+        if (!isCustomUnit(unitKey)) {
+            return link || '';
+        }
+        const trimmed = String(link || '').trim();
+        if (/^https?:\/\//i.test(trimmed)) {
+            return trimmed;
+        }
+        if (/unidad\.php/i.test(trimmed) && /[?&]p=/i.test(trimmed)) {
+            return trimmed;
+        }
+        if (/^([a-z0-9_-]+)\.php$/i.test(trimmed)) {
+            const slug = trimmed.replace(/\.php$/i, '').toLowerCase();
+            return 'unidad.php?u=' + encodeURIComponent(unitKey) + '&p=' + encodeURIComponent(slug);
+        }
+        const slug = slugifyPage(label);
+        if (!slug) {
+            return trimmed;
+        }
+        return 'unidad.php?u=' + encodeURIComponent(unitKey) + '&p=' + encodeURIComponent(slug);
+    }
+
     function saveModal() {
         const unitKey = document.getElementById('buMenuModalUnit').value;
         const index = parseInt(document.getElementById('buMenuModalIndex').value, 10);
@@ -292,12 +328,17 @@
         }
 
         const finalLink = link || (hasSubmenu ? '#' : '');
-        if (!finalLink) {
+        if (!finalLink && !hasSubmenu) {
             alert('Indica una URL o ancla para el enlace.');
             return;
         }
 
-        const newItem = { label, link: finalLink, submenu };
+        let resolvedLink = finalLink;
+        if (!hasSubmenu) {
+            resolvedLink = suggestCustomUnitLink(unitKey, label, finalLink);
+        }
+
+        const newItem = { label, link: resolvedLink, submenu };
         if (!buMenuData[unitKey]) {
             buMenuData[unitKey] = [];
         }

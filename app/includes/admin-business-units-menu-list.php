@@ -3,7 +3,9 @@
  * Lista ordenable de enlaces del menú por unidad de negocio.
  * Requiere: $key (string), $unit (array).
  */
+require_once __DIR__ . '/business-units-registry.php';
 $buMenuItems = array_values($unit['menu'] ?? []);
+$buIsCustomUnit = !am_is_builtin_business_unit($key);
 ?>
 <div class="col-12 mt-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -16,7 +18,7 @@ $buMenuItems = array_values($unit['menu'] ?? []);
             <i class="bi bi-plus-lg me-1"></i>Agregar enlace
         </button>
     </div>
-    <p class="text-muted small mb-2">Arrastra para cambiar el orden. Usa editar para agregar submenús. Para páginas internas use <code>unidad.php?u=<?php echo esc($key); ?>&amp;p=slug</code> (ej. <code>p=musica</code>).</p>
+    <p class="text-muted small mb-2">Arrastra para cambiar el orden. Usa editar para agregar submenús.<?php if ($buIsCustomUnit): ?> Cada enlace interno (ej. <code>musica.php</code>) aparecerá en el menú admin de esta unidad.<?php endif; ?></p>
     <div class="bu-menu-sortable list-group mb-2" data-unit="<?php echo esc($key); ?>"></div>
     <div class="bu-menu-fields" data-unit="<?php echo esc($key); ?>" aria-hidden="true"></div>
     <script type="application/json" class="bu-menu-initial" data-unit="<?php echo esc($key); ?>"><?php

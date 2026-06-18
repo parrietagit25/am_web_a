@@ -181,6 +181,95 @@ function am_parse_custom_unit_page_slug_from_link(string $link, string $unitKey)
     return $page;
 }
 
+function am_is_external_menu_link(string $link): bool
+{
+    $link = trim($link);
+
+    return $link !== '' && preg_match('/^https?:\/\//i', $link) === 1;
+}
+
+function am_custom_unit_internal_page_url(string $unitKey, string $pageSlug): string
+{
+    return 'unidad.php?u=' . rawurlencode($unitKey) . '&p=' . rawurlencode($pageSlug);
+}
+
+/**
+ * @param array<string, mixed> $item
+ */
+function am_derive_custom_unit_page_slug_from_menu_item(array $item, string $unitKey): ?string
+{
+    $link = trim((string) ($item['link'] ?? ''));
+    if ($link === '' || $link === '#') {
+        return null;
+    }
+    if (am_is_external_menu_link($link)) {
+        return null;
+    }
+
+    $fromUnidad = am_parse_custom_unit_page_slug_from_link($link, $unitKey);
+    if ($fromUnidad !== null && $fromUnidad !== '') {
+        return $fromUnidad;
+    }
+
+    $path = parse_url($link, PHP_URL_PATH);
+    $basename = basename((string) ($path ?: $link));
+    if (preg_match('/^unidad\.php$/i', $basename)) {
+        return null;
+    }
+    if (preg_match('/^([a-z0-9_-]+)\.php$/i', $basename, $m)) {
+        return am_normalize_custom_unit_page_slug($m[1]);
+    }
+    if (preg_match('/^\/?([a-z0-9_-]+)\/?$/i', $link, $m)) {
+        return am_normalize_custom_unit_page_slug($m[1]);
+    }
+
+    $label = trim((string) ($item['label'] ?? ''));
+    if ($label !== '') {
+        $fromLabel = am_normalize_custom_unit_page_slug(
+            preg_replace('/[^a-z0-9]+/', '-', strtolower($label))
+        );
+
+        return $fromLabel !== '' ? $fromLabel : null;
+    }
+
+    return null;
+}
+
+/**
+ * @param array<string, mixed> $item
+ * @return array<string, mixed>
+ */
+function am_normalize_custom_unit_menu_item(array $item, string $unitKey): array
+{
+    if (am_is_builtin_business_unit($unitKey)) {
+        return $item;
+    }
+
+    $submenu = [];
+    if (!empty($item['submenu']) && is_array($item['submenu'])) {
+        foreach ($item['submenu'] as $sub) {
+            if (is_array($sub)) {
+                $submenu[] = am_normalize_custom_unit_menu_item($sub, $unitKey);
+            }
+        }
+        $item['submenu'] = $submenu;
+    }
+
+    $link = trim((string) ($item['link'] ?? ''));
+    if (!empty($submenu) && ($link === '' || $link === '#')) {
+        $item['link'] = '#';
+
+        return $item;
+    }
+
+    $slug = am_derive_custom_unit_page_slug_from_menu_item($item, $unitKey);
+    if ($slug !== null && $slug !== '') {
+        $item['link'] = am_custom_unit_internal_page_url($unitKey, $slug);
+    }
+
+    return $item;
+}
+
 /**
  * @return array<string, array{slug: string, label: string, tab_slug: string}>
  */
@@ -207,7 +296,13 @@ function am_custom_unit_editable_pages(array $unit, string $unitKey): array
     }
 
     foreach ($menuItems as $item) {
-        $pageSlug = am_parse_custom_unit_page_slug_from_link((string) ($item['link'] ?? ''), $unitKey);
+        $link = trim((string) ($item['link'] ?? ''));
+        $hasSubmenu = !empty($item['submenu']) && is_array($item['submenu']);
+        if ($hasSubmenu && ($link === '' || $link === '#')) {
+            continue;
+        }
+
+        $pageSlug = am_derive_custom_unit_page_slug_from_menu_item($item, $unitKey);
         if ($pageSlug === null || $pageSlug === '' || isset($pages[$pageSlug])) {
             continue;
         }
@@ -358,6 +453,10 @@ function am_build_business_units_from_post(array $posted, array $existing, array
                 }
                 $parsedMenu[] = $newItem;
             }
+            $parsedMenu = array_map(
+                static fn (array $menuItem): array => am_normalize_custom_unit_menu_item($menuItem, $key),
+                $parsedMenu
+            );
             $unit['menu'] = $parsedMenu;
         }
 
@@ -372,4 +471,29 @@ function am_build_business_units_from_post(array $posted, array $existing, array
     }
 
     return am_sort_business_units($updated);
+}
+
+/** @param array<string, mixed> $businessUnits */
+function am_normalize_all_custom_unit_menus(array &$businessUnits): bool
+{
+    $modified = false;
+    foreach ($businessUnits as $key => &$unit) {
+        if (!is_string($key) || am_is_builtin_business_unit($key) || !is_array($unit)) {
+            continue;
+        }
+        if (!isset($unit['menu']) || !is_array($unit['menu'])) {
+            continue;
+        }
+        $normalized = array_map(
+            static fn (array $menuItem): array => am_normalize_custom_unit_menu_item($menuItem, $key),
+            $unit['menu']
+        );
+        if (json_encode($normalized) !== json_encode($unit['menu'])) {
+            $unit['menu'] = $normalized;
+            $modified = true;
+        }
+    }
+    unset($unit);
+
+    return $modified;
 }
