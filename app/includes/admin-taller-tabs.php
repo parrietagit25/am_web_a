@@ -53,12 +53,14 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
         <form method="POST" action="?tab=taller-home" enctype="multipart/form-data">
             <input type="hidden" name="action" value="save_taller_home">
             <div class="row g-3">
-                <div class="col-md-6">
-                    <label for="taller_hero_image" class="form-label fw-semibold">Imagen de cabecera</label>
-                    <input type="file" id="taller_hero_image" name="taller_hero_image" class="form-control form-control-premium" accept="image/*">
-                    <?php if (!empty($taller['hero']['image_url'] ?? '')): ?>
-                        <div class="mt-2"><img src="<?php echo esc($taller['hero']['image_url']); ?>" class="img-thumbnail" style="max-height: 120px;" alt="Hero Taller"></div>
-                    <?php endif; ?>
+                <div class="col-12">
+                    <?php
+                    require_once __DIR__ . '/../services/HeaderBannerService.php';
+                    $hbConfig = HeaderBannerService::normalizeFromNode($taller['hero'] ?? []);
+                    $hbPrefix = 'hb_taller_home';
+                    $hbDomId = 'hb-taller-home';
+                    require __DIR__ . '/admin-header-banner-section.php';
+                    ?>
                 </div>
                 <div class="col-md-6">
                     <label for="taller_services_title" class="form-label fw-semibold">Título sección servicios</label>

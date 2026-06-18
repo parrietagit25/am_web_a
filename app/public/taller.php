@@ -6,7 +6,8 @@ $activeUnit = 'taller';
 require_once __DIR__ . '/../includes/header.php';
 
 $taller = $contentService->get('taller', []);
-$heroImage = $taller['hero']['image_url'] ?? 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?q=80&w=1200&auto=format&fit=crop';
+require_once __DIR__ . '/../services/HeaderBannerService.php';
+$hbConfig = HeaderBannerService::normalizeFromNode($taller['hero'] ?? []);
 $servicesTitle = $taller['services_title'] ?? 'Conoce Nuestros Servicios';
 $servicesSubtitle = $taller['services_subtitle'] ?? 'Algunos de los Servicios que Ofrecemos en Nuestros Talleres son';
 $teamTitle1 = $taller['team_title_line_1'] ?? 'Tenemos un equipo de';
@@ -67,19 +68,18 @@ $opiniones = array_values(array_filter($taller['opiniones'] ?? [], function ($o)
 .taller-op-card { background:#fff; border:1px solid #e8ebf2; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(8,16,38,0.04); height:100%; }
 .taller-op-avatar { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; }
 .taller-op-stars { color: #2563eb; letter-spacing: 1px; }
+.hero-banner-slider { min-height: 360px; }
 </style>
 
-<section class="hero-wrapper text-center text-lg-start d-flex align-items-center" style="background: url('<?php echo esc($heroImage); ?>') no-repeat center center; background-size: cover;" id="cta-hero">
-    <div class="container py-5">
-        <div class="row align-items-center">
-            <div class="col-lg-8 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">
-                <h1 class="display-4 fw-bold mb-3 font-montserrat">Automarket Taller</h1>
-                <p class="fs-5 mb-4 opacity-90 font-poppins">Servicio de mantenimiento certificado, mecánicos capacitados y repuestos originales.</p>
-                <a href="#servicios" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg">Ver Servicios</a>
-            </div>
-        </div>
-    </div>
-</section>
+<?php
+$hbSectionId = 'cta-hero';
+$hbInnerHtml = '<div class="row align-items-center"><div class="col-lg-8 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">'
+    . '<h1 class="display-4 fw-bold mb-3 font-montserrat">Automarket Taller</h1>'
+    . '<p class="fs-5 mb-4 opacity-90 font-poppins">Servicio de mantenimiento certificado, mecánicos capacitados y repuestos originales.</p>'
+    . '<a href="#servicios" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg">Ver Servicios</a>'
+    . '</div></div>';
+require __DIR__ . '/../includes/render-header-banner.php';
+?>
 
 <section class="container py-5" id="servicios">
     <div class="text-center mb-4">

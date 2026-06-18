@@ -22,12 +22,19 @@ if ($action === 'save_taller_home') {
     $siteData['taller']['brands_text'] = trim($_POST['taller_brands_text'] ?? '');
     $siteData['taller']['opinions_title'] = trim($_POST['taller_opinions_title'] ?? 'Lo que opinan nuestros clientes de nosotros...');
 
-    if (isset($_FILES['taller_hero_image']) && $_FILES['taller_hero_image']['error'] === UPLOAD_ERR_OK) {
-        $uploadedPath = $contentService->uploadImage($_FILES['taller_hero_image'], 'taller_hero_');
-        if ($uploadedPath) {
-            $siteData['taller']['hero']['image_url'] = $uploadedPath;
-        } else {
-            $errorMsg = 'No se pudo subir la imagen de cabecera de Taller.';
+    if (empty($errorMsg)) {
+        require_once __DIR__ . '/../services/HeaderBannerService.php';
+        $hbErr = HeaderBannerService::applyPostAtPath(
+            $siteData,
+            ['taller', 'hero'],
+            'hb_taller_home',
+            $_POST,
+            $_FILES,
+            $contentService,
+            'taller_hb_'
+        );
+        if ($hbErr !== null) {
+            $errorMsg = $hbErr;
         }
     }
 
