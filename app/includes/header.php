@@ -10,6 +10,7 @@ $contentService = new ContentService();
 $siteGlobal = $contentService->get('global');
 $trackingCodes = $siteGlobal['tracking_codes'] ?? [];
 require_once __DIR__ . '/business-units-registry.php';
+require_once __DIR__ . '/unit-content-menu.php';
 $businessUnits = am_merge_business_units(
     $siteGlobal['business_units'] ?? require __DIR__ . '/../config/business-units.php'
 );
@@ -202,7 +203,9 @@ $themeRgb = "$r, $g, $b";
             <!-- Dynamic Secondary Menu Links -->
             <div class="collapse navbar-collapse justify-content-end" id="dynamicNavbar">
                 <ul class="navbar-nav mb-2 mb-lg-0 gap-1 gap-lg-3 py-3 py-lg-0 align-items-lg-center">
-                    <?php foreach ($currentUnit['menu'] as $item): 
+                    <?php
+                    $unitNavMenu = unit_content_inject_nav_menu($currentUnit['menu'] ?? [], $activeUnit ?? 'rentacar');
+                    foreach ($unitNavMenu as $item):
                         $link = $item['link'];
                         if (str_starts_with($link, '#')) {
                             $currentScript = basename($_SERVER['SCRIPT_NAME']);

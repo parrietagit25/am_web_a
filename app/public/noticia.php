@@ -31,8 +31,8 @@ if ($type === 'blog') {
     $backUrl = '/blog.php' . $unitQuery;
     $backLabel = 'Volver al Blog';
 } elseif ($type === 'latest') {
-    $backUrl = $unitHome;
-    $backLabel = 'Volver al inicio';
+    $backUrl = '/contenido-reciente.php' . $unitQuery;
+    $backLabel = 'Volver a Cont. Reciente';
 } else {
     $backUrl = '/noticias.php' . $unitQuery;
     $backLabel = 'Volver a Noticias';
