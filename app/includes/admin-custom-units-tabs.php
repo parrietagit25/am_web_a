@@ -43,15 +43,18 @@ foreach ($customUnitsForTabs as $unitKey => $unit):
                                 <input type="hidden" name="tab_slug" value="<?php echo esc($tabSlug); ?>">
 
                                 <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-semibold">Imagen de cabecera (banner)</label>
-                                        <input type="file" name="hero_image" class="form-control form-control-premium" accept="image/*">
-                                        <div class="form-text">JPG, PNG, GIF o WEBP. Máx. 5MB.</div>
-                                        <?php if (!empty($content['hero_image_url'])): ?>
-                                        <div class="mt-2">
-                                            <img src="<?php echo esc($content['hero_image_url']); ?>" alt="" class="img-thumbnail" style="max-height: 120px;">
-                                        </div>
-                                        <?php endif; ?>
+                                    <div class="col-12">
+                                        <?php
+                                        require_once __DIR__ . '/../services/HeaderBannerService.php';
+                                        $hbSlugPart = $pageSlug !== '' ? $pageSlug : 'main';
+                                        $hbNode = $pageSlug === ''
+                                            ? $unit
+                                            : (is_array($unit['pages'][$pageSlug] ?? null) ? $unit['pages'][$pageSlug] : []);
+                                        $hbConfig = HeaderBannerService::normalizeFromNode($hbNode, 'hero_image_url');
+                                        $hbPrefix = 'hb_unit_' . $unitKey . '_' . preg_replace('/[^a-z0-9_]/', '_', $hbSlugPart);
+                                        $hbDomId = 'hb-unit-' . preg_replace('/[^a-z0-9-]/', '-', $unitKey) . '-' . preg_replace('/[^a-z0-9-]/', '-', $hbSlugPart);
+                                        require __DIR__ . '/admin-header-banner-section.php';
+                                        ?>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold">Título del hero</label>

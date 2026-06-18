@@ -4,6 +4,7 @@
  */
 if ($action === 'save_custom_unit_content') {
     require_once __DIR__ . '/business-units-registry.php';
+    require_once __DIR__ . '/../services/HeaderBannerService.php';
 
     $unitKey = am_normalize_business_unit_key((string) ($_POST['unit_key'] ?? ''));
     $pageSlug = am_normalize_custom_unit_page_slug((string) ($_POST['page_slug'] ?? ''));
@@ -22,13 +23,7 @@ if ($action === 'save_custom_unit_content') {
             $siteData['global']['business_units'][$unitKey]['heroTitle'] = $heroTitle;
             $siteData['global']['business_units'][$unitKey]['heroSubtitle'] = $heroSubtitle;
             $siteData['global']['business_units'][$unitKey]['body_html'] = $bodyHtml;
-
-            if (isset($_FILES['hero_image']) && $_FILES['hero_image']['error'] === UPLOAD_ERR_OK) {
-                $uploadedPath = $contentService->uploadImage($_FILES['hero_image'], 'unit_' . $unitKey . '_');
-                if ($uploadedPath) {
-                    $siteData['global']['business_units'][$unitKey]['hero_image_url'] = $uploadedPath;
-                }
-            }
+            $hbPath = ['global', 'business_units', $unitKey];
         } else {
             if (!isset($siteData['global']['business_units'][$unitKey]['pages']) || !is_array($siteData['global']['business_units'][$unitKey]['pages'])) {
                 $siteData['global']['business_units'][$unitKey]['pages'] = [];
@@ -46,20 +41,32 @@ if ($action === 'save_custom_unit_content') {
                 $pageData['label'] = strtoupper(str_replace('-', ' ', $pageSlug));
             }
 
-            if (isset($_FILES['hero_image']) && $_FILES['hero_image']['error'] === UPLOAD_ERR_OK) {
-                $uploadedPath = $contentService->uploadImage($_FILES['hero_image'], 'unit_' . $unitKey . '_' . $pageSlug . '_');
-                if ($uploadedPath) {
-                    $pageData['hero_image_url'] = $uploadedPath;
-                }
-            }
-
             $siteData['global']['business_units'][$unitKey]['pages'][$pageSlug] = $pageData;
+            $hbPath = ['global', 'business_units', $unitKey, 'pages', $pageSlug];
         }
 
-        if ($contentService->saveAll($siteData)) {
+        if (empty($errorMsg)) {
+            $hbSlugPart = $pageSlug !== '' ? $pageSlug : 'main';
+            $hbPrefix = 'hb_unit_' . $unitKey . '_' . preg_replace('/[^a-z0-9_]/', '_', $hbSlugPart);
+            $hbErr = HeaderBannerService::applyPostAtPath(
+                $siteData,
+                $hbPath,
+                $hbPrefix,
+                $_POST,
+                $_FILES,
+                $contentService,
+                'unit_' . $unitKey . ($pageSlug !== '' ? '_' . $pageSlug : '') . '_hb_',
+                'hero_image_url'
+            );
+            if ($hbErr !== null) {
+                $errorMsg = $hbErr;
+            }
+        }
+
+        if (empty($errorMsg) && $contentService->saveAll($siteData)) {
             $successMsg = 'Contenido de la unidad guardado correctamente.';
             $_GET['tab'] = $tabSlug;
-        } else {
+        } elseif (empty($errorMsg)) {
             $detail = ContentService::getLastSaveError();
             $errorMsg = 'Error al guardar el contenido.'
                 . ($detail !== '' ? ' ' . $detail : '');

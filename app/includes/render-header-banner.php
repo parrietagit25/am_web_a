@@ -16,6 +16,8 @@ $hbInnerHtml = $hbInnerHtml ?? '';
 $hbSectionExtraStyle = trim($hbSectionExtraStyle ?? '');
 $hbSectionOnclick = trim($hbSectionOnclick ?? '');
 $hbSkipContainer = (bool) ($hbSkipContainer ?? false);
+$hbBackgroundOverlay = trim($hbBackgroundOverlay ?? '');
+$hbBgPrefix = $hbBackgroundOverlay !== '' ? $hbBackgroundOverlay . ' ' : '';
 $hbCarouselId = ($hbSectionId !== '' ? $hbSectionId : 'hb') . '-carousel';
 
 $isSlider = ($hbConfig['mode'] ?? HeaderBannerService::MODE_STATIC) === HeaderBannerService::MODE_SLIDER
@@ -33,7 +35,7 @@ $hbOnclickAttr = $hbSectionOnclick !== '' ? ' onclick="' . esc($hbSectionOnclick
         <div class="carousel-inner h-100">
             <?php foreach ($slides as $i => $slide): ?>
             <div class="carousel-item h-100<?php echo $i === 0 ? ' active' : ''; ?>"
-                 style="background: url('<?php echo esc($slide['image_url']); ?>') no-repeat center center; background-size: cover; min-height: 360px;">
+                 style="background: <?php echo $hbBgPrefix; ?>url('<?php echo esc($slide['image_url']); ?>') no-repeat center center; background-size: cover; min-height: 360px;">
             </div>
             <?php endforeach; ?>
         </div>
@@ -55,7 +57,7 @@ $hbOnclickAttr = $hbSectionOnclick !== '' ? ' onclick="' . esc($hbSectionOnclick
     <?php endif; ?>
 </section>
 <?php else: ?>
-<section class="<?php echo esc($hbSectionClass); ?>" style="background: url('<?php echo esc($staticImage); ?>') no-repeat center center; background-size: cover;<?php echo $hbSectionExtraStyle !== '' ? ' ' . esc($hbSectionExtraStyle) : ''; ?>"<?php echo $hbSectionId !== '' ? ' id="' . esc($hbSectionId) . '"' : ''; ?><?php echo $hbOnclickAttr; ?>>
+<section class="<?php echo esc($hbSectionClass); ?>" style="background: <?php echo $hbBgPrefix; ?>url('<?php echo esc($staticImage); ?>') no-repeat center center; background-size: cover;<?php echo $hbSectionExtraStyle !== '' ? ' ' . esc($hbSectionExtraStyle) : ''; ?>"<?php echo $hbSectionId !== '' ? ' id="' . esc($hbSectionId) . '"' : ''; ?><?php echo $hbOnclickAttr; ?>>
     <?php if (!$hbSkipContainer || $hbInnerHtml !== ''): ?>
     <div class="container py-5">
         <?php echo $hbInnerHtml; ?>
