@@ -1,7 +1,9 @@
-# Producción (DigitalOcean): sitio en puerto 80 sin :8082
+# Producción (DigitalOcean / test): solo puerto 80
 # Uso en el servidor:
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# !reset sustituye el 8082 del compose base (no lo acumula).
 services:
   web:
-    ports:
+    ports: !reset
       - "80:80"
