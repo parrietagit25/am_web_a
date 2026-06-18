@@ -105,6 +105,11 @@ $themeRgb = "$r, $g, $b";
     
     <!-- Custom Style Sheet -->
     <link href="/assets/css/styles.css" rel="stylesheet">
+    <?php
+    $contentListingScripts = ['noticias.php', 'blog.php', 'contenido-reciente.php', 'noticia.php'];
+    if (in_array(basename($_SERVER['SCRIPT_NAME'] ?? ''), $contentListingScripts, true)): ?>
+    <link href="/assets/css/content-listings.css?v=2" rel="stylesheet">
+    <?php endif; ?>
     
     <!-- Dynamic Theme Styling Injection -->
     <style>

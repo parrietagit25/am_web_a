@@ -74,9 +74,12 @@ function unit_content_parse_page_headers_from_post(array $pageHeaders): array
             $pageHeaders[$type] = [];
         }
 
+        $existingBanner = trim((string) ($pageHeaders[$type]['banner'] ?? ''));
+
         $pageHeaders[$type]['kicker'] = trim($_POST['content_page_kicker_' . $type] ?? ($pageHeaders[$type]['kicker'] ?? ''));
         $pageHeaders[$type]['title'] = trim($_POST['content_page_title_' . $type] ?? ($pageHeaders[$type]['title'] ?? ''));
         $pageHeaders[$type]['subtitle'] = trim($_POST['content_page_subtitle_' . $type] ?? '');
+        $pageHeaders[$type]['banner'] = $existingBanner;
 
         $align = trim($_POST['content_page_align_' . $type] ?? ($pageHeaders[$type]['align'] ?? 'left'));
         if (!in_array($align, ['left', 'center', 'right'], true)) {

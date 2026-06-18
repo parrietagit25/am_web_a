@@ -15,11 +15,10 @@ $ucPageSubtitle = $ucHeader['subtitle'] ?? '';
 $ucPageKicker = $ucHeader['kicker'] ?? '';
 $ucBannerUrl = trim((string) ($ucHeader['banner'] ?? ''));
 ?>
-<link href="/assets/css/content-listings.css" rel="stylesheet">
 
 <section class="uc-page-hero uc-page-hero--align-<?php echo esc($ucAlign); ?><?php echo $ucBannerUrl !== '' ? ' uc-page-hero--has-image' : ''; ?>">
     <?php if ($ucBannerUrl !== ''): ?>
-        <div class="uc-page-hero__bg" style="background-image: url('<?php echo esc($ucBannerUrl); ?>');"></div>
+        <img class="uc-page-hero__bg-img" src="<?php echo esc($ucBannerUrl); ?>" alt="" aria-hidden="true">
     <?php endif; ?>
     <div class="uc-page-hero__overlay"></div>
     <div class="container py-4 py-lg-5 position-relative">

@@ -533,8 +533,13 @@ class UnitContentService
         }
 
         $unitLabel = self::unitLabel($siteData, $unitKey);
-        $settings = self::getContentNode($siteData, $unitKey)['settings'] ?? [];
-        $headers = self::normalizePageHeaders($settings['page_headers'] ?? [], $unitLabel);
+        $raw = self::getRawContentArray($siteData, $unitKey);
+        $storedHeaders = [];
+        if (isset($raw['settings']['page_headers']) && is_array($raw['settings']['page_headers'])) {
+            $storedHeaders = $raw['settings']['page_headers'];
+        }
+
+        $headers = self::normalizePageHeaders($storedHeaders, $unitLabel);
         $header = $headers[$type];
         if ($header['subtitle'] === '') {
             $header['subtitle'] = self::defaultPageHeaders($unitLabel)[$type]['subtitle'];

@@ -9,6 +9,9 @@ function unit_content_resolve_unit_key(ContentService $contentService, string $d
     require_once __DIR__ . '/business-units-registry.php';
     $siteData = $contentService->getAll();
     $key = am_normalize_business_unit_key((string) ($_GET['unit'] ?? ''));
+    if ($key === '' && !empty($GLOBALS['activeUnit'])) {
+        $key = am_normalize_business_unit_key((string) $GLOBALS['activeUnit']);
+    }
     if ($key === '') {
         return $default;
     }
