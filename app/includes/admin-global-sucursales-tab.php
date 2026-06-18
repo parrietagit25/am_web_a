@@ -63,9 +63,17 @@ if (!is_array($globalSucursales)) {
     </div>
 
     <div class="admin-card">
-        <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
-            <i class="bi bi-table me-2 text-danger"></i>Sucursales registradas
-        </h5>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+            <h5 class="fw-bold mb-0 font-montserrat border-bottom pb-2 text-navy flex-grow-1">
+                <i class="bi bi-table me-2 text-danger"></i>Sucursales registradas
+            </h5>
+            <form method="POST" action="?tab=global-sucursales" class="d-inline" onsubmit="return confirm('¿Importar sucursales desde Rent A Car, Venta de Autos, Leasing, Taller, Renting y Pie de página? No se duplicarán por nombre.');">
+                <input type="hidden" name="action" value="sync_global_sucursales">
+                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill">
+                    <i class="bi bi-cloud-download me-1"></i>Importar desde otras unidades
+                </button>
+            </form>
+        </div>
 
         <div class="table-responsive">
             <table class="table table-hover align-middle">

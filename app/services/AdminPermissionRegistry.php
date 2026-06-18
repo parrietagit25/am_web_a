@@ -149,6 +149,7 @@ class AdminPermissionRegistry
             'add_global_sucursal' => 'global_sucursales',
             'edit_global_sucursal' => 'global_sucursales',
             'delete_global_sucursal' => 'global_sucursales',
+            'sync_global_sucursales' => 'global_sucursales',
             'save_translations' => 'translations',
             'save_chatbot' => 'chatbot',
             'save_seo_global' => 'seo',

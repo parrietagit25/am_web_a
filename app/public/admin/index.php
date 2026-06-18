@@ -2527,6 +2527,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Reload site data for rendering
 $siteData = $contentService->getAll();
 $global = $siteData['global'];
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST'
+    && ($defaultAdminTab ?? '') === 'global-sucursales'
+    && empty($global['sucursales'])
+    && (admin_can('global_sucursales') || admin_can('global'))) {
+    require_once __DIR__ . '/../../services/GlobalSucursalesService.php';
+    if (GlobalSucursalesService::hasSourceData($siteData)) {
+        $autoImportStats = GlobalSucursalesService::importAll($siteData);
+        if (($autoImportStats['imported'] ?? 0) > 0 || ($autoImportStats['merged'] ?? 0) > 0) {
+            if ($contentService->saveAll($siteData)) {
+                $siteData = $contentService->getAll();
+                $global = $siteData['global'];
+                if ($successMsg === '') {
+                    $successMsg = GlobalSucursalesService::formatImportMessage($autoImportStats);
+                }
+            }
+        }
+    }
+}
+
 require_once __DIR__ . '/../../includes/business-units-registry.php';
 $global['business_units'] = am_merge_business_units($global['business_units'] ?? []);
 $homepage = $siteData['homepage'];

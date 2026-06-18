@@ -123,4 +123,13 @@ if ($action === 'add_global_sucursal') {
             $errorMsg = 'Error al eliminar la sucursal.';
         }
     }
+} elseif ($action === 'sync_global_sucursales') {
+    require_once __DIR__ . '/../services/GlobalSucursalesService.php';
+    $stats = GlobalSucursalesService::importAll($siteData);
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = GlobalSucursalesService::formatImportMessage($stats);
+        $_GET['tab'] = 'global-sucursales';
+    } else {
+        $errorMsg = 'Error al importar las sucursales.';
+    }
 }
