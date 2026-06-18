@@ -5,10 +5,11 @@
 $activeUnit = 'seminuevos';
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../services/Database.php';
+require_once __DIR__ . '/../services/HeaderBannerService.php';
 
 // Fetch Seminuevos data from content service
 $seminuevosData = $contentService->get('seminuevos', []);
-$bannerImage = $seminuevosData['banner_image_url'] ?? 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=1920&auto=format&fit=crop';
+$hbConfig = HeaderBannerService::normalizeFromNode($seminuevosData, 'banner_image_url');
 $anatomyImage = $seminuevosData['anatomy_image_url'] ?? 'https://dev.automarket.com.pa/images/anatomia-sn.webp';
 $anatomyPoints = $seminuevosData['anatomy_points'] ?? [];
 $opiniones = $seminuevosData['opiniones'] ?? [];
@@ -279,11 +280,17 @@ $vehicles = $db->select("SELECT * FROM Automarket_Invs_web WHERE Status = 'DISPO
     margin-top: 3px;
     font-weight: 500;
 }
+.hero-banner-slider { min-height: 360px; }
 </style>
 
-<!-- Hero Section -->
-<section class="hero-wrapper text-center text-lg-start d-flex align-items-center" style="background: url('<?php echo esc($bannerImage); ?>') no-repeat center center; background-size: cover; cursor: pointer;" id="cta-hero" onclick="window.location.href='/inventario.php'">
-</section>
+<?php
+$hbSectionId = 'cta-hero';
+$hbSectionExtraStyle = 'cursor: pointer;';
+$hbSectionOnclick = "window.location.href='/inventario.php'";
+$hbSkipContainer = true;
+$hbInnerHtml = '';
+require __DIR__ . '/../includes/render-header-banner.php';
+?>
 
 <!-- Content Sections -->
 <div class="container py-5" id="inventario">

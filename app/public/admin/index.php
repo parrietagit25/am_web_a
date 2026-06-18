@@ -864,17 +864,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'punto6' => $points['punto6'] ?? '',
             'punto7' => $points['punto7'] ?? ''
         ];
-        
-        // Upload banner if provided
-        if (isset($_FILES['semi_banner']) && $_FILES['semi_banner']['error'] === UPLOAD_ERR_OK) {
-            $uploadedPath = $contentService->uploadImage($_FILES['semi_banner'], 'semi_banner_');
-            if ($uploadedPath) {
-                $siteData['seminuevos']['banner_image_url'] = $uploadedPath;
-            } else {
-                $errorMsg = 'No se pudo subir el banner de Seminuevos.';
+
+        if (empty($errorMsg)) {
+            require_once __DIR__ . '/../../services/HeaderBannerService.php';
+            $hbErr = HeaderBannerService::applyPostAtPath(
+                $siteData,
+                ['seminuevos'],
+                'hb_seminuevos_home',
+                $_POST,
+                $_FILES,
+                $contentService,
+                'seminuevos_hb_',
+                'banner_image_url'
+            );
+            if ($hbErr !== null) {
+                $errorMsg = $hbErr;
             }
         }
-        
+
         // Upload anatomy image if provided
         if (isset($_FILES['semi_anatomy']) && $_FILES['semi_anatomy']['error'] === UPLOAD_ERR_OK) {
             $uploadedPath = $contentService->uploadImage($_FILES['semi_anatomy'], 'semi_anatomy_');
@@ -3903,14 +3910,13 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
                                 
                                 <div class="row g-3 mb-4">
                                     <div class="col-12">
-                                        <label for="semi_banner" class="form-label fw-semibold">Banner de Cabecera (Header Banner)</label>
-                                        <input type="file" id="semi_banner" name="semi_banner" class="form-control form-control-premium" accept="image/*">
-                                        <div class="form-text">Puedes subir una imagen para el banner principal. Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
-                                        <?php if (!empty($seminuevos['banner_image_url'])): ?>
-                                            <div class="mt-2">
-                                                <img src="<?php echo esc($seminuevos['banner_image_url']); ?>" alt="Banner actual" class="img-thumbnail" style="max-height: 120px;">
-                                            </div>
-                                        <?php endif; ?>
+                                        <?php
+                                        require_once __DIR__ . '/../../services/HeaderBannerService.php';
+                                        $hbConfig = HeaderBannerService::normalizeFromNode($seminuevos, 'banner_image_url');
+                                        $hbPrefix = 'hb_seminuevos_home';
+                                        $hbDomId = 'hb-seminuevos-home';
+                                        require __DIR__ . '/../../includes/admin-header-banner-section.php';
+                                        ?>
                                     </div>
 
                                     <div class="col-12">

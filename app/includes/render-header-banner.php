@@ -13,6 +13,9 @@ $hbConfig = HeaderBannerService::normalize($hbConfig ?? []);
 $hbSectionClass = trim($hbSectionClass ?? 'hero-wrapper text-center text-lg-start d-flex align-items-center');
 $hbSectionId = trim($hbSectionId ?? '');
 $hbInnerHtml = $hbInnerHtml ?? '';
+$hbSectionExtraStyle = trim($hbSectionExtraStyle ?? '');
+$hbSectionOnclick = trim($hbSectionOnclick ?? '');
+$hbSkipContainer = (bool) ($hbSkipContainer ?? false);
 $hbCarouselId = ($hbSectionId !== '' ? $hbSectionId : 'hb') . '-carousel';
 
 $isSlider = ($hbConfig['mode'] ?? HeaderBannerService::MODE_STATIC) === HeaderBannerService::MODE_SLIDER
@@ -22,9 +25,10 @@ $interval = (int) ($hbConfig['slider']['interval_ms'] ?? 5000);
 $transition = ($hbConfig['slider']['transition'] ?? 'fade') === 'slide' ? '' : ' carousel-fade';
 $fallbackImage = 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=1200&auto=format&fit=crop';
 $staticImage = HeaderBannerService::primaryImageUrl($hbConfig, $fallbackImage);
+$hbOnclickAttr = $hbSectionOnclick !== '' ? ' onclick="' . esc($hbSectionOnclick) . '"' : '';
 ?>
 <?php if ($isSlider): ?>
-<section class="<?php echo esc($hbSectionClass); ?> hero-banner-slider position-relative overflow-hidden p-0"<?php echo $hbSectionId !== '' ? ' id="' . esc($hbSectionId) . '"' : ''; ?>>
+<section class="<?php echo esc($hbSectionClass); ?> hero-banner-slider position-relative overflow-hidden p-0"<?php echo $hbSectionId !== '' ? ' id="' . esc($hbSectionId) . '"' : ''; ?><?php echo $hbOnclickAttr; ?><?php echo $hbSectionExtraStyle !== '' ? ' style="' . esc($hbSectionExtraStyle) . '"' : ''; ?>>
     <div id="<?php echo esc($hbCarouselId); ?>" class="carousel slide<?php echo esc($transition); ?> h-100 w-100 position-absolute top-0 start-0" data-bs-ride="carousel" data-bs-interval="<?php echo (int) $interval; ?>" data-bs-pause="hover">
         <div class="carousel-inner h-100">
             <?php foreach ($slides as $i => $slide): ?>
@@ -44,14 +48,18 @@ $staticImage = HeaderBannerService::primaryImageUrl($hbConfig, $fallbackImage);
         </button>
         <?php endif; ?>
     </div>
+    <?php if (!$hbSkipContainer || $hbInnerHtml !== ''): ?>
     <div class="container py-5 position-relative" style="z-index: 2; min-height: 360px;">
         <?php echo $hbInnerHtml; ?>
     </div>
+    <?php endif; ?>
 </section>
 <?php else: ?>
-<section class="<?php echo esc($hbSectionClass); ?>" style="background: url('<?php echo esc($staticImage); ?>') no-repeat center center; background-size: cover;"<?php echo $hbSectionId !== '' ? ' id="' . esc($hbSectionId) . '"' : ''; ?>>
+<section class="<?php echo esc($hbSectionClass); ?>" style="background: url('<?php echo esc($staticImage); ?>') no-repeat center center; background-size: cover;<?php echo $hbSectionExtraStyle !== '' ? ' ' . esc($hbSectionExtraStyle) : ''; ?>"<?php echo $hbSectionId !== '' ? ' id="' . esc($hbSectionId) . '"' : ''; ?><?php echo $hbOnclickAttr; ?>>
+    <?php if (!$hbSkipContainer || $hbInnerHtml !== ''): ?>
     <div class="container py-5">
         <?php echo $hbInnerHtml; ?>
     </div>
+    <?php endif; ?>
 </section>
 <?php endif; ?>

@@ -69,9 +69,9 @@ class HeaderBannerService
      * @param array<string, mixed> $node
      * @return array<string, mixed>
      */
-    public static function normalizeFromNode(array $node): array
+    public static function normalizeFromNode(array $node, string $legacyImageKey = 'image_url'): array
     {
-        $legacy = trim((string) ($node['image_url'] ?? ''));
+        $legacy = trim((string) ($node[$legacyImageKey] ?? $node['image_url'] ?? ''));
         $banner = $node['header_banner'] ?? null;
 
         if (!is_array($banner) || $banner === []) {
@@ -85,11 +85,11 @@ class HeaderBannerService
      * @param array<string, mixed> $siteData
      * @param list<string> $path
      */
-    public static function readAtPath(array $siteData, array $path): array
+    public static function readAtPath(array $siteData, array $path, string $legacyImageKey = 'image_url'): array
     {
         $node = self::getNode($siteData, $path);
 
-        return self::normalizeFromNode(is_array($node) ? $node : []);
+        return self::normalizeFromNode(is_array($node) ? $node : [], $legacyImageKey);
     }
 
     /**
@@ -158,10 +158,11 @@ class HeaderBannerService
         array $post,
         array $files,
         ContentService $contentService,
-        string $uploadPrefix = 'hb_'
+        string $uploadPrefix = 'hb_',
+        string $legacyImageKey = 'image_url'
     ): ?string {
         $nodeRef = &self::nodeRef($siteData, $path);
-        $existing = self::normalizeFromNode($nodeRef);
+        $existing = self::normalizeFromNode($nodeRef, $legacyImageKey);
         $mode = (string) ($post[$prefix . '_mode'] ?? self::MODE_STATIC);
         $mode = $mode === self::MODE_SLIDER ? self::MODE_SLIDER : self::MODE_STATIC;
 
@@ -226,9 +227,10 @@ class HeaderBannerService
             $config['slider']['slides'] = $slides;
         }
 
-        $config = self::normalize($config, (string) ($nodeRef['image_url'] ?? ''));
+        $legacyFallback = (string) ($nodeRef[$legacyImageKey] ?? '');
+        $config = self::normalize($config, $legacyFallback);
         $nodeRef['header_banner'] = $config;
-        $nodeRef['image_url'] = self::primaryImageUrl($config, (string) ($nodeRef['image_url'] ?? ''));
+        $nodeRef[$legacyImageKey] = self::primaryImageUrl($config, $legacyFallback);
 
         return null;
     }
