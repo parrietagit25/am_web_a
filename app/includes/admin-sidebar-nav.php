@@ -44,17 +44,9 @@ $showRenting = admin_group_visible('renting');
 $showTaller = admin_group_visible('taller');
 $showChatbot = admin_group_visible('chatbot');
 
-$showGenerales = admin_can('global')
-    || admin_can('global_sucursales')
-    || admin_can('translations')
-    || admin_can('seo')
-    || admin_can('landings')
-    || admin_can('footer')
-    || $showMainUsers
-    || $showMainAudit
-    || $showMainTelemetry;
+$showGenerales = true;
 
-$generalesTabs = ['global', 'global-sucursales', 'translations', 'seo', 'landings', 'footer', 'users', 'audit-log', 'telemetry'];
+$generalesTabs = ['user-manual', 'global', 'global-sucursales', 'translations', 'seo', 'landings', 'footer', 'users', 'audit-log', 'telemetry'];
 $rentacarContentTabs = UnitContentService::contentTabSlugs('rentacar');
 $rentacarTabs = array_merge(['hero'], $rentacarContentTabs, ['opinions', 'vehicles', 'sucursales', 'terms', 'requirements', 'contact', 'payments', 'rac-reservations']);
 $seminuevosContentTabs = UnitContentService::contentTabSlugs('seminuevos');
@@ -80,6 +72,9 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
             <i class="bi bi-chevron-down" id="generales-chevron"></i>
         </div>
         <div class="<?php echo admin_submenu_collapse_class($generalesTabs, $defaultAdminTab); ?>" id="generales-submenu" data-bs-parent="#admin-sidebar-accordion">
+            <button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('user-manual', $defaultAdminTab); ?>" id="tab-user-manual-nav" data-bs-toggle="pill" data-bs-target="#tab-user-manual" type="button" role="tab" aria-controls="tab-user-manual" aria-selected="<?php echo admin_nav_selected('user-manual', $defaultAdminTab); ?>">
+                <i class="bi bi-book me-2"></i> Manual de uso
+            </button>
             <?php if (admin_can('global')): ?>
             <button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('global', $defaultAdminTab); ?>" id="tab-global-nav" data-bs-toggle="pill" data-bs-target="#tab-global" type="button" role="tab" aria-controls="tab-global" aria-selected="<?php echo admin_nav_selected('global', $defaultAdminTab); ?>" data-admin-perm="global">
                 <i class="bi bi-gear-fill me-2"></i> Configuración Global

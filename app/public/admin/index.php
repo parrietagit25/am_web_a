@@ -3031,6 +3031,8 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                 <?php endif; ?>
 
                 <div class="tab-content" id="v-pills-tabContent">
+
+                    <?php require_once __DIR__ . '/../../includes/admin-user-manual-tab.php'; ?>
                     
                     <!-- TAB 1: GLOBAL CONFIGURATION -->
                     <div class="tab-pane fade<?php echo $defaultAdminTab === 'global' ? ' show active' : ''; ?>" id="tab-global" role="tabpanel" aria-labelledby="tab-global-nav">

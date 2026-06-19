@@ -157,6 +157,9 @@ class AdminUserService
 
     public static function canTab(string $tabSlug): bool
     {
+        if ($tabSlug === 'user-manual') {
+            return true;
+        }
         $permission = AdminPermissionRegistry::permissionForTab($tabSlug);
         if ($permission === null) {
             return self::isSuperAdmin();
