@@ -2747,7 +2747,7 @@ $offset = ($page - 1) * $limit;
 $whereClause = "";
 $queryParams = [];
 if (!empty($search)) {
-    $whereClause = "WHERE Make LIKE :search OR Model LIKE :search OR LocationName LIKE :search OR id LIKE :search";
+    $whereClause = "WHERE Make LIKE :search OR Model LIKE :search OR LocationName LIKE :search OR LicensePlate LIKE :search OR id LIKE :search";
     $queryParams[':search'] = '%' . $search . '%';
 }
 
@@ -4363,7 +4363,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 <!-- Search bar -->
                                 <form method="GET" action="" class="d-flex gap-2" style="max-width: 320px;">
                                     <input type="hidden" name="tab" value="semi-inventory">
-                                    <input type="text" name="q" class="form-control form-control-premium form-control-sm" placeholder="Buscar por marca, modelo..." value="<?php echo esc($search); ?>">
+                                    <input type="text" name="q" class="form-control form-control-premium form-control-sm" placeholder="Marca, modelo, placa..." value="<?php echo esc($search); ?>">
                                     <button type="submit" class="btn btn-sm btn-dark px-3"><i class="bi bi-search"></i></button>
                                     <?php if (!empty($search)): ?>
                                         <a href="?tab=semi-inventory" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center"><i class="bi bi-x-lg"></i></a>
@@ -4377,6 +4377,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <tr>
                                             <th style="width: 80px;">Foto</th>
                                             <th>Vehículo</th>
+                                            <th style="width: 100px;">Placa</th>
                                             <th>Año / Km</th>
                                             <th>Precio</th>
                                             <th>Ubicación</th>
@@ -4388,7 +4389,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     <tbody>
                                         <?php if (empty($inventoryVehicles)): ?>
                                             <tr>
-                                                <td colspan="8" class="text-center py-4 text-muted">No se encontraron vehículos en el inventario.</td>
+                                                <td colspan="9" class="text-center py-4 text-muted">No se encontraron vehículos en el inventario.</td>
                                             </tr>
                                         <?php else: ?>
                                             <?php foreach ($inventoryVehicles as $vehicle): ?>
@@ -4407,6 +4408,14 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                     <td>
                                                         <div class="fw-bold text-uppercase"><?php echo esc($vehicle['Make'] . ' ' . $vehicle['Model']); ?></div>
                                                         <div class="small text-muted text-uppercase"><?php echo esc($vehicle['CarType']); ?> - <?php echo esc($vehicle['Transmission']); ?></div>
+                                                    </td>
+                                                    <td>
+                                                        <?php $plate = trim((string) ($vehicle['LicensePlate'] ?? '')); ?>
+                                                        <?php if ($plate !== ''): ?>
+                                                            <span class="badge bg-light text-navy border font-monospace"><?php echo esc($plate); ?></span>
+                                                        <?php else: ?>
+                                                            <span class="text-muted small">—</span>
+                                                        <?php endif; ?>
                                                     </td>
                                                     <td>
                                                         <div>Año: <?php echo esc($vehicle['Year']); ?></div>
