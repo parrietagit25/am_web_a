@@ -2747,7 +2747,7 @@ $offset = ($page - 1) * $limit;
 $whereClause = "";
 $queryParams = [];
 if (!empty($search)) {
-    $whereClause = "WHERE Make LIKE :search OR Model LIKE :search OR LocationName LIKE :search OR LicensePlate LIKE :search OR id LIKE :search";
+    $whereClause = "WHERE Make LIKE :search OR Model LIKE :search OR LocationName LIKE :search OR LicensePlate LIKE :search OR VIN LIKE :search OR id LIKE :search";
     $queryParams[':search'] = '%' . $search . '%';
 }
 
@@ -4360,7 +4360,8 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                                 <h5 class="fw-bold mb-0 font-montserrat text-navy"><i class="bi bi-list-task me-2 text-danger"></i>Inventario Registrado (Seminuevos)</h5>
                                 
-                                <!-- Search bar -->
+                                <!-- Search bar + export -->
+                                <div class="d-flex gap-2 flex-wrap align-items-center">
                                 <form method="GET" action="" class="d-flex gap-2" style="max-width: 320px;">
                                     <input type="hidden" name="tab" value="semi-inventory">
                                     <input type="text" name="q" class="form-control form-control-premium form-control-sm" placeholder="Marca, modelo, placa..." value="<?php echo esc($search); ?>">
@@ -4369,6 +4370,12 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <a href="?tab=semi-inventory" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center"><i class="bi bi-x-lg"></i></a>
                                     <?php endif; ?>
                                 </form>
+                                <a href="/admin/export-semi-inventory.php<?php echo $search !== '' ? '?q=' . urlencode($search) : ''; ?>"
+                                   class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1"
+                                   title="Descargar inventario en formato Excel (CSV)">
+                                    <i class="bi bi-file-earmark-spreadsheet"></i> Exportar Excel
+                                </a>
+                                </div>
                             </div>
 
                             <div class="table-responsive">
