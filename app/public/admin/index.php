@@ -7059,6 +7059,17 @@ document.addEventListener('DOMContentLoaded', function () {
             if (pane) {
                 pane.remove();
             }
+            const nav = document.getElementById('tab-' + slug + '-nav');
+            if (nav) {
+                nav.remove();
+            }
+        }
+    });
+
+    document.querySelectorAll('[data-admin-perm]').forEach(function (el) {
+        const perm = el.getAttribute('data-admin-perm');
+        if (perm && !adminCanPerm(perm)) {
+            el.remove();
         }
     });
 

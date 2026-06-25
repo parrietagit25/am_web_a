@@ -148,9 +148,12 @@ class AdminUserService
 
     public static function canAction(string $action): bool
     {
+        if (self::isSuperAdmin()) {
+            return true;
+        }
         $permission = AdminPermissionRegistry::permissionForAction($action);
         if ($permission === null) {
-            return self::isSuperAdmin();
+            return false;
         }
         return self::can($permission);
     }

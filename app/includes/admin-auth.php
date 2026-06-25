@@ -46,9 +46,10 @@ function admin_guard_post_action(string $action): bool
     if (in_array($action, $unitContentActions, true)) {
         require_once __DIR__ . '/../services/UnitContentService.php';
         $unitKey = trim($_POST['content_unit'] ?? '');
-        if ($unitKey !== '') {
-            return AdminUserService::can(UnitContentService::contentPermissionKey($unitKey));
+        if ($unitKey === '') {
+            return false;
         }
+        return AdminUserService::can(UnitContentService::contentPermissionKey($unitKey));
     }
 
     if (AdminUserService::canAction($action)) {

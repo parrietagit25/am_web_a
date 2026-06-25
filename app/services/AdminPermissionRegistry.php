@@ -155,6 +155,7 @@ class AdminPermissionRegistry
     private static function buildActionPermissionMap(): array
     {
         return [
+            // Generales
             'save_global' => 'global',
             'add_global_sucursal' => 'global_sucursales',
             'edit_global_sucursal' => 'global_sucursales',
@@ -174,19 +175,18 @@ class AdminPermissionRegistry
             'save_footer_sucursal' => 'footer',
             'delete_footer_sucursal' => 'footer',
             'sync_footer_sucursales' => 'footer',
+            'save_custom_unit_content' => 'global',
+            'save_admin_user' => 'users',
+            'delete_admin_user' => 'users',
+            'toggle_admin_user' => 'users',
+            'delete_chatbot_session' => 'chatbot_sessions',
+            // Rent A Car
             'save_homepage' => 'hero',
             'save_news_home_settings' => 'news',
             'add_news' => 'news',
             'edit_news' => 'news',
             'delete_news' => 'news',
             'toggle_news_home' => 'news',
-            'save_unit_content_settings' => 'news',
-            'add_unit_content_item' => 'news',
-            'edit_unit_content_item' => 'news',
-            'delete_unit_content_item' => 'news',
-            'toggle_unit_content_home' => 'news',
-            'add_unit_content_taxonomy' => 'news',
-            'delete_unit_content_taxonomy' => 'news',
             'add_opinion' => 'opinions',
             'edit_opinion' => 'opinions',
             'delete_opinion' => 'opinions',
@@ -194,7 +194,6 @@ class AdminPermissionRegistry
             'edit_vehicle' => 'vehicles',
             'delete_vehicle' => 'vehicles',
             'save_fleet_categories' => 'vehicles',
-            'save_inventory_highlight' => 'semi_inventory',
             'add_sucursal' => 'sucursales',
             'edit_sucursal' => 'sucursales',
             'delete_sucursal' => 'sucursales',
@@ -207,17 +206,98 @@ class AdminPermissionRegistry
             'delete_rac_alert_email' => 'rac_reservations',
             'toggle_rac_alert_email' => 'rac_reservations',
             'update_rac_reservation_status' => 'rac_reservations',
-            'delete_chatbot_session' => 'chatbot_sessions',
-            'save_custom_unit_content' => 'global',
-            'save_admin_user' => 'users',
-            'delete_admin_user' => 'users',
-            'toggle_admin_user' => 'users',
+            // Venta de Autos
+            'save_seminuevos_home' => 'semi_home',
+            'add_semi_opinion' => 'semi_opinions',
+            'edit_semi_opinion' => 'semi_opinions',
+            'delete_semi_opinion' => 'semi_opinions',
+            'add_semi_inventory' => 'semi_inventory',
+            'edit_semi_inventory' => 'semi_inventory',
+            'delete_semi_inventory' => 'semi_inventory',
+            'save_inventory_highlight' => 'semi_inventory',
+            'save_semi_financing' => 'semi_financing',
+            'add_semi_bank' => 'semi_financing',
+            'edit_semi_bank' => 'semi_financing',
+            'delete_semi_bank' => 'semi_financing',
+            'save_semi_team_content' => 'semi_team',
+            'add_semi_agent' => 'semi_team',
+            'edit_semi_agent' => 'semi_team',
+            'toggle_semi_agent_status' => 'semi_team',
+            'delete_semi_agent' => 'semi_team',
+            'add_semi_sucursal' => 'semi_contact',
+            'edit_semi_sucursal' => 'semi_contact',
+            'delete_semi_sucursal' => 'semi_contact',
+            'delete_semi_message' => 'semi_contact',
+            // Leasing
+            'save_leasing_home' => 'leasing_home',
+            'add_leasing_post' => 'leasing_home',
+            'edit_leasing_post' => 'leasing_home',
+            'delete_leasing_post' => 'leasing_home',
+            'add_leasing_opinion' => 'leasing_home',
+            'edit_leasing_opinion' => 'leasing_home',
+            'delete_leasing_opinion' => 'leasing_home',
+            'add_leasing_sucursal' => 'leasing_sucursales',
+            'edit_leasing_sucursal' => 'leasing_sucursales',
+            'delete_leasing_sucursal' => 'leasing_sucursales',
+            'add_leasing_vehicle' => 'leasing_flota',
+            'edit_leasing_vehicle' => 'leasing_flota',
+            'delete_leasing_vehicle' => 'leasing_flota',
+            'save_leasing_team_content' => 'leasing_equipo',
+            'add_leasing_agent' => 'leasing_equipo',
+            'edit_leasing_agent' => 'leasing_equipo',
+            'toggle_leasing_agent_status' => 'leasing_equipo',
+            'delete_leasing_agent' => 'leasing_equipo',
+            'save_leasing_contact_settings' => 'leasing_contacto',
+            'delete_leasing_contact_message' => 'leasing_contacto',
+            // Renting
+            'save_renting_home' => 'renting_home',
+            'add_renting_car' => 'renting_home',
+            'edit_renting_car' => 'renting_home',
+            'delete_renting_car' => 'renting_home',
+            'add_renting_post' => 'renting_publicaciones',
+            'edit_renting_post' => 'renting_publicaciones',
+            'delete_renting_post' => 'renting_publicaciones',
+            'save_renting_servicios' => 'renting_servicios',
+            'add_renting_servicio_item' => 'renting_servicios',
+            'edit_renting_servicio_item' => 'renting_servicios',
+            'delete_renting_servicio_item' => 'renting_servicios',
+            'save_renting_sobre_nosotros' => 'renting_sobre',
+            'save_renting_contact_settings' => 'renting_contacto',
+            'delete_renting_contact_message' => 'renting_contacto',
+            'add_renting_quote_alert_email' => 'renting_cotizaciones',
+            'delete_renting_quote_alert_email' => 'renting_cotizaciones',
+            'toggle_renting_quote_alert_email' => 'renting_cotizaciones',
+            'delete_renting_quote_lead' => 'renting_cotizaciones',
+            'add_renting_brand' => 'renting_marcas',
+            'edit_renting_brand' => 'renting_marcas',
+            'delete_renting_brand' => 'renting_marcas',
+            'add_renting_opinion' => 'renting_opiniones',
+            'edit_renting_opinion' => 'renting_opiniones',
+            'delete_renting_opinion' => 'renting_opiniones',
+            // Taller
+            'save_taller_home' => 'taller_home',
+            'save_taller_sucursales_settings' => 'taller_sucursales',
+            'add_taller_sucursal' => 'taller_sucursales',
+            'edit_taller_sucursal' => 'taller_sucursales',
+            'delete_taller_sucursal' => 'taller_sucursales',
+            'save_taller_contact_settings' => 'taller_contacto',
+            'delete_taller_contact_message' => 'taller_contacto',
+            'save_taller_sobre_settings' => 'taller_sobre',
+            'add_taller_service_card' => 'taller_sobre',
+            'edit_taller_service_card' => 'taller_sobre',
+            'delete_taller_service_card' => 'taller_sobre',
+            'add_taller_brand' => 'taller_sobre',
+            'edit_taller_brand' => 'taller_sobre',
+            'delete_taller_brand' => 'taller_sobre',
+            'add_taller_opinion' => 'taller_sobre',
+            'edit_taller_opinion' => 'taller_sobre',
+            'delete_taller_opinion' => 'taller_sobre',
         ];
     }
 
     private static function inferPermissionForAction(string $action): ?string
     {
-        if (preg_match('/^save_semi_|^add_semi_|^edit_semi_|^delete_semi_|^toggle_semi_/', $action)) {
+        if (preg_match('/^save_semi(nuevos)?_|^add_semi(nuevos)?_|^edit_semi(nuevos)?_|^delete_semi(nuevos)?_|^toggle_semi(nuevos)?_/', $action)) {
             if (str_contains($action, 'inventory')) {
                 return 'semi_inventory';
             }
@@ -287,7 +367,7 @@ class AdminPermissionRegistry
             if (str_contains($action, 'contact') || str_contains($action, 'message')) {
                 return 'taller_contacto';
             }
-            if (str_contains($action, 'sobre')) {
+            if (str_contains($action, 'sobre') || str_contains($action, 'service') || str_contains($action, 'brand') || str_contains($action, 'opinion')) {
                 return 'taller_sobre';
             }
             if (str_contains($action, 'sucursal')) {
