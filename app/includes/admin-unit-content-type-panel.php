@@ -142,11 +142,13 @@ $ucTabActive = ($defaultAdminTab ?? '') === $ucTabSlug;
                 <div class="col-md-6">
                     <label class="form-label">Imagen tarjeta</label>
                     <input type="file" name="content_thumbnail" id="<?php echo esc($ucDomPrefix); ?>-thumbnail" class="form-control form-control-premium" accept="image/*" required>
+                    <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                     <div class="form-text" id="<?php echo esc($ucDomPrefix); ?>-thumb-help"></div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Banner detalle (opcional)</label>
                     <input type="file" name="content_banner" id="<?php echo esc($ucDomPrefix); ?>-banner" class="form-control form-control-premium" accept="image/*">
+                    <small class="text-muted d-block mt-1">Recomendado: 1920×500 px — JPG o WebP</small>
                     <div class="form-text" id="<?php echo esc($ucDomPrefix); ?>-banner-help"></div>
                 </div>
 
