@@ -292,6 +292,13 @@ class AdminPermissionRegistry
             'add_taller_opinion' => 'taller_sobre',
             'edit_taller_opinion' => 'taller_sobre',
             'delete_taller_opinion' => 'taller_sobre',
+            'save_taller_faqs' => 'taller_home',
+            // Renting FAQs
+            'save_renting_faqs' => 'renting_home',
+            // Leasing FAQs
+            'save_leasing_faqs' => 'leasing_home',
+            // Seminuevos FAQs
+            'save_seminuevos_faqs' => 'semi_home',
         ];
     }
 

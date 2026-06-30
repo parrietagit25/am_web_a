@@ -560,3 +560,25 @@ elseif ($action === 'delete_taller_opinion') {
         $errorMsg = 'Error al eliminar la opinión.';
     }
 }
+elseif ($action === 'save_taller_faqs') {
+    if (!isset($siteData['taller'])) {
+        $siteData['taller'] = [];
+    }
+    $questions = $_POST['faq_question'] ?? [];
+    $answers   = $_POST['faq_answer']   ?? [];
+    $faqs = [];
+    foreach ($questions as $idx => $q) {
+        $q = trim((string) $q);
+        $a = trim((string) ($answers[$idx] ?? ''));
+        if ($q === '' || $a === '') {
+            continue;
+        }
+        $faqs[] = ['question' => $q, 'answer' => $a];
+    }
+    $siteData['taller']['faqs'] = $faqs;
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Preguntas frecuentes de Taller guardadas correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar las preguntas frecuentes de Taller.';
+    }
+}

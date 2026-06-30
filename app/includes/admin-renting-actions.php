@@ -755,3 +755,25 @@ elseif ($action === 'delete_renting_servicio_item') {
         $errorMsg = 'Error al eliminar el ítem.';
     }
 }
+elseif ($action === 'save_renting_faqs') {
+    if (!isset($siteData['renting'])) {
+        $siteData['renting'] = [];
+    }
+    $questions = $_POST['faq_question'] ?? [];
+    $answers   = $_POST['faq_answer']   ?? [];
+    $faqs = [];
+    foreach ($questions as $idx => $q) {
+        $q = trim((string) $q);
+        $a = trim((string) ($answers[$idx] ?? ''));
+        if ($q === '' || $a === '') {
+            continue;
+        }
+        $faqs[] = ['question' => $q, 'answer' => $a];
+    }
+    $siteData['renting']['faqs'] = $faqs;
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Preguntas frecuentes de Renting guardadas correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar las preguntas frecuentes de Renting.';
+    }
+}
