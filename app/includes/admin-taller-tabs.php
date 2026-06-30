@@ -67,6 +67,16 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                     ?>
                 </div>
                 <div class="col-md-6">
+                    <label for="taller_hero_title" class="form-label fw-semibold">Titulo del Hero (sobre la imagen de cabecera)</label>
+                    <textarea id="taller_hero_title" name="taller_hero_title" class="form-control form-control-premium" rows="2" placeholder="Automarket Taller"><?php echo esc($taller['hero_title'] ?? ''); ?></textarea>
+                    <div class="form-text">Puedes usar saltos de linea. Si se deja en blanco se usara el texto por defecto.</div>
+                </div>
+                <div class="col-md-6">
+                    <label for="taller_hero_subtitle" class="form-label fw-semibold">Subtitulo del Hero</label>
+                    <input type="text" id="taller_hero_subtitle" name="taller_hero_subtitle" class="form-control form-control-premium" placeholder="Servicio de mantenimiento certificado..." value="<?php echo esc($taller['hero_subtitle'] ?? ''); ?>">
+                    <div class="form-text">Texto descriptivo breve bajo el titulo principal del hero.</div>
+                </div>
+                <div class="col-md-6">
                     <label for="taller_services_title" class="form-label fw-semibold">Título sección servicios</label>
                     <input type="text" id="taller_services_title" name="taller_services_title" class="form-control form-control-premium" value="<?php echo esc($taller['services_title'] ?? 'Conoce Nuestros Servicios'); ?>">
                 </div>

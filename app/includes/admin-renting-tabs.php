@@ -89,6 +89,18 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                     </div>
 
                                     <div class="col-md-6">
+                                        <label for="renting_hero_title" class="form-label fw-semibold">Titulo del Hero (sobre la imagen de cabecera)</label>
+                                        <textarea id="renting_hero_title" name="renting_hero_title" class="form-control form-control-premium" rows="2" placeholder="Automarket Renting"><?php echo esc($renting['hero_title'] ?? ''); ?></textarea>
+                                        <div class="form-text">Puedes usar saltos de linea. Si se deja en blanco se usara el texto por defecto.</div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="renting_hero_subtitle" class="form-label fw-semibold">Subtitulo del Hero</label>
+                                        <input type="text" id="renting_hero_subtitle" name="renting_hero_subtitle" class="form-control form-control-premium" placeholder="Tu auto nuevo, una cuota mensual con todo incluido." value="<?php echo esc($renting['hero_subtitle'] ?? ''); ?>">
+                                        <div class="form-text">Texto descriptivo breve bajo el titulo principal del hero.</div>
+                                    </div>
+
+                                    <div class="col-md-6">
                                         <label for="renting_intro_title" class="form-label fw-semibold">Título introductorio</label>
                                         <input type="text" id="renting_intro_title" name="renting_intro_title" class="form-control form-control-premium" value="<?php echo esc($renting['intro_title'] ?? 'Renting de Autos en Panamá — Anda Siempre en Auto Nuevo'); ?>" required>
                                     </div>

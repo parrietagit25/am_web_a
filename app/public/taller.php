@@ -73,9 +73,11 @@ $opiniones = array_values(array_filter($taller['opiniones'] ?? [], function ($o)
 
 <?php
 $hbSectionId = 'cta-hero';
+$tallerHeroTitle = trim($taller['hero_title'] ?? '') ?: 'Automarket Taller';
+$tallerHeroSubtitle = trim($taller['hero_subtitle'] ?? '') ?: 'Servicio de mantenimiento certificado, mecánicos capacitados y repuestos originales.';
 $hbInnerHtml = '<div class="row align-items-center"><div class="col-lg-8 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">'
-    . '<h1 class="display-4 fw-bold mb-3 font-montserrat">Automarket Taller</h1>'
-    . '<p class="fs-5 mb-4 opacity-90 font-poppins">Servicio de mantenimiento certificado, mecánicos capacitados y repuestos originales.</p>'
+    . '<h1 class="display-4 fw-bold mb-3 font-montserrat">' . nl2br(esc($tallerHeroTitle)) . '</h1>'
+    . '<p class="fs-5 mb-4 opacity-90 font-poppins">' . esc($tallerHeroSubtitle) . '</p>'
     . '<a href="#servicios" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg">Ver Servicios</a>'
     . '</div></div>';
 require __DIR__ . '/../includes/render-header-banner.php';

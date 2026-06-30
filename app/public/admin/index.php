@@ -1769,6 +1769,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $siteData['leasing']['hero'] = [];
         }
 
+        $siteData['leasing']['hero_title'] = trim($_POST['leasing_hero_title'] ?? '');
+        $siteData['leasing']['hero_subtitle'] = trim($_POST['leasing_hero_subtitle'] ?? '');
         $siteData['leasing']['intro_text'] = trim($_POST['leasing_intro_text'] ?? '');
         $siteData['leasing']['lead_title'] = trim($_POST['leasing_lead_title'] ?? '');
 
@@ -5164,6 +5166,18 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         $hbDomId = 'hb-leasing-home';
                                         require __DIR__ . '/../../includes/admin-header-banner-section.php';
                                         ?>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="leasing_hero_title" class="form-label fw-semibold">Titulo del Hero (sobre la imagen de cabecera)</label>
+                                        <textarea id="leasing_hero_title" name="leasing_hero_title" class="form-control form-control-premium" rows="2" placeholder="Optimiza la flota de tu empresa"><?php echo esc($leasing['hero_title'] ?? ''); ?></textarea>
+                                        <div class="form-text">Puedes usar saltos de linea para estructurar la visualizacion. Si se deja en blanco se usara el texto por defecto.</div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="leasing_hero_subtitle" class="form-label fw-semibold">Subtitulo del Hero</label>
+                                        <input type="text" id="leasing_hero_subtitle" name="leasing_hero_subtitle" class="form-control form-control-premium" placeholder="Soluciones integrales de Leasing Operativo..." value="<?php echo esc($leasing['hero_subtitle'] ?? ''); ?>">
+                                        <div class="form-text">Texto descriptivo breve bajo el titulo principal del hero.</div>
                                     </div>
 
                                     <div class="col-md-6">

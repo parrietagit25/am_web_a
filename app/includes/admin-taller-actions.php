@@ -14,6 +14,8 @@ if ($action === 'save_taller_home') {
         $siteData['taller']['team'] = [];
     }
 
+    $siteData['taller']['hero_title'] = trim($_POST['taller_hero_title'] ?? '');
+    $siteData['taller']['hero_subtitle'] = trim($_POST['taller_hero_subtitle'] ?? '');
     $siteData['taller']['services_title'] = trim($_POST['taller_services_title'] ?? 'Conoce Nuestros Servicios');
     $siteData['taller']['services_subtitle'] = trim($_POST['taller_services_subtitle'] ?? 'Algunos de los Servicios que Ofrecemos en Nuestros Talleres son');
     $siteData['taller']['team_title_line_1'] = trim($_POST['taller_team_title_line_1'] ?? 'Tenemos un equipo de');

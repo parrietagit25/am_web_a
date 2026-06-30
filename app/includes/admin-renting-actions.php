@@ -14,6 +14,8 @@ if ($action === 'save_renting_home') {
         $siteData['renting']['hero'] = [];
     }
 
+    $siteData['renting']['hero_title'] = trim($_POST['renting_hero_title'] ?? '');
+    $siteData['renting']['hero_subtitle'] = trim($_POST['renting_hero_subtitle'] ?? '');
     $siteData['renting']['intro_title'] = trim($_POST['renting_intro_title'] ?? '');
     $siteData['renting']['intro_text'] = trim($_POST['renting_intro_text'] ?? '');
     $siteData['renting']['cars_section_title'] = trim($_POST['renting_cars_section_title'] ?? 'Renting de Autos en Panamá');
