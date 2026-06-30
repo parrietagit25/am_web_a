@@ -60,10 +60,12 @@ $publicBase = $scheme . '://' . $host;
                         <div class="col-md-6">
                             <label class="form-label">Logo (archivo)</label>
                             <input type="file" name="footer_logo" class="form-control form-control-premium" accept="image/*">
+                            <small class="text-muted d-block mt-1">Recomendado: 300×80 px — PNG con fondo transparente</small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Logo (URL)</label>
                             <input type="text" name="footer_logo_url" class="form-control form-control-premium" value="<?php echo esc($footerGeneral['logo_url'] ?? ''); ?>">
+                            <small class="text-muted d-block mt-1">Recomendado: 300×80 px — PNG con fondo transparente</small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Texto copyright</label>

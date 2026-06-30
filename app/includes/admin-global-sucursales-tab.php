@@ -35,6 +35,7 @@ if (!is_array($globalSucursales)) {
                         <div class="form-text mt-2 mb-0">
                             Puede subir una imagen de la sucursal o dejar este campo vacío. Formatos: JPG, PNG, GIF o WEBP. Máx. 5MB.
                         </div>
+                        <small class="text-muted d-block mt-1">Recomendado: 1200×800 px — JPG o WebP</small>
                         <div id="globalSucursalImagePreview" class="mt-3 d-none">
                             <span class="small text-muted d-block mb-1" id="globalSucursalImagePreviewLabel">Vista previa:</span>
                             <img src="" alt="Vista previa sucursal" class="img-thumbnail" style="max-height: 140px;">

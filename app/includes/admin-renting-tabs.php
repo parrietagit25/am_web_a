@@ -124,6 +124,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <label for="renting_quote_side_image" class="form-label fw-semibold">Imagen lateral del formulario de cotización</label>
                                         <input type="file" id="renting_quote_side_image" name="renting_quote_side_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Se muestra a la derecha del formulario en la página pública.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                         <?php if (!empty($renting['quote_side_image_url'] ?? '')): ?>
                                             <div class="mt-2">
                                                 <img src="<?php echo esc($renting['quote_side_image_url']); ?>" alt="Imagen cotización" class="img-thumbnail" style="max-height: 120px;">
@@ -184,6 +185,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <label for="renting_car_image" class="form-label">Imagen del vehículo</label>
                                         <input type="file" id="renting_car_image" name="renting_car_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="rentingCarImageHelp">Formatos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
                                 </div>
 
@@ -323,6 +325,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <label for="renting_servicio_item_image" class="form-label">Imagen (columna derecha en la web)</label>
                                         <input type="file" id="renting_servicio_item_image" name="renting_servicio_item_image" class="form-control form-control-premium" accept="image/*" required>
                                         <div class="form-text" id="rentingServicioItemImageHelp">Obligatoria al crear. Al editar, déjala vacía para conservar la actual.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
                                 </div>
 
@@ -436,6 +439,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <div class="border rounded-3 p-3 bg-light h-100">
                                             <label class="form-label fw-semibold">Imagen <?php echo $gi; ?></label>
                                             <input type="file" id="renting_sobre_gallery_<?php echo $gi; ?>" name="renting_sobre_gallery_<?php echo $gi; ?>" class="form-control form-control-premium mb-2" accept="image/*">
+                                            <small class="text-muted d-block mt-1 mb-2">Recomendado: 800×600 px — JPG o WebP</small>
                                             <label for="renting_sobre_gallery_alt_<?php echo $gi; ?>" class="form-label small">Texto alternativo (opcional)</label>
                                             <input type="text" id="renting_sobre_gallery_alt_<?php echo $gi; ?>" name="renting_sobre_gallery_alt_<?php echo $gi; ?>" class="form-control form-control-premium form-control-sm" value="<?php echo esc($galleryItem['alt'] ?? ''); ?>" placeholder="Descripción de la imagen">
                                             <?php if (!empty($galleryItem['image_url'])): ?>
@@ -491,11 +495,13 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                     <div class="col-md-6">
                                         <label for="renting_post_image_url" class="form-label">URL de imagen (opcional)</label>
                                         <input type="url" id="renting_post_image_url" name="renting_post_image_url" class="form-control form-control-premium" placeholder="https://...">
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="renting_post_image" class="form-label">Imagen de la tarjeta</label>
                                         <input type="file" id="renting_post_image" name="renting_post_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="rentingPostImageHelp">Puedes subir archivo o usar URL. Si subes archivo, tiene prioridad.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
 
                                     <hr class="my-2">
@@ -606,6 +612,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <label for="renting_contact_image" class="form-label fw-semibold">Imagen lateral (derecha del formulario)</label>
                                         <input type="file" id="renting_contact_image" name="renting_contact_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">JPG, PNG, GIF o WEBP. Máx. 5MB.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                         <?php if (!empty($renting_contact['contact_image_url'])): ?>
                                             <div class="mt-2">
                                                 <img src="<?php echo esc($renting_contact['contact_image_url']); ?>" alt="Contacto Renting" class="img-thumbnail" style="max-height: 160px;">
@@ -875,6 +882,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <label for="renting_brand_logo" class="form-label">Logo</label>
                                         <input type="file" id="renting_brand_logo" name="renting_brand_logo" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="rentingBrandLogoHelp">Formatos: JPG, PNG, GIF, WEBP, SVG. Fondo transparente recomendado.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 400×200 px — PNG con fondo transparente</small>
                                     </div>
                                 </div>
 
@@ -989,6 +997,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <label for="renting_op_avatar" class="form-label">Avatar (imagen)</label>
                                         <input type="file" id="renting_op_avatar" name="renting_op_avatar" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="rentingOpAvatarHelp">Si no subes foto, se generan iniciales.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                                     </div>
                                 </div>
 

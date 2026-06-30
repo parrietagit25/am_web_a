@@ -98,6 +98,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                     <div class="col-md-4">
                         <label for="taller_team_image_<?php echo $i; ?>" class="form-label fw-semibold">Imagen equipo <?php echo $i; ?></label>
                         <input type="file" id="taller_team_image_<?php echo $i; ?>" name="taller_team_image_<?php echo $i; ?>" class="form-control form-control-premium" accept="image/*">
+                        <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                         <?php if (!empty($taller_team_images[$i - 1])): ?>
                             <div class="mt-2"><img src="<?php echo esc($taller_team_images[$i - 1]); ?>" class="img-thumbnail w-100" style="max-height: 120px; object-fit: cover;" alt="Equipo Taller"></div>
                         <?php endif; ?>
@@ -149,6 +150,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                     <label for="taller_service_image" class="form-label">Imagen de fondo</label>
                     <input type="file" id="taller_service_image" name="taller_service_image" class="form-control form-control-premium" accept="image/*" required>
                     <div class="form-text" id="tallerServiceImageHelp">Obligatoria al crear.</div>
+                    <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                 </div>
                 <div class="col-md-6">
                     <label for="taller_service_description" class="form-label">Descripción</label>
@@ -206,7 +208,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 <div class="col-md-4 d-flex align-items-end pb-2">
                     <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="taller_brand_active" name="taller_brand_active" value="1" checked><label class="form-check-label fw-semibold text-navy" for="taller_brand_active">Activa</label></div>
                 </div>
-                <div class="col-md-6"><label for="taller_brand_logo" class="form-label">Logo</label><input type="file" id="taller_brand_logo" name="taller_brand_logo" class="form-control form-control-premium" accept="image/*"><div class="form-text" id="tallerBrandLogoHelp">Obligatorio al crear.</div></div>
+                <div class="col-md-6"><label for="taller_brand_logo" class="form-label">Logo</label><input type="file" id="taller_brand_logo" name="taller_brand_logo" class="form-control form-control-premium" accept="image/*"><div class="form-text" id="tallerBrandLogoHelp">Obligatorio al crear.</div><small class="text-muted d-block mt-1">Recomendado: 400×200 px — PNG con fondo transparente</small></div>
             </div>
             <div class="text-end mt-4 d-flex justify-content-end gap-2">
                 <button type="button" class="btn btn-outline-secondary d-none" id="tallerBrandCancelBtn" onclick="resetTallerBrandForm()">Cancelar</button>
@@ -225,7 +227,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 <div class="col-md-4"><label for="taller_op_branch" class="form-label">Sucursal</label><input type="text" id="taller_op_branch" name="taller_op_branch" class="form-control form-control-premium"></div>
                 <div class="col-md-2"><label for="taller_op_stars" class="form-label">Estrellas</label><input type="number" min="1" max="5" id="taller_op_stars" name="taller_op_stars" class="form-control form-control-premium" value="5"></div>
                 <div class="col-md-2"><label for="taller_op_date" class="form-label">Fecha</label><input type="text" id="taller_op_date" name="taller_op_date" class="form-control form-control-premium" value="<?php echo esc(date('d/m/Y')); ?>"></div>
-                <div class="col-md-6"><label for="taller_op_avatar" class="form-label">Avatar</label><input type="file" id="taller_op_avatar" name="taller_op_avatar" class="form-control form-control-premium" accept="image/*"><div class="form-text" id="tallerOpAvatarHelp">Si no subes foto, se generan iniciales.</div></div>
+                <div class="col-md-6"><label for="taller_op_avatar" class="form-label">Avatar</label><input type="file" id="taller_op_avatar" name="taller_op_avatar" class="form-control form-control-premium" accept="image/*"><div class="form-text" id="tallerOpAvatarHelp">Si no subes foto, se generan iniciales.</div><small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small></div>
                 <div class="col-md-6 d-flex align-items-end pb-2"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="taller_op_active" name="taller_op_active" value="1" checked><label class="form-check-label fw-semibold text-navy" for="taller_op_active">Visible en web</label></div></div>
                 <div class="col-12"><label for="taller_op_text" class="form-label">Comentario</label><textarea id="taller_op_text" name="taller_op_text" rows="3" class="form-control form-control-premium" required></textarea></div>
             </div>
@@ -339,6 +341,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 <div class="col-md-6">
                     <label for="taller_contact_image" class="form-label fw-semibold">Imagen lateral derecha</label>
                     <input type="file" id="taller_contact_image" name="taller_contact_image" class="form-control form-control-premium" accept="image/*">
+                    <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                     <?php if (!empty($taller_contact['image_url'])): ?>
                         <div class="mt-2"><img src="<?php echo esc($taller_contact['image_url']); ?>" alt="Contacto Taller" class="img-thumbnail" style="max-height: 160px;"></div>
                     <?php endif; ?>
@@ -409,6 +412,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 <div class="col-md-6">
                     <label for="taller_sobre_main_image" class="form-label fw-semibold">Imagen principal (izquierda)</label>
                     <input type="file" id="taller_sobre_main_image" name="taller_sobre_main_image" class="form-control form-control-premium" accept="image/*">
+                    <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                     <?php if (!empty($taller_sobre['main_image_url'] ?? '')): ?>
                         <div class="mt-2"><img src="<?php echo esc($taller_sobre['main_image_url']); ?>" alt="" class="img-thumbnail" style="max-height: 160px;"></div>
                     <?php endif; ?>
@@ -431,6 +435,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                     <div class="col-md-4">
                         <label for="taller_sobre_stat_image_<?php echo $i; ?>" class="form-label fw-semibold">Imagen final <?php echo $i; ?></label>
                         <input type="file" id="taller_sobre_stat_image_<?php echo $i; ?>" name="taller_sobre_stat_image_<?php echo $i; ?>" class="form-control form-control-premium" accept="image/*">
+                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                         <input type="text" id="taller_sobre_stat_caption_<?php echo $i; ?>" name="taller_sobre_stat_caption_<?php echo $i; ?>" class="form-control form-control-premium mt-2" value="<?php echo esc($st['caption'] ?? ''); ?>" placeholder="Texto opcional">
                         <?php if (!empty($st['image_url'])): ?>
                             <div class="mt-2"><img src="<?php echo esc($st['image_url']); ?>" alt="" class="img-thumbnail w-100" style="max-height: 120px; object-fit: contain;"></div>
@@ -466,6 +471,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 <div class="col-md-6">
                     <label for="taller_sucursales_image" class="form-label fw-semibold">Imagen lateral derecha</label>
                     <input type="file" id="taller_sucursales_image" name="taller_sucursales_image" class="form-control form-control-premium" accept="image/*">
+                    <small class="text-muted d-block mt-1">Recomendado: 1200×800 px — JPG o WebP</small>
                     <?php if (!empty($taller['sucursales_image_url'] ?? '')): ?>
                         <div class="mt-2"><img src="<?php echo esc($taller['sucursales_image_url']); ?>" class="img-thumbnail" style="max-height: 140px;" alt="Sucursal Taller"></div>
                     <?php endif; ?>

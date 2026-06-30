@@ -3228,6 +3228,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                     <div class="mt-3">
                                                         <label class="form-label small text-muted mb-1">Cambiar Imagen (.webp recomendada)</label>
                                                         <input type="file" name="fleet_image_<?php echo $item['id']; ?>" class="form-control form-control-premium form-control-sm" accept="image/*">
+                                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -3274,6 +3275,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="featured_image" class="form-label">Imagen Destacada (Reemplazar archivo .webp o .png)</label>
                                         <input type="file" id="featured_image" name="featured_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Imagen actual: <code><?php echo esc($homepage['featured']['image_url'] ?? ''); ?></code></div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                         <?php if (!empty($homepage['featured']['image_url'])): ?>
                                             <img src="<?php echo esc($homepage['featured']['image_url']); ?>" alt="Feria David" class="img-thumbnail mt-2" style="max-height: 80px;">
                                         <?php endif; ?>
@@ -3341,9 +3343,10 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="op_avatar" class="form-label">Foto del Avatar (Imagen de Perfil)</label>
                                         <input type="file" id="op_avatar" name="op_avatar" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="opAvatarHelp">Si no subes foto, se generará una burbuja con las iniciales del nombre.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                                     </div>
                                 </div>
- 
+
                                 <div class="text-end mt-4 d-flex justify-content-end gap-2">
                                     <button type="button" class="btn btn-outline-secondary d-none" id="opCancelBtn" onclick="resetOpForm()">Cancelar</button>
                                     <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2" id="opSubmitBtn">
@@ -3525,6 +3528,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="vehicle_image" class="form-label">Foto del Vehículo</label>
                                         <input type="file" id="vehicle_image" name="vehicle_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="vehicleImageHelp">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
 
                                     <!-- Number of Doors -->
@@ -3817,6 +3821,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="contact_image" class="form-label">Imagen Lateral del Formulario</label>
                                         <input type="file" id="contact_image" name="contact_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                         <?php if (!empty($homepage['contact_image_url'])): ?>
                                             <div class="mt-3">
                                                 <div class="small fw-semibold text-muted mb-1">Imagen actual:</div>
@@ -4054,6 +4059,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="semi_anatomy" class="form-label fw-semibold">Imagen de Anatomía del Auto (Blueprint)</label>
                                         <input type="file" id="semi_anatomy" name="semi_anatomy" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Puedes subir la imagen del blueprint o del vehículo para interactuar con los puntos. Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 1200×630 px — JPG o WebP</small>
                                         <?php if (!empty($seminuevos['anatomy_image_url'])): ?>
                                             <div class="mt-2">
                                                 <img src="<?php echo esc($seminuevos['anatomy_image_url']); ?>" alt="Anatomía actual" class="img-thumbnail" style="max-height: 120px;">
@@ -4148,9 +4154,10 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="semi_op_avatar" class="form-label">Foto del Avatar (Imagen de Perfil)</label>
                                         <input type="file" id="semi_op_avatar" name="op_avatar" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="semiOpAvatarHelp">Si no subes foto, se generará una burbuja con las iniciales del nombre.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                                     </div>
                                 </div>
- 
+
                                 <div class="text-end mt-4 d-flex justify-content-end gap-2">
                                     <button type="button" class="btn btn-outline-secondary d-none" id="semiOpCancelBtn" onclick="resetSemiOpForm()">Cancelar</button>
                                     <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2" id="semiOpSubmitBtn">
@@ -4327,6 +4334,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     <div class="col-md-3">
                                         <label for="semi_inv_photo_file" class="form-label">Subir Foto (.webp / .png / .jpg)</label>
                                         <input type="file" id="semi_inv_photo_file" name="photo_file" class="form-control form-control-premium" accept="image/*">
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
 
                                     <div class="col-md-3">
@@ -4521,6 +4529,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="semi_fin_header_image" class="form-label fw-semibold">Imagen de Cabecera (Opcional Banner)</label>
                                         <input type="file" id="semi_fin_header_image" name="header_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Si no se sube, se mostrará el color azul marino plano por defecto.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 1920×700 px — JPG o WebP</small>
                                         <?php if (!empty($semi_financing['header_image_url'])): ?>
                                             <div class="mt-2">
                                                 <img src="<?php echo esc($semi_financing['header_image_url']); ?>" alt="Banner actual" class="img-thumbnail" style="max-height: 80px;">
@@ -4609,6 +4618,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                 <div class="mb-3">
                                                     <label class="form-label">Imagen de Perfil</label>
                                                     <input type="file" name="profile_image_<?php echo $pkey; ?>" class="form-control form-control-premium bg-white form-control-sm" accept="image/*">
+                                                    <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                                                     <?php if (!empty($prof['image_url'])): ?>
                                                         <div class="mt-2 text-center">
                                                             <img src="<?php echo esc($prof['image_url']); ?>" alt="Perfil <?php echo $pkey; ?>" class="img-thumbnail" style="max-height: 80px;">
@@ -4649,6 +4659,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                             <label for="semi_bank_logo" class="form-label">Logo del Banco (.webp recomendado)</label>
                                             <input type="file" id="semi_bank_logo" name="bank_logo" class="form-control form-control-premium" accept="image/*" required>
                                             <div class="form-text" id="semiBankLogoHelp">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                            <small class="text-muted d-block mt-1">Recomendado: 400×200 px — PNG con fondo transparente</small>
                                         </div>
                                         
                                         <div class="text-end d-flex justify-content-end gap-2 mt-4">
@@ -4740,6 +4751,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="team_header_image" class="form-label fw-semibold">Imagen de Cabecera (Banner)</label>
                                         <input type="file" id="team_header_image" name="team_header_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Si no se sube, se mostrará el color azul marino plano por defecto.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 1920×700 px — JPG o WebP</small>
                                         <?php if (!empty($semi_team['header_image_url'])): ?>
                                             <div class="mt-2">
                                                 <img src="<?php echo esc($semi_team['header_image_url']); ?>" alt="Banner actual" class="img-thumbnail" style="max-height: 80px;">
@@ -4829,6 +4841,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                             <label for="semi_agent_photo" class="form-label">Foto del Asesor</label>
                                             <input type="file" id="semi_agent_photo" name="agent_photo" class="form-control form-control-premium" accept="image/*">
                                             <div class="form-text" id="semiAgentPhotoHelp">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                            <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                                         </div>
                                         
                                         <div class="mb-3 form-check form-switch mt-4">
@@ -5225,11 +5238,13 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     <div class="col-md-6">
                                         <label for="leasing_post_image_url" class="form-label">URL de imagen de tarjeta (opcional)</label>
                                         <input type="url" id="leasing_post_image_url" name="leasing_post_image_url" class="form-control form-control-premium" placeholder="https://...">
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="leasing_post_image" class="form-label">Imagen de la tarjeta</label>
                                         <input type="file" id="leasing_post_image" name="leasing_post_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="leasingPostImageHelp">Puedes subir archivo o usar URL. Si subes archivo, tiene prioridad.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
 
                                     <hr class="my-2">
@@ -5343,6 +5358,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="leasing_op_avatar" class="form-label">Avatar (Imagen)</label>
                                         <input type="file" id="leasing_op_avatar" name="op_avatar" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="leasingOpAvatarHelp">Si no subes foto, se generan iniciales.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                                     </div>
                                 </div>
 
@@ -5557,6 +5573,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="leasing_vehicle_image" class="form-label">Foto del Vehículo</label>
                                         <input type="file" id="leasing_vehicle_image" name="leasing_vehicle_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="leasingVehicleImageHelp">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
                                     <div class="col-md-3">
                                         <label for="leasing_vehicle_doors" class="form-label">Número de Puertas</label>
@@ -5733,6 +5750,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                             <label for="leasing_agent_photo" class="form-label">Foto del Asesor</label>
                                             <input type="file" id="leasing_agent_photo" name="leasing_agent_photo" class="form-control form-control-premium" accept="image/*">
                                             <div class="form-text" id="leasingAgentPhotoHelp">Formatos: JPG, PNG, WEBP. Recomendado retrato vertical.</div>
+                                            <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                                         </div>
                                         <div class="mb-3 form-check form-switch">
                                             <input class="form-check-input" type="checkbox" role="switch" id="leasing_agent_active" name="leasing_agent_active" value="1" checked>
@@ -5870,6 +5888,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="leasing_contact_image" class="form-label">Imagen lateral del formulario</label>
                                         <input type="file" id="leasing_contact_image" name="leasing_contact_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Formatos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                         <?php if (!empty($leasing_contact['contact_image_url'])): ?>
                                             <div class="mt-3">
                                                 <div class="small fw-semibold text-muted mb-1">Imagen actual:</div>
