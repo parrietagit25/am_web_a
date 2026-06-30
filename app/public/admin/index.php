@@ -5618,7 +5618,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                             <option value="Familiares">Familiares</option>
                                             <option value="Comerciales">Comerciales</option>
                                             <option value="Promociones">Promociones</option>
-                                            <option value="SUV Mini">SUV Mini</option>
+                                            <option value="SUV Mini">Compacto</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
