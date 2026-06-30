@@ -134,8 +134,8 @@ $activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
                             <input type="email" id="email" name="email" class="form-control py-3 bg-white" placeholder="E-mail" required>
                         </div>
                         <div class="col-md-6 col-12">
-                            <label for="phone" class="form-label text-navy font-poppins fw-semibold" style="font-size:.83rem;">Su Tel&eacute;fono</label>
-                            <input type="text" id="phone" name="phone" class="form-control py-3 bg-white" placeholder="xxx-xxxx">
+                            <label for="phone" class="form-label text-navy font-poppins fw-semibold" style="font-size:.83rem;">Su Tel&eacute;fono <span class="text-danger">*</span></label>
+                            <input type="text" id="phone" name="phone" class="form-control py-3 bg-white" placeholder="xxx-xxxx" required>
                         </div>
 
                         <div class="col-12">
@@ -245,7 +245,7 @@ async function handleContactSubmit(event) {
     var branchEl    = document.getElementById('contact_branch');
     var branch      = branchEl ? branchEl.value : '';
 
-    if (!firstName || !lastName || !email || !autoInteres) {
+    if (!firstName || !lastName || !email || !phone || !autoInteres) {
         errorMessage.innerText = 'Por favor, llene todos los campos obligatorios.';
         errorBanner.classList.remove('d-none'); errorBanner.classList.add('d-flex'); return;
     }
@@ -447,7 +447,7 @@ async function handleContactSubmit(event) {
     var email = document.getElementById('email').value.trim();
     var phone = document.getElementById('phone').value.trim();
     var message = document.getElementById('message').value.trim();
-    if (!firstName || !lastName || !email || !message) {
+    if (!firstName || !lastName || !email || !phone || !message) {
         errorMessage.innerText = 'Por favor, llene todos los campos obligatorios.';
         errorBanner.classList.remove('d-none'); return;
     }
