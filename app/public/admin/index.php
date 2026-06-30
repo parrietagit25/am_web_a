@@ -3038,7 +3038,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                 <a href="/rent-a-car.php" target="_blank" class="btn btn-sm btn-outline-dark rounded-pill px-3"><i class="bi bi-eye me-1"></i> Ver Sitio Web</a>
             </div>
             
-            <div class="p-4 overflow-y-auto" style="max-height: calc(100vh - 73px);">
+            <div id="admin-content-panel" class="p-4 overflow-y-auto" style="max-height: calc(100vh - 73px);">
                 
                 <?php if (!empty($successMsg)): ?>
                     <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm" role="alert">
@@ -7258,6 +7258,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 collapseEl = collapseEl.parentElement
                     ? collapseEl.parentElement.closest('.collapse')
                     : null;
+            }
+
+            // Restaurar scroll: ir al top del panel o al flash message si existe
+            const contentPanel = document.getElementById('admin-content-panel');
+            if (contentPanel) {
+                const flashMsg = contentPanel.querySelector('.alert-success, .alert-danger');
+                if (flashMsg) {
+                    flashMsg.scrollIntoView({ block: 'start' });
+                } else {
+                    contentPanel.scrollTop = 0;
+                }
             }
         }
     }
