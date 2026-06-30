@@ -318,4 +318,5 @@ require __DIR__ . '/../includes/render-header-banner.php';
 
 <?php $ucUnitKey = 'leasing'; require __DIR__ . '/../includes/unit-content-home-sections.php'; ?>
 
+<?php require __DIR__ . '/../includes/unit-payment-social.php'; ?>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
