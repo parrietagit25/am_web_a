@@ -91,6 +91,12 @@ class SeoService {
         if ($ogImage === '') {
             $ogImage = $defaultOgImage;
         }
+        // SE12: fallback seguro — garantiza que og:image / twitter:image nunca queden vacíos.
+        // Se activa solo cuando tanto la imagen de página como el global default_og_image
+        // están en blanco (campo no configurado en el admin SEO).
+        if ($ogImage === '') {
+            $ogImage = 'https://www.automarket.com.pa/assets/img/uploads/hero_bg_6a15c9ebb5ca7.webp';
+        }
 
         return [
             'page_key' => $pageKey,
