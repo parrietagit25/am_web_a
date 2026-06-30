@@ -48,8 +48,8 @@ return [
         'activeClass' => 'active-seminuevos',
         'heroTitle' => 'Encuentra tu próximo auto seminuevo',
         'heroSubtitle' => 'Calidad, garantía y financiamiento a tu medida',
-        'ctaText' => 'VER INVENTARIO',
-        'ctaLink' => '/inventario.php'
+        'ctaText' => 'FINANCIAMIENTO',
+        'ctaLink' => '/financiamiento.php'
     ],
     'leasing' => [
         'key' => 'leasing',
