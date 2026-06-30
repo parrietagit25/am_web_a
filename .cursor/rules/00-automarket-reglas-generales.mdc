@@ -1,0 +1,37 @@
+---
+alwaysApply: true
+---
+
+# Reglas generales del proyecto Automarket
+
+Proyecto: Web Automarket Panamá.
+
+Stack:
+- PHP 8.3
+- Docker
+- Nginx + PHP-FPM
+- Admin en app/public/admin/
+- Frontend público en app/public/
+- APIs en app/api/
+- Servicios en app/services/
+- Contenido CMS principalmente en site_data.json
+- Base de datos SQLite/MySQL para datos transaccionales
+
+Reglas obligatorias:
+1. No reescribir el proyecto completo.
+2. No romper módulos existentes.
+3. No modificar reservas Rent A Car sin autorización explícita.
+4. No modificar integraciones Pipedrive, n8n, Resend, reCAPTCHA u OpenAI sin autorización explícita.
+5. Antes de tocar archivos, explicar:
+   - Qué archivos se van a modificar.
+   - Qué riesgo tiene cada cambio.
+   - Qué datos de site_data.json se verán afectados.
+6. Mantener compatibilidad hacia atrás con el contenido ya cargado.
+7. Si se cambia estructura de JSON, crear fallback para datos antiguos.
+8. Después de modificar PHP, ejecutar o sugerir:
+   - php -l archivo.php
+9. No mezclar cambios grandes de CMS, SEO y frontend en un solo bloque.
+10. Trabajar por sprints pequeños y verificables.
+
+Regla crítica:
+El menú lateral del admin es delicado. No mezclar tabs Bootstrap, pills dinámicos y navegación del sidebar sin revisar regresiones.
