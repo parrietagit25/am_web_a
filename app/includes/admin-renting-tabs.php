@@ -254,6 +254,46 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                 </table>
                             </div>
                         </div>
+
+                        <!-- FAQ RENTING -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-question-circle-fill me-2 text-danger"></i>Preguntas frecuentes (Renting)
+                            </h5>
+                            <form method="POST" action="?tab=renting-home" id="rentingFaqForm">
+                                <input type="hidden" name="action" value="save_renting_faqs">
+                                <div id="rentingFaqList">
+                                    <?php $renting_faqs = $renting['faqs'] ?? []; ?>
+                                    <?php if (empty($renting_faqs)): ?>
+                                        <p class="text-muted small mb-3" id="rentingFaqEmpty">No hay preguntas frecuentes. Usa el botón para agregar.</p>
+                                    <?php else: ?>
+                                        <?php foreach ($renting_faqs as $faq): ?>
+                                        <div class="faq-row border rounded p-3 mb-3 bg-light position-relative" data-faq-row>
+                                            <div class="row g-2">
+                                                <div class="col-12">
+                                                    <label class="form-label fw-semibold small text-muted mb-1">Pregunta</label>
+                                                    <input type="text" name="faq_question[]" class="form-control form-control-premium" value="<?php echo esc($faq['question'] ?? ''); ?>" placeholder="¿Cuál es la pregunta?" required>
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label fw-semibold small text-muted mb-1">Respuesta</label>
+                                                    <textarea name="faq_answer[]" rows="3" class="form-control form-control-premium" placeholder="Escribe la respuesta..." required><?php echo esc($faq['answer'] ?? ''); ?></textarea>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amFaqRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="amFaqAddRow('rentingFaqList','rentingFaqEmpty')">
+                                        <i class="bi bi-plus-lg me-1"></i> Agregar pregunta
+                                    </button>
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar preguntas frecuentes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
 
                     <!-- TAB: RENTING NUESTROS SERVICIOS -->

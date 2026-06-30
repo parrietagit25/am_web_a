@@ -2529,6 +2529,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errorMsg = 'Error al eliminar el mensaje de contacto de Leasing.';
         }
     }
+    // 57. SAVE LEASING FAQS
+    elseif ($action === 'save_leasing_faqs') {
+        if (!isset($siteData['leasing'])) {
+            $siteData['leasing'] = [];
+        }
+        $questions = $_POST['faq_question'] ?? [];
+        $answers   = $_POST['faq_answer']   ?? [];
+        $faqs = [];
+        foreach ($questions as $idx => $q) {
+            $q = trim((string) $q);
+            $a = trim((string) ($answers[$idx] ?? ''));
+            if ($q === '' || $a === '') {
+                continue;
+            }
+            $faqs[] = ['question' => $q, 'answer' => $a];
+        }
+        $siteData['leasing']['faqs'] = $faqs;
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Preguntas frecuentes de Leasing guardadas correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar las preguntas frecuentes de Leasing.';
+        }
+    }
+
+    // 58. SAVE SEMINUEVOS FAQS
+    elseif ($action === 'save_seminuevos_faqs') {
+        if (!isset($siteData['seminuevos'])) {
+            $siteData['seminuevos'] = [];
+        }
+        $questions = $_POST['faq_question'] ?? [];
+        $answers   = $_POST['faq_answer']   ?? [];
+        $faqs = [];
+        foreach ($questions as $idx => $q) {
+            $q = trim((string) $q);
+            $a = trim((string) ($answers[$idx] ?? ''));
+            if ($q === '' || $a === '') {
+                continue;
+            }
+            $faqs[] = ['question' => $q, 'answer' => $a];
+        }
+        $siteData['seminuevos']['faqs'] = $faqs;
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Preguntas frecuentes de Seminuevos guardadas correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar las preguntas frecuentes de Seminuevos.';
+        }
+    }
+
     elseif ($action === 'add_landing_page') {
         if (!isset($siteData['landings']) || !is_array($siteData['landings'])) {
             $siteData['landings'] = [];
@@ -4133,6 +4181,46 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 </div>
                             </form>
                         </div>
+
+                        <!-- FAQ SEMINUEVOS -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-question-circle-fill me-2 text-danger"></i>Preguntas frecuentes (Seminuevos)
+                            </h5>
+                            <form method="POST" action="?tab=semi-home" id="seminuevosFaqForm">
+                                <input type="hidden" name="action" value="save_seminuevos_faqs">
+                                <div id="seminuevosFaqList">
+                                    <?php $semi_faqs = $seminuevos['faqs'] ?? []; ?>
+                                    <?php if (empty($semi_faqs)): ?>
+                                        <p class="text-muted small mb-3" id="seminuevosFaqEmpty">No hay preguntas frecuentes. Usa el botón para agregar.</p>
+                                    <?php else: ?>
+                                        <?php foreach ($semi_faqs as $faq): ?>
+                                        <div class="faq-row border rounded p-3 mb-3 bg-light position-relative" data-faq-row>
+                                            <div class="row g-2">
+                                                <div class="col-12">
+                                                    <label class="form-label fw-semibold small text-muted mb-1">Pregunta</label>
+                                                    <input type="text" name="faq_question[]" class="form-control form-control-premium" value="<?php echo esc($faq['question'] ?? ''); ?>" placeholder="¿Cuál es la pregunta?" required>
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label fw-semibold small text-muted mb-1">Respuesta</label>
+                                                    <textarea name="faq_answer[]" rows="3" class="form-control form-control-premium" placeholder="Escribe la respuesta..." required><?php echo esc($faq['answer'] ?? ''); ?></textarea>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amFaqRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="amFaqAddRow('seminuevosFaqList','seminuevosFaqEmpty')">
+                                        <i class="bi bi-plus-lg me-1"></i> Agregar pregunta
+                                    </button>
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar preguntas frecuentes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
 
                     <!-- TAB 11: SEMINUEVOS OPINIONS -->
@@ -5481,6 +5569,46 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 </table>
                             </div>
                         </div>
+
+                        <!-- FAQ LEASING -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-question-circle-fill me-2 text-danger"></i>Preguntas frecuentes (Leasing)
+                            </h5>
+                            <form method="POST" action="?tab=leasing-home" id="leasingFaqForm">
+                                <input type="hidden" name="action" value="save_leasing_faqs">
+                                <div id="leasingFaqList">
+                                    <?php $leasing_faqs = $leasing['faqs'] ?? []; ?>
+                                    <?php if (empty($leasing_faqs)): ?>
+                                        <p class="text-muted small mb-3" id="leasingFaqEmpty">No hay preguntas frecuentes. Usa el botón para agregar.</p>
+                                    <?php else: ?>
+                                        <?php foreach ($leasing_faqs as $faq): ?>
+                                        <div class="faq-row border rounded p-3 mb-3 bg-light position-relative" data-faq-row>
+                                            <div class="row g-2">
+                                                <div class="col-12">
+                                                    <label class="form-label fw-semibold small text-muted mb-1">Pregunta</label>
+                                                    <input type="text" name="faq_question[]" class="form-control form-control-premium" value="<?php echo esc($faq['question'] ?? ''); ?>" placeholder="¿Cuál es la pregunta?" required>
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label fw-semibold small text-muted mb-1">Respuesta</label>
+                                                    <textarea name="faq_answer[]" rows="3" class="form-control form-control-premium" placeholder="Escribe la respuesta..." required><?php echo esc($faq['answer'] ?? ''); ?></textarea>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amFaqRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="amFaqAddRow('leasingFaqList','leasingFaqEmpty')">
+                                        <i class="bi bi-plus-lg me-1"></i> Agregar pregunta
+                                    </button>
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar preguntas frecuentes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
 
                     <!-- TAB 17: LEASING SUCURSALES CRUD -->
@@ -6045,6 +6173,29 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+// ---- FAQ helpers (shared across all units) ----
+function amFaqAddRow(listId, emptyId) {
+    var list = document.getElementById(listId);
+    var empty = document.getElementById(emptyId);
+    if (empty) { empty.style.display = 'none'; }
+    var row = document.createElement('div');
+    row.className = 'faq-row border rounded p-3 mb-3 bg-light position-relative';
+    row.setAttribute('data-faq-row', '');
+    row.innerHTML = '<div class="row g-2">'
+        + '<div class="col-12"><label class="form-label fw-semibold small text-muted mb-1">Pregunta</label>'
+        + '<input type="text" name="faq_question[]" class="form-control form-control-premium" placeholder="¿Cuál es la pregunta?" required></div>'
+        + '<div class="col-12"><label class="form-label fw-semibold small text-muted mb-1">Respuesta</label>'
+        + '<textarea name="faq_answer[]" rows="3" class="form-control form-control-premium" placeholder="Escribe la respuesta..." required></textarea></div>'
+        + '</div>'
+        + '<button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amFaqRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>';
+    list.appendChild(row);
+}
+function amFaqRemoveRow(btn) {
+    var row = btn.closest('[data-faq-row]');
+    if (row) { row.remove(); }
+}
+// ---- end FAQ helpers ----
+
 function initEditNews(noticia) {
     document.getElementById('newsFormTitle').innerHTML = '<i class="bi bi-pencil-square me-2 text-danger"></i>Editar Noticia';
     document.getElementById('newsFormAction').value = 'edit_news';
