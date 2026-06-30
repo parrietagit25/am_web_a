@@ -369,12 +369,12 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
 
                             <h6>8.1 Configuración</h6>
                             <ul>
-                                <li>Active o desactive las secciones «Contenido más reciente», «Noticias» y «Blog» en el menú público de esa unidad.</li>
+                                <li>Active o desactive las secciones «Novedades», «Noticias» y «Blog» en el menú público de esa unidad.</li>
                                 <li>Defina títulos de página y textos introductorios.</li>
                                 <li>Gestione <strong>categorías, etiquetas y temas</strong> del blog (taxonomía).</li>
                             </ul>
 
-                            <h6>8.2 Contenido más reciente</h6>
+                            <h6>8.2 Novedades</h6>
                             <p>Entradas cortas tipo novedades. Crear → título, resumen, imagen, fecha, enlace opcional → publicar.</p>
 
                             <h6>8.3 Noticias</h6>

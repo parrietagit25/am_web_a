@@ -67,7 +67,7 @@ $ucDisplayMode = unit_content_home_display_mode($contentService, $ucUnitKey);
 <?php if (!empty($ucLatestItems)): ?>
 <section class="container py-5 mb-5 border-top" id="contenido-reciente-<?php echo esc($ucUnitKey); ?>">
     <div class="text-center mb-5">
-        <h2 class="fw-bold text-navy display-6 font-montserrat">Contenido más reciente</h2>
+        <h2 class="fw-bold text-navy display-6 font-montserrat">Novedades</h2>
         <p class="text-muted">Promociones, eventos e información de interés.</p>
     </div>
     <div class="row g-4">

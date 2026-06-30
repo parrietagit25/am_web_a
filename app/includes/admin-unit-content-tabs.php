@@ -29,7 +29,7 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
         </p>
         <ul class="text-muted small mb-0">
             <li><strong>Destacados</strong> — carrusel o pieza grande arriba (usa la rotación o el destacado único de abajo).</li>
-            <li><strong>Contenido más reciente</strong> — grilla de tarjetas (ítems de más reciente, blog o noticias con el ojo <i class="bi bi-eye-fill"></i> activo).</li>
+            <li><strong>Novedades</strong> — grilla de tarjetas (ítems de novedades, blog o noticias con el ojo <i class="bi bi-eye-fill"></i> activo).</li>
         </ul>
     </div>
 
@@ -39,14 +39,14 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
             <input type="hidden" name="content_unit" value="<?php echo esc($ucUnitKey); ?>">
 
             <h6 class="fw-bold text-navy mb-3 font-montserrat border-bottom pb-2">
-                <i class="bi bi-image me-2 text-danger"></i>Cabeceras — Noticias, Blog y Cont. Reciente
+                <i class="bi bi-image me-2 text-danger"></i>Cabeceras — Noticias, Blog y Novedades
             </h6>
             <p class="text-muted small mb-4">
                 Imagen de fondo, textos y alineación del banner superior en <code>noticias.php</code>, <code>blog.php</code> y <code>contenido-reciente.php</code> de esta unidad.
             </p>
 
             <?php
-            $ucPageHeaderLabels = ['news' => 'Noticias', 'blog' => 'Blog', 'latest' => 'Cont. Reciente'];
+            $ucPageHeaderLabels = ['news' => 'Noticias', 'blog' => 'Blog', 'latest' => 'Novedades'];
             foreach (UnitContentService::TYPES as $phType):
                 $ph = $ucPageHeaders[$phType] ?? [];
                 $phLabel = $ucPageHeaderLabels[$phType] ?? $phType;
@@ -90,7 +90,7 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
                 <div class="col-12">
                     <div class="alert alert-light border small mb-0 py-2">
                         <i class="bi bi-info-circle text-danger me-1"></i>
-                        La <strong>rotación</strong> de abajo solo aplica al bloque <strong>Destacados</strong>. No llena la grilla «Contenido más reciente».
+                        La <strong>rotación</strong> de abajo solo aplica al bloque <strong>Destacados</strong>. No llena la grilla «Novedades».
                     </div>
                 </div>
                 <div class="col-12">
@@ -121,7 +121,7 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
                 <div class="col-12">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="latest_show_on_home" id="uc-<?php echo esc($ucDomUnit); ?>-latest_show_on_home" value="1" <?php echo !empty($ucSettings['latest_show_on_home']) ? 'checked' : ''; ?>>
-                        <label class="form-check-label" for="uc-<?php echo esc($ucDomUnit); ?>-latest_show_on_home">Mostrar bloque adicional de «contenido más reciente» en el home</label>
+                        <label class="form-check-label" for="uc-<?php echo esc($ucDomUnit); ?>-latest_show_on_home">Mostrar bloque adicional de «Novedades» en el home</label>
                     </div>
                 </div>
 
