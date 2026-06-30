@@ -1,0 +1,35 @@
+# robots.txt - Automarket Panama
+# https://automarket.com.pa
+
+# Allow major search engine crawlers explicitly
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+# Default: allow all, block only admin and private API routes
+User-agent: *
+Disallow: /admin/
+Disallow: /api/
+
+# Public assets are explicitly crawlable (no block)
+# Allow: /assets/
+# Allow: /uploads/
+
+Sitemap: https://automarket.com.pa/sitemap.xml

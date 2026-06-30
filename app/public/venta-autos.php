@@ -292,6 +292,12 @@ $hbInnerHtml = '';
 require __DIR__ . '/../includes/render-header-banner.php';
 ?>
 
+<div class="container">
+    <h1 class="visually-hidden">
+        <?php echo htmlspecialchars(trim($seminuevosData['hero_title'] ?? '') ?: 'Autos Seminuevos en Venta en Panamá', ENT_QUOTES, 'UTF-8'); ?>
+    </h1>
+</div>
+
 <!-- Content Sections -->
 <div class="container py-5" id="inventario">
     <div class="text-center mb-5">
