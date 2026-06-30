@@ -81,6 +81,15 @@ if ($vehicle) {
 // para 'detalle', respetando la lógica de error existente.
 // ── fin SE5 ──────────────────────────────────────────────────────────────────
 
+// ── SE9: Schema.org Car/Vehicle + Offer JSON-LD ──────────────────────────────
+// El partial verifica internamente que Make y Model tengan valor antes de emitir.
+// Se incluye ANTES de header.php para que el JSON-LD quede dentro de <head>.
+if ($vehicle) {
+    $_svVehicle = $vehicle;
+    require __DIR__ . '/../includes/schema-vehicle.php';
+}
+// ── fin SE9 ──────────────────────────────────────────────────────────────────
+
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../services/InventoryHighlightService.php';
 
