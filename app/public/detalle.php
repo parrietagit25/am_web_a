@@ -3,22 +3,86 @@
  * Automarket - Ficha de Detalle de Vehículo y Visualizador 360°
  */
 $activeUnit = 'seminuevos';
-require_once __DIR__ . '/../includes/header.php';
+
+// ── SE5: SEO dinámico de ficha de vehículo ───────────────────────────────────
+// Database debe cargarse ANTES de header.php para poder construir $seoOverride
+// con datos reales del vehículo. La clase no tiene efectos colaterales en el
+// bootstrap global; config.php (cargado por header.php) define las constantes DB_*.
 require_once __DIR__ . '/../services/Database.php';
-require_once __DIR__ . '/../services/InventoryHighlightService.php';
 
-$db = Database::getInstance();
-$placa = trim($_GET['placa'] ?? '');
+$db        = Database::getInstance();
+$placa     = trim($_GET['placa'] ?? '');
+$vehicle   = null;
 
-$vehicle = null;
 if (!empty($placa)) {
-    $vehicle = $db->selectOne("SELECT * FROM Automarket_Invs_web WHERE LicensePlate = :placa LIMIT 1", [':placa' => $placa]);
+    $vehicle = $db->selectOne(
+        "SELECT * FROM Automarket_Invs_web WHERE LicensePlate = :placa LIMIT 1",
+        [':placa' => $placa]
+    );
 }
 
 // Fallback: If not found by placa, check if ID is passed
 if (!$vehicle && isset($_GET['id'])) {
-    $vehicle = $db->selectOne("SELECT * FROM Automarket_Invs_web WHERE id = :id LIMIT 1", [':id' => intval($_GET['id'])]);
+    $vehicle = $db->selectOne(
+        "SELECT * FROM Automarket_Invs_web WHERE id = :id LIMIT 1",
+        [':id' => intval($_GET['id'])]
+    );
 }
+
+// Construir $seoOverride antes de que header.php lo consuma.
+// header.php (líneas 57-63) aplica las claves de $seoOverride sobre $seo
+// siempre que estén definidas y no vacías.
+if ($vehicle) {
+    $_seoMake  = trim((string)($vehicle['Make']  ?? ''));
+    $_seoModel = trim((string)($vehicle['Model'] ?? ''));
+    $_seoYear  = trim((string)($vehicle['Year']  ?? ''));
+    $_seoPrice = (float)($vehicle['Price'] ?? 0);
+
+    // Título: usa las partes disponibles; fallback genérico si todas están vacías
+    $_seoParts = array_filter([$_seoMake, $_seoModel, $_seoYear]);
+    if (!empty($_seoParts)) {
+        $_seoTitle = implode(' ', $_seoParts) . ' | Automarket';
+    } else {
+        $_seoTitle = 'Detalle de Vehículo | Automarket';
+    }
+
+    // Descripción
+    $_seoDesc = 'Compra el ' . implode(' ', array_filter([$_seoMake, $_seoModel, $_seoYear]));
+    if ($_seoDesc === 'Compra el ') {
+        $_seoDesc = 'Vehículo seminuevo disponible en Automarket, Panamá.';
+    } else {
+        if ($_seoPrice > 0) {
+            $_seoDesc .= ' por $' . number_format($_seoPrice, 0) . ' USD';
+        }
+        $_seoDesc .= '. Vehículo disponible en Panamá.';
+    }
+
+    // Imagen OG: foto_impel tiene prioridad, luego Photo, luego vacío
+    // (header.php aplicará el fallback global si queda vacío)
+    $_seoImage = '';
+    if (!empty($vehicle['foto_impel'])) {
+        $_seoImage = trim((string)$vehicle['foto_impel']);
+    } elseif (!empty($vehicle['Photo'])) {
+        $_seoImage = trim((string)$vehicle['Photo']);
+    }
+
+    $seoOverride = [
+        'title'          => $_seoTitle,
+        'description'    => $_seoDesc,
+        'og_title'       => $_seoTitle,
+        'og_description' => $_seoDesc,
+        'og_image'       => $_seoImage,
+    ];
+
+    // Limpiar variables temporales del scope
+    unset($_seoMake, $_seoModel, $_seoYear, $_seoPrice, $_seoParts, $_seoTitle, $_seoDesc, $_seoImage);
+}
+// Si $vehicle es null, no se define $seoOverride → header.php usa los defaults CMS
+// para 'detalle', respetando la lógica de error existente.
+// ── fin SE5 ──────────────────────────────────────────────────────────────────
+
+require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../services/InventoryHighlightService.php';
 
 // If vehicle still not found, redirect to inventory or show error
 if (!$vehicle) {
