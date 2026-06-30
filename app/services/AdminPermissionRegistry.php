@@ -69,6 +69,7 @@ class AdminPermissionRegistry
                     'renting_cotizaciones' => 'Cotizaciones',
                     'renting_marcas' => 'Marcas aliadas',
                     'renting_opiniones' => 'Opiniones',
+                    'renting_sucursales' => 'Sucursales',
                 ],
             ],
             'taller' => [
@@ -309,6 +310,10 @@ class AdminPermissionRegistry
             'save_renting_branches'        => 'renting_home',
             'save_leasing_branches'        => 'leasing_sucursales',
             'save_seminuevos_branches'     => 'semi_contact',
+            // Sucursales por unidad — CRUD individual (SU1B-1)
+            'add_renting_sucursal'         => 'renting_sucursales',
+            'edit_renting_sucursal'        => 'renting_sucursales',
+            'delete_renting_sucursal'      => 'renting_sucursales',
         ];
     }
 

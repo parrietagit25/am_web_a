@@ -1061,6 +1061,178 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                         </div>
                     </div>
 
+                    <!-- TAB: RENTING SUCURSALES -->
+                    <div class="tab-pane fade" id="tab-renting-sucursales" role="tabpanel" aria-labelledby="tab-renting-sucursales-nav">
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="rentingSucursalFormTitle">
+                                <i class="bi bi-geo-alt-fill me-2 text-danger"></i>Agregar sucursal (Renting)
+                            </h5>
+
+                            <form method="POST" action="?tab=renting-sucursales" id="rentingSucursalForm">
+                                <input type="hidden" name="action" id="rentingSucursalFormAction" value="add_renting_sucursal">
+                                <input type="hidden" name="renting_sucursal_id" id="rentingSucursalFormId" value="">
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="renting_sucursal_name" class="form-label">Nombre *</label>
+                                        <input type="text" id="renting_sucursal_name" name="renting_sucursal_name" class="form-control form-control-premium" placeholder="Ej: Sucursal Tocumen" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="renting_sucursal_location" class="form-label">Referencia de ubicación</label>
+                                        <input type="text" id="renting_sucursal_location" name="renting_sucursal_location" class="form-control form-control-premium" placeholder="Ej: Avenida Domingo Díaz">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="renting_sucursal_address" class="form-label">Dirección completa *</label>
+                                        <input type="text" id="renting_sucursal_address" name="renting_sucursal_address" class="form-control form-control-premium" placeholder="Ej: Centro Comercial Multiplaza, local 210" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="renting_sucursal_schedule" class="form-label">Horario</label>
+                                        <input type="text" id="renting_sucursal_schedule" name="renting_sucursal_schedule" class="form-control form-control-premium" placeholder="Ej: Lun–Vie 8:00am–5:00pm">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="renting_sucursal_phone" class="form-label">Teléfono</label>
+                                        <input type="text" id="renting_sucursal_phone" name="renting_sucursal_phone" class="form-control form-control-premium" placeholder="507-XXXX-XXXX">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="renting_sucursal_email" class="form-label">Email</label>
+                                        <input type="email" id="renting_sucursal_email" name="renting_sucursal_email" class="form-control form-control-premium" placeholder="renting@automarket.com">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="renting_sucursal_whatsapp" class="form-label">WhatsApp</label>
+                                        <input type="text" id="renting_sucursal_whatsapp" name="renting_sucursal_whatsapp" class="form-control form-control-premium" placeholder="507XXXXXXXX">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="renting_sucursal_map_url" class="form-label">Enlace Google Maps</label>
+                                        <input type="url" id="renting_sucursal_map_url" name="renting_sucursal_map_url" class="form-control form-control-premium" placeholder="https://maps.app.goo.gl/...">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="renting_sucursal_lat" class="form-label">Latitud *</label>
+                                        <input type="text" id="renting_sucursal_lat" name="renting_sucursal_lat" class="form-control form-control-premium" placeholder="9.066325" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="renting_sucursal_lng" class="form-label">Longitud *</label>
+                                        <input type="text" id="renting_sucursal_lng" name="renting_sucursal_lng" class="form-control form-control-premium" placeholder="-79.380726" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="renting_sucursal_sort_order" class="form-label">Orden</label>
+                                        <input type="number" id="renting_sucursal_sort_order" name="renting_sucursal_sort_order" class="form-control form-control-premium" value="0" min="0" step="1">
+                                        <div class="form-text">Menor número = aparece primero.</div>
+                                    </div>
+                                    <div class="col-md-3 d-flex align-items-end pb-2">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="renting_sucursal_active" name="renting_sucursal_active" value="1" checked>
+                                            <label class="form-check-label fw-semibold text-navy" for="renting_sucursal_active">Activa en la web</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="text-end mt-4 d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-outline-secondary d-none" id="rentingSucursalCancelBtn" onclick="resetRentingSucursalForm()">Cancelar</button>
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2" id="rentingSucursalSubmitBtn">
+                                        <i class="bi bi-plus-lg"></i> <span id="rentingSucursalSubmitText">Agregar sucursal</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-table me-2 text-danger"></i>Sucursales registradas (Renting)
+                            </h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Nombre</th>
+                                            <th>Dirección</th>
+                                            <th>Teléfono</th>
+                                            <th style="width: 70px;">Orden</th>
+                                            <th style="width: 90px;">Estado</th>
+                                            <th style="width: 100px;" class="text-center">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $renting_sucursales_list = $renting['sucursales'] ?? [];
+                                        usort($renting_sucursales_list, function ($a, $b) {
+                                            $oa = intval($a['sort_order'] ?? 0);
+                                            $ob = intval($b['sort_order'] ?? 0);
+                                            return $oa !== $ob ? $oa - $ob : strcasecmp($a['name'] ?? '', $b['name'] ?? '');
+                                        });
+                                        ?>
+                                        <?php if (empty($renting_sucursales_list)): ?>
+                                            <tr>
+                                                <td colspan="6" class="text-center py-4 text-muted">No hay sucursales de Renting registradas.</td>
+                                            </tr>
+                                        <?php else: ?>
+                                            <?php foreach ($renting_sucursales_list as $suc):
+                                                $sucActive = !isset($suc['active']) || $suc['active'] === true || $suc['active'] === 'true' || $suc['active'] == 1;
+                                            ?>
+                                                <tr>
+                                                    <td>
+                                                        <strong class="text-navy d-block"><?php echo esc($suc['name'] ?? ''); ?></strong>
+                                                        <small class="text-muted"><?php echo esc($suc['location'] ?? ''); ?></small>
+                                                    </td>
+                                                    <td><small><?php echo esc($suc['address'] ?? ''); ?></small></td>
+                                                    <td><small><?php echo esc($suc['phone'] ?? '—'); ?></small></td>
+                                                    <td><span class="badge bg-light text-dark border"><?php echo intval($suc['sort_order'] ?? 0); ?></span></td>
+                                                    <td>
+                                                        <?php if ($sucActive): ?>
+                                                            <span class="badge bg-success-subtle text-success border border-success-subtle">ACTIVA</span>
+                                                        <?php else: ?>
+                                                            <span class="badge bg-secondary-subtle text-secondary border">INACTIVA</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="d-flex justify-content-center gap-1">
+                                                            <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditRentingSucursal(<?php echo json_encode($suc, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'><i class="bi bi-pencil-fill"></i></button>
+                                                            <form method="POST" action="?tab=renting-sucursales" onsubmit="return confirm('¿Eliminar esta sucursal de Renting?');" style="display:inline;">
+                                                                <input type="hidden" name="action" value="delete_renting_sucursal">
+                                                                <input type="hidden" name="renting_sucursal_id" value="<?php echo intval($suc['id']); ?>">
+                                                                <button type="submit" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash3-fill"></i></button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <script>
+                        function initEditRentingSucursal(suc) {
+                            document.getElementById('rentingSucursalFormTitle').innerHTML = '<i class="bi bi-pencil-fill me-2 text-danger"></i>Editar sucursal (Renting)';
+                            document.getElementById('rentingSucursalFormAction').value = 'edit_renting_sucursal';
+                            document.getElementById('rentingSucursalFormId').value = suc.id;
+                            document.getElementById('renting_sucursal_name').value = suc.name || '';
+                            document.getElementById('renting_sucursal_location').value = suc.location || '';
+                            document.getElementById('renting_sucursal_address').value = suc.address || '';
+                            document.getElementById('renting_sucursal_schedule').value = suc.schedule || '';
+                            document.getElementById('renting_sucursal_phone').value = suc.phone || '';
+                            document.getElementById('renting_sucursal_email').value = suc.email || '';
+                            document.getElementById('renting_sucursal_whatsapp').value = suc.whatsapp || '';
+                            document.getElementById('renting_sucursal_map_url').value = suc.map_url || '';
+                            document.getElementById('renting_sucursal_lat').value = suc.lat || '';
+                            document.getElementById('renting_sucursal_lng').value = suc.lng || '';
+                            document.getElementById('renting_sucursal_sort_order').value = suc.sort_order || 0;
+                            document.getElementById('renting_sucursal_active').checked = suc.active === true || suc.active === 'true' || suc.active == 1;
+                            document.getElementById('rentingSucursalSubmitText').textContent = 'Guardar cambios';
+                            document.getElementById('rentingSucursalCancelBtn').classList.remove('d-none');
+                            document.getElementById('rentingSucursalForm').scrollIntoView({behavior: 'smooth'});
+                        }
+                        function resetRentingSucursalForm() {
+                            document.getElementById('rentingSucursalFormTitle').innerHTML = '<i class="bi bi-geo-alt-fill me-2 text-danger"></i>Agregar sucursal (Renting)';
+                            document.getElementById('rentingSucursalFormAction').value = 'add_renting_sucursal';
+                            document.getElementById('rentingSucursalFormId').value = '';
+                            document.getElementById('rentingSucursalForm').reset();
+                            document.getElementById('renting_sucursal_active').checked = true;
+                            document.getElementById('rentingSucursalSubmitText').textContent = 'Agregar sucursal';
+                            document.getElementById('rentingSucursalCancelBtn').classList.add('d-none');
+                        }
+                        </script>
+                    </div>
+
                     <!-- TAB: RENTING OPINIONES -->
                     <div class="tab-pane fade" id="tab-renting-opiniones" role="tabpanel" aria-labelledby="tab-renting-opiniones-nav">
                         <div class="admin-card">

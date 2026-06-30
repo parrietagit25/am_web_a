@@ -828,3 +828,95 @@ elseif ($action === 'save_renting_branches') {
         $errorMsg = 'Error al guardar las sucursales de Renting.';
     }
 }
+
+// ADD RENTING SUCURSAL
+elseif ($action === 'add_renting_sucursal') {
+    if (!isset($siteData['renting']['sucursales'])) {
+        $siteData['renting']['sucursales'] = [];
+    }
+    $name    = trim($_POST['renting_sucursal_name']    ?? '');
+    $address = trim($_POST['renting_sucursal_address'] ?? '');
+    $lat     = trim($_POST['renting_sucursal_lat']     ?? '');
+    $lng     = trim($_POST['renting_sucursal_lng']     ?? '');
+    if (!empty($name) && !empty($address) && $lat !== '' && $lng !== '') {
+        $existingIds = array_map('intval', array_column($siteData['renting']['sucursales'], 'id'));
+        $newId = !empty($existingIds) ? (max($existingIds) + 1) : 1;
+        $siteData['renting']['sucursales'][] = [
+            'id'         => $newId,
+            'name'       => $name,
+            'location'   => trim($_POST['renting_sucursal_location']       ?? ''),
+            'address'    => $address,
+            'schedule'   => trim($_POST['renting_sucursal_schedule']       ?? ''),
+            'phone'      => trim($_POST['renting_sucursal_phone']          ?? ''),
+            'email'      => trim($_POST['renting_sucursal_email']          ?? ''),
+            'whatsapp'   => trim($_POST['renting_sucursal_whatsapp']       ?? ''),
+            'map_url'    => trim($_POST['renting_sucursal_map_url']        ?? ''),
+            'lat'        => $lat,
+            'lng'        => $lng,
+            'sort_order' => intval($_POST['renting_sucursal_sort_order']   ?? 0),
+            'active'     => isset($_POST['renting_sucursal_active']) && $_POST['renting_sucursal_active'] == '1',
+        ];
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Sucursal de Renting agregada correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar la sucursal.';
+        }
+    } else {
+        $errorMsg = 'Nombre, dirección, latitud y longitud son obligatorios.';
+    }
+}
+
+// EDIT RENTING SUCURSAL
+elseif ($action === 'edit_renting_sucursal') {
+    $id = intval($_POST['renting_sucursal_id'] ?? 0);
+    if (!isset($siteData['renting']['sucursales'])) {
+        $siteData['renting']['sucursales'] = [];
+    }
+    $foundIdx = -1;
+    foreach ($siteData['renting']['sucursales'] as $idx => $item) {
+        if (intval($item['id']) === $id) {
+            $foundIdx = $idx;
+            break;
+        }
+    }
+    if ($foundIdx !== -1) {
+        $siteData['renting']['sucursales'][$foundIdx] = [
+            'id'         => $id,
+            'name'       => trim($_POST['renting_sucursal_name']       ?? ''),
+            'location'   => trim($_POST['renting_sucursal_location']   ?? ''),
+            'address'    => trim($_POST['renting_sucursal_address']    ?? ''),
+            'schedule'   => trim($_POST['renting_sucursal_schedule']   ?? ''),
+            'phone'      => trim($_POST['renting_sucursal_phone']      ?? ''),
+            'email'      => trim($_POST['renting_sucursal_email']      ?? ''),
+            'whatsapp'   => trim($_POST['renting_sucursal_whatsapp']   ?? ''),
+            'map_url'    => trim($_POST['renting_sucursal_map_url']    ?? ''),
+            'lat'        => trim($_POST['renting_sucursal_lat']        ?? ''),
+            'lng'        => trim($_POST['renting_sucursal_lng']        ?? ''),
+            'sort_order' => intval($_POST['renting_sucursal_sort_order'] ?? 0),
+            'active'     => isset($_POST['renting_sucursal_active']) && $_POST['renting_sucursal_active'] == '1',
+        ];
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Sucursal de Renting actualizada correctamente.';
+        } else {
+            $errorMsg = 'Error al actualizar la sucursal.';
+        }
+    } else {
+        $errorMsg = 'Sucursal no encontrada.';
+    }
+}
+
+// DELETE RENTING SUCURSAL
+elseif ($action === 'delete_renting_sucursal') {
+    $id = intval($_POST['renting_sucursal_id'] ?? 0);
+    if (!isset($siteData['renting']['sucursales'])) {
+        $siteData['renting']['sucursales'] = [];
+    }
+    $siteData['renting']['sucursales'] = array_values(array_filter($siteData['renting']['sucursales'], function ($item) use ($id) {
+        return intval($item['id']) !== $id;
+    }));
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Sucursal de Renting eliminada correctamente.';
+    } else {
+        $errorMsg = 'Error al eliminar la sucursal.';
+    }
+}
