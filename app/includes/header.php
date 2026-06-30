@@ -194,6 +194,67 @@ $themeRgb = "$r, $g, $b";
         echo '<script type="application/ld+json">' . "\n" . $json . "\n" . '</script>' . "\n";
     })();
     ?>
+    <?php
+    // ── SE11: Schema.org BreadcrumbList JSON-LD global ───────────────────────
+    // Emitido en todas las páginas excepto la raíz (homepage).
+    // Variables con prefijo $_b para evitar colisiones con el scope global.
+    $_bPath     = strtok($_SERVER['REQUEST_URI'] ?? '/', '?');
+    $_bSegments = array_filter(explode('/', trim($_bPath, '/')));
+    $_bBaseUrl  = 'https://www.automarket.com.pa';
+
+    // Item 1: siempre "Inicio"
+    $_bItems = [
+        [
+            '@type'    => 'ListItem',
+            'position' => 1,
+            'name'     => 'Inicio',
+            'item'     => $_bBaseUrl . '/',
+        ],
+    ];
+
+    if (!empty($_bSegments)) {
+        $_bLastSegment = end($_bSegments);
+
+        // Mapa de slugs específicos a etiquetas legibles
+        $_bSlugMap = [
+            'rent-a-car'           => 'Rent A Car',
+            'venta-autos'          => 'Venta de Autos',
+            'leasing-sucursales'   => 'Leasing — Sucursales',
+            'renting-sucursales'   => 'Renting — Sucursales',
+            'seminuevos-sucursales'=> 'Seminuevos — Sucursales',
+            'renting-contactos'    => 'Renting — Contacto',
+            'leasing-contactos'    => 'Leasing — Contacto',
+            'leasing-flota'        => 'Leasing — Flota',
+            'rent-a-car-contactos' => 'Rent A Car — Contacto',
+            'contenido-reciente'   => 'Novedades',
+        ];
+
+        // Eliminar extensión .php antes de buscar en el mapa
+        $_bSlug  = str_replace('.php', '', $_bLastSegment);
+        $_bLabel = $_bSlugMap[$_bSlug] ?? ucwords(str_replace(['-', '_'], ' ', $_bSlug));
+
+        // No agregar si es index o raíz vacía
+        if ($_bLabel !== '' && strtolower($_bLabel) !== 'index') {
+            $_bItems[] = [
+                '@type'    => 'ListItem',
+                'position' => 2,
+                'name'     => $_bLabel,
+                'item'     => $_bBaseUrl . $_bPath,
+            ];
+        }
+    }
+
+    // Solo emitir fuera de la homepage (más de 1 item)
+    if (count($_bItems) > 1):
+        $_bBcSchema = [
+            '@context'        => 'https://schema.org',
+            '@type'           => 'BreadcrumbList',
+            'itemListElement' => $_bItems,
+        ];
+        $json = json_encode($_bBcSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        echo '<script type="application/ld+json">' . "\n" . $json . "\n" . '</script>' . "\n";
+    endif;
+    ?>
 </head>
 <body class="theme-<?php echo esc($currentUnit['key']); ?>">
 <?php if (!empty(trim((string)($trackingCodes['body_start_html'] ?? '')))): ?>
