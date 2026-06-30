@@ -1760,7 +1760,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     
-    // 37. SAVE LEASING HOME CONTENT
+    // 37. SAVE SEMINUEVOS CONTACT IMAGE
+    elseif ($action === 'save_semi_contact_image') {
+        if (!isset($siteData['seminuevos'])) {
+            $siteData['seminuevos'] = [];
+        }
+        if (isset($_FILES['semi_contact_image']) && $_FILES['semi_contact_image']['error'] === UPLOAD_ERR_OK) {
+            $uploadedPath = $contentService->uploadImage($_FILES['semi_contact_image'], 'semi_contact_img_');
+            if ($uploadedPath) {
+                $siteData['seminuevos']['contact_image_url'] = $uploadedPath;
+            } else {
+                $errorMsg = 'No se pudo subir la imagen de contacto (formato inválido o supera los 5MB).';
+            }
+        }
+        if (empty($errorMsg)) {
+            if ($contentService->saveAll($siteData)) {
+                $successMsg = 'Imagen de contacto de Seminuevos actualizada correctamente.';
+            } else {
+                $errorMsg = 'Error al guardar la imagen de contacto de Seminuevos.';
+            }
+        }
+    }
+
+    // 38. SAVE LEASING HOME CONTENT
     elseif ($action === 'save_leasing_home') {
         if (!isset($siteData['leasing'])) {
             $siteData['leasing'] = [];
@@ -4961,6 +4983,36 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
 
                     <!-- TAB 15: SEMINUEVOS CONTACTO & SUCURSALES -->
                     <div class="tab-pane fade" id="tab-semi-contact" role="tabpanel" aria-labelledby="tab-semi-contact-nav">
+
+                        <!-- CONTACT IMAGE CARD -->
+                        <div class="admin-card mb-4">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-image-fill me-2 text-danger"></i>Imagen de Contacto — Seminuevos
+                            </h5>
+                            <form method="POST" action="?tab=semi-contact" enctype="multipart/form-data">
+                                <input type="hidden" name="action" value="save_semi_contact_image">
+                                <div class="row g-3 align-items-start">
+                                    <div class="col-md-4">
+                                        <?php
+                                        $semiContactImgPreview = trim($siteData['seminuevos']['contact_image_url'] ?? '') ?: '/assets/img/contactos-sn.webp';
+                                        ?>
+                                        <img src="<?php echo htmlspecialchars($semiContactImgPreview, ENT_QUOTES, 'UTF-8'); ?>" alt="Vista previa imagen contacto Seminuevos" class="img-fluid rounded border" style="max-height:180px;object-fit:cover;width:100%;">
+                                        <small class="text-muted d-block mt-1">Imagen actual</small>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label for="semi_contact_image" class="form-label fw-semibold">Subir nueva imagen</label>
+                                        <input type="file" id="semi_contact_image" name="semi_contact_image" class="form-control form-control-premium" accept="image/*">
+                                        <small class="text-muted d-block mt-1">Recomendado: 800x600 px — WebP o JPG</small>
+                                        <div class="mt-3 text-end">
+                                            <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                                <i class="bi bi-cloud-upload-fill"></i> Guardar imagen
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
                         <div class="row g-4">
 
                             <!-- LEFT: SUCURSAL FORM -->

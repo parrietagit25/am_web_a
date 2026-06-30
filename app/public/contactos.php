@@ -212,7 +212,10 @@ $activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
                 </div>
                 <!-- Bottom: Image -->
                 <div class="sn-sidebar-img">
-                    <img src="/assets/img/contactos-sn.webp" alt="Automarket Seminuevos" loading="lazy">
+                    <?php
+                    $semiContactImg = trim($siteData['seminuevos']['contact_image_url'] ?? '') ?: '/assets/img/contactos-sn.webp';
+                    ?>
+                    <img src="<?php echo htmlspecialchars($semiContactImg, ENT_QUOTES, 'UTF-8'); ?>" alt="Automarket Seminuevos" loading="lazy">
                 </div>
             </div>
         </div>
