@@ -777,3 +777,18 @@ elseif ($action === 'save_renting_faqs') {
         $errorMsg = 'Error al guardar las preguntas frecuentes de Renting.';
     }
 }
+elseif ($action === 'save_renting_social_links') {
+    if (!isset($siteData['renting'])) {
+        $siteData['renting'] = [];
+    }
+    $rentingSocialLinks = [];
+    foreach (['facebook', 'instagram', 'linkedin', 'tiktok', 'youtube'] as $rentingNet) {
+        $rentingSocialLinks[$rentingNet] = trim($_POST['renting_social_' . $rentingNet] ?? '');
+    }
+    $siteData['renting']['social_links'] = $rentingSocialLinks;
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Redes sociales de Renting guardadas correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar las redes sociales de Renting.';
+    }
+}

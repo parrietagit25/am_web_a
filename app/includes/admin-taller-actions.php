@@ -582,3 +582,18 @@ elseif ($action === 'save_taller_faqs') {
         $errorMsg = 'Error al guardar las preguntas frecuentes de Taller.';
     }
 }
+elseif ($action === 'save_taller_social_links') {
+    if (!isset($siteData['taller'])) {
+        $siteData['taller'] = [];
+    }
+    $tallerSocialLinks = [];
+    foreach (['facebook', 'instagram', 'linkedin', 'tiktok', 'youtube'] as $tallerNet) {
+        $tallerSocialLinks[$tallerNet] = trim($_POST['taller_social_' . $tallerNet] ?? '');
+    }
+    $siteData['taller']['social_links'] = $tallerSocialLinks;
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Redes sociales de Taller guardadas correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar las redes sociales de Taller.';
+    }
+}

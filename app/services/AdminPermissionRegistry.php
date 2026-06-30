@@ -299,6 +299,11 @@ class AdminPermissionRegistry
             'save_leasing_faqs' => 'leasing_home',
             // Seminuevos FAQs
             'save_seminuevos_faqs' => 'semi_home',
+            // Redes sociales por unidad
+            'save_taller_social_links'     => 'taller_home',
+            'save_renting_social_links'    => 'renting_home',
+            'save_leasing_social_links'    => 'leasing_home',
+            'save_seminuevos_social_links' => 'semi_home',
         ];
     }
 

@@ -2577,6 +2577,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // 59. SAVE LEASING SOCIAL LINKS
+    elseif ($action === 'save_leasing_social_links') {
+        if (!isset($siteData['leasing'])) {
+            $siteData['leasing'] = [];
+        }
+        $leasingSocialLinks = [];
+        foreach (['facebook', 'instagram', 'linkedin', 'tiktok', 'youtube'] as $leasingNet) {
+            $leasingSocialLinks[$leasingNet] = trim($_POST['leasing_social_' . $leasingNet] ?? '');
+        }
+        $siteData['leasing']['social_links'] = $leasingSocialLinks;
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Redes sociales de Leasing guardadas correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar las redes sociales de Leasing.';
+        }
+    }
+
+    // 60. SAVE SEMINUEVOS SOCIAL LINKS
+    elseif ($action === 'save_seminuevos_social_links') {
+        if (!isset($siteData['seminuevos'])) {
+            $siteData['seminuevos'] = [];
+        }
+        $seminuevosSocialLinks = [];
+        foreach (['facebook', 'instagram', 'linkedin', 'tiktok', 'youtube'] as $semiNet) {
+            $seminuevosSocialLinks[$semiNet] = trim($_POST['seminuevos_social_' . $semiNet] ?? '');
+        }
+        $siteData['seminuevos']['social_links'] = $seminuevosSocialLinks;
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Redes sociales de Venta de Autos guardadas correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar las redes sociales de Venta de Autos.';
+        }
+    }
+
     elseif ($action === 'add_landing_page') {
         if (!isset($siteData['landings']) || !is_array($siteData['landings'])) {
             $siteData['landings'] = [];
@@ -4221,6 +4255,33 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 </div>
                             </form>
                         </div>
+
+                        <!-- REDES SOCIALES SEMINUEVOS -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-share-fill me-2 text-danger"></i>Redes sociales (Venta de Autos)
+                            </h5>
+                            <p class="text-muted small mb-4">Ingresa las URLs completas. Deja en blanco las redes que no apliquen.</p>
+                            <?php $semi_social = $seminuevos['social_links'] ?? []; ?>
+                            <form method="POST" action="?tab=semi-home">
+                                <input type="hidden" name="action" value="save_seminuevos_social_links">
+                                <div class="row g-3">
+                                    <?php foreach (['facebook' => 'Facebook', 'instagram' => 'Instagram', 'linkedin' => 'LinkedIn', 'tiktok' => 'TikTok', 'youtube' => 'YouTube'] as $_rsNet => $_rsLabel): ?>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small"><?php echo esc($_rsLabel); ?></label>
+                                        <input type="url" name="seminuevos_social_<?php echo esc($_rsNet); ?>" class="form-control form-control-premium"
+                                               value="<?php echo esc($semi_social[$_rsNet] ?? ''); ?>"
+                                               placeholder="https://www.<?php echo esc($_rsNet); ?>.com/automarket">
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <div class="d-flex justify-content-end mt-4">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar redes sociales
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
 
                     <!-- TAB 11: SEMINUEVOS OPINIONS -->
@@ -5605,6 +5666,33 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     </button>
                                     <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
                                         <i class="bi bi-save"></i> Guardar preguntas frecuentes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- REDES SOCIALES LEASING -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-share-fill me-2 text-danger"></i>Redes sociales (Leasing)
+                            </h5>
+                            <p class="text-muted small mb-4">Ingresa las URLs completas. Deja en blanco las redes que no apliquen.</p>
+                            <?php $leasing_social = $leasing['social_links'] ?? []; ?>
+                            <form method="POST" action="?tab=leasing-home">
+                                <input type="hidden" name="action" value="save_leasing_social_links">
+                                <div class="row g-3">
+                                    <?php foreach (['facebook' => 'Facebook', 'instagram' => 'Instagram', 'linkedin' => 'LinkedIn', 'tiktok' => 'TikTok', 'youtube' => 'YouTube'] as $_rsNet => $_rsLabel): ?>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small"><?php echo esc($_rsLabel); ?></label>
+                                        <input type="url" name="leasing_social_<?php echo esc($_rsNet); ?>" class="form-control form-control-premium"
+                                               value="<?php echo esc($leasing_social[$_rsNet] ?? ''); ?>"
+                                               placeholder="https://www.<?php echo esc($_rsNet); ?>.com/automarket">
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <div class="d-flex justify-content-end mt-4">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar redes sociales
                                     </button>
                                 </div>
                             </form>

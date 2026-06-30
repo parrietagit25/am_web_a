@@ -294,6 +294,33 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                 </div>
                             </form>
                         </div>
+
+                        <!-- REDES SOCIALES RENTING -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-share-fill me-2 text-danger"></i>Redes sociales (Renting)
+                            </h5>
+                            <p class="text-muted small mb-4">Ingresa las URLs completas. Deja en blanco las redes que no apliquen.</p>
+                            <?php $renting_social = $renting['social_links'] ?? []; ?>
+                            <form method="POST" action="?tab=renting-home">
+                                <input type="hidden" name="action" value="save_renting_social_links">
+                                <div class="row g-3">
+                                    <?php foreach (['facebook' => 'Facebook', 'instagram' => 'Instagram', 'linkedin' => 'LinkedIn', 'tiktok' => 'TikTok', 'youtube' => 'YouTube'] as $_rsNet => $_rsLabel): ?>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small"><?php echo esc($_rsLabel); ?></label>
+                                        <input type="url" name="renting_social_<?php echo esc($_rsNet); ?>" class="form-control form-control-premium"
+                                               value="<?php echo esc($renting_social[$_rsNet] ?? ''); ?>"
+                                               placeholder="https://www.<?php echo esc($_rsNet); ?>.com/automarket">
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <div class="d-flex justify-content-end mt-4">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar redes sociales
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
 
                     <!-- TAB: RENTING NUESTROS SERVICIOS -->
