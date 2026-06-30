@@ -526,6 +526,10 @@ document.addEventListener('DOMContentLoaded', function() {
 <?php $ucUnitKey = 'renting'; require __DIR__ . '/../includes/unit-content-home-sections.php'; ?>
 
 <?php
+$_sfItems  = $renting['faqs'] ?? [];
+require __DIR__ . '/../includes/schema-faq.php';
+?>
+<?php
 $_ufsItems = $renting['faqs'] ?? [];
 require __DIR__ . '/../includes/unit-faq-section.php';
 ?>

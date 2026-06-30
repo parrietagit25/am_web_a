@@ -271,8 +271,12 @@ $opiniones = $contentService->get('homepage.opiniones', []);
 // Rent-a-car aún no tiene key propia en site_data; cuando se cree 'rentacar'
 // en el CMS, $_ufsItems se poblará automáticamente sin otro cambio aquí.
 $_racData  = $contentService->get('rentacar', []);
+$_sfItems  = $_racData['faqs'] ?? [];
 $_ufsItems = $_racData['faqs'] ?? [];
 unset($_racData);
+require __DIR__ . '/../includes/schema-faq.php';
+?>
+<?php
 require __DIR__ . '/../includes/unit-faq-section.php';
 ?>
 

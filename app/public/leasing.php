@@ -319,6 +319,10 @@ require __DIR__ . '/../includes/render-header-banner.php';
 <?php $ucUnitKey = 'leasing'; require __DIR__ . '/../includes/unit-content-home-sections.php'; ?>
 
 <?php
+$_sfItems  = $leasingData['faqs'] ?? [];
+require __DIR__ . '/../includes/schema-faq.php';
+?>
+<?php
 $_ufsItems = $leasingData['faqs'] ?? [];
 require __DIR__ . '/../includes/unit-faq-section.php';
 ?>

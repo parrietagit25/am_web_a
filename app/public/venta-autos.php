@@ -648,6 +648,10 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <?php
+$_sfItems  = $seminuevosData['faqs'] ?? [];
+require __DIR__ . '/../includes/schema-faq.php';
+?>
+<?php
 $_ufsItems = $seminuevosData['faqs'] ?? [];
 require __DIR__ . '/../includes/unit-faq-section.php';
 ?>
