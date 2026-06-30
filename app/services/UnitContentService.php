@@ -7,7 +7,7 @@ class UnitContentService
     public const TYPES = ['latest', 'blog', 'news'];
 
     public const TYPE_LABELS = [
-        'latest' => 'Contenido más reciente',
+        'latest' => 'Novedades',
         'blog' => 'Blog',
         'news' => 'Noticias',
     ];
@@ -474,7 +474,7 @@ class UnitContentService
             'latest' => [
                 'banner' => '',
                 'kicker' => 'Destacados',
-                'title' => 'Contenido más reciente',
+                'title' => 'Novedades',
                 'subtitle' => 'Promociones, eventos e información destacada de ' . $label . '.',
                 'align' => 'center',
             ],
