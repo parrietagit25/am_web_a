@@ -2611,6 +2611,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // 61. SAVE LEASING BRANCHES
+    elseif ($action === 'save_leasing_branches') {
+        if (!isset($siteData['leasing'])) {
+            $siteData['leasing'] = [];
+        }
+        $branchNames     = $_POST['branch_name']      ?? [];
+        $branchAddresses = $_POST['branch_address']   ?? [];
+        $branchPhones    = $_POST['branch_phone']     ?? [];
+        $branchWhatsapps = $_POST['branch_whatsapp']  ?? [];
+        $branchEmails    = $_POST['branch_email']     ?? [];
+        $branchSchedules = $_POST['branch_schedule']  ?? [];
+        $branchMapUrls   = $_POST['branch_map_url']   ?? [];
+        $branchImageUrls = $_POST['branch_image_url'] ?? [];
+        $leasingBranches = [];
+        foreach ($branchNames as $i => $n) {
+            $n = trim((string)$n);
+            if ($n === '') {
+                continue;
+            }
+            $leasingBranches[] = [
+                'name'      => $n,
+                'address'   => trim((string)($branchAddresses[$i]  ?? '')),
+                'phone'     => trim((string)($branchPhones[$i]     ?? '')),
+                'whatsapp'  => trim((string)($branchWhatsapps[$i]  ?? '')),
+                'email'     => trim((string)($branchEmails[$i]     ?? '')),
+                'schedule'  => trim((string)($branchSchedules[$i]  ?? '')),
+                'map_url'   => trim((string)($branchMapUrls[$i]    ?? '')),
+                'image_url' => trim((string)($branchImageUrls[$i]  ?? '')),
+            ];
+        }
+        $siteData['leasing']['branches'] = $leasingBranches;
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Sucursales de Leasing guardadas correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar las sucursales de Leasing.';
+        }
+    }
+
+    // 62. SAVE SEMINUEVOS BRANCHES
+    elseif ($action === 'save_seminuevos_branches') {
+        if (!isset($siteData['seminuevos'])) {
+            $siteData['seminuevos'] = [];
+        }
+        $branchNames     = $_POST['branch_name']      ?? [];
+        $branchAddresses = $_POST['branch_address']   ?? [];
+        $branchPhones    = $_POST['branch_phone']     ?? [];
+        $branchWhatsapps = $_POST['branch_whatsapp']  ?? [];
+        $branchEmails    = $_POST['branch_email']     ?? [];
+        $branchSchedules = $_POST['branch_schedule']  ?? [];
+        $branchMapUrls   = $_POST['branch_map_url']   ?? [];
+        $branchImageUrls = $_POST['branch_image_url'] ?? [];
+        $seminuevosBranches = [];
+        foreach ($branchNames as $i => $n) {
+            $n = trim((string)$n);
+            if ($n === '') {
+                continue;
+            }
+            $seminuevosBranches[] = [
+                'name'      => $n,
+                'address'   => trim((string)($branchAddresses[$i]  ?? '')),
+                'phone'     => trim((string)($branchPhones[$i]     ?? '')),
+                'whatsapp'  => trim((string)($branchWhatsapps[$i]  ?? '')),
+                'email'     => trim((string)($branchEmails[$i]     ?? '')),
+                'schedule'  => trim((string)($branchSchedules[$i]  ?? '')),
+                'map_url'   => trim((string)($branchMapUrls[$i]    ?? '')),
+                'image_url' => trim((string)($branchImageUrls[$i]  ?? '')),
+            ];
+        }
+        $siteData['seminuevos']['branches'] = $seminuevosBranches;
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Sucursales de Venta de Autos guardadas correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar las sucursales de Venta de Autos.';
+        }
+    }
+
     elseif ($action === 'add_landing_page') {
         if (!isset($siteData['landings']) || !is_array($siteData['landings'])) {
             $siteData['landings'] = [];
@@ -5356,6 +5432,47 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                             </div>
                         </div>
 
+                        <!-- BRANCHES SEMINUEVOS — datos web por sucursal -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-building me-2 text-danger"></i>Sucursales — datos web (Venta de Autos)
+                            </h5>
+                            <p class="text-muted small mb-4">Información de contacto y ubicación de cada sucursal para el sitio web. El <strong>Nombre</strong> es obligatorio; los demás campos son opcionales.</p>
+                            <?php $semi_branches_ui = $seminuevos['branches'] ?? []; ?>
+                            <form method="POST" action="?tab=semi-contact" id="semiBranchesForm">
+                                <input type="hidden" name="action" value="save_seminuevos_branches">
+                                <div id="semiBranchList">
+                                    <?php if (empty($semi_branches_ui)): ?>
+                                        <p class="text-muted small mb-3" id="semiBranchEmpty">No hay sucursales configuradas. Usa el botón para agregar.</p>
+                                    <?php else: ?>
+                                        <?php foreach ($semi_branches_ui as $b): ?>
+                                        <div class="branch-row border rounded p-3 mb-3 bg-light position-relative" data-branch-row>
+                                            <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amBranchRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
+                                            <div class="row g-2">
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Nombre *</label><input type="text" name="branch_name[]" class="form-control form-control-premium" value="<?php echo esc($b['name'] ?? ''); ?>" placeholder="Ej: Sucursal Tocumen" required></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Dirección</label><input type="text" name="branch_address[]" class="form-control form-control-premium" value="<?php echo esc($b['address'] ?? ''); ?>" placeholder="Ej: Ave. Tocumen, Panamá"></div>
+                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Teléfono</label><input type="text" name="branch_phone[]" class="form-control form-control-premium" value="<?php echo esc($b['phone'] ?? ''); ?>" placeholder="507-XXXX-XXXX"></div>
+                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">WhatsApp</label><input type="text" name="branch_whatsapp[]" class="form-control form-control-premium" value="<?php echo esc($b['whatsapp'] ?? ''); ?>" placeholder="507XXXXXXXX"></div>
+                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Email</label><input type="email" name="branch_email[]" class="form-control form-control-premium" value="<?php echo esc($b['email'] ?? ''); ?>" placeholder="seminuevos@automarket.com"></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Horario</label><input type="text" name="branch_schedule[]" class="form-control form-control-premium" value="<?php echo esc($b['schedule'] ?? ''); ?>" placeholder="Lun–Vie 8:00am–5:00pm"></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Enlace Google Maps</label><input type="url" name="branch_map_url[]" class="form-control form-control-premium" value="<?php echo esc($b['map_url'] ?? ''); ?>" placeholder="https://maps.app.goo.gl/..."></div>
+                                                <div class="col-12"><label class="form-label fw-semibold small text-muted mb-1">URL imagen (opcional)</label><input type="url" name="branch_image_url[]" class="form-control form-control-premium" value="<?php echo esc($b['image_url'] ?? ''); ?>" placeholder="https://..."></div>
+                                            </div>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="amBranchAddRow('semiBranchList','semiBranchEmpty')">
+                                        <i class="bi bi-plus-lg me-1"></i> Agregar sucursal
+                                    </button>
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar sucursales
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
                     </div>
 
                     <!-- TAB 16: LEASING OPERATIVO HOME -->
@@ -5806,6 +5923,47 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+
+                        <!-- BRANCHES LEASING — datos web por sucursal -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-building me-2 text-danger"></i>Sucursales — datos web (Leasing)
+                            </h5>
+                            <p class="text-muted small mb-4">Información de contacto y ubicación de cada sucursal para el sitio web. El <strong>Nombre</strong> es obligatorio; los demás campos son opcionales.</p>
+                            <?php $leasing_branches_ui = $leasing['branches'] ?? []; ?>
+                            <form method="POST" action="?tab=leasing-sucursales" id="leasingBranchesForm">
+                                <input type="hidden" name="action" value="save_leasing_branches">
+                                <div id="leasingBranchList">
+                                    <?php if (empty($leasing_branches_ui)): ?>
+                                        <p class="text-muted small mb-3" id="leasingBranchEmpty">No hay sucursales configuradas. Usa el botón para agregar.</p>
+                                    <?php else: ?>
+                                        <?php foreach ($leasing_branches_ui as $b): ?>
+                                        <div class="branch-row border rounded p-3 mb-3 bg-light position-relative" data-branch-row>
+                                            <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amBranchRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
+                                            <div class="row g-2">
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Nombre *</label><input type="text" name="branch_name[]" class="form-control form-control-premium" value="<?php echo esc($b['name'] ?? ''); ?>" placeholder="Ej: Sucursal Tocumen" required></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Dirección</label><input type="text" name="branch_address[]" class="form-control form-control-premium" value="<?php echo esc($b['address'] ?? ''); ?>" placeholder="Ej: Ave. Tocumen, Panamá"></div>
+                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Teléfono</label><input type="text" name="branch_phone[]" class="form-control form-control-premium" value="<?php echo esc($b['phone'] ?? ''); ?>" placeholder="507-XXXX-XXXX"></div>
+                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">WhatsApp</label><input type="text" name="branch_whatsapp[]" class="form-control form-control-premium" value="<?php echo esc($b['whatsapp'] ?? ''); ?>" placeholder="507XXXXXXXX"></div>
+                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Email</label><input type="email" name="branch_email[]" class="form-control form-control-premium" value="<?php echo esc($b['email'] ?? ''); ?>" placeholder="leasing@automarket.com"></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Horario</label><input type="text" name="branch_schedule[]" class="form-control form-control-premium" value="<?php echo esc($b['schedule'] ?? ''); ?>" placeholder="Lun–Vie 8:00am–5:00pm"></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Enlace Google Maps</label><input type="url" name="branch_map_url[]" class="form-control form-control-premium" value="<?php echo esc($b['map_url'] ?? ''); ?>" placeholder="https://maps.app.goo.gl/..."></div>
+                                                <div class="col-12"><label class="form-label fw-semibold small text-muted mb-1">URL imagen (opcional)</label><input type="url" name="branch_image_url[]" class="form-control form-control-premium" value="<?php echo esc($b['image_url'] ?? ''); ?>" placeholder="https://..."></div>
+                                            </div>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="amBranchAddRow('leasingBranchList','leasingBranchEmpty')">
+                                        <i class="bi bi-plus-lg me-1"></i> Agregar sucursal
+                                    </button>
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar sucursales
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
 
@@ -6261,6 +6419,33 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+// ---- Branch helpers (shared across all units) ----
+function amBranchAddRow(listId, emptyId) {
+    var list = document.getElementById(listId);
+    var empty = document.getElementById(emptyId);
+    if (empty) { empty.style.display = 'none'; }
+    var row = document.createElement('div');
+    row.className = 'branch-row border rounded p-3 mb-3 bg-light position-relative';
+    row.setAttribute('data-branch-row', '');
+    row.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amBranchRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>'
+        + '<div class="row g-2">'
+        + '<div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Nombre *</label><input type="text" name="branch_name[]" class="form-control form-control-premium" placeholder="Ej: Sucursal Tocumen" required></div>'
+        + '<div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Dirección</label><input type="text" name="branch_address[]" class="form-control form-control-premium" placeholder="Ej: Ave. Tocumen, Panamá"></div>'
+        + '<div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Teléfono</label><input type="text" name="branch_phone[]" class="form-control form-control-premium" placeholder="507-XXXX-XXXX"></div>'
+        + '<div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">WhatsApp</label><input type="text" name="branch_whatsapp[]" class="form-control form-control-premium" placeholder="507XXXXXXXX"></div>'
+        + '<div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Email</label><input type="email" name="branch_email[]" class="form-control form-control-premium" placeholder="sucursal@automarket.com"></div>'
+        + '<div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Horario</label><input type="text" name="branch_schedule[]" class="form-control form-control-premium" placeholder="Lun–Vie 8:00am–5:00pm"></div>'
+        + '<div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Enlace Google Maps</label><input type="url" name="branch_map_url[]" class="form-control form-control-premium" placeholder="https://maps.app.goo.gl/..."></div>'
+        + '<div class="col-12"><label class="form-label fw-semibold small text-muted mb-1">URL imagen (opcional)</label><input type="url" name="branch_image_url[]" class="form-control form-control-premium" placeholder="https://..."></div>'
+        + '</div>';
+    list.appendChild(row);
+}
+function amBranchRemoveRow(btn) {
+    var row = btn.closest('[data-branch-row]');
+    if (row) { row.remove(); }
+}
+// ---- end Branch helpers ----
+
 // ---- FAQ helpers (shared across all units) ----
 function amFaqAddRow(listId, emptyId) {
     var list = document.getElementById(listId);

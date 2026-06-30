@@ -304,6 +304,11 @@ class AdminPermissionRegistry
             'save_renting_social_links'    => 'renting_home',
             'save_leasing_social_links'    => 'leasing_home',
             'save_seminuevos_social_links' => 'semi_home',
+            // Branches por unidad (SU1)
+            'save_taller_branches'         => 'taller_sucursales',
+            'save_renting_branches'        => 'renting_home',
+            'save_leasing_branches'        => 'leasing_sucursales',
+            'save_seminuevos_branches'     => 'semi_contact',
         ];
     }
 

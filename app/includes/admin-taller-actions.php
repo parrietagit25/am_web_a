@@ -597,3 +597,39 @@ elseif ($action === 'save_taller_social_links') {
         $errorMsg = 'Error al guardar las redes sociales de Taller.';
     }
 }
+elseif ($action === 'save_taller_branches') {
+    if (!isset($siteData['taller'])) {
+        $siteData['taller'] = [];
+    }
+    $branchNames     = $_POST['branch_name']      ?? [];
+    $branchAddresses = $_POST['branch_address']   ?? [];
+    $branchPhones    = $_POST['branch_phone']     ?? [];
+    $branchWhatsapps = $_POST['branch_whatsapp']  ?? [];
+    $branchEmails    = $_POST['branch_email']     ?? [];
+    $branchSchedules = $_POST['branch_schedule']  ?? [];
+    $branchMapUrls   = $_POST['branch_map_url']   ?? [];
+    $branchImageUrls = $_POST['branch_image_url'] ?? [];
+    $tallerBranches = [];
+    foreach ($branchNames as $i => $n) {
+        $n = trim((string)$n);
+        if ($n === '') {
+            continue;
+        }
+        $tallerBranches[] = [
+            'name'      => $n,
+            'address'   => trim((string)($branchAddresses[$i]  ?? '')),
+            'phone'     => trim((string)($branchPhones[$i]     ?? '')),
+            'whatsapp'  => trim((string)($branchWhatsapps[$i]  ?? '')),
+            'email'     => trim((string)($branchEmails[$i]     ?? '')),
+            'schedule'  => trim((string)($branchSchedules[$i]  ?? '')),
+            'map_url'   => trim((string)($branchMapUrls[$i]    ?? '')),
+            'image_url' => trim((string)($branchImageUrls[$i]  ?? '')),
+        ];
+    }
+    $siteData['taller']['branches'] = $tallerBranches;
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Sucursales de Taller guardadas correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar las sucursales de Taller.';
+    }
+}
