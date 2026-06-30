@@ -107,7 +107,7 @@ elseif ($action === 'save_footer_social') {
         if ($label === '') {
             continue;
         }
-        $networks[] = [
+        $entry = [
             'id' => trim((string) ($ids[$i] ?? '')) ?: ('soc_' . $i . '_' . time()),
             'label' => $label,
             'icon' => trim((string) ($icons[$i] ?? 'bi-link-45deg')) ?: 'bi-link-45deg',
@@ -115,6 +115,7 @@ elseif ($action === 'save_footer_social') {
             'sort_order' => intval($orders[$i] ?? 99),
             'active' => isset($actives[$i]),
         ];
+        $networks[] = FooterService::normalizeSocialEntry($entry);
     }
     usort($networks, fn($a, $b) => $a['sort_order'] - $b['sort_order']);
     $siteData['footer']['social'] = $networks;
