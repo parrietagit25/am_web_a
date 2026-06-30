@@ -656,5 +656,8 @@ $_ufsItems = $seminuevosData['faqs'] ?? [];
 require __DIR__ . '/../includes/unit-faq-section.php';
 ?>
 
-<?php require __DIR__ . '/../includes/unit-payment-social.php'; ?>
+<?php
+$_upsUnitSocialLinks = $seminuevosData['social_links'] ?? [];
+require __DIR__ . '/../includes/unit-payment-social.php';
+?>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
