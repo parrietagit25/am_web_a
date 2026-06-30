@@ -9,13 +9,13 @@ require_once __DIR__ . '/../includes/renting-posts.php';
 $renting = $contentService->get('renting', []);
 require_once __DIR__ . '/../services/HeaderBannerService.php';
 $hbConfig = HeaderBannerService::normalizeFromNode($renting['hero'] ?? []);
-$introTitle = $renting['intro_title'] ?? 'Renting de Autos en Panamá — Anda Siempre en Auto Nuevo';
-$introText = $renting['intro_text'] ?? 'En Automarket Renting te ofrecemos una solución de movilidad simple, eficiente y confiable: accede a un auto nuevo 0 km pagando una cuota mensual fija con todo incluido, sin abono inicial, sin preocupaciones. Solo tienes que elegir tu auto y disfrutar de conducirlo nosotros nos ocupamos del resto.';
-$carsTitle = $renting['cars_section_title'] ?? 'Renting de Autos en Panamá';
-$quoteTitle = $renting['quote_section_title'] ?? 'COTIZA TU PLAN DE RENTING';
-$quoteIntro = $renting['quote_intro'] ?? 'Déjanos tus datos para que uno de nuestros asesores se ponga en contacto contigo si quieres saber más.';
-$brandsTitle = $renting['brands_title'] ?? 'MARCAS ALIADAS';
-$opinionsTitle = $renting['opinions_title'] ?? 'Lo que opinan nuestros clientes de nosotros...';
+$introTitle = trim($renting['intro_title'] ?? '') ?: 'Soluciones de renting para empresas';
+$introText = trim($renting['intro_text'] ?? '') ?: 'En Automarket Renting te ofrecemos una solución de movilidad simple, eficiente y confiable: accede a un auto nuevo 0 km pagando una cuota mensual fija con todo incluido, sin abono inicial, sin preocupaciones. Solo tienes que elegir tu auto y disfrutar de conducirlo nosotros nos ocupamos del resto.';
+$carsTitle = trim($renting['cars_section_title'] ?? '') ?: 'Renting de Autos en Panamá';
+$quoteTitle = trim($renting['quote_section_title'] ?? '') ?: 'COTIZA TU PLAN DE RENTING';
+$quoteIntro = trim($renting['quote_intro'] ?? '') ?: 'Déjanos tus datos para que uno de nuestros asesores se ponga en contacto contigo si quieres saber más.';
+$brandsTitle = trim($renting['brands_title'] ?? '') ?: 'MARCAS ALIADAS';
+$opinionsTitle = trim($renting['opinions_title'] ?? '') ?: 'Lo que opinan nuestros clientes de nosotros...';
 $quoteSideImage = $renting['quote_side_image_url'] ?? '';
 
 $rentingCars = array_values(array_filter($renting['cars'] ?? [], function ($c) {
