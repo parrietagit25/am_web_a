@@ -32,6 +32,9 @@ $activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
 .sn-howto-btn:hover { background: #a81812; color: #fff; transform: translateY(-1px); }
 .sn-section-title { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; color: #0b1f6b; }
 .sn-section-title span { color: #c51f17; }
+/* Preview primera sucursal */
+.sn-accordion-item--principal { border-left: 4px solid #c51f17 !important; }
+.sn-badge-principal { display: inline-flex; align-items: center; gap: 5px; background: #c51f17; color: #fff; font-family: 'Montserrat', sans-serif; font-size: .68rem; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; padding: 3px 10px; border-radius: 50px; vertical-align: middle; margin-left: 10px; }
 </style>
 
 <section class="sn-breadcrumb-strip py-4">
@@ -76,7 +79,7 @@ $activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
                 $sucName = addslashes(esc($suc['name']));
                 $sucAddr = addslashes(esc($suc['address'] ?? ''));
             ?>
-            <div class="accordion-item sn-accordion-item">
+            <div class="accordion-item sn-accordion-item<?php echo $isFirst ? ' sn-accordion-item--principal' : ''; ?>">
                 <h2 class="accordion-header mb-0">
                     <button class="accordion-button sn-accordion-btn <?php echo $isFirst ? '' : 'collapsed'; ?>"
                             type="button" data-bs-toggle="collapse"
@@ -85,6 +88,7 @@ $activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
                             aria-controls="<?php echo $collapseId; ?>">
                         <i class="bi bi-geo-alt-fill me-2 fs-5"></i>
                         <?php echo esc($suc['name']); ?>
+                        <?php if ($isFirst): ?><span class="sn-badge-principal"><i class="bi bi-star-fill"></i>Principal</span><?php endif; ?>
                     </button>
                 </h2>
                 <div id="<?php echo $collapseId; ?>" class="accordion-collapse collapse <?php echo $isFirst ? 'show' : ''; ?>" data-bs-parent="#snSucursalesAccordion">
@@ -141,7 +145,10 @@ $activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
                 var addr = '<?php echo $sucAddr; ?>';
                 var collapse = document.getElementById('<?php echo $collapseId; ?>');
                 function initMap() {
-                    if (map) { map.invalidateSize(); marker.openPopup(); return; }
+                    if (map) {
+                        setTimeout(function() { map.invalidateSize(); marker.openPopup(); }, 50);
+                        return;
+                    }
                     map = L.map('snmap_<?php echo $id; ?>').setView([lat, lng], 16);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -149,10 +156,13 @@ $activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
                     marker = L.marker([lat, lng]).addTo(map)
                         .bindPopup('<span class="fw-bold text-navy">' + name + '</span><br><small class="text-muted">' + addr + '</small>');
                     marker.openPopup();
+                    setTimeout(function() { map.invalidateSize(); }, 100);
                 }
                 collapse.addEventListener('shown.bs.collapse', initMap);
                 <?php if ($isFirst): ?>
-                document.addEventListener('DOMContentLoaded', function() { setTimeout(initMap, 250); });
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(initMap, 400);
+                });
                 <?php endif; ?>
             })();
             </script>
