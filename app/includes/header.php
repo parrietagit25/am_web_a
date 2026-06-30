@@ -123,6 +123,77 @@ $themeRgb = "$r, $g, $b";
     <?php if (!empty(trim((string)($trackingCodes['head_html'] ?? '')))): ?>
     <?php echo $trackingCodes['head_html']; ?>
     <?php endif; ?>
+    <?php
+    // ── SE6: Schema.org Organization JSON-LD global ──────────────────────────
+    // Emitido una sola vez por request desde este include global.
+    // Los valores se leen de variables ya disponibles ($siteGlobal, $seo).
+    // Las redes sociales se filtran: solo se incluyen URLs que comiencen por
+    // "http" — evita emitir "#" o cadenas vacías en sameAs.
+    (function() use ($siteGlobal, $seo): void {
+        $siteUrl  = 'https://www.automarket.com.pa';
+        $logoUrl  = $siteUrl . '/assets/img/logo.png';
+
+        // Teléfono: convertir "(507) 279-2700" → "+507279-2700" formato E.164 parcial
+        $rawPhone = (string)($siteGlobal['phone_display'] ?? '');
+        $phone    = '';
+        if ($rawPhone !== '') {
+            $digits = preg_replace('/\D/', '', $rawPhone); // "5072792700"
+            $phone  = '+' . $digits;
+        }
+
+        // Dirección
+        $address = trim((string)($siteGlobal['address'] ?? ''));
+
+        // Redes sociales desde footer > social; filtra URLs no válidas
+        $socialRaw = $siteGlobal['footer']['social'] ?? [];
+        if (empty($socialRaw) && class_exists('FooterService')) {
+            try {
+                $fs = new FooterService();
+                $socialRaw = $fs->getFooter()['social'] ?? [];
+            } catch (\Throwable $e) {
+                $socialRaw = [];
+            }
+        }
+        $sameAs = [];
+        foreach ($socialRaw as $sn) {
+            $url = trim((string)($sn['url'] ?? ''));
+            $active = $sn['active'] ?? true;
+            if ($active && str_starts_with($url, 'http')) {
+                $sameAs[] = $url;
+            }
+        }
+
+        // Construir el objeto Schema
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type'    => 'AutoDealer',
+            'name'     => 'Automarket',
+            'url'      => $siteUrl,
+            'logo'     => [
+                '@type' => 'ImageObject',
+                'url'   => $logoUrl,
+            ],
+        ];
+
+        if ($phone !== '') {
+            $schema['telephone'] = $phone;
+        }
+        if ($address !== '') {
+            $schema['address'] = [
+                '@type'          => 'PostalAddress',
+                'streetAddress'  => $address,
+                'addressLocality'=> 'Ciudad de Panamá',
+                'addressCountry' => 'PA',
+            ];
+        }
+        if (!empty($sameAs)) {
+            $schema['sameAs'] = array_values($sameAs);
+        }
+
+        $json = json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        echo '<script type="application/ld+json">' . "\n" . $json . "\n" . '</script>' . "\n";
+    })();
+    ?>
 </head>
 <body class="theme-<?php echo esc($currentUnit['key']); ?>">
 <?php if (!empty(trim((string)($trackingCodes['body_start_html'] ?? '')))): ?>
