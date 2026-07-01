@@ -773,7 +773,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'schedule' => $schedule,
                 'phone' => $phone,
                 'lat' => $lat,
-                'lng' => $lng
+                'lng' => $lng,
+                'sort_order' => intval($_POST['sucursal_sort_order'] ?? 0),
+                'active'     => isset($_POST['sucursal_active']) && $_POST['sucursal_active'] == '1',
             ];
 
             if ($contentService->saveAll($siteData)) {
@@ -830,7 +832,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'schedule' => $schedule,
                 'phone' => $phone,
                 'lat' => $lat,
-                'lng' => $lng
+                'lng' => $lng,
+                'sort_order' => intval($_POST['sucursal_sort_order'] ?? 0),
+                'active'     => isset($_POST['sucursal_active']) && $_POST['sucursal_active'] == '1',
             ];
 
             if ($contentService->saveAll($siteData)) {
@@ -3907,6 +3911,20 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="sucursal_lng" class="form-label">Longitud (Para Mapa)</label>
                                         <input type="text" id="sucursal_lng" name="sucursal_lng" class="form-control form-control-premium" placeholder="Ej: -79.387593">
                                     </div>
+
+                                    <!-- Sort Order -->
+                                    <div class="col-md-4">
+                                        <label for="sucursal_sort_order" class="form-label">Orden</label>
+                                        <input type="number" id="sucursal_sort_order" name="sucursal_sort_order" class="form-control form-control-premium" value="0" min="0">
+                                    </div>
+
+                                    <!-- Active -->
+                                    <div class="col-md-4 d-flex align-items-center pt-2">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="sucursal_active" name="sucursal_active" value="1" checked>
+                                            <label class="form-check-label fw-semibold" for="sucursal_active">Sucursal activa</label>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="text-end mt-4 d-flex justify-content-end gap-2">
@@ -3933,13 +3951,15 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                             <th>Dirección</th>
                                             <th>Horario / Teléfono</th>
                                             <th>Coordenadas</th>
+                                            <th class="text-center">Orden</th>
+                                            <th class="text-center">Activa</th>
                                             <th style="width: 100px;" class="text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty($homepage['sucursales'])): ?>
                                             <tr>
-                                                <td colspan="6" class="text-center py-4 text-muted">No hay sucursales registradas.</td>
+                                                <td colspan="8" class="text-center py-4 text-muted">No hay sucursales registradas.</td>
                                             </tr>
                                         <?php else: ?>
                                             <?php foreach ($homepage['sucursales'] as $suc): ?>
@@ -3962,6 +3982,8 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                 <td>
                                                     <span class="badge bg-light text-dark font-monospace"><?php echo esc($suc['lat']); ?>, <?php echo esc($suc['lng']); ?></span>
                                                 </td>
+                                                <td class="text-center"><span class="badge bg-secondary"><?php echo intval($suc['sort_order'] ?? 0); ?></span></td>
+                                                <td class="text-center"><?php if (!isset($suc['active']) || $suc['active']): ?><span class="badge bg-success-subtle text-success border border-success-subtle">Sí</span><?php else: ?><span class="badge bg-secondary-subtle text-secondary border">No</span><?php endif; ?></td>
                                                 <td class="text-center">
                                                     <div class="d-flex justify-content-center gap-1">
                                                         <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditSucursal(<?php echo json_encode($suc, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'><i class="bi bi-pencil-fill"></i></button>
@@ -6655,6 +6677,8 @@ function initEditSucursal(suc) {
     document.getElementById('sucursal_phone').value = suc.phone || '';
     document.getElementById('sucursal_lat').value = suc.lat || '';
     document.getElementById('sucursal_lng').value = suc.lng || '';
+    document.getElementById('sucursal_sort_order').value = suc.sort_order ?? 0;
+    document.getElementById('sucursal_active').checked = !Object.prototype.hasOwnProperty.call(suc, 'active') || suc.active === true || suc.active === 1 || suc.active === '1';
 
     document.getElementById('sucursalCancelBtn').classList.remove('d-none');
     document.getElementById('sucursalSubmitBtn').className = 'btn btn-primary d-inline-flex align-items-center gap-2';
