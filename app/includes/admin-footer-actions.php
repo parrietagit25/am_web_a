@@ -180,6 +180,52 @@ elseif ($action === 'delete_footer_sucursal') {
         $errorMsg = 'Error al eliminar la sucursal.';
     }
 }
+elseif ($action === 'save_footer_columns') {
+    $colTitle = trim($_POST['col_title'] ?? 'Recursos');
+    $links = [];
+    $labels = $_POST['res_label'] ?? [];
+    $urls = $_POST['res_url'] ?? [];
+    $orders = $_POST['res_order'] ?? [];
+    $ids = $_POST['res_id'] ?? [];
+    $actives = $_POST['res_active'] ?? [];
+
+    foreach ($labels as $i => $label) {
+        $label = trim((string) $label);
+        $url = trim((string) ($urls[$i] ?? ''));
+        if ($label === '' || $url === '') {
+            continue;
+        }
+        $links[] = [
+            'id' => trim((string) ($ids[$i] ?? '')) ?: ('res_' . $i . '_' . time()),
+            'label' => $label,
+            'url' => $url,
+            'sort_order' => intval($orders[$i] ?? 99),
+            'active' => isset($actives[$i]),
+        ];
+    }
+    usort($links, fn($a, $b) => $a['sort_order'] - $b['sort_order']);
+
+    $columns = $siteData['footer']['columns'] ?? [];
+    $found = false;
+    foreach ($columns as $ci => $col) {
+        if (($col['id'] ?? '') === 'recursos') {
+            $columns[$ci]['title'] = $colTitle;
+            $columns[$ci]['links'] = $links;
+            $found = true;
+            break;
+        }
+    }
+    if (!$found) {
+        $columns[] = ['id' => 'recursos', 'title' => $colTitle, 'links' => $links];
+    }
+    $siteData['footer']['columns'] = $columns;
+
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Columna "Recursos" actualizada.';
+    } else {
+        $errorMsg = 'Error al guardar la columna de Recursos.';
+    }
+}
 elseif ($action === 'sync_footer_sucursales') {
     if (!isset($siteData['footer']['sucursales'])) {
         $siteData['footer']['sucursales'] = [];

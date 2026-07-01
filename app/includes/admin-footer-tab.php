@@ -8,6 +8,12 @@ $footerAlsoKnow = $footerData['also_know'];
 $footerSocial = $footerData['social'];
 $footerSucursales = $footerData['sucursales'];
 $footerBlogPosts = $footerService->collectAllBlogPosts();
+$footerColumns = $footerData['columns'] ?? [];
+$footerRecursos = ['id' => 'recursos', 'title' => 'Recursos', 'links' => []];
+foreach ($footerColumns as $_col) {
+    if (($_col['id'] ?? '') === 'recursos') { $footerRecursos = $_col; break; }
+}
+unset($_col);
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $publicBase = $scheme . '://' . $host;
@@ -32,6 +38,7 @@ $publicBase = $scheme . '://' . $host;
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-blog" type="button">Blog</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-social" type="button">Redes sociales</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-also" type="button">Conoce también</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-recursos" type="button">Recursos</button></li>
     </ul>
 
     <div class="tab-content">
@@ -280,6 +287,32 @@ $publicBase = $scheme . '://' . $host;
                 </form>
             </div>
         </div>
+
+        <!-- RECURSOS (columna del footer) -->
+        <div class="tab-pane fade" id="footer-sub-recursos">
+            <div class="admin-card">
+                <form method="POST" action="?tab=footer">
+                    <input type="hidden" name="action" value="save_footer_columns">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Título de la columna</label>
+                        <input type="text" name="col_title" class="form-control form-control-premium" value="<?php echo esc($footerRecursos['title'] ?? 'Recursos'); ?>">
+                    </div>
+                    <div id="footerResRows">
+                        <?php foreach ($footerRecursos['links'] as $i => $link): ?>
+                        <div class="row g-2 align-items-end mb-2 footer-res-row">
+                            <input type="hidden" name="res_id[]" value="<?php echo esc($link['id'] ?? ''); ?>">
+                            <div class="col-md-4"><input type="text" name="res_label[]" class="form-control form-control-premium" placeholder="Etiqueta" value="<?php echo esc($link['label'] ?? ''); ?>"></div>
+                            <div class="col-md-5"><input type="text" name="res_url[]" class="form-control form-control-premium" placeholder="/ruta o https://..." value="<?php echo esc($link['url'] ?? ''); ?>"></div>
+                            <div class="col-md-2"><input type="number" name="res_order[]" class="form-control form-control-premium" value="<?php echo esc((string)($link['sort_order'] ?? 99)); ?>"></div>
+                            <div class="col-md-1"><div class="form-check"><input class="form-check-input" type="checkbox" name="res_active[<?php echo $i; ?>]" <?php echo !empty($link['active']) ? 'checked' : ''; ?>><label class="form-check-label small">On</label></div></div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mb-3" onclick="addFooterResRow()"><i class="bi bi-plus"></i> Agregar enlace</button>
+                    <div class="text-end"><button type="submit" class="btn btn-premium"><i class="bi bi-save"></i> Guardar Recursos</button></div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -307,6 +340,18 @@ function addFooterAlsoRow() {
         '<div class="col-md-5"><input type="text" name="also_url[]" class="form-control form-control-premium" placeholder="/ruta"></div>' +
         '<div class="col-md-2"><input type="number" name="also_order[]" class="form-control form-control-premium" value="99"></div>' +
         '<div class="col-md-1"><div class="form-check"><input class="form-check-input" type="checkbox" name="also_active[' + idx + ']"><label class="form-check-label small">On</label></div></div>';
+    wrap.appendChild(div);
+}
+function addFooterResRow() {
+    const wrap = document.getElementById('footerResRows');
+    const idx = wrap.querySelectorAll('.footer-res-row').length;
+    const div = document.createElement('div');
+    div.className = 'row g-2 align-items-end mb-2 footer-res-row';
+    div.innerHTML = '<input type="hidden" name="res_id[]" value="">' +
+        '<div class="col-md-4"><input type="text" name="res_label[]" class="form-control form-control-premium" placeholder="Etiqueta"></div>' +
+        '<div class="col-md-5"><input type="text" name="res_url[]" class="form-control form-control-premium" placeholder="/ruta"></div>' +
+        '<div class="col-md-2"><input type="number" name="res_order[]" class="form-control form-control-premium" value="99"></div>' +
+        '<div class="col-md-1"><div class="form-check"><input class="form-check-input" type="checkbox" name="res_active[' + idx + ']"><label class="form-check-label small">On</label></div></div>';
     wrap.appendChild(div);
 }
 function editFooterSucursal(s) {
