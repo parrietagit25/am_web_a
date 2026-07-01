@@ -169,6 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $siteData['seo']['global'] = [
             'site_name' => trim($_POST['seo_site_name'] ?? 'Automarket'),
+            'default_title' => trim($_POST['seo_default_title'] ?? ''),
             'title_suffix' => trim($_POST['seo_title_suffix'] ?? '| Automarket'),
             'default_description' => trim($_POST['seo_default_description'] ?? ''),
             'default_og_image' => trim($_POST['seo_default_og_image'] ?? ''),
