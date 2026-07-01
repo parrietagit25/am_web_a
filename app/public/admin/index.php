@@ -1687,7 +1687,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'schedule'   => trim($_POST['suc_schedule'] ?? ''),
             'map_url'    => trim($_POST['suc_map_url'] ?? ''),
             'sort_order' => intval($_POST['suc_sort_order'] ?? 99),
-            'active'     => true
+            'active'     => isset($_POST['suc_active']) && $_POST['suc_active'] == '1',
         ];
         if ($contentService->saveAll($siteData)) {
             $successMsg = 'Sucursal de Seminuevos agregada correctamente.';
@@ -1715,7 +1715,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'schedule'   => trim($_POST['suc_schedule'] ?? ''),
                     'map_url'    => trim($_POST['suc_map_url'] ?? ''),
                     'sort_order' => intval($_POST['suc_sort_order'] ?? 99),
-                    'active'     => $s['active'] ?? true
+                    'active'     => isset($_POST['suc_active']) && $_POST['suc_active'] == '1',
                 ];
                 $found = true;
                 break;
@@ -5312,6 +5312,12 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                             <textarea id="suc_map_url" name="suc_map_url" class="form-control form-control-premium" rows="3" placeholder="https://www.google.com/maps/embed?pb=..."></textarea>
                                             <div class="form-text">Ir a Google Maps → Compartir → Incorporar un mapa → Copiar el src del iframe.</div>
                                         </div>
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" role="switch" id="suc_active" name="suc_active" value="1" checked>
+                                                <label class="form-check-label fw-semibold" for="suc_active">Sucursal activa</label>
+                                            </div>
+                                        </div>
 
                                         <div class="text-end d-flex justify-content-end gap-2 mt-4">
                                             <button type="button" class="btn btn-outline-secondary d-none" id="semiSucCancelBtn" onclick="resetSemiSucursalForm()">Cancelar</button>
@@ -5337,13 +5343,14 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                     <th>Sucursal</th>
                                                     <th>Contacto</th>
                                                     <th>Horario</th>
+                                                    <th class="text-center">Activa</th>
                                                     <th style="width:110px;" class="text-center">Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <?php if (empty($semi_sucursales)): ?>
                                                     <tr>
-                                                        <td colspan="5" class="text-center py-4 text-muted">No hay sucursales registradas.</td>
+                                                        <td colspan="6" class="text-center py-4 text-muted">No hay sucursales registradas.</td>
                                                     </tr>
                                                 <?php else: ?>
                                                     <?php foreach ($semi_sucursales as $suc): ?>
@@ -5362,6 +5369,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                             <td>
                                                                 <small class="text-muted"><?php echo esc($suc['schedule'] ?? ''); ?></small>
                                                             </td>
+                                                            <td class="text-center"><?php if (!isset($suc['active']) || $suc['active']): ?><span class="badge bg-success-subtle text-success border border-success-subtle">Sí</span><?php else: ?><span class="badge bg-secondary-subtle text-secondary border">No</span><?php endif; ?></td>
                                                             <td class="text-center">
                                                                 <div class="d-flex justify-content-center gap-1">
                                                                     <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditSemiSucursal(<?php echo json_encode($suc, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)' title="Editar"><i class="bi bi-pencil-fill"></i></button>
@@ -7391,6 +7399,7 @@ function initEditSemiSucursal(suc) {
     document.getElementById('suc_schedule').value = suc.schedule || '';
     document.getElementById('suc_sort_order').value = suc.sort_order || 99;
     document.getElementById('suc_map_url').value = suc.map_url || '';
+    document.getElementById('suc_active').checked = !Object.prototype.hasOwnProperty.call(suc, 'active') || suc.active === true || suc.active === 1 || suc.active === '1';
 
     document.getElementById('semiSucCancelBtn').classList.remove('d-none');
     document.getElementById('semiSucSubmitBtn').className = 'btn btn-primary d-inline-flex align-items-center gap-2';
