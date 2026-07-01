@@ -5,7 +5,18 @@
 $activeUnit = 'taller';
 require_once __DIR__ . '/../includes/header.php';
 
-$sucursales = $contentService->get('taller.sucursales', []);
+$sucursalesRaw = $contentService->get('taller.sucursales', []);
+
+$sucursales = array_values(array_filter($sucursalesRaw, function ($s) {
+    return !isset($s['active']) || $s['active'] === true || $s['active'] === 'true' || $s['active'] == 1;
+}));
+
+usort($sucursales, function ($a, $b) {
+    $oa = intval($a['sort_order'] ?? 0);
+    $ob = intval($b['sort_order'] ?? 0);
+    return $oa !== $ob ? $oa - $ob : strcasecmp($a['name'] ?? '', $b['name'] ?? '');
+});
+
 $title = $contentService->get('taller.sucursales_title', 'Nuestras Sucursales');
 $subtitle = $contentService->get('taller.sucursales_subtitle', 'Encuentra nuestros talleres y centros de atención.');
 $sideImage = $contentService->get('taller.sucursales_image_url', '');

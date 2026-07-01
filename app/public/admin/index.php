@@ -7180,6 +7180,8 @@ function initEditTallerSucursal(suc) {
     document.getElementById('taller_sucursal_phone').value = suc.phone || '';
     document.getElementById('taller_sucursal_lat').value = suc.lat || '';
     document.getElementById('taller_sucursal_lng').value = suc.lng || '';
+    document.getElementById('taller_sucursal_sort_order').value = suc.sort_order ?? 0;
+    document.getElementById('taller_sucursal_active').checked = !Object.prototype.hasOwnProperty.call(suc, 'active') || suc.active === true || suc.active === 1 || suc.active === '1';
     document.getElementById('tallerSucursalCancelBtn').classList.remove('d-none');
     document.getElementById('tallerSucursalSubmitBtn').className = 'btn btn-primary d-inline-flex align-items-center gap-2';
     document.getElementById('tallerSucursalSubmitText').innerText = 'Guardar sucursal';

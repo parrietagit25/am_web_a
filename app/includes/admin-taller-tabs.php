@@ -565,6 +565,8 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 <div class="col-md-4"><label for="taller_sucursal_phone" class="form-label">Teléfono</label><input type="text" id="taller_sucursal_phone" name="taller_sucursal_phone" class="form-control form-control-premium"></div>
                 <div class="col-md-4"><label for="taller_sucursal_lat" class="form-label">Latitud</label><input type="text" id="taller_sucursal_lat" name="taller_sucursal_lat" class="form-control form-control-premium" required></div>
                 <div class="col-md-4"><label for="taller_sucursal_lng" class="form-label">Longitud</label><input type="text" id="taller_sucursal_lng" name="taller_sucursal_lng" class="form-control form-control-premium" required></div>
+                <div class="col-md-4"><label for="taller_sucursal_sort_order" class="form-label">Orden</label><input type="number" id="taller_sucursal_sort_order" name="taller_sucursal_sort_order" class="form-control form-control-premium" value="0" min="0"></div>
+                <div class="col-md-4 d-flex align-items-center pt-2"><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" role="switch" id="taller_sucursal_active" name="taller_sucursal_active" value="1" checked><label class="form-check-label fw-semibold" for="taller_sucursal_active">Sucursal activa</label></div></div>
             </div>
             <div class="text-end mt-4 d-flex justify-content-end gap-2">
                 <button type="button" class="btn btn-outline-secondary d-none" id="tallerSucursalCancelBtn" onclick="resetTallerSucursalForm()">Cancelar</button>
@@ -578,17 +580,19 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="table-light">
-                    <tr><th>Sucursal</th><th>Dirección</th><th>Horario</th><th>Mapa</th><th style="width:100px;" class="text-center">Acciones</th></tr>
+                    <tr><th>Sucursal</th><th>Dirección</th><th>Horario</th><th>Mapa</th><th class="text-center">Orden</th><th class="text-center">Activa</th><th style="width:100px;" class="text-center">Acciones</th></tr>
                 </thead>
                 <tbody>
                 <?php if (empty($taller_sucursales)): ?>
-                    <tr><td colspan="5" class="text-center py-4 text-muted">No hay sucursales registradas.</td></tr>
+                    <tr><td colspan="7" class="text-center py-4 text-muted">No hay sucursales registradas.</td></tr>
                 <?php else: foreach ($taller_sucursales as $suc): ?>
                     <tr>
                         <td><strong class="text-navy"><?php echo esc($suc['name'] ?? ''); ?></strong><div class="small text-muted"><?php echo esc($suc['location'] ?? ''); ?></div></td>
                         <td><small><?php echo esc($suc['address'] ?? ''); ?></small></td>
                         <td><small><?php echo esc($suc['schedule'] ?? ''); ?></small></td>
                         <td><small class="text-muted"><?php echo esc(($suc['lat'] ?? '') . ', ' . ($suc['lng'] ?? '')); ?></small></td>
+                        <td class="text-center"><span class="badge bg-secondary"><?php echo intval($suc['sort_order'] ?? 0); ?></span></td>
+                        <td class="text-center"><?php if (!isset($suc['active']) || $suc['active']): ?><span class="badge bg-success-subtle text-success border border-success-subtle">Sí</span><?php else: ?><span class="badge bg-secondary-subtle text-secondary border">No</span><?php endif; ?></td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-1">
                                 <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditTallerSucursal(<?php echo json_encode($suc, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'><i class="bi bi-pencil-fill"></i></button>

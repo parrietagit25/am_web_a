@@ -169,14 +169,16 @@ elseif ($action === 'add_taller_sucursal') {
     $lng = trim($_POST['taller_sucursal_lng'] ?? '');
     if (!empty($name) && !empty($address) && $lat !== '' && $lng !== '') {
         $siteData['taller']['sucursales'][] = [
-            'id' => time(),
-            'name' => $name,
-            'location' => $location,
-            'address' => $address,
-            'schedule' => $schedule,
-            'phone' => $phone,
-            'lat' => $lat,
-            'lng' => $lng,
+            'id'         => time(),
+            'name'       => $name,
+            'location'   => $location,
+            'address'    => $address,
+            'schedule'   => $schedule,
+            'phone'      => $phone,
+            'lat'        => $lat,
+            'lng'        => $lng,
+            'sort_order' => intval($_POST['taller_sucursal_sort_order'] ?? 0),
+            'active'     => isset($_POST['taller_sucursal_active']) && $_POST['taller_sucursal_active'] == '1',
         ];
         if ($contentService->saveAll($siteData)) {
             $successMsg = 'Sucursal de Taller agregada correctamente.';
@@ -201,14 +203,16 @@ elseif ($action === 'edit_taller_sucursal') {
     }
     if ($foundIdx !== -1) {
         $siteData['taller']['sucursales'][$foundIdx] = [
-            'id' => $id,
-            'name' => trim($_POST['taller_sucursal_name'] ?? ''),
-            'location' => trim($_POST['taller_sucursal_location'] ?? ''),
-            'address' => trim($_POST['taller_sucursal_address'] ?? ''),
-            'schedule' => trim($_POST['taller_sucursal_schedule'] ?? ''),
-            'phone' => trim($_POST['taller_sucursal_phone'] ?? ''),
-            'lat' => trim($_POST['taller_sucursal_lat'] ?? ''),
-            'lng' => trim($_POST['taller_sucursal_lng'] ?? ''),
+            'id'         => $id,
+            'name'       => trim($_POST['taller_sucursal_name']     ?? ''),
+            'location'   => trim($_POST['taller_sucursal_location'] ?? ''),
+            'address'    => trim($_POST['taller_sucursal_address']  ?? ''),
+            'schedule'   => trim($_POST['taller_sucursal_schedule'] ?? ''),
+            'phone'      => trim($_POST['taller_sucursal_phone']    ?? ''),
+            'lat'        => trim($_POST['taller_sucursal_lat']      ?? ''),
+            'lng'        => trim($_POST['taller_sucursal_lng']      ?? ''),
+            'sort_order' => intval($_POST['taller_sucursal_sort_order'] ?? 0),
+            'active'     => isset($_POST['taller_sucursal_active']) && $_POST['taller_sucursal_active'] == '1',
         ];
         if ($contentService->saveAll($siteData)) {
             $successMsg = 'Sucursal de Taller actualizada correctamente.';
