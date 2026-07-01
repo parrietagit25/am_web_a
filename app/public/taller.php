@@ -161,6 +161,11 @@ require __DIR__ . '/../includes/render-header-banner.php';
 <?php $ucUnitKey = 'taller'; require __DIR__ . '/../includes/unit-content-home-sections.php'; ?>
 
 <?php
+$_unitBranches = $taller['branches'] ?? [];
+require __DIR__ . '/../includes/unit-branches-section.php';
+?>
+
+<?php
 $_sfItems  = $taller['faqs'] ?? [];
 require __DIR__ . '/../includes/schema-faq.php';
 ?>
