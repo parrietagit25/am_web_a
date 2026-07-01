@@ -2097,14 +2097,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($name)) {
             $newId = time();
             $siteData['leasing']['sucursales'][] = [
-                'id' => $newId,
-                'name' => $name,
-                'location' => $location,
-                'address' => $address,
-                'schedule' => $schedule,
-                'phone' => $phone,
-                'lat' => $lat,
-                'lng' => $lng
+                'id'         => $newId,
+                'name'       => $name,
+                'location'   => $location,
+                'address'    => $address,
+                'schedule'   => $schedule,
+                'phone'      => $phone,
+                'lat'        => $lat,
+                'lng'        => $lng,
+                'sort_order' => intval($_POST['leasing_sucursal_sort_order'] ?? 0),
+                'active'     => isset($_POST['leasing_sucursal_active']) && $_POST['leasing_sucursal_active'] == '1',
             ];
 
             if ($contentService->saveAll($siteData)) {
@@ -2142,14 +2144,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($foundIdx !== -1) {
             $siteData['leasing']['sucursales'][$foundIdx] = [
-                'id' => $id,
-                'name' => $name,
-                'location' => $location,
-                'address' => $address,
-                'schedule' => $schedule,
-                'phone' => $phone,
-                'lat' => $lat,
-                'lng' => $lng
+                'id'         => $id,
+                'name'       => $name,
+                'location'   => $location,
+                'address'    => $address,
+                'schedule'   => $schedule,
+                'phone'      => $phone,
+                'lat'        => $lat,
+                'lng'        => $lng,
+                'sort_order' => intval($_POST['leasing_sucursal_sort_order'] ?? 0),
+                'active'     => isset($_POST['leasing_sucursal_active']) && $_POST['leasing_sucursal_active'] == '1',
             ];
 
             if ($contentService->saveAll($siteData)) {
@@ -5857,6 +5861,16 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="leasing_sucursal_lng" class="form-label">Longitud (Para Mapa)</label>
                                         <input type="text" id="leasing_sucursal_lng" name="leasing_sucursal_lng" class="form-control form-control-premium" placeholder="Ej: -79.387593">
                                     </div>
+                                    <div class="col-md-6">
+                                        <label for="leasing_sucursal_sort_order" class="form-label">Orden de visualización</label>
+                                        <input type="number" id="leasing_sucursal_sort_order" name="leasing_sucursal_sort_order" class="form-control form-control-premium" value="0" min="0" placeholder="0">
+                                    </div>
+                                    <div class="col-md-6 d-flex align-items-center pt-2">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" id="leasing_sucursal_active" name="leasing_sucursal_active" value="1" checked>
+                                            <label class="form-check-label fw-semibold" for="leasing_sucursal_active">Sucursal activa</label>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="text-end mt-4 d-flex justify-content-end gap-2">
@@ -5882,13 +5896,15 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                             <th>Dirección</th>
                                             <th>Horario / Teléfono</th>
                                             <th>Coordenadas</th>
+                                            <th class="text-center">Orden</th>
+                                            <th class="text-center">Activa</th>
                                             <th style="width: 100px;" class="text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty($leasing_sucursales)): ?>
                                             <tr>
-                                                <td colspan="6" class="text-center py-4 text-muted">No hay sucursales de Leasing registradas.</td>
+                                                <td colspan="8" class="text-center py-4 text-muted">No hay sucursales de Leasing registradas.</td>
                                             </tr>
                                         <?php else: ?>
                                             <?php foreach ($leasing_sucursales as $suc): ?>
@@ -5906,6 +5922,16 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                 </td>
                                                 <td>
                                                     <span class="badge bg-light text-dark font-monospace"><?php echo esc($suc['lat']); ?>, <?php echo esc($suc['lng']); ?></span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-secondary"><?php echo intval($suc['sort_order'] ?? 0); ?></span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <?php if (!isset($suc['active']) || $suc['active']): ?>
+                                                        <span class="badge bg-success">Sí</span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-secondary">No</span>
+                                                    <?php endif; ?>
                                                 </td>
                                                 <td class="text-center">
                                                     <div class="d-flex justify-content-center gap-1">
@@ -6795,6 +6821,8 @@ function initEditLeasingSucursal(suc) {
     document.getElementById('leasing_sucursal_phone').value = suc.phone || '';
     document.getElementById('leasing_sucursal_lat').value = suc.lat || '';
     document.getElementById('leasing_sucursal_lng').value = suc.lng || '';
+    document.getElementById('leasing_sucursal_sort_order').value = suc.sort_order ?? 0;
+    document.getElementById('leasing_sucursal_active').checked = !Object.prototype.hasOwnProperty.call(suc, 'active') || suc.active === true || suc.active === 1 || suc.active === '1';
 
     document.getElementById('leasingSucursalCancelBtn').classList.remove('d-none');
     document.getElementById('leasingSucursalSubmitBtn').className = 'btn btn-primary d-inline-flex align-items-center gap-2';
