@@ -648,6 +648,11 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <?php
+$_unitBranches = $seminuevosData['branches'] ?? [];
+require __DIR__ . '/../includes/unit-branches-section.php';
+?>
+
+<?php
 $_sfItems  = $seminuevosData['faqs'] ?? [];
 require __DIR__ . '/../includes/schema-faq.php';
 ?>
