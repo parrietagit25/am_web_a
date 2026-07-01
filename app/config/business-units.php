@@ -79,6 +79,7 @@ return [
         'menu' => [
             ['label' => 'NUESTROS SERVICIOS', 'link' => '/renting-servicios.php'],
             ['label' => 'SOBRE NOSOTROS', 'link' => '/renting-sobre-nosotros.php'],
+            ['label' => 'SUCURSALES', 'link' => '/renting-sucursales.php'],
             ['label' => 'CONTACTOS', 'link' => '/renting-contactos.php']
         ],
         'activeClass' => 'active-renting',
