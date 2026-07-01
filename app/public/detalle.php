@@ -9,6 +9,7 @@ $activeUnit = 'seminuevos';
 // con datos reales del vehículo. La clase no tiene efectos colaterales en el
 // bootstrap global; config.php (cargado por header.php) define las constantes DB_*.
 require_once __DIR__ . '/../services/Database.php';
+require_once __DIR__ . '/../services/VehicleSlugHelper.php';
 
 $db        = Database::getInstance();
 $placa     = trim($_GET['placa'] ?? '');
@@ -28,6 +29,12 @@ if (!$vehicle && isset($_GET['id'])) {
         [':id' => intval($_GET['id'])]
     );
 }
+
+// ── SE1C: URL amigable precomputada ──────────────────────────────────────────
+// Disponible para canonical (SE1D) y redirección post-lanzamiento (SE1E).
+// No cambia rutas actuales ni emite nada todavía.
+$_vehicleFriendlyUrl = $vehicle !== null ? VehicleSlugHelper::toDetalleUrl($vehicle) : null;
+// ── fin SE1C ─────────────────────────────────────────────────────────────────
 
 // Construir $seoOverride antes de que header.php lo consuma.
 // header.php (líneas 57-63) aplica las claves de $seoOverride sobre $seo
