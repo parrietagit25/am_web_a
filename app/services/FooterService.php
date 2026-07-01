@@ -190,12 +190,32 @@ class FooterService
 
         $sucursales = $stored['sucursales'] ?? [];
 
+        $columns = $stored['columns'] ?? [];
+        if ($columns === []) {
+            $columns = [
+                [
+                    'id'    => 'recursos',
+                    'title' => 'Recursos',
+                    'links' => [
+                        ['id' => 'res1', 'label' => 'Sobre nosotros',         'url' => '/pagina-institucional.php?p=sobre-nosotros', 'sort_order' => 1, 'active' => true],
+                        ['id' => 'res2', 'label' => 'Términos y condiciones', 'url' => '/pagina-institucional.php?p=terminos',        'sort_order' => 2, 'active' => true],
+                        ['id' => 'res3', 'label' => 'Preguntas frecuentes',   'url' => '/pagina-institucional.php?p=faq',             'sort_order' => 3, 'active' => true],
+                        ['id' => 'res4', 'label' => 'Sucursales',             'url' => '/sucursales-grupo.php',                       'sort_order' => 4, 'active' => true],
+                        ['id' => 'res5', 'label' => 'Sostenibilidad',         'url' => '/sostenibilidad.php',                         'sort_order' => 5, 'active' => true],
+                        ['id' => 'res6', 'label' => 'Subastas',               'url' => '/pagina-institucional.php?p=subastas',         'sort_order' => 6, 'active' => true],
+                        ['id' => 'res7', 'label' => 'Blog',                   'url' => '/blog-grupo.php',                             'sort_order' => 7, 'active' => true],
+                    ],
+                ],
+            ];
+        }
+
         return [
-            'general' => $general,
-            'pages' => $pages,
+            'general'   => $general,
+            'pages'     => $pages,
             'also_know' => $alsoKnow,
-            'social' => $social,
-            'sucursales' => $sucursales,
+            'social'    => $social,
+            'sucursales'=> $sucursales,
+            'columns'   => $columns,
         ];
     }
 
