@@ -50,6 +50,7 @@ class SeoService {
 
         $siteName = trim((string)($seoGlobal['site_name'] ?? 'Automarket'));
         $titleSuffix = trim((string)($seoGlobal['title_suffix'] ?? '| ' . $siteName));
+        $defaultTitle = trim((string)($seoGlobal['default_title'] ?? ''));
         $defaultDesc = trim((string)($seoGlobal['default_description'] ?? $fallbackDescription));
         $defaultOgImage = trim((string)($seoGlobal['default_og_image'] ?? ''));
         $defaultRobots = trim((string)($seoGlobal['default_robots'] ?? 'index,follow'));
@@ -57,7 +58,7 @@ class SeoService {
 
         $title = trim((string)($pageSeo['title'] ?? ''));
         if ($title === '') {
-            $title = trim($fallbackTitle . ' ' . $titleSuffix);
+            $title = $defaultTitle !== '' ? $defaultTitle : trim($fallbackTitle . ' ' . $titleSuffix);
         }
 
         $description = trim((string)($pageSeo['description'] ?? ''));
