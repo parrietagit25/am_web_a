@@ -81,6 +81,10 @@ if ($vehicle) {
         'og_image'       => $_seoImage,
     ];
 
+    if ($_vehicleFriendlyUrl !== null) {
+        $seoOverride['canonical'] = 'https://www.automarket.com.pa' . $_vehicleFriendlyUrl;
+    }
+
     // Limpiar variables temporales del scope
     unset($_seoMake, $_seoModel, $_seoYear, $_seoPrice, $_seoParts, $_seoTitle, $_seoDesc, $_seoImage);
 }

@@ -75,10 +75,15 @@
                 meta: ctx.meta || {}
             };
         }
-        if (path.indexOf('detalle.php') !== -1) {
+        if (path.indexOf('detalle.php') !== -1 || path.indexOf('/autos/') !== -1) {
+            var vehicleId = p.get('placa') || p.get('id') || '';
+            if (vehicleId === '' && path.indexOf('/autos/') !== -1) {
+                var pathSegs = path.split('/').filter(function (s) { return s !== ''; });
+                vehicleId = pathSegs.length >= 2 ? pathSegs[pathSegs.length - 1] : '';
+            }
             return {
                 type: 'vehicle_seminuevo',
-                id: p.get('placa') || p.get('id') || '',
+                id: vehicleId,
                 label: document.title || ''
             };
         }
