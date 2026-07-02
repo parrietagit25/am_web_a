@@ -17,6 +17,7 @@ class SitemapService
         ['path' => '/taller.php', 'changefreq' => 'weekly', 'priority' => '0.8'],
         ['path' => '/financiamiento.php', 'changefreq' => 'monthly', 'priority' => '0.7'],
         ['path' => '/sucursales.php', 'changefreq' => 'monthly', 'priority' => '0.7'],
+        ['path' => '/sucursales-grupo.php', 'changefreq' => 'monthly', 'priority' => '0.7'],
         ['path' => '/seminuevos-sucursales.php', 'changefreq' => 'monthly', 'priority' => '0.7'],
         ['path' => '/leasing-sucursales.php', 'changefreq' => 'monthly', 'priority' => '0.7'],
         ['path' => '/renting-sucursales.php', 'changefreq' => 'monthly', 'priority' => '0.7'],
