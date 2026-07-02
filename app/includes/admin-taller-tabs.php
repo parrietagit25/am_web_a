@@ -98,7 +98,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                     <div class="col-md-4">
                         <label for="taller_team_image_<?php echo $i; ?>" class="form-label fw-semibold">Imagen equipo <?php echo $i; ?></label>
                         <input type="file" id="taller_team_image_<?php echo $i; ?>" name="taller_team_image_<?php echo $i; ?>" class="form-control form-control-premium" accept="image/*">
-                        <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
+                        <small class="text-muted d-block mt-1">Recomendado: 600×600 px (o 800×800) — JPG o WebP</small>
                         <?php if (!empty($taller_team_images[$i - 1])): ?>
                             <div class="mt-2"><img src="<?php echo esc($taller_team_images[$i - 1]); ?>" class="img-thumbnail w-100" style="max-height: 120px; object-fit: cover;" alt="Equipo Taller"></div>
                         <?php endif; ?>
@@ -370,6 +370,15 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
             </div>
         </form>
     </div>
+
+    <?php
+    $ufUnitKey = 'taller';
+    $ufUnitLabel = 'Taller';
+    $ufTabSlug = 'taller-home';
+    $ufSaveAction = 'save_taller_unit_footer';
+    $ufUnitData = $taller;
+    require __DIR__ . '/admin-unit-footer-settings.php';
+    ?>
 </div>
 
 <!-- TAB: TALLER CONTACTO -->
@@ -408,6 +417,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 <div class="col-md-6">
                     <label for="taller_contact_image" class="form-label fw-semibold">Imagen lateral derecha</label>
                     <input type="file" id="taller_contact_image" name="taller_contact_image" class="form-control form-control-premium" accept="image/*">
+                    <small class="text-muted d-block mt-1">Recomendado: 900×700 px aprox. — JPG o WebP</small>
                     <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                     <?php if (!empty($taller_contact['image_url'])): ?>
                         <div class="mt-2"><img src="<?php echo esc($taller_contact['image_url']); ?>" alt="Contacto Taller" class="img-thumbnail" style="max-height: 160px;"></div>

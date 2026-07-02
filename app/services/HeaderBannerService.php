@@ -54,12 +54,14 @@ class HeaderBannerService
             $slides[] = [
                 'image_url' => $url,
                 'alt' => trim((string) ($slide['alt'] ?? '')),
+                'title' => trim((string) ($slide['title'] ?? '')),
+                'subtitle' => trim((string) ($slide['subtitle'] ?? '')),
             ];
         }
         $config['slider']['slides'] = $slides;
 
         if ($config['mode'] === self::MODE_SLIDER && empty($config['slider']['slides']) && $config['image_url'] !== '') {
-            $config['slider']['slides'] = [['image_url' => $config['image_url'], 'alt' => '']];
+            $config['slider']['slides'] = [['image_url' => $config['image_url'], 'alt' => '', 'title' => '', 'subtitle' => '']];
         }
 
         return $config;
@@ -194,6 +196,15 @@ class HeaderBannerService
             if (!is_array($urls)) {
                 $urls = [];
             }
+            $titles = $post[$prefix . '_slide_title'] ?? [];
+            $subtitles = $post[$prefix . '_slide_subtitle'] ?? [];
+            if (!is_array($titles)) {
+                $titles = [];
+            }
+            if (!is_array($subtitles)) {
+                $subtitles = [];
+            }
+            $existingSlides = $existing['slider']['slides'] ?? [];
             $fileKey = $prefix . '_slide_file';
             $fileNames = is_array($files[$fileKey]['name'] ?? null) ? $files[$fileKey]['name'] : [];
             $rowCount = max(count($urls), count($fileNames));
@@ -216,7 +227,12 @@ class HeaderBannerService
                     $url = $uploaded;
                 }
                 if ($url !== '') {
-                    $slides[] = ['image_url' => $url, 'alt' => ''];
+                    $slides[] = [
+                        'image_url' => $url,
+                        'alt' => trim((string) ($existingSlides[$i]['alt'] ?? '')),
+                        'title' => trim((string) ($titles[$i] ?? $existingSlides[$i]['title'] ?? '')),
+                        'subtitle' => trim((string) ($subtitles[$i] ?? $existingSlides[$i]['subtitle'] ?? '')),
+                    ];
                 }
             }
 

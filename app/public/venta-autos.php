@@ -660,7 +660,8 @@ require __DIR__ . '/../includes/unit-faq-section.php';
 ?>
 
 <?php
-$_upsUnitSocialLinks = $seminuevosData['social_links'] ?? [];
+require_once __DIR__ . '/../includes/unit-footer-prepare.php';
+am_unit_footer_prepare($seminuevosData);
 require __DIR__ . '/../includes/unit-payment-social.php';
 ?>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

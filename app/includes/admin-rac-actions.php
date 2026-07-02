@@ -90,6 +90,7 @@ elseif ($action === 'save_rac_unit_contact') {
         'phone_display'   => trim($_POST['rac_contact_phone'] ?? ''),
         'whatsapp_number' => preg_replace('/\D/', '', $_POST['rac_contact_whatsapp'] ?? ''),
         'email'           => trim($_POST['rac_contact_email'] ?? ''),
+        'schedule'        => trim($_POST['rac_contact_schedule'] ?? ''),
     ];
     $siteData['homepage']['show_payment_methods'] = isset($_POST['rac_show_payment_methods']) && $_POST['rac_show_payment_methods'] === '1';
     if ($contentService->saveAll($siteData)) {

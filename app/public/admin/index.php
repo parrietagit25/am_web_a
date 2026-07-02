@@ -2858,6 +2858,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../../includes/admin-taller-actions.php';
     require __DIR__ . '/../../includes/admin-footer-actions.php';
     require __DIR__ . '/../../includes/admin-rac-actions.php';
+    require __DIR__ . '/../../includes/admin-unit-footer-actions.php';
     require __DIR__ . '/../../includes/admin-chatbot-actions.php';
     require __DIR__ . '/../../includes/admin-custom-unit-actions.php';
     require __DIR__ . '/../../includes/admin-global-sucursales-actions.php';
@@ -3418,7 +3419,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                     <div class="mt-3">
                                                         <label class="form-label small text-muted mb-1">Cambiar Imagen (.webp recomendada)</label>
                                                         <input type="file" name="fleet_image_<?php echo $item['id']; ?>" class="form-control form-control-premium form-control-sm" accept="image/*">
-                                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
+                                                        <small class="text-muted d-block mt-1">Recomendado: 900×700 px aprox. — JPG o WebP</small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -3473,7 +3474,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="featured_image" class="form-label">Imagen Destacada (Reemplazar archivo .webp o .png)</label>
                                         <input type="file" id="featured_image" name="featured_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Imagen actual: <code><?php echo esc($homepage['featured']['image_url'] ?? ''); ?></code></div>
-                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
+                                        <small class="text-muted d-block mt-1">Recomendado: 900×700 px aprox. — JPG o WebP</small>
                                         <?php if (!empty($homepage['featured']['image_url'])): ?>
                                             <img src="<?php echo esc($homepage['featured']['image_url']); ?>" alt="Feria David" class="img-thumbnail mt-2" style="max-height: 80px;">
                                         <?php endif; ?>
@@ -3728,7 +3729,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="vehicle_image" class="form-label">Foto del Vehículo</label>
                                         <input type="file" id="vehicle_image" name="vehicle_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="vehicleImageHelp">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
-                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
+                                        <small class="text-muted d-block mt-1">Recomendado: 900×700 px aprox. — JPG o WebP</small>
                                     </div>
 
                                     <!-- Number of Doors -->
@@ -4039,7 +4040,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="contact_image" class="form-label">Imagen Lateral del Formulario</label>
                                         <input type="file" id="contact_image" name="contact_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
-                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
+                                        <small class="text-muted d-block mt-1">Recomendado: 900×700 px aprox. — JPG o WebP</small>
                                         <?php if (!empty($homepage['contact_image_url'])): ?>
                                             <div class="mt-3">
                                                 <div class="small fw-semibold text-muted mb-1">Imagen actual:</div>
@@ -4396,6 +4397,15 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 </div>
                             </form>
                         </div>
+
+                        <?php
+                        $ufUnitKey = 'seminuevos';
+                        $ufUnitLabel = 'Venta de Autos';
+                        $ufTabSlug = 'semi-home';
+                        $ufSaveAction = 'save_seminuevos_unit_footer';
+                        $ufUnitData = $seminuevos;
+                        require __DIR__ . '/../../includes/admin-unit-footer-settings.php';
+                        ?>
                     </div>
 
                     <!-- TAB 11: SEMINUEVOS OPINIONS -->
@@ -4619,7 +4629,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     <div class="col-md-3">
                                         <label for="semi_inv_photo_file" class="form-label">Subir Foto (.webp / .png / .jpg)</label>
                                         <input type="file" id="semi_inv_photo_file" name="photo_file" class="form-control form-control-premium" accept="image/*">
-                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
+                                        <small class="text-muted d-block mt-1">Recomendado: 900×700 px aprox. — JPG o WebP</small>
                                     </div>
 
                                     <div class="col-md-3">
@@ -5265,7 +5275,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     <div class="col-md-8">
                                         <label for="semi_contact_image" class="form-label fw-semibold">Subir nueva imagen</label>
                                         <input type="file" id="semi_contact_image" name="semi_contact_image" class="form-control form-control-premium" accept="image/*">
-                                        <small class="text-muted d-block mt-1">Recomendado: 800x600 px — WebP o JPG</small>
+                                        <small class="text-muted d-block mt-1">Recomendado: 900×700 px aprox. — WebP o JPG</small>
                                         <div class="mt-3 text-end">
                                             <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
                                                 <i class="bi bi-cloud-upload-fill"></i> Guardar imagen
@@ -5602,13 +5612,13 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     <div class="col-md-6">
                                         <label for="leasing_post_image_url" class="form-label">URL de imagen de tarjeta (opcional)</label>
                                         <input type="url" id="leasing_post_image_url" name="leasing_post_image_url" class="form-control form-control-premium" placeholder="https://...">
-                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
+                                        <small class="text-muted d-block mt-1">Recomendado: 900×700 px aprox. — JPG o WebP</small>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="leasing_post_image" class="form-label">Imagen de la tarjeta</label>
                                         <input type="file" id="leasing_post_image" name="leasing_post_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="leasingPostImageHelp">Puedes subir archivo o usar URL. Si subes archivo, tiene prioridad.</div>
-                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
+                                        <small class="text-muted d-block mt-1">Recomendado: 900×700 px aprox. — JPG o WebP</small>
                                     </div>
 
                                     <hr class="my-2">
@@ -5860,6 +5870,15 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 </div>
                             </form>
                         </div>
+
+                        <?php
+                        $ufUnitKey = 'leasing';
+                        $ufUnitLabel = 'Leasing';
+                        $ufTabSlug = 'leasing-home';
+                        $ufSaveAction = 'save_leasing_unit_footer';
+                        $ufUnitData = $leasing;
+                        require __DIR__ . '/../../includes/admin-unit-footer-settings.php';
+                        ?>
                     </div>
 
                     <!-- TAB 17: LEASING SUCURSALES CRUD -->
@@ -6067,7 +6086,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="leasing_vehicle_image" class="form-label">Foto del Vehículo</label>
                                         <input type="file" id="leasing_vehicle_image" name="leasing_vehicle_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="leasingVehicleImageHelp">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
-                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
+                                        <small class="text-muted d-block mt-1">Recomendado: 900×700 px aprox. — JPG o WebP</small>
                                     </div>
                                     <div class="col-md-3">
                                         <label for="leasing_vehicle_doors" class="form-label">Número de Puertas</label>
@@ -6382,7 +6401,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="leasing_contact_image" class="form-label">Imagen lateral del formulario</label>
                                         <input type="file" id="leasing_contact_image" name="leasing_contact_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Formatos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
-                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
+                                        <small class="text-muted d-block mt-1">Recomendado: 900×700 px aprox. — JPG o WebP</small>
                                         <?php if (!empty($leasing_contact['contact_image_url'])): ?>
                                             <div class="mt-3">
                                                 <div class="small fw-semibold text-muted mb-1">Imagen actual:</div>

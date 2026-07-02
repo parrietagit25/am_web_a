@@ -102,6 +102,11 @@ $rac_show_payments = ($rac_home['show_payment_methods'] ?? true) !== false;
                 <input type="email" id="rac_contact_email" name="rac_contact_email" class="form-control form-control-premium"
                        value="<?php echo esc($rac_contact['email'] ?? ''); ?>" placeholder="info@automarket.com.pa">
             </div>
+            <div class="col-md-4">
+                <label for="rac_contact_schedule" class="form-label fw-semibold">Horario</label>
+                <input type="text" id="rac_contact_schedule" name="rac_contact_schedule" class="form-control form-control-premium"
+                       value="<?php echo esc($rac_contact['schedule'] ?? ''); ?>" placeholder="Lun–Vie 8:00am–5:00pm">
+            </div>
             <div class="col-12">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="rac_show_payment_methods" name="rac_show_payment_methods" value="1"

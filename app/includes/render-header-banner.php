@@ -33,9 +33,25 @@ $hbOnclickAttr = $hbSectionOnclick !== '' ? ' onclick="' . esc($hbSectionOnclick
 <section class="<?php echo esc($hbSectionClass); ?> hero-banner-slider position-relative overflow-hidden p-0"<?php echo $hbSectionId !== '' ? ' id="' . esc($hbSectionId) . '"' : ''; ?><?php echo $hbOnclickAttr; ?><?php echo $hbSectionExtraStyle !== '' ? ' style="' . esc($hbSectionExtraStyle) . '"' : ''; ?>>
     <div id="<?php echo esc($hbCarouselId); ?>" class="carousel slide<?php echo esc($transition); ?> h-100 w-100 position-absolute top-0 start-0" data-bs-ride="carousel" data-bs-interval="<?php echo (int) $interval; ?>" data-bs-pause="hover">
         <div class="carousel-inner h-100">
-            <?php foreach ($slides as $i => $slide): ?>
+            <?php foreach ($slides as $i => $slide):
+                $slideTitle = trim((string) ($slide['title'] ?? ''));
+                $slideSubtitle = trim((string) ($slide['subtitle'] ?? ''));
+                $slideHasText = $slideTitle !== '' || $slideSubtitle !== '';
+            ?>
             <div class="carousel-item h-100<?php echo $i === 0 ? ' active' : ''; ?>"
                  style="background: <?php echo $hbBgPrefix; ?>url('<?php echo esc($slide['image_url']); ?>') no-repeat center center; background-size: cover; min-height: 360px;">
+                <?php if ($slideHasText): ?>
+                <div class="carousel-caption hb-slide-caption text-start start-0 end-0 bottom-0 pb-4 px-3 px-md-5">
+                    <div class="container">
+                        <?php if ($slideTitle !== ''): ?>
+                        <h2 class="display-6 fw-bold text-white text-shadow mb-2"><?php echo esc($slideTitle); ?></h2>
+                        <?php endif; ?>
+                        <?php if ($slideSubtitle !== ''): ?>
+                        <p class="lead text-white text-shadow mb-0"><?php echo esc($slideSubtitle); ?></p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
             <?php endforeach; ?>
         </div>
