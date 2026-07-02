@@ -69,6 +69,20 @@ class TelemetryService
      */
     public static function dashboard(array $filters = []): array
     {
+        try {
+            return self::buildDashboard($filters);
+        } catch (Throwable $e) {
+            error_log('[TelemetryService::dashboard] ' . $e->getMessage());
+            return self::emptyDashboard($e->getMessage());
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     * @return array<string, mixed>
+     */
+    private static function buildDashboard(array $filters): array
+    {
         self::ensureSchema();
         $db = Database::getInstance();
         [$where, $params] = self::buildFilterWhere($filters);
@@ -162,24 +176,15 @@ class TelemetryService
             $params
         );
 
+        $hourExpr = self::sqlHourExpr('created_at');
         $hourly = $db->select(
-            "SELECT strftime('%H', created_at) AS hour, COUNT(*) AS views
+            "SELECT $hourExpr AS hour, COUNT(*) AS views
              FROM telemetry_events
              WHERE event_type = 'page_view' AND $where
-             GROUP BY hour
-             ORDER BY hour",
+             GROUP BY $hourExpr
+             ORDER BY $hourExpr",
             $params
         );
-        if ($db->getDriverName() === 'mysql') {
-            $hourly = $db->select(
-                "SELECT DATE_FORMAT(created_at, '%H') AS hour, COUNT(*) AS views
-                 FROM telemetry_events
-                 WHERE event_type = 'page_view' AND $where
-                 GROUP BY hour
-                 ORDER BY hour",
-                $params
-            );
-        }
 
         $deviceStats = self::visitorDeviceStats($eventWhere, $eventParams);
 
@@ -203,6 +208,61 @@ class TelemetryService
             'hourly' => $hourly,
             'devices' => $deviceStats,
         ];
+    }
+
+    /** @return array<string, mixed> */
+    private static function emptyDashboard(?string $errorMessage = null): array
+    {
+        return [
+            'today' => [
+                'visitors' => 0,
+                'page_views' => 0,
+                'avg_duration' => 0.0,
+            ],
+            'range' => [
+                'visitors' => 0,
+                'page_views' => 0,
+                'avg_duration' => 0.0,
+                'max_duration' => 0,
+            ],
+            'top_pages' => [],
+            'top_vehicles' => [],
+            'top_units' => [],
+            'top_countries' => [],
+            'top_cities' => [],
+            'hourly' => [],
+            'devices' => [
+                'by_device' => [],
+                'by_os' => [],
+                'by_browser' => [],
+                'by_screen' => [],
+                'by_viewport' => [],
+            ],
+            'error' => $errorMessage,
+        ];
+    }
+
+    private static function isMysqlDriver(): bool
+    {
+        return Database::getInstance()->getDriverName() === 'mysql';
+    }
+
+    private static function sqlHourExpr(string $column): string
+    {
+        if (self::isMysqlDriver()) {
+            return "DATE_FORMAT($column, '%H')";
+        }
+
+        return "strftime('%H', $column)";
+    }
+
+    private static function sqlConcatPair(string $left, string $right, string $separator = ' × '): string
+    {
+        if (self::isMysqlDriver()) {
+            return "CONCAT($left, '$separator', $right)";
+        }
+
+        return "(CAST($left AS TEXT) || '$separator' || CAST($right AS TEXT))";
     }
 
     /**
@@ -247,49 +307,28 @@ class TelemetryService
             $params
         );
 
-        if ($db->getDriverName() === 'mysql') {
-            $byScreen = $db->select(
-                "SELECT CONCAT(v.screen_width, ' × ', v.screen_height) AS key_name,
-                        COUNT(DISTINCT v.visitor_id) AS visitors,
-                        COUNT(*) AS page_views
-                 $join AND v.screen_width IS NOT NULL AND v.screen_width > 0
-                 GROUP BY v.screen_width, v.screen_height
-                 ORDER BY visitors DESC
-                 LIMIT 12",
-                $params
-            );
-            $byViewport = $db->select(
-                "SELECT CONCAT(v.viewport_width, ' × ', v.viewport_height) AS key_name,
-                        COUNT(DISTINCT v.visitor_id) AS visitors,
-                        COUNT(*) AS page_views
-                 $join AND v.viewport_width IS NOT NULL AND v.viewport_width > 0
-                 GROUP BY v.viewport_width, v.viewport_height
-                 ORDER BY visitors DESC
-                 LIMIT 12",
-                $params
-            );
-        } else {
-            $byScreen = $db->select(
-                "SELECT (CAST(v.screen_width AS TEXT) || ' × ' || CAST(v.screen_height AS TEXT)) AS key_name,
-                        COUNT(DISTINCT v.visitor_id) AS visitors,
-                        COUNT(*) AS page_views
-                 $join AND v.screen_width IS NOT NULL AND v.screen_width > 0
-                 GROUP BY v.screen_width, v.screen_height
-                 ORDER BY visitors DESC
-                 LIMIT 12",
-                $params
-            );
-            $byViewport = $db->select(
-                "SELECT (CAST(v.viewport_width AS TEXT) || ' × ' || CAST(v.viewport_height AS TEXT)) AS key_name,
-                        COUNT(DISTINCT v.visitor_id) AS visitors,
-                        COUNT(*) AS page_views
-                 $join AND v.viewport_width IS NOT NULL AND v.viewport_width > 0
-                 GROUP BY v.viewport_width, v.viewport_height
-                 ORDER BY visitors DESC
-                 LIMIT 12",
-                $params
-            );
-        }
+        $screenKey = self::sqlConcatPair('v.screen_width', 'v.screen_height');
+        $byScreen = $db->select(
+            "SELECT $screenKey AS key_name,
+                    COUNT(DISTINCT v.visitor_id) AS visitors,
+                    COUNT(*) AS page_views
+             $join AND v.screen_width IS NOT NULL AND v.screen_width > 0
+             GROUP BY v.screen_width, v.screen_height
+             ORDER BY visitors DESC
+             LIMIT 12",
+            $params
+        );
+        $viewportKey = self::sqlConcatPair('v.viewport_width', 'v.viewport_height');
+        $byViewport = $db->select(
+            "SELECT $viewportKey AS key_name,
+                    COUNT(DISTINCT v.visitor_id) AS visitors,
+                    COUNT(*) AS page_views
+             $join AND v.viewport_width IS NOT NULL AND v.viewport_width > 0
+             GROUP BY v.viewport_width, v.viewport_height
+             ORDER BY visitors DESC
+             LIMIT 12",
+            $params
+        );
 
         return [
             'by_device' => $byDevice,
