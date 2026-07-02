@@ -12,7 +12,9 @@ services:
       - automarket-network
 
   app:
-    image: php:8.3-fpm-alpine
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
     container_name: automarket_app
     # Credenciales n8n: preferir app/config/config.php (no requiere .env).
     # Opcional: exportar N8N_SEMINUEVOS_* en el host o crear .env en la raíz del proyecto.
@@ -23,6 +25,31 @@ services:
     networks:
       - automarket-network
 
+  # MariaDB — agregado en DB1B-1A. La app sigue usando SQLite hasta que se
+  # defina DB_HOST en app/config/config.php (cutover en un bloque posterior).
+  db:
+    image: mariadb:11.4
+    container_name: automarket_db
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-automarket}
+      MARIADB_USER: ${DB_USER:-automarket_app}
+      MARIADB_PASSWORD: ${DB_PASS:-automarket_app_dev_password}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-automarket_root_dev_password}
+    volumes:
+      - automarket_mysql_data:/var/lib/mysql
+    networks:
+      - automarket-network
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p$${MARIADB_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
 networks:
   automarket-network:
     driver: bridge
+
+volumes:
+  automarket_mysql_data:
+    name: automarket_mysql_data
