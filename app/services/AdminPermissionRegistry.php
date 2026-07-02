@@ -183,6 +183,9 @@ class AdminPermissionRegistry
             'delete_chatbot_session' => 'chatbot_sessions',
             // Rent A Car
             'save_homepage' => 'hero',
+            'save_rac_faqs' => 'hero',
+            'save_rac_social_links' => 'hero',
+            'save_rac_unit_contact' => 'hero',
             'save_news_home_settings' => 'news',
             'add_news' => 'news',
             'edit_news' => 'news',

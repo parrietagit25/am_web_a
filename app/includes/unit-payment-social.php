@@ -4,9 +4,10 @@
  *
  * Uso:
  *   // Opcional: pasar redes propias de la unidad (sobreescribe el fallback global)
- *   $\_upsUnitSocialLinks = $unitData['social_links'] ?? [];
+ *   $_upsUnitSocialLinks = $unitData['social_links'] ?? [];
+ *   $_upsShowPayments = true; // opcional; false oculta Visa/Mastercard
+ *   $_upsUnitContact = $unitData['contact'] ?? []; // phone_display, whatsapp_number, email
  *   require __DIR__ . '/../includes/unit-payment-social.php';
- *   // Sin esa variable, cae al footer global.
  */
 
 // Mapa icon/label por nombre de red social
@@ -57,15 +58,26 @@ $_upsPayments = [
 ];
 
 $_upsHasSocial   = !empty($_upsSocial);
-$_upsHasPayments = true;
+$_upsShowPayments = ($_upsShowPayments ?? true) !== false;
+$_upsHasPayments = $_upsShowPayments;
+$_upsUnitContact = is_array($_upsUnitContact ?? null) ? $_upsUnitContact : [];
+$_upsContactPhone = trim((string) ($_upsUnitContact['phone_display'] ?? ''));
+$_upsContactWhatsapp = preg_replace('/\D/', '', (string) ($_upsUnitContact['whatsapp_number'] ?? ''));
+$_upsContactEmail = trim((string) ($_upsUnitContact['email'] ?? ''));
+$_upsHasContact = $_upsContactPhone !== '' || $_upsContactWhatsapp !== '' || $_upsContactEmail !== '';
 
 unset($_upsUnitSocialLinks, $_upsFromUnit, $_upsNetMeta, $_upsNet, $_upsUrl);
+
+if (!$_upsHasPayments && !$_upsHasSocial && !$_upsHasContact) {
+    return;
+}
 ?>
 <section class="border-top py-4 bg-white">
     <div class="container">
         <div class="row g-4 align-items-center justify-content-center justify-content-md-between">
 
             <!-- Medios de pago -->
+            <?php if ($_upsHasPayments): ?>
             <div class="col-auto d-flex align-items-center gap-3 flex-wrap">
                 <span class="text-muted small fw-semibold text-uppercase tracking-wider">Medios de pago</span>
                 <?php foreach ($_upsPayments as $_upsP): ?>
@@ -77,6 +89,26 @@ unset($_upsUnitSocialLinks, $_upsFromUnit, $_upsNetMeta, $_upsNet, $_upsUrl);
                      style="object-fit: contain; background:#fff; padding:2px;">
                 <?php endforeach; ?>
             </div>
+            <?php endif; ?>
+
+            <?php if ($_upsHasContact): ?>
+            <div class="col-auto d-flex align-items-center gap-3 flex-wrap small">
+                <span class="text-muted fw-semibold text-uppercase tracking-wider">Contacto</span>
+                <?php if ($_upsContactPhone !== ''): ?>
+                    <span class="text-navy"><i class="bi bi-telephone me-1"></i><?php echo esc($_upsContactPhone); ?></span>
+                <?php endif; ?>
+                <?php if ($_upsContactWhatsapp !== ''): ?>
+                    <a href="https://wa.me/<?php echo esc($_upsContactWhatsapp); ?>" class="text-navy text-decoration-none" target="_blank" rel="noopener noreferrer">
+                        <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                    </a>
+                <?php endif; ?>
+                <?php if ($_upsContactEmail !== ''): ?>
+                    <a href="mailto:<?php echo esc($_upsContactEmail); ?>" class="text-navy text-decoration-none">
+                        <i class="bi bi-envelope me-1"></i><?php echo esc($_upsContactEmail); ?>
+                    </a>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
 
             <!-- Redes sociales -->
             <?php if ($_upsHasSocial): ?>
