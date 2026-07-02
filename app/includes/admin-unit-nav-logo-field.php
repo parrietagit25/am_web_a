@@ -29,7 +29,7 @@ $fallbackLabel = $unitSubtitle !== '' ? $unitSubtitle : 'nombre de la unidad';
                class="form-control form-control-premium"
                accept="image/*">
         <div class="form-text">Formatos: JPG, PNG, GIF, WEBP. Altura recomendada ~32px. Máx: 5MB.</div>
-        <small class="text-muted d-block mt-1">Recomendado: 300×80 px — PNG con fondo transparente</small>
+        <small class="text-muted d-block mt-1">Recomendado: 300×120 px (o según diseño) — PNG con fondo transparente</small>
         <?php if ($navLogoUrl !== ''): ?>
             <div class="mt-3 d-flex flex-wrap align-items-center gap-3">
                 <img src="<?php echo esc($navLogoUrl); ?>"

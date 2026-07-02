@@ -305,9 +305,13 @@ class AdminPermissionRegistry
             'save_seminuevos_faqs' => 'semi_home',
             // Redes sociales por unidad
             'save_taller_social_links'     => 'taller_home',
+            'save_taller_unit_footer'      => 'taller_home',
             'save_renting_social_links'    => 'renting_home',
+            'save_renting_unit_footer'     => 'renting_home',
             'save_leasing_social_links'    => 'leasing_home',
+            'save_leasing_unit_footer'     => 'leasing_home',
             'save_seminuevos_social_links' => 'semi_home',
+            'save_seminuevos_unit_footer'  => 'semi_home',
             // Branches por unidad (SU1)
             'save_taller_branches'         => 'taller_sucursales',
             'save_renting_branches'        => 'renting_home',

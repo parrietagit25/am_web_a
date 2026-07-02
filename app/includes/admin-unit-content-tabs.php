@@ -57,6 +57,7 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
                     <div class="col-md-6">
                         <label class="form-label">Imagen de cabecera</label>
                         <input type="file" name="content_page_banner_<?php echo esc($phType); ?>" class="form-control form-control-premium" accept="image/*">
+                        <small class="text-muted d-block mt-1">Recomendado: 1920×700 px — JPG o WebP</small>
                         <?php if (!empty($ph['banner'])): ?>
                             <div class="small text-muted mt-2">Actual: <code><?php echo esc($ph['banner']); ?></code></div>
                             <img src="<?php echo esc($ph['banner']); ?>" alt="" class="img-fluid rounded mt-2 border" style="max-height:120px;object-fit:cover;">
@@ -97,6 +98,7 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="home_block_enabled" id="uc-<?php echo esc($ucDomUnit); ?>-home_block_enabled" value="1" <?php echo !empty($ucSettings['home_block_enabled']) ? 'checked' : ''; ?>>
                         <label class="form-check-label fw-semibold" for="uc-<?php echo esc($ucDomUnit); ?>-home_block_enabled">Mostrar bloque destacado en el home de la unidad</label>
+                        <div class="form-text">Desactívalo para ocultar el carrusel o pieza destacada en la página principal de la unidad.</div>
                     </div>
                 </div>
 

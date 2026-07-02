@@ -333,7 +333,8 @@ require __DIR__ . '/../includes/unit-faq-section.php';
 ?>
 
 <?php
-$_upsUnitSocialLinks = $leasingData['social_links'] ?? [];
+require_once __DIR__ . '/../includes/unit-footer-prepare.php';
+am_unit_footer_prepare($leasingData);
 require __DIR__ . '/../includes/unit-payment-social.php';
 ?>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

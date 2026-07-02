@@ -6,7 +6,7 @@
  *   // Opcional: pasar redes propias de la unidad (sobreescribe el fallback global)
  *   $_upsUnitSocialLinks = $unitData['social_links'] ?? [];
  *   $_upsShowPayments = true; // opcional; false oculta Visa/Mastercard
- *   $_upsUnitContact = $unitData['contact'] ?? []; // phone_display, whatsapp_number, email
+ *   $_upsUnitContact = $unitData['footer_contact'] ?? []; // phone_display, whatsapp_number, email, schedule
  *   require __DIR__ . '/../includes/unit-payment-social.php';
  */
 
@@ -64,7 +64,8 @@ $_upsUnitContact = is_array($_upsUnitContact ?? null) ? $_upsUnitContact : [];
 $_upsContactPhone = trim((string) ($_upsUnitContact['phone_display'] ?? ''));
 $_upsContactWhatsapp = preg_replace('/\D/', '', (string) ($_upsUnitContact['whatsapp_number'] ?? ''));
 $_upsContactEmail = trim((string) ($_upsUnitContact['email'] ?? ''));
-$_upsHasContact = $_upsContactPhone !== '' || $_upsContactWhatsapp !== '' || $_upsContactEmail !== '';
+$_upsContactSchedule = trim((string) ($_upsUnitContact['schedule'] ?? ''));
+$_upsHasContact = $_upsContactPhone !== '' || $_upsContactWhatsapp !== '' || $_upsContactEmail !== '' || $_upsContactSchedule !== '';
 
 unset($_upsUnitSocialLinks, $_upsFromUnit, $_upsNetMeta, $_upsNet, $_upsUrl);
 
@@ -106,6 +107,9 @@ if (!$_upsHasPayments && !$_upsHasSocial && !$_upsHasContact) {
                     <a href="mailto:<?php echo esc($_upsContactEmail); ?>" class="text-navy text-decoration-none">
                         <i class="bi bi-envelope me-1"></i><?php echo esc($_upsContactEmail); ?>
                     </a>
+                <?php endif; ?>
+                <?php if ($_upsContactSchedule !== ''): ?>
+                    <span class="text-navy"><i class="bi bi-clock me-1"></i><?php echo esc($_upsContactSchedule); ?></span>
                 <?php endif; ?>
             </div>
             <?php endif; ?>

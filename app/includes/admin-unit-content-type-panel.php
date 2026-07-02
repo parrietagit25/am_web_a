@@ -188,13 +188,15 @@ $ucTabActive = ($defaultAdminTab ?? '') === $ucTabSlug;
                 <div class="col-md-4">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="content_published" id="<?php echo esc($ucDomPrefix); ?>-published" value="1" checked>
-                        <label class="form-check-label" for="<?php echo esc($ucDomPrefix); ?>-published">Publicado</label>
+                        <label class="form-check-label" for="<?php echo esc($ucDomPrefix); ?>-published">Publicado (visible en el sitio)</label>
+                        <div class="form-text">Desactivado = borrador oculto en listados y páginas públicas.</div>
                     </div>
                 </div>
                 <div class="col-md-8">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="content_show_on_home" id="<?php echo esc($ucDomPrefix); ?>-show-home" value="1" <?php echo $ucIsLatest ? 'checked' : ''; ?>>
                         <label class="form-check-label" for="<?php echo esc($ucDomPrefix); ?>-show-home">Mostrar en bloque «más reciente» del home</label>
+                        <div class="form-text">Controla la grilla de novedades en el home (también con el ojo en la tabla).</div>
                     </div>
                 </div>
             </div>

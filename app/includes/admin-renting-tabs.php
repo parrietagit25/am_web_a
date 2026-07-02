@@ -322,6 +322,15 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                             </form>
                         </div>
 
+                        <?php
+                        $ufUnitKey = 'renting';
+                        $ufUnitLabel = 'Renting';
+                        $ufTabSlug = 'renting-home';
+                        $ufSaveAction = 'save_renting_unit_footer';
+                        $ufUnitData = $renting;
+                        require __DIR__ . '/admin-unit-footer-settings.php';
+                        ?>
+
                         <!-- BRANCHES RENTING — datos web por sucursal -->
                         <div class="admin-card">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
@@ -720,7 +729,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <label for="renting_contact_image" class="form-label fw-semibold">Imagen lateral (derecha del formulario)</label>
                                         <input type="file" id="renting_contact_image" name="renting_contact_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">JPG, PNG, GIF o WEBP. Máx. 5MB.</div>
-                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
+                                        <small class="text-muted d-block mt-1">Recomendado: 900×700 px aprox. — JPG o WebP</small>
                                         <?php if (!empty($renting_contact['contact_image_url'])): ?>
                                             <div class="mt-2">
                                                 <img src="<?php echo esc($renting_contact['contact_image_url']); ?>" alt="Contacto Renting" class="img-thumbnail" style="max-height: 160px;">

@@ -16,7 +16,7 @@ $hbMode = ($hbConfig['mode'] ?? HeaderBannerService::MODE_STATIC) === HeaderBann
     : HeaderBannerService::MODE_STATIC;
 $hbSlides = $hbConfig['slider']['slides'] ?? [];
 if (empty($hbSlides)) {
-    $hbSlides = [['image_url' => '', 'alt' => '']];
+    $hbSlides = [['image_url' => '', 'alt' => '', 'title' => '', 'subtitle' => '']];
 }
 $hbStaticUrl = (string) ($hbConfig['image_url'] ?? '');
 $hbInterval = (int) ($hbConfig['slider']['interval_ms'] ?? 5000);
@@ -85,17 +85,31 @@ $hbTransition = (string) ($hbConfig['slider']['transition'] ?? 'fade');
         </div>
         <div class="hb-slides-list d-flex flex-column gap-2">
             <?php foreach ($hbSlides as $slide): ?>
-            <div class="hb-slide-row border rounded p-3 bg-light-gray d-flex flex-wrap align-items-center gap-3">
-                <input type="hidden" name="<?php echo esc($hbPrefix); ?>_slide_url[]" value="<?php echo esc($slide['image_url'] ?? ''); ?>">
-                <div class="flex-grow-1" style="min-width: 200px;">
-                    <input type="file" name="<?php echo esc($hbPrefix); ?>_slide_file[]" class="form-control form-control-sm" accept="image/*">
-                    <div class="form-text">Deje vacío para conservar la imagen actual.</div>
-                    <small class="text-muted d-block mt-1">Recomendado: 1920×700 px — JPG o WebP</small>
+            <div class="hb-slide-row border rounded p-3 bg-light-gray">
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+                    <input type="hidden" name="<?php echo esc($hbPrefix); ?>_slide_url[]" value="<?php echo esc($slide['image_url'] ?? ''); ?>">
+                    <div class="flex-grow-1" style="min-width: 200px;">
+                        <input type="file" name="<?php echo esc($hbPrefix); ?>_slide_file[]" class="form-control form-control-sm" accept="image/*">
+                        <div class="form-text">Deje vacío para conservar la imagen actual.</div>
+                        <small class="text-muted d-block mt-1">Recomendado: 1920×700 px — JPG o WebP</small>
+                    </div>
+                    <?php if (!empty($slide['image_url'])): ?>
+                    <img src="<?php echo esc($slide['image_url']); ?>" alt="" class="img-thumbnail" style="max-height: 70px;">
+                    <?php endif; ?>
+                    <button type="button" class="btn btn-sm btn-outline-danger hb-remove-slide-btn" title="Quitar"><i class="bi bi-trash"></i></button>
                 </div>
-                <?php if (!empty($slide['image_url'])): ?>
-                <img src="<?php echo esc($slide['image_url']); ?>" alt="" class="img-thumbnail" style="max-height: 70px;">
-                <?php endif; ?>
-                <button type="button" class="btn btn-sm btn-outline-danger hb-remove-slide-btn" title="Quitar"><i class="bi bi-trash"></i></button>
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold mb-1">Título del slide (opcional)</label>
+                        <input type="text" name="<?php echo esc($hbPrefix); ?>_slide_title[]" class="form-control form-control-sm"
+                               value="<?php echo esc($slide['title'] ?? ''); ?>" placeholder="Ej: Promoción de verano">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold mb-1">Subtítulo del slide (opcional)</label>
+                        <input type="text" name="<?php echo esc($hbPrefix); ?>_slide_subtitle[]" class="form-control form-control-sm"
+                               value="<?php echo esc($slide['subtitle'] ?? ''); ?>" placeholder="Texto breve bajo el título">
+                    </div>
+                </div>
             </div>
             <?php endforeach; ?>
         </div>
@@ -146,14 +160,23 @@ $hbTransition = (string) ($hbConfig['slider']['transition'] ?? 'fade');
     function addSlideRow() {
         if (!slidesList) return;
         const row = document.createElement('div');
-        row.className = 'hb-slide-row border rounded p-3 bg-light-gray d-flex flex-wrap align-items-center gap-3';
+        row.className = 'hb-slide-row border rounded p-3 bg-light-gray';
         row.innerHTML = ''
+            + '<div class="d-flex flex-wrap align-items-center gap-3 mb-2">'
             + '<input type="hidden" name="' + prefix + '_slide_url[]" value="">'
             + '<div class="flex-grow-1" style="min-width:200px;">'
             + '<input type="file" name="' + prefix + '_slide_file[]" class="form-control form-control-sm" accept="image/*">'
             + '<div class="form-text">Suba una imagen para el slider.</div>'
+            + '<small class="text-muted d-block mt-1">Recomendado: 1920×700 px — JPG o WebP</small>'
             + '</div>'
-            + '<button type="button" class="btn btn-sm btn-outline-danger hb-remove-slide-btn" title="Quitar"><i class="bi bi-trash"></i></button>';
+            + '<button type="button" class="btn btn-sm btn-outline-danger hb-remove-slide-btn" title="Quitar"><i class="bi bi-trash"></i></button>'
+            + '</div>'
+            + '<div class="row g-2">'
+            + '<div class="col-md-6"><label class="form-label small fw-semibold mb-1">Título del slide (opcional)</label>'
+            + '<input type="text" name="' + prefix + '_slide_title[]" class="form-control form-control-sm" placeholder="Ej: Promoción de verano"></div>'
+            + '<div class="col-md-6"><label class="form-label small fw-semibold mb-1">Subtítulo del slide (opcional)</label>'
+            + '<input type="text" name="' + prefix + '_slide_subtitle[]" class="form-control form-control-sm" placeholder="Texto breve bajo el título"></div>'
+            + '</div>';
         slidesList.appendChild(row);
         bindSlideRow(row);
         togglePanels();
