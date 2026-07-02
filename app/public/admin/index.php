@@ -1307,6 +1307,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    elseif ($action === 'save_seminuevos_sucursales_page') {
+        if (!isset($siteData['seminuevos'])) {
+            $siteData['seminuevos'] = [];
+        }
+        $siteData['seminuevos']['sucursales_page'] = [
+            'title' => trim($_POST['semi_suc_page_title'] ?? ''),
+            'subtitle' => trim($_POST['semi_suc_page_subtitle'] ?? ''),
+            'section_eyebrow' => trim($_POST['semi_suc_section_eyebrow'] ?? ''),
+            'section_title' => trim($_POST['semi_suc_section_title'] ?? ''),
+            'section_title_highlight' => trim($_POST['semi_suc_section_highlight'] ?? ''),
+            'section_subtitle' => trim($_POST['semi_suc_section_subtitle'] ?? ''),
+        ];
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Textos de la página de sucursales (Seminuevos) guardados correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar textos de sucursales Seminuevos.';
+        }
+    }
+
+    elseif ($action === 'save_leasing_sucursales_page') {
+        if (!isset($siteData['leasing'])) {
+            $siteData['leasing'] = [];
+        }
+        $siteData['leasing']['sucursales_title'] = trim($_POST['leasing_sucursales_title'] ?? '');
+        $siteData['leasing']['sucursales_subtitle'] = trim($_POST['leasing_sucursales_subtitle'] ?? '');
+        $siteData['leasing']['sucursales_cta_title'] = trim($_POST['leasing_sucursales_cta_title'] ?? '');
+        $siteData['leasing']['sucursales_cta_text'] = trim($_POST['leasing_sucursales_cta_text'] ?? '');
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Textos de la página de sucursales (Leasing) guardados correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar textos de sucursales Leasing.';
+        }
+    }
+
     // 24. SAVE SEMINUEVOS FINANCING GENERAL AND REQUIREMENTS
     elseif ($action === 'save_semi_financing') {
         if (!isset($siteData['seminuevos'])) {
@@ -1320,6 +1354,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $siteData['seminuevos']['financing']['title'] = trim($_POST['title'] ?? '');
         $siteData['seminuevos']['financing']['subtitle'] = trim($_POST['subtitle'] ?? '');
         $siteData['seminuevos']['financing']['intro'] = trim($_POST['intro'] ?? '');
+        $siteData['seminuevos']['financing']['banner_tagline'] = trim($_POST['banner_tagline'] ?? '');
+        $siteData['seminuevos']['financing']['banks_title'] = trim($_POST['banks_title'] ?? '');
+        $siteData['seminuevos']['financing']['banks_subtitle'] = trim($_POST['banks_subtitle'] ?? '');
 
         // Features
         if (isset($_POST['features']) && is_array($_POST['features'])) {
@@ -2502,6 +2539,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $siteData['leasing']['contact']['contact_emails'] = trim($_POST['leasing_contact_emails'] ?? '');
+        $siteData['leasing']['contact']['page_title'] = trim($_POST['leasing_contact_page_title'] ?? '');
+        $siteData['leasing']['contact']['intro_text'] = trim($_POST['leasing_contact_intro_text'] ?? '');
 
         if (isset($_FILES['leasing_contact_image']) && $_FILES['leasing_contact_image']['error'] === UPLOAD_ERR_OK) {
             $uploadedPath = $contentService->uploadImage($_FILES['leasing_contact_image'], 'leasing_contact_');
@@ -3267,6 +3306,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     <div class="col-md-6">
                                         <label for="phone_display" class="form-label">Número Telefónico Principal (Pantalla)</label>
                                         <input type="text" id="phone_display" name="phone_display" class="form-control form-control-premium" value="<?php echo esc($global['phone_display'] ?? '(507) 279-2700'); ?>" placeholder="Ej: (507) 279-2700" required>
+                                        <div class="form-text">Fallback del <strong>topbar</strong> y contacto global cuando la unidad no define teléfono propio.</div>
                                     </div>
 
                                     <!-- Toll Free Number -->
@@ -4843,6 +4883,18 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="semi_fin_intro" class="form-label fw-semibold">Introducción (Párrafo Secundario)</label>
                                         <textarea id="semi_fin_intro" name="intro" class="form-control form-control-premium" rows="2" required><?php echo esc($semi_financing['intro'] ?? 'En Automarket, siempre nos esforzamos por ofrecerle el mejor servicio y las mejores opciones para sus necesidades. Nos complace informarle que contamos con un servicio de asesoría personalizada para el financiamiento de su Seminuevo.'); ?></textarea>
                                     </div>
+                                    <div class="col-md-6">
+                                        <label for="semi_fin_banner_tagline" class="form-label fw-semibold">Tagline del banner</label>
+                                        <input type="text" id="semi_fin_banner_tagline" name="banner_tagline" class="form-control form-control-premium" value="<?php echo esc($semi_financing['banner_tagline'] ?? 'Te asesoramos para obtener tu seminuevo con las mejores tasas'); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="semi_fin_banks_title" class="form-label fw-semibold">Título sección bancos</label>
+                                        <input type="text" id="semi_fin_banks_title" name="banks_title" class="form-control form-control-premium" value="<?php echo esc($semi_financing['banks_title'] ?? 'Nuestros Aliados Financieros'); ?>">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="semi_fin_banks_subtitle" class="form-label fw-semibold">Subtítulo sección bancos</label>
+                                        <input type="text" id="semi_fin_banks_subtitle" name="banks_subtitle" class="form-control form-control-premium" value="<?php echo esc($semi_financing['banks_subtitle'] ?? 'Trabajamos de la mano con las principales entidades bancarias para ofrecerte las mejores condiciones.'); ?>">
+                                    </div>
                                 </div>
                                 
                                 <hr class="my-4">
@@ -5257,11 +5309,57 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                     <!-- TAB 15: SEMINUEVOS CONTACTO & SUCURSALES -->
                     <div class="tab-pane fade" id="tab-semi-contact" role="tabpanel" aria-labelledby="tab-semi-contact-nav">
 
+                        <?php $semi_suc_page = $seminuevos['sucursales_page'] ?? []; ?>
+                        <div class="admin-card mb-4">
+                            <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-layout-text-window me-2 text-danger"></i>Textos de página — Sucursales Seminuevos
+                            </h5>
+                            <p class="text-muted small mb-3">
+                                Edita cabeceras de <code>/seminuevos-sucursales.php</code>. El listado de sucursales se administra abajo (CRUD).
+                            </p>
+                            <form method="POST" action="?tab=semi-contact">
+                                <input type="hidden" name="action" value="save_seminuevos_sucursales_page">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Título principal (H1)</label>
+                                        <input type="text" name="semi_suc_page_title" class="form-control form-control-premium" value="<?php echo esc($semi_suc_page['title'] ?? 'Sucursales'); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Subtítulo bajo H1</label>
+                                        <input type="text" name="semi_suc_page_subtitle" class="form-control form-control-premium" value="<?php echo esc($semi_suc_page['subtitle'] ?? 'Encuentra la sucursal de seminuevos más cercana y cómo llegar.'); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Etiqueta superior (sección)</label>
+                                        <input type="text" name="semi_suc_section_eyebrow" class="form-control form-control-premium" value="<?php echo esc($semi_suc_page['section_eyebrow'] ?? 'Nuestras Ubicaciones'); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Título sección (H2)</label>
+                                        <input type="text" name="semi_suc_section_title" class="form-control form-control-premium" value="<?php echo esc($semi_suc_page['section_title'] ?? 'Sucursales'); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Texto destacado en H2</label>
+                                        <input type="text" name="semi_suc_section_highlight" class="form-control form-control-premium" value="<?php echo esc($semi_suc_page['section_title_highlight'] ?? 'Automarket'); ?>">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Subtítulo sección</label>
+                                        <input type="text" name="semi_suc_section_subtitle" class="form-control form-control-premium" value="<?php echo esc($semi_suc_page['section_subtitle'] ?? 'Visítanos en cualquiera de nuestras {count} sucursales a nivel nacional'); ?>">
+                                        <div class="form-text">Use <code>{count}</code> para el número de sucursales activas.</div>
+                                    </div>
+                                </div>
+                                <div class="text-end mt-3">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar textos de página
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
                         <!-- CONTACT IMAGE CARD -->
                         <div class="admin-card mb-4">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
                                 <i class="bi bi-image-fill me-2 text-danger"></i>Imagen de Contacto — Seminuevos
                             </h5>
+                            <p class="text-muted small mb-3">Imagen lateral en <code>/contactos.php?unit=seminuevos</code>. Teléfono/WhatsApp del lateral provienen de <strong>Contacto y medios de pago</strong> (home Seminuevos).</p>
                             <form method="POST" action="?tab=semi-contact" enctype="multipart/form-data">
                                 <input type="hidden" name="action" value="save_semi_contact_image">
                                 <div class="row g-3 align-items-start">
@@ -5883,6 +5981,40 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
 
                     <!-- TAB 17: LEASING SUCURSALES CRUD -->
                     <div class="tab-pane fade" id="tab-leasing-sucursales" role="tabpanel" aria-labelledby="tab-leasing-sucursales-nav">
+                        <div class="admin-card mb-4">
+                            <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-layout-text-window me-2 text-danger"></i>Textos de página — Sucursales Leasing
+                            </h5>
+                            <p class="text-muted small mb-3">
+                                Cabecera y CTA lateral de <code>/leasing-sucursales.php</code>. Las sucursales del listado se editan abajo.
+                            </p>
+                            <form method="POST" action="?tab=leasing-sucursales">
+                                <input type="hidden" name="action" value="save_leasing_sucursales_page">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Título principal (H1)</label>
+                                        <input type="text" name="leasing_sucursales_title" class="form-control form-control-premium" value="<?php echo esc($leasing['sucursales_title'] ?? 'Nuestras Sucursales'); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Subtítulo bajo H1</label>
+                                        <input type="text" name="leasing_sucursales_subtitle" class="form-control form-control-premium" value="<?php echo esc($leasing['sucursales_subtitle'] ?? 'Encuentra las sucursales de Automarket Leasing Operativo en Panamá: atención corporativa y cobertura nacional para tu flota.'); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Título CTA lateral</label>
+                                        <input type="text" name="leasing_sucursales_cta_title" class="form-control form-control-premium" value="<?php echo esc($leasing['sucursales_cta_title'] ?? 'Cotiza tu flota corporativa'); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Texto CTA lateral</label>
+                                        <input type="text" name="leasing_sucursales_cta_text" class="form-control form-control-premium" value="<?php echo esc($leasing['sucursales_cta_text'] ?? 'Soluciones de movilidad para empresas con cobertura en todo el país.'); ?>">
+                                    </div>
+                                </div>
+                                <div class="text-end mt-3">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar textos de página
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                         <div class="admin-card">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="leasingSucursalFormTitle">
                                 <i class="bi bi-geo-alt-fill me-2 text-danger"></i>Agregar Sucursal (Leasing Operativo)
@@ -6383,12 +6515,21 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                             </h5>
                             <p class="text-muted small mb-4">
                                 Bandeja y ajustes independientes de Rent A Car y Venta de Autos. La imagen lateral se muestra a la derecha del formulario en <code>/leasing-contactos.php</code>.
+                                Teléfono/WhatsApp del lateral usan <strong>Contacto y medios de pago</strong> (home Leasing) como respaldo si no hay datos específicos aquí.
                             </p>
 
                             <form method="POST" action="?tab=leasing-contacto" enctype="multipart/form-data">
                                 <input type="hidden" name="action" value="save_leasing_contact_settings">
 
                                 <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="leasing_contact_page_title" class="form-label">Título de página (H1)</label>
+                                        <input type="text" id="leasing_contact_page_title" name="leasing_contact_page_title" class="form-control form-control-premium" value="<?php echo esc($leasing_contact['page_title'] ?? 'Contactos'); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="leasing_contact_intro_text" class="form-label">Intro bajo el título</label>
+                                        <input type="text" id="leasing_contact_intro_text" name="leasing_contact_intro_text" class="form-control form-control-premium" value="<?php echo esc($leasing_contact['intro_text'] ?? 'Gracias por escribirnos. Tus comentarios son muy importantes para nosotros; completa el formulario y pronto te responderemos.'); ?>">
+                                    </div>
                                     <div class="col-md-6 col-12">
                                         <label for="leasing_contact_emails" class="form-label">Correos de destino (Leasing)</label>
                                         <textarea id="leasing_contact_emails" name="leasing_contact_emails" class="form-control form-control-premium" rows="5" placeholder="Ej: leasing@grupopcr.com.pa"><?php echo esc($leasing_contact['contact_emails'] ?? ''); ?></textarea>

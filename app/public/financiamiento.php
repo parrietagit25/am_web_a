@@ -14,6 +14,9 @@ $financing = $seminuevosData['financing'] ?? [];
 $finTitle = !empty($financing['title']) ? $financing['title'] : 'Financiamiento a tu medida';
 $finSubtitle = !empty($financing['subtitle']) ? $financing['subtitle'] : 'Asesoría para el financiamiento de tu Seminuevo con Automarket. Elige el tipo de perfil al que aplicarías para conocer los requisitos requeridos.';
 $finIntro = !empty($financing['intro']) ? $financing['intro'] : 'En Automarket, siempre nos esforzamos por ofrecerle el mejor servicio y las mejores opciones para sus necesidades. Nos complace informarle que contamos con un servicio de asesoría personalizada para el financiamiento de su Seminuevo.';
+$finBannerTagline = !empty($financing['banner_tagline']) ? $financing['banner_tagline'] : 'Te asesoramos para obtener tu seminuevo con las mejores tasas';
+$finBanksTitle = !empty($financing['banks_title']) ? $financing['banks_title'] : 'Nuestros Aliados Financieros';
+$finBanksSubtitle = !empty($financing['banks_subtitle']) ? $financing['banks_subtitle'] : 'Trabajamos de la mano con las principales entidades bancarias para ofrecerte las mejores condiciones.';
 $headerImg = !empty($financing['header_image_url']) ? $financing['header_image_url'] : '';
 
 $features = $financing['features'] ?? [
@@ -244,7 +247,7 @@ $banks = $financing['banks'] ?? [
         <div class="container d-flex justify-content-between align-items-center position-relative" style="z-index: 2;">
             <div>
                 <h1 class="h2 fw-bold font-montserrat mb-1 text-uppercase text-white"><?php echo esc($finTitle); ?></h1>
-                <p class="text-white opacity-85 text-sm mb-0">Te asesoramos para obtener tu seminuevo con las mejores tasas</p>
+                <p class="text-white opacity-85 text-sm mb-0"><?php echo esc($finBannerTagline); ?></p>
             </div>
             <nav aria-label="breadcrumb" class="d-none d-md-block">
                 <ol class="breadcrumb mb-0">
@@ -260,7 +263,7 @@ $banks = $financing['banks'] ?? [
         <div class="container d-flex justify-content-between align-items-center">
             <div>
                 <h1 class="h3 fw-bold font-montserrat mb-1 text-uppercase text-white"><?php echo esc($finTitle); ?></h1>
-                <p class="text-white-50 text-sm mb-0">Te asesoramos para obtener tu seminuevo con las mejores tasas</p>
+                <p class="text-white-50 text-sm mb-0"><?php echo esc($finBannerTagline); ?></p>
             </div>
             <nav aria-label="breadcrumb" class="d-none d-md-block">
                 <ol class="breadcrumb mb-0">
@@ -355,8 +358,8 @@ $banks = $financing['banks'] ?? [
     <!-- Bank Partners Section -->
     <div class="py-5 border-top mt-5">
         <div class="text-center mb-5">
-            <h3 class="fw-bold text-navy font-montserrat text-uppercase mb-2">Nuestros Aliados Financieros</h3>
-            <p class="text-muted font-poppins">Trabajamos de la mano con las principales entidades bancarias para ofrecerte las mejores condiciones.</p>
+            <h3 class="fw-bold text-navy font-montserrat text-uppercase mb-2"><?php echo esc($finBanksTitle); ?></h3>
+            <p class="text-muted font-poppins"><?php echo esc($finBanksSubtitle); ?></p>
         </div>
         
         <?php if (!empty($banks)): ?>

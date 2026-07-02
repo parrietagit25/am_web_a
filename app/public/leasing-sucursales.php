@@ -6,6 +6,11 @@ $activeUnit = 'leasing';
 require_once __DIR__ . '/../includes/header.php';
 
 $sucursalesRaw = $contentService->get('leasing.sucursales', []);
+$leasingData = $contentService->get('leasing', []);
+$lsTitle = trim((string) ($leasingData['sucursales_title'] ?? '')) ?: 'Nuestras Sucursales';
+$lsSubtitle = trim((string) ($leasingData['sucursales_subtitle'] ?? '')) ?: 'Encuentra las sucursales de Automarket Leasing Operativo en Panamá: atención corporativa y cobertura nacional para tu flota.';
+$lsCtaTitle = trim((string) ($leasingData['sucursales_cta_title'] ?? '')) ?: 'Cotiza tu flota corporativa';
+$lsCtaText = trim((string) ($leasingData['sucursales_cta_text'] ?? '')) ?: 'Soluciones de movilidad para empresas con cobertura en todo el país.';
 
 $sucursales = array_values(array_filter($sucursalesRaw, function ($s) {
     return !isset($s['active']) || $s['active'] === true || $s['active'] === 'true' || $s['active'] == 1;
@@ -29,8 +34,8 @@ usort($sucursales, function ($a, $b) {
                 <li class="breadcrumb-item active" aria-current="page">Sucursales</li>
             </ol>
         </nav>
-        <h1 class="display-5 fw-bold text-navy font-montserrat mb-0" style="font-size: 2.30rem; letter-spacing: -0.5px;">Nuestras Sucursales</h1>
-        <p class="text-muted font-poppins mt-2 mb-0">Encuentra las sucursales de Automarket Leasing Operativo en Panamá: atención corporativa y cobertura nacional para tu flota.</p>
+        <h1 class="display-5 fw-bold text-navy font-montserrat mb-0" style="font-size: 2.30rem; letter-spacing: -0.5px;"><?php echo esc($lsTitle); ?></h1>
+        <p class="text-muted font-poppins mt-2 mb-0"><?php echo esc($lsSubtitle); ?></p>
     </div>
 </section>
 
@@ -170,9 +175,9 @@ usort($sucursales, function ($a, $b) {
             <div class="sticky-widget">
                 <div class="card border-0 overflow-hidden shadow-sm" style="border-radius: 20px; border: 1px solid #e3e6f0 !important;">
                     <div class="p-5 text-center text-white" style="background-color: var(--theme-primary);">
-                        <h3 class="fw-bold mb-3 font-montserrat text-uppercase" style="font-size: 1.45rem; letter-spacing: -0.3px; line-height: 1.3;">Cotiza tu flota corporativa</h3>
+                        <h3 class="fw-bold mb-3 font-montserrat text-uppercase" style="font-size: 1.45rem; letter-spacing: -0.3px; line-height: 1.3;"><?php echo esc($lsCtaTitle); ?></h3>
                         <p class="small mb-4 font-poppins opacity-90" style="line-height: 1.6; font-size: 0.92rem;">
-                            Soluciones de movilidad para empresas con cobertura en todo el país.
+                            <?php echo esc($lsCtaText); ?>
                         </p>
                         <a href="/leasing.php#cotizar-seccion" class="btn btn-light px-5 py-3 fw-bold text-uppercase rounded-pill shadow-sm" style="color: var(--theme-primary); font-family: 'Montserrat', sans-serif; font-size: 0.95rem; letter-spacing: 0.5px;">
                             Solicitar cotización

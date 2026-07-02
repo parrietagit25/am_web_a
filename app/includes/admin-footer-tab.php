@@ -148,7 +148,10 @@ $publicBase = $scheme . '://' . $host;
                         <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-cloud-download me-1"></i> Importar desde unidades</button>
                     </form>
                 </div>
-                <p class="small text-muted">Página pública: <a href="/sucursales-grupo.php" target="_blank" rel="noopener">/sucursales-grupo.php</a></p>
+                <p class="small text-muted mb-2">Página pública: <a href="/sucursales-grupo.php" target="_blank" rel="noopener">/sucursales-grupo.php</a> (no aparece en el pie visual del sitio).</p>
+                <div class="alert alert-light border small py-2 mb-3">
+                    Cada unidad también tiene su propio listado en <code>*-sucursales.php</code>. Use el campo <strong>Unidad</strong> para agrupar en la vista consolidada. La sincronización importa desde las unidades sin borrar entradas existentes.
+                </div>
                 <form method="POST" action="?tab=footer" id="footerSucursalForm">
                     <input type="hidden" name="action" value="save_footer_sucursal">
                     <input type="hidden" name="sucursal_id" id="footer_sucursal_id" value="">

@@ -8,9 +8,17 @@ if (!in_array($activeUnit, ['rentacar', 'seminuevos', 'leasing', 'renting', 'tal
 }
 
 require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/unit-footer-prepare.php';
 
 $contactImageUrl = $contentService->get('homepage.contact_image_url', '/assets/img/sucursales-rac.webp');
 $tallerContact = $contentService->get('taller.contact', []);
+$siteData = $contentService->getAll();
+$semiUnitData = $siteData['seminuevos'] ?? [];
+$racUnitData = $siteData['homepage'] ?? [];
+$semiFooterContact = am_unit_footer_contact_array($semiUnitData);
+$racFooterContact = am_unit_footer_contact_array($racUnitData);
+$globalPhone = trim((string) ($siteData['global']['phone_display'] ?? '(507) 279-2700'));
+$globalWhatsapp = trim((string) ($siteData['global']['whatsapp_number'] ?? '50767470070'));
 
 $unitHomeLinks = [
     'rentacar'       => ['url' => '/rent-a-car.php',     'label' => 'Rent A Car'],
@@ -23,7 +31,6 @@ $unitHomeLinks = [
 $currentUnitHome = $unitHomeLinks[$activeUnit] ?? ['url' => '/rent-a-car.php', 'label' => 'Rent A Car'];
 
 // Load Seminuevos sucursales
-$siteData       = $contentService->getAll();
 $semiSucursales = $siteData['seminuevos']['sucursales'] ?? [];
 usort($semiSucursales, function($a, $b) {
     return intval($a['sort_order'] ?? 99) - intval($b['sort_order'] ?? 99);
@@ -386,8 +393,28 @@ async function handleContactSubmit(event) {
                         <h5 class="fw-bold font-montserrat text-navy text-uppercase mb-3" style="font-size: 1.1rem; letter-spacing: 0.5px;"><?php echo esc(t('contact.phone_label')); ?></h5>
                         <div class="d-flex flex-column gap-2">
                             <?php
-                            $phone1 = ($activeUnit === 'taller') ? ($tallerContact['phone_1'] ?? '(507) 279-2700') : '(507) 279-2700';
-                            $phone2 = ($activeUnit === 'taller') ? ($tallerContact['phone_2'] ?? '(507) 6747-0070') : '(507) 6747-0070';
+                            if ($activeUnit === 'taller') {
+                                $phone1 = $tallerContact['phone_1'] ?? '(507) 279-2700';
+                                $phone2 = $tallerContact['phone_2'] ?? '(507) 6747-0070';
+                                $waText = $tallerContact['whatsapp'] ?? '(507) 6747-0070';
+                            } elseif ($activeUnit === 'seminuevos') {
+                                $phone1 = trim((string) ($semiFooterContact['phone_display'] ?? '')) ?: $globalPhone;
+                                $phone2 = '';
+                                $waDigits = preg_replace('/\D/', '', (string) ($semiFooterContact['whatsapp_number'] ?? ''));
+                                $waText = $waDigits !== '' ? ($semiFooterContact['whatsapp_number'] ?? $waDigits) : $globalWhatsapp;
+                            } elseif ($activeUnit === 'rentacar') {
+                                $phone1 = trim((string) ($racFooterContact['phone_display'] ?? '')) ?: $globalPhone;
+                                $phone2 = '';
+                                $waDigits = preg_replace('/\D/', '', (string) ($racFooterContact['whatsapp_number'] ?? ''));
+                                $waText = $waDigits !== '' ? ($racFooterContact['whatsapp_number'] ?? $waDigits) : $globalWhatsapp;
+                            } else {
+                                $phone1 = $globalPhone;
+                                $phone2 = '(507) 6747-0070';
+                                $waText = '(507) 6747-0070';
+                            }
+                            if (!isset($waDigits)) {
+                                $waDigits = preg_replace('/\D/', '', (string) $waText);
+                            }
                             ?>
                             <?php if (!empty(trim($phone1))): ?>
                                 <a href="tel:<?php echo preg_replace('/\D/', '', $phone1); ?>" class="text-navy font-poppins fs-5 text-decoration-none fw-semibold hover-red d-flex align-items-center gap-2">
@@ -404,8 +431,7 @@ async function handleContactSubmit(event) {
                     <div class="mb-5">
                         <h5 class="fw-bold font-montserrat text-navy text-uppercase mb-3" style="font-size: 1.1rem; letter-spacing: 0.5px;"><?php echo esc(t('contact.whatsapp')); ?></h5>
                         <?php
-                        $waText = ($activeUnit === 'taller') ? ($tallerContact['whatsapp'] ?? '(507) 6747-0070') : '(507) 6747-0070';
-                        $waDigits = preg_replace('/\D/', '', $waText);
+                        $waDigits = preg_replace('/\D/', '', (string) $waText);
                         ?>
                         <a href="https://api.whatsapp.com/send?phone=<?php echo esc($waDigits); ?>" target="_blank" class="btn text-white fw-bold d-inline-flex align-items-center gap-2 px-4 py-2 rounded-3 shadow-sm hover-grow" style="background-color: #25d366; font-family: 'Poppins', sans-serif;">
                             <i class="bi bi-whatsapp fs-5"></i> <?php echo esc($waText); ?>
