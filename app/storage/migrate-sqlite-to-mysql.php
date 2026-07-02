@@ -2,12 +2,15 @@
 /**
  * Migración SQLite -> MariaDB (Automarket).
  *
- * Script CLI standalone. En DB1B-2C solo el modo --dry-run está habilitado;
- * --execute queda explícitamente bloqueado hasta DB1B-2E.
+ * Script CLI standalone.
  *
  * Uso:
  *   php app/storage/migrate-sqlite-to-mysql.php --dry-run
- *   php app/storage/migrate-sqlite-to-mysql.php --execute   (bloqueado en este bloque)
+ *   php app/storage/migrate-sqlite-to-mysql.php --execute --yes-i-am-sure
+ *
+ * --execute exige --yes-i-am-sure explícito; sin él, aborta sin tocar nada.
+ * --execute corre primero el mismo preflight que --dry-run; si hay cualquier
+ * error, aborta antes de escribir una sola fila.
  *
  * Destino (MariaDB) se configura por variables de entorno, NUNCA por config.php:
  *   DB_HOST, DB_NAME, DB_USER, DB_PASS
@@ -54,72 +57,65 @@ const PRIMARY_KEYS = [
     'Automarket_Invs_web_temp' => 'id',
 ];
 
-/** Columnas bit/boolean de Automarket_Invs_web a validar como convertibles a 0/1. */
+/** Columnas bit/boolean a normalizar a entero 0/1 explícito al migrar. */
 const BOOLISH_COLUMNS = [
     'Automarket_Invs_web' => ['Marked', 'Promo'],
 ];
 
 function main(array $argv): int
 {
-    $mode = parseMode($argv);
-    if ($mode === null) {
-        return 1;
-    }
-
-    if ($mode === 'execute') {
-        echo "--execute aún no está habilitado en DB1B-2C; usar bloque DB1B-2E." . PHP_EOL;
-        return 1;
-    }
-
-    return runDryRun();
-}
-
-/**
- * Determina el modo solicitado. Devuelve 'dry-run', 'execute', o null si los
- * flags son inválidos (ninguno, ambos, o desconocido) — imprime el error.
- */
-function parseMode(array $argv): ?string
-{
     $args = array_slice($argv, 1);
     $hasDryRun = in_array('--dry-run', $args, true);
     $hasExecute = in_array('--execute', $args, true);
+    $hasConfirm = in_array('--yes-i-am-sure', $args, true);
 
     if ($hasDryRun && $hasExecute) {
         echo "Error: no se puede usar --dry-run y --execute al mismo tiempo." . PHP_EOL;
-        return null;
+        return 1;
     }
     if (!$hasDryRun && !$hasExecute) {
         echo "Error: debe indicar --dry-run o --execute." . PHP_EOL;
         echo "Uso: php " . basename(__FILE__) . " --dry-run" . PHP_EOL;
-        return null;
+        echo "     php " . basename(__FILE__) . " --execute --yes-i-am-sure" . PHP_EOL;
+        return 1;
     }
 
-    return $hasExecute ? 'execute' : 'dry-run';
+    if ($hasExecute && !$hasConfirm) {
+        echo "Error: --execute requiere confirmación explícita --yes-i-am-sure." . PHP_EOL;
+        echo "Uso: php " . basename(__FILE__) . " --execute --yes-i-am-sure" . PHP_EOL;
+        return 1;
+    }
+
+    return $hasExecute ? runExecute() : runDryRun();
 }
 
 /**
  * Corre el preflight completo de solo lectura contra SQLite y MariaDB.
- * No escribe nada en ninguna base. Devuelve el exit code final.
+ * No escribe nada en ninguna base. Devuelve el contexto recolectado.
  */
-function runDryRun(): int
+function preflight(): array
 {
     $errors = [];
     $warnings = [];
+    $sqlite = null;
+    $db = null;
+    $sourceCounts = [];
+    $destCounts = [];
+    $sourceColumnsByTable = [];
+    $destColumnTypesByTable = [];
 
-    echo "=== MODO: DRY RUN ===" . PHP_EOL;
     echo "Origen SQLite: " . SQLITE_PATH . PHP_EOL;
 
-    // --- Origen SQLite (solo lectura, nunca vía Database.php) ---
     if (!is_file(SQLITE_PATH)) {
         $errors[] = "No existe el archivo SQLite de origen: " . SQLITE_PATH;
-        return finish($errors, $warnings, null, null, null);
+        return compact('errors', 'warnings', 'sqlite', 'db', 'sourceCounts', 'destCounts', 'sourceColumnsByTable', 'destColumnTypesByTable');
     }
 
     try {
         $sqlite = new SQLite3(SQLITE_PATH, SQLITE3_OPEN_READONLY);
     } catch (Throwable $e) {
         $errors[] = "No se pudo abrir SQLite en modo solo lectura: " . $e->getMessage();
-        return finish($errors, $warnings, null, null, null);
+        return compact('errors', 'warnings', 'sqlite', 'db', 'sourceCounts', 'destCounts', 'sourceColumnsByTable', 'destColumnTypesByTable');
     }
     echo "Origen SQLite: OK (solo lectura)" . PHP_EOL;
 
@@ -133,14 +129,16 @@ function runDryRun(): int
     }
     if (!empty($missingEnv)) {
         $errors[] = "Faltan variables de entorno para el destino MySQL: " . implode(', ', $missingEnv);
-        return finish($errors, $warnings, $sqlite, null, null);
+        return compact('errors', 'warnings', 'sqlite', 'db', 'sourceCounts', 'destCounts', 'sourceColumnsByTable', 'destColumnTypesByTable');
     }
 
-    define('DB_REQUIRE_MYSQL', true);
-    define('DB_HOST', getenv('DB_HOST'));
-    define('DB_NAME', getenv('DB_NAME'));
-    define('DB_USER', getenv('DB_USER'));
-    define('DB_PASS', getenv('DB_PASS'));
+    if (!defined('DB_REQUIRE_MYSQL')) {
+        define('DB_REQUIRE_MYSQL', true);
+        define('DB_HOST', getenv('DB_HOST'));
+        define('DB_NAME', getenv('DB_NAME'));
+        define('DB_USER', getenv('DB_USER'));
+        define('DB_PASS', getenv('DB_PASS'));
+    }
 
     require_once __DIR__ . '/../services/Database.php';
 
@@ -149,14 +147,14 @@ function runDryRun(): int
     } catch (Throwable $e) {
         // Mensaje de Database.php ya es seguro (no expone DB_PASS).
         $errors[] = "No se pudo conectar al destino MySQL: " . $e->getMessage();
-        return finish($errors, $warnings, $sqlite, null, null);
+        return compact('errors', 'warnings', 'sqlite', 'db', 'sourceCounts', 'destCounts', 'sourceColumnsByTable', 'destColumnTypesByTable');
     }
 
     $driver = $db->getDriverName();
     echo "Destino driver: " . $driver . PHP_EOL;
     if ($driver !== 'mysql') {
         $errors[] = "El driver de destino es '$driver', se esperaba 'mysql'. Abortando.";
-        return finish($errors, $warnings, $sqlite, $db, null);
+        return compact('errors', 'warnings', 'sqlite', 'db', 'sourceCounts', 'destCounts', 'sourceColumnsByTable', 'destColumnTypesByTable');
     }
 
     // --- Tablas excluidas (solo informativo) ---
@@ -166,26 +164,19 @@ function runDryRun(): int
     }
 
     // --- Preflight por tabla ---
-    $sourceCounts = [];
-    $destCounts = [];
-    $structureOk = true;
-
     echo PHP_EOL . "Tablas incluidas: " . implode(', ', TABLES) . PHP_EOL . PHP_EOL;
 
     foreach (TABLES as $table) {
         echo "--- $table ---" . PHP_EOL;
 
-        // Existencia en origen
         $sourceExists = $sqlite->querySingle(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='" . SQLite3::escapeString($table) . "'"
         );
         if (!$sourceExists) {
             $errors[] = "$table: no existe en SQLite (origen).";
-            $structureOk = false;
             continue;
         }
 
-        // Existencia en destino
         $destExistsRow = $db->selectOne(
             "SELECT COUNT(*) AS c FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :t",
             [':t' => $table]
@@ -193,11 +184,9 @@ function runDryRun(): int
         $destExists = (int) ($destExistsRow['c'] ?? 0) > 0;
         if (!$destExists) {
             $errors[] = "$table: no existe en MariaDB (destino).";
-            $structureOk = false;
             continue;
         }
 
-        // Conteos
         $srcCount = (int) $sqlite->querySingle('SELECT COUNT(*) FROM ' . $table);
         $dstCount = (int) ($db->selectOne('SELECT COUNT(*) AS c FROM ' . $table)['c'] ?? 0);
         $sourceCounts[$table] = $srcCount;
@@ -205,7 +194,7 @@ function runDryRun(): int
         echo "  Filas origen: $srcCount | Filas destino: $dstCount" . PHP_EOL;
 
         if ($dstCount > 0) {
-            $errors[] = "$table: la tabla destino NO está vacía ($dstCount filas). No se puede continuar hacia --execute.";
+            $errors[] = "$table: la tabla destino NO está vacía ($dstCount filas). Abortando antes de escribir.";
         }
 
         // Columnas: origen (PRAGMA) vs destino (information_schema)
@@ -214,20 +203,25 @@ function runDryRun(): int
         while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
             $sourceColumns[] = $row['name'];
         }
+        $sourceColumnsByTable[$table] = $sourceColumns;
 
         $destColumnsRows = $db->select(
-            "SELECT COLUMN_NAME FROM information_schema.COLUMNS
+            "SELECT COLUMN_NAME, DATA_TYPE FROM information_schema.COLUMNS
              WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :t
              ORDER BY ORDINAL_POSITION",
             [':t' => $table]
         );
         $destColumns = array_map(fn ($r) => $r['COLUMN_NAME'], $destColumnsRows);
+        $typeMap = [];
+        foreach ($destColumnsRows as $r) {
+            $typeMap[$r['COLUMN_NAME']] = $r['DATA_TYPE'];
+        }
+        $destColumnTypesByTable[$table] = $typeMap;
 
         $missingInDest = array_values(array_diff($sourceColumns, $destColumns));
         $extraInDest = array_values(array_diff($destColumns, $sourceColumns));
         if (!empty($missingInDest)) {
             $errors[] = "$table: columnas presentes en SQLite pero ausentes en MariaDB: " . implode(', ', $missingInDest);
-            $structureOk = false;
         }
         if (!empty($extraInDest)) {
             $warnings[] = "$table: columnas presentes en MariaDB pero ausentes en SQLite (recibirán su DEFAULT): " . implode(', ', $extraInDest);
@@ -316,37 +310,48 @@ function runDryRun(): int
         }
     }
 
-    return finish($errors, $warnings, $sqlite, $db, ['source' => $sourceCounts, 'dest' => $destCounts, 'structureOk' => $structureOk]);
+    return compact('errors', 'warnings', 'sqlite', 'db', 'sourceCounts', 'destCounts', 'sourceColumnsByTable', 'destColumnTypesByTable');
 }
 
-/**
- * Imprime el resumen final y devuelve el exit code (0 si OK, 1 si hay errores).
- */
-function finish(array $errors, array $warnings, ?SQLite3 $sqlite, ?Database $db, ?array $counts): int
+/** Imprime warnings y errores acumulados en el contexto. */
+function printWarningsAndErrors(array $ctx): void
 {
-    echo PHP_EOL . "=== RESUMEN ===" . PHP_EOL;
-
-    if ($counts !== null) {
-        echo "Conteos (origen -> destino):" . PHP_EOL;
-        foreach ($counts['source'] as $table => $srcCount) {
-            $dstCount = $counts['dest'][$table] ?? 'N/D';
-            echo "  $table: $srcCount -> $dstCount" . PHP_EOL;
-        }
-    }
-
-    echo PHP_EOL . "Warnings (" . count($warnings) . "):" . PHP_EOL;
-    foreach ($warnings as $w) {
+    echo PHP_EOL . "Warnings (" . count($ctx['warnings']) . "):" . PHP_EOL;
+    foreach ($ctx['warnings'] as $w) {
         echo "  - $w" . PHP_EOL;
     }
 
-    echo PHP_EOL . "Errores (" . count($errors) . "):" . PHP_EOL;
-    foreach ($errors as $e) {
+    echo PHP_EOL . "Errores (" . count($ctx['errors']) . "):" . PHP_EOL;
+    foreach ($ctx['errors'] as $e) {
         echo "  - $e" . PHP_EOL;
     }
+}
+
+/** Imprime la tabla de conteos origen -> destino recolectada en el preflight. */
+function printCounts(array $ctx): void
+{
+    if (empty($ctx['sourceCounts'])) {
+        return;
+    }
+    echo PHP_EOL . "Conteos (origen -> destino):" . PHP_EOL;
+    foreach ($ctx['sourceCounts'] as $table => $srcCount) {
+        $dstCount = $ctx['destCounts'][$table] ?? 'N/D';
+        echo "  $table: $srcCount -> $dstCount" . PHP_EOL;
+    }
+}
+
+function runDryRun(): int
+{
+    echo "=== MODO: DRY RUN ===" . PHP_EOL;
+    $ctx = preflight();
+
+    echo PHP_EOL . "=== RESUMEN ===" . PHP_EOL;
+    printCounts($ctx);
+    printWarningsAndErrors($ctx);
 
     echo PHP_EOL;
-    if (empty($errors)) {
-        echo "DRY-RUN OK — listo para DB1B-2D" . PHP_EOL;
+    if (empty($ctx['errors'])) {
+        echo "DRY-RUN OK — listo para migrar" . PHP_EOL;
         return 0;
     }
 
@@ -354,13 +359,200 @@ function finish(array $errors, array $warnings, ?SQLite3 $sqlite, ?Database $db,
     return 1;
 }
 
-/**
- * Placeholder deliberado: sin lógica de INSERT en DB1B-2C. Se implementará en
- * DB1B-2E. No tiene ninguna ruta de llamada activa en este script.
- */
-function migrateTable(string $table): void
+function runExecute(): int
 {
-    throw new RuntimeException('migrateTable() no está implementado todavía (pendiente de DB1B-2E).');
+    echo "=== MODO: EXECUTE ===" . PHP_EOL;
+    $ctx = preflight();
+
+    echo PHP_EOL . "=== RESUMEN DEL PREFLIGHT ===" . PHP_EOL;
+    printCounts($ctx);
+    printWarningsAndErrors($ctx);
+
+    if (!empty($ctx['errors'])) {
+        echo PHP_EOL . "Preflight con errores — abortando antes de escribir cualquier dato." . PHP_EOL;
+        echo PHP_EOL . "MIGRATION FAILED" . PHP_EOL;
+        return 1;
+    }
+
+    echo PHP_EOL . "Preflight OK. Iniciando migración real (transacción por tabla, orden fijo)..." . PHP_EOL;
+
+    $migration = migrateAll($ctx);
+
+    if (!empty($migration['errors'])) {
+        echo PHP_EOL . "Errores durante la migración:" . PHP_EOL;
+        foreach ($migration['errors'] as $e) {
+            echo "  - $e" . PHP_EOL;
+        }
+        echo PHP_EOL . "Tablas migradas antes del fallo: " . implode(', ', array_keys($migration['counts'])) . PHP_EOL;
+        echo PHP_EOL . "MIGRATION FAILED" . PHP_EOL;
+        return 1;
+    }
+
+    $postErrors = postMigrationChecks($ctx);
+    if (!empty($postErrors)) {
+        echo PHP_EOL . "Errores de validación post-migración:" . PHP_EOL;
+        foreach ($postErrors as $e) {
+            echo "  - $e" . PHP_EOL;
+        }
+        echo PHP_EOL . "MIGRATION FAILED" . PHP_EOL;
+        return 1;
+    }
+
+    echo PHP_EOL . "MIGRATION OK" . PHP_EOL;
+    return 0;
+}
+
+/**
+ * Migra las tablas en el orden fijo de TABLES. Transacción por tabla:
+ * si una tabla falla, se hace rollback SOLO de esa tabla y se aborta el
+ * resto de la ejecución (no se continúa con las tablas siguientes).
+ */
+function migrateAll(array $ctx): array
+{
+    $sqlite = $ctx['sqlite'];
+    $db = $ctx['db'];
+    $pdo = $db->getConnection();
+
+    $counts = [];
+    $errors = [];
+
+    foreach (TABLES as $table) {
+        $columns = $ctx['sourceColumnsByTable'][$table] ?? null;
+        if ($columns === null) {
+            $errors[] = "$table: sin información de columnas del preflight, abortando.";
+            break;
+        }
+
+        echo PHP_EOL . "Migrando $table..." . PHP_EOL;
+
+        $columnTypes = $ctx['destColumnTypesByTable'][$table] ?? [];
+        $placeholders = array_map(fn ($c) => ':' . $c, $columns);
+        $insertSql = 'INSERT INTO ' . $table . ' (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $placeholders) . ')';
+        $selectSql = 'SELECT ' . implode(', ', $columns) . ' FROM ' . $table;
+
+        $pdo->beginTransaction();
+        $rowNumber = 0;
+        try {
+            $stmt = $pdo->prepare($insertSql);
+            $res = $sqlite->query($selectSql);
+
+            while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
+                $rowNumber++;
+                foreach ($columns as $col) {
+                    $value = normalizeValue($table, $col, $row[$col], $columnTypes[$col] ?? null);
+                    // Bind explícito por tipo: PDOStatement::execute($assocArray) enlaza
+                    // todo como PDO::PARAM_STR, y MySQL interpreta un string enlazado en
+                    // una columna bit(1) como cadena de bits por longitud de byte (no como
+                    // literal numérico), causando "Data too long for column".
+                    if ($value === null) {
+                        $stmt->bindValue(':' . $col, null, PDO::PARAM_NULL);
+                    } elseif (is_int($value)) {
+                        $stmt->bindValue(':' . $col, $value, PDO::PARAM_INT);
+                    } else {
+                        $stmt->bindValue(':' . $col, $value, PDO::PARAM_STR);
+                    }
+                }
+                $stmt->execute();
+            }
+
+            $pdo->commit();
+            $counts[$table] = $rowNumber;
+            echo "  OK: $rowNumber fila(s) migrada(s) y commiteada(s)." . PHP_EOL;
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $errors[] = "$table: fallo en la fila #$rowNumber — " . sanitizeErrorMessage($e->getMessage()) . ". Rollback aplicado a esta tabla.";
+            echo "  ERROR: rollback aplicado a $table." . PHP_EOL;
+            break;
+        }
+    }
+
+    return ['counts' => $counts, 'errors' => $errors];
+}
+
+/**
+ * Normaliza un valor leído de SQLite antes de insertarlo en MariaDB.
+ * NULL se preserva como NULL; strings vacíos se preservan tal cual.
+ */
+function normalizeValue(string $table, string $col, $value, ?string $destDataType)
+{
+    if ($value === null) {
+        return null;
+    }
+
+    if (isset(BOOLISH_COLUMNS[$table]) && in_array($col, BOOLISH_COLUMNS[$table], true)) {
+        return ((int) $value) === 0 ? 0 : 1;
+    }
+
+    if ($destDataType === null) {
+        return $value;
+    }
+
+    $intTypes = ['int', 'bigint', 'smallint', 'mediumint', 'tinyint'];
+    $decimalTypes = ['decimal', 'numeric'];
+
+    if (in_array($destDataType, $intTypes, true)) {
+        return (int) $value;
+    }
+
+    if (in_array($destDataType, $decimalTypes, true)) {
+        // String numérico: MariaDB conserva el valor exacto sin depender de
+        // redondeos de punto flotante de PHP.
+        return (string) $value;
+    }
+
+    // varchar/text/longtext/datetime/date/timestamp -> copiar tal cual.
+    return $value;
+}
+
+/** Redacta el password de entorno si apareciera literal en un mensaje de error. */
+function sanitizeErrorMessage(string $message): string
+{
+    $pass = getenv('DB_PASS');
+    if ($pass !== false && $pass !== '' && str_contains($message, $pass)) {
+        $message = str_replace($pass, '[REDACTED]', $message);
+    }
+    return $message;
+}
+
+/**
+ * Validaciones de solo lectura después de escribir: conteos finales,
+ * huérfanos de chatbot_messages, y presencia del vehículo de referencia EO6372.
+ */
+function postMigrationChecks(array $ctx): array
+{
+    $errors = [];
+    $db = $ctx['db'];
+
+    echo PHP_EOL . "=== VALIDACIÓN POST-MIGRACIÓN ===" . PHP_EOL;
+
+    foreach (TABLES as $table) {
+        $srcCount = $ctx['sourceCounts'][$table] ?? null;
+        $dstCount = (int) ($db->selectOne('SELECT COUNT(*) AS c FROM ' . $table)['c'] ?? 0);
+        echo "  $table: origen=$srcCount destino=$dstCount" . PHP_EOL;
+        if ($srcCount !== $dstCount) {
+            $errors[] = "$table: conteo final no coincide (origen=$srcCount, destino=$dstCount).";
+        }
+    }
+
+    $orphans = (int) ($db->selectOne(
+        'SELECT COUNT(*) AS c FROM chatbot_messages m LEFT JOIN chatbot_sessions s ON s.id = m.session_id WHERE s.id IS NULL'
+    )['c'] ?? 0);
+    if ($orphans > 0) {
+        $errors[] = "chatbot_messages: $orphans fila(s) huérfana(s) tras la migración.";
+    } else {
+        echo "  chatbot_messages sin huérfanos: OK" . PHP_EOL;
+    }
+
+    $eo6372 = $db->selectOne("SELECT id, LicensePlate FROM Automarket_Invs_web WHERE LicensePlate = 'EO6372'");
+    if ($eo6372) {
+        echo "  EO6372 presente en destino: id=" . $eo6372['id'] . PHP_EOL;
+    } else {
+        $errors[] = "Automarket_Invs_web: no se encontró LicensePlate=EO6372 tras la migración.";
+    }
+
+    return $errors;
 }
 
 exit(main($argv));
