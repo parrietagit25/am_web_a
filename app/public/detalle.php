@@ -30,10 +30,16 @@ if (!$vehicle && isset($_GET['id'])) {
     );
 }
 
+// selectOne() devuelve false (no null) cuando no encuentra fila; normalizamos
+// para que el resto del archivo trate "no encontrado" de forma consistente.
+if ($vehicle === false) {
+    $vehicle = null;
+}
+
 // ── SE1C: URL amigable precomputada ──────────────────────────────────────────
 // Disponible para canonical (SE1D) y redirección post-lanzamiento (SE1E).
 // No cambia rutas actuales ni emite nada todavía.
-$_vehicleFriendlyUrl = $vehicle !== null ? VehicleSlugHelper::toDetalleUrl($vehicle) : null;
+$_vehicleFriendlyUrl = is_array($vehicle) ? VehicleSlugHelper::toDetalleUrl($vehicle) : null;
 // ── fin SE1C ─────────────────────────────────────────────────────────────────
 
 // Construir $seoOverride antes de que header.php lo consuma.
