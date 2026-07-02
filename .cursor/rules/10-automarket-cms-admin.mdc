@@ -1,0 +1,30 @@
+---
+alwaysApply: true
+---
+
+# Reglas para cambios CMS/Admin Automarket
+
+Objetivo:
+Convertir el admin en un CMS más flexible, sin reescribir el sistema.
+
+Prioridades del cliente:
+- Todos los títulos deben ser editables.
+- Todos los subtítulos deben ser editables.
+- Textos editables por bloques o columnas.
+- Banners por unidad de negocio.
+- Títulos por banner o slider.
+- Footer editable por columnas, no solo HTML crudo.
+- Redes sociales por unidad de negocio.
+- Contactos por unidad de negocio.
+- Sucursales segmentadas por unidad.
+- FAQ por unidad de negocio.
+- Botón para activar/desactivar contenidos del blog/eventos.
+- Conservar scroll o sección después de guardar.
+
+Reglas:
+1. No eliminar campos existentes.
+2. No romper site_data.json.
+3. Usar estructuras compatibles hacia atrás.
+4. Reutilizar ContentService, UnitContentService, FooterService o servicios existentes si aplican.
+5. Antes de programar, mapear dónde está guardado actualmente cada dato.
+6. Preferir componentes reutilizables: hero, slider, texto, columnas, cards, FAQ, CTA.

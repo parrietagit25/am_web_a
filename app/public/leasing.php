@@ -45,9 +45,11 @@ $leasingOpiniones = $leasingData['opiniones'] ?? [];
 
 <?php
 $hbSectionId = 'cta-hero';
+$leasingHeroTitle = trim($leasingData['hero_title'] ?? '') ?: 'Optimiza la flota de tu empresa';
+$leasingHeroSubtitle = trim($leasingData['hero_subtitle'] ?? '') ?: 'Soluciones integrales de Leasing Operativo y administración de vehículos corporativos en Panamá.';
 $hbInnerHtml = '<div class="row align-items-center"><div class="col-lg-7 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">'
-    . '<h1 class="display-3 fw-bold mb-3 font-montserrat leading-tight">Optimiza la flota<br>de tu empresa</h1>'
-    . '<p class="fs-4 mb-4 opacity-90 font-poppins">Soluciones integrales de Leasing Operativo y administración de vehículos corporativos en Panamá.</p>'
+    . '<h1 class="display-3 fw-bold mb-3 font-montserrat leading-tight">' . nl2br(esc($leasingHeroTitle)) . '</h1>'
+    . '<p class="fs-4 mb-4 opacity-90 font-poppins">' . esc($leasingHeroSubtitle) . '</p>'
     . '<a href="#soluciones" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg fs-5">Conocer Soluciones <i class="bi bi-chevron-down ms-2"></i></a>'
     . '</div></div>';
 require __DIR__ . '/../includes/render-header-banner.php';
@@ -316,4 +318,22 @@ require __DIR__ . '/../includes/render-header-banner.php';
 
 <?php $ucUnitKey = 'leasing'; require __DIR__ . '/../includes/unit-content-home-sections.php'; ?>
 
+<?php
+$_unitBranches = $leasingData['branches'] ?? [];
+require __DIR__ . '/../includes/unit-branches-section.php';
+?>
+
+<?php
+$_sfItems  = $leasingData['faqs'] ?? [];
+require __DIR__ . '/../includes/schema-faq.php';
+?>
+<?php
+$_ufsItems = $leasingData['faqs'] ?? [];
+require __DIR__ . '/../includes/unit-faq-section.php';
+?>
+
+<?php
+$_upsUnitSocialLinks = $leasingData['social_links'] ?? [];
+require __DIR__ . '/../includes/unit-payment-social.php';
+?>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

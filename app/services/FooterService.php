@@ -179,22 +179,100 @@ class FooterService
         $social = $stored['social'] ?? [];
         if ($social === []) {
             $social = [
-                ['id' => 's1', 'label' => 'Facebook', 'icon' => 'bi-facebook', 'url' => '#', 'sort_order' => 1, 'active' => true],
+                ['id' => 's1', 'label' => 'Facebook',  'icon' => 'bi-facebook',  'url' => '#', 'sort_order' => 1, 'active' => true],
                 ['id' => 's2', 'label' => 'Instagram', 'icon' => 'bi-instagram', 'url' => '#', 'sort_order' => 2, 'active' => true],
-                ['id' => 's3', 'label' => 'LinkedIn', 'icon' => 'bi-linkedin', 'url' => '#', 'sort_order' => 3, 'active' => true],
-                ['id' => 's4', 'label' => 'YouTube', 'icon' => 'bi-youtube', 'url' => '#', 'sort_order' => 4, 'active' => true],
+                ['id' => 's3', 'label' => 'LinkedIn',  'icon' => 'bi-linkedin',  'url' => '#', 'sort_order' => 3, 'active' => true],
+                ['id' => 's4', 'label' => 'YouTube',   'icon' => 'bi-youtube',   'url' => '#', 'sort_order' => 4, 'active' => true],
             ];
         }
 
+        $social = array_map([self::class, 'normalizeSocialEntry'], $social);
+
         $sucursales = $stored['sucursales'] ?? [];
 
+        $columns = $stored['columns'] ?? [];
+        if ($columns === []) {
+            $columns = [
+                [
+                    'id'    => 'recursos',
+                    'title' => 'Recursos',
+                    'links' => [
+                        ['id' => 'res1', 'label' => 'Sobre nosotros',         'url' => '/pagina-institucional.php?p=sobre-nosotros', 'sort_order' => 1, 'active' => true],
+                        ['id' => 'res2', 'label' => 'Términos y condiciones', 'url' => '/pagina-institucional.php?p=terminos',        'sort_order' => 2, 'active' => true],
+                        ['id' => 'res3', 'label' => 'Preguntas frecuentes',   'url' => '/pagina-institucional.php?p=faq',             'sort_order' => 3, 'active' => true],
+                        ['id' => 'res4', 'label' => 'Sucursales',             'url' => '/sucursales-grupo.php',                       'sort_order' => 4, 'active' => true],
+                        ['id' => 'res5', 'label' => 'Sostenibilidad',         'url' => '/sostenibilidad.php',                         'sort_order' => 5, 'active' => true],
+                        ['id' => 'res6', 'label' => 'Subastas',               'url' => '/pagina-institucional.php?p=subastas',         'sort_order' => 6, 'active' => true],
+                        ['id' => 'res7', 'label' => 'Blog',                   'url' => '/blog-grupo.php',                             'sort_order' => 7, 'active' => true],
+                    ],
+                ],
+            ];
+        }
+
         return [
-            'general' => $general,
-            'pages' => $pages,
+            'general'   => $general,
+            'pages'     => $pages,
             'also_know' => $alsoKnow,
-            'social' => $social,
-            'sucursales' => $sucursales,
+            'social'    => $social,
+            'sucursales'=> $sucursales,
+            'columns'   => $columns,
         ];
+    }
+
+    /**
+     * Corrige inconsistencias entre label, icon y URL de una red social.
+     *
+     * Reglas:
+     * - Si la URL contiene un dominio reconocido, el label e icon se fuerzan al valor correcto.
+     * - Si el label es "TikTok" (o variantes) pero la URL no es de TikTok, se fuerza icon bi-tiktok
+     *   y se deja la URL tal cual (puede ser '#'). No se inventa URL.
+     *
+     * @param array<string, mixed> $entry
+     * @return array<string, mixed>
+     */
+    public static function normalizeSocialEntry(array $entry): array
+    {
+        static $domainMap = [
+            'facebook.com'  => ['label' => 'Facebook',  'icon' => 'bi-facebook'],
+            'instagram.com' => ['label' => 'Instagram', 'icon' => 'bi-instagram'],
+            'linkedin.com'  => ['label' => 'LinkedIn',  'icon' => 'bi-linkedin'],
+            'youtube.com'   => ['label' => 'YouTube',   'icon' => 'bi-youtube'],
+            'youtu.be'      => ['label' => 'YouTube',   'icon' => 'bi-youtube'],
+            'tiktok.com'    => ['label' => 'TikTok',    'icon' => 'bi-tiktok'],
+            'twitter.com'   => ['label' => 'Twitter',   'icon' => 'bi-twitter-x'],
+            'x.com'         => ['label' => 'Twitter',   'icon' => 'bi-twitter-x'],
+        ];
+
+        static $labelIconMap = [
+            'facebook'  => 'bi-facebook',
+            'instagram' => 'bi-instagram',
+            'linkedin'  => 'bi-linkedin',
+            'youtube'   => 'bi-youtube',
+            'tiktok'    => 'bi-tiktok',
+            'twitter'   => 'bi-twitter-x',
+            'x'         => 'bi-twitter-x',
+        ];
+
+        $url = $entry['url'] ?? '#';
+
+        // Normalizar por URL cuando apunta a un dominio reconocido
+        if ($url !== '#' && $url !== '') {
+            $host = strtolower(parse_url($url, PHP_URL_HOST) ?? '');
+            $host = preg_replace('/^www\./', '', $host);
+            if (isset($domainMap[$host])) {
+                $entry['label'] = $domainMap[$host]['label'];
+                $entry['icon']  = $domainMap[$host]['icon'];
+                return $entry;
+            }
+        }
+
+        // Normalizar icon por label cuando la URL es '#' o vacía
+        $labelKey = strtolower(trim((string) ($entry['label'] ?? '')));
+        if (isset($labelIconMap[$labelKey])) {
+            $entry['icon'] = $labelIconMap[$labelKey];
+        }
+
+        return $entry;
     }
 
     public static function slugifyPageKey(string $key): string

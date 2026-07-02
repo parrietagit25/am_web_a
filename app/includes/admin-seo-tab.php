@@ -24,6 +24,11 @@ $seoPage = $siteData['seo']['pages'][$selectedSeoPage] ?? [];
                     <label class="form-label">Sufijo de título</label>
                     <input type="text" name="seo_title_suffix" class="form-control form-control-premium" value="<?php echo esc($seoGlobal['title_suffix'] ?? '| Automarket'); ?>" placeholder="| Automarket">
                 </div>
+                <div class="col-md-12">
+                    <label class="form-label">Título por defecto (fallback)</label>
+                    <input type="text" name="seo_default_title" class="form-control form-control-premium" value="<?php echo esc($seoGlobal['default_title'] ?? ''); ?>" placeholder="Automarket — Renta, Leasing, Taller y Venta de Autos en Panamá">
+                    <div class="form-text text-muted">Se usa cuando una página no tiene título configurado individualmente.</div>
+                </div>
                 <div class="col-md-8">
                     <label class="form-label">Descripción por defecto</label>
                     <textarea name="seo_default_description" rows="2" class="form-control form-control-premium"><?php echo esc($seoGlobal['default_description'] ?? ''); ?></textarea>

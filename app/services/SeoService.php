@@ -50,6 +50,7 @@ class SeoService {
 
         $siteName = trim((string)($seoGlobal['site_name'] ?? 'Automarket'));
         $titleSuffix = trim((string)($seoGlobal['title_suffix'] ?? '| ' . $siteName));
+        $defaultTitle = trim((string)($seoGlobal['default_title'] ?? ''));
         $defaultDesc = trim((string)($seoGlobal['default_description'] ?? $fallbackDescription));
         $defaultOgImage = trim((string)($seoGlobal['default_og_image'] ?? ''));
         $defaultRobots = trim((string)($seoGlobal['default_robots'] ?? 'index,follow'));
@@ -57,7 +58,7 @@ class SeoService {
 
         $title = trim((string)($pageSeo['title'] ?? ''));
         if ($title === '') {
-            $title = trim($fallbackTitle . ' ' . $titleSuffix);
+            $title = $defaultTitle !== '' ? $defaultTitle : trim($fallbackTitle . ' ' . $titleSuffix);
         }
 
         $description = trim((string)($pageSeo['description'] ?? ''));
@@ -90,6 +91,12 @@ class SeoService {
         $ogImage = trim((string)($pageSeo['og_image'] ?? ''));
         if ($ogImage === '') {
             $ogImage = $defaultOgImage;
+        }
+        // SE12: fallback seguro — garantiza que og:image / twitter:image nunca queden vacíos.
+        // Se activa solo cuando tanto la imagen de página como el global default_og_image
+        // están en blanco (campo no configurado en el admin SEO).
+        if ($ogImage === '') {
+            $ogImage = 'https://www.automarket.com.pa/assets/img/uploads/hero_bg_6a15c9ebb5ca7.webp';
         }
 
         return [

@@ -1,0 +1,29 @@
+---
+alwaysApply: true
+---
+
+# Reglas SEO / AIO / AEO / GEO Automarket
+
+Objetivo:
+Resolver problemas técnicos detectados en la auditoría SEO.
+
+Prioridades:
+1. Canonical en todas las páginas.
+2. Meta descriptions únicas por página.
+3. Titles únicos.
+4. H1 correcto por página.
+5. Open Graph image por sección.
+6. Twitter card summary_large_image.
+7. hreflang ES/EN.
+8. Schema Organization global.
+9. Schema LocalBusiness/AutoRental para sucursales.
+10. Schema AutoRepair para Taller.
+11. Schema FAQPage para preguntas frecuentes.
+12. Schema Vehicle/Product/Offer para seminuevos.
+13. Revisar robots.txt antes de modificarlo.
+
+Reglas:
+- Centralizar SEO en SeoService o include global si existe.
+- No duplicar meta tags manualmente en 40 páginas.
+- Mantener compatibilidad con páginas PHP existentes.
+- No cambiar URLs públicas sin redirecciones 301.

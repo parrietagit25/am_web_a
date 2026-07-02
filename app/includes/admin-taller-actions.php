@@ -14,6 +14,8 @@ if ($action === 'save_taller_home') {
         $siteData['taller']['team'] = [];
     }
 
+    $siteData['taller']['hero_title'] = trim($_POST['taller_hero_title'] ?? '');
+    $siteData['taller']['hero_subtitle'] = trim($_POST['taller_hero_subtitle'] ?? '');
     $siteData['taller']['services_title'] = trim($_POST['taller_services_title'] ?? 'Conoce Nuestros Servicios');
     $siteData['taller']['services_subtitle'] = trim($_POST['taller_services_subtitle'] ?? 'Algunos de los Servicios que Ofrecemos en Nuestros Talleres son');
     $siteData['taller']['team_title_line_1'] = trim($_POST['taller_team_title_line_1'] ?? 'Tenemos un equipo de');
@@ -167,14 +169,16 @@ elseif ($action === 'add_taller_sucursal') {
     $lng = trim($_POST['taller_sucursal_lng'] ?? '');
     if (!empty($name) && !empty($address) && $lat !== '' && $lng !== '') {
         $siteData['taller']['sucursales'][] = [
-            'id' => time(),
-            'name' => $name,
-            'location' => $location,
-            'address' => $address,
-            'schedule' => $schedule,
-            'phone' => $phone,
-            'lat' => $lat,
-            'lng' => $lng,
+            'id'         => time(),
+            'name'       => $name,
+            'location'   => $location,
+            'address'    => $address,
+            'schedule'   => $schedule,
+            'phone'      => $phone,
+            'lat'        => $lat,
+            'lng'        => $lng,
+            'sort_order' => intval($_POST['taller_sucursal_sort_order'] ?? 0),
+            'active'     => isset($_POST['taller_sucursal_active']) && $_POST['taller_sucursal_active'] == '1',
         ];
         if ($contentService->saveAll($siteData)) {
             $successMsg = 'Sucursal de Taller agregada correctamente.';
@@ -199,14 +203,16 @@ elseif ($action === 'edit_taller_sucursal') {
     }
     if ($foundIdx !== -1) {
         $siteData['taller']['sucursales'][$foundIdx] = [
-            'id' => $id,
-            'name' => trim($_POST['taller_sucursal_name'] ?? ''),
-            'location' => trim($_POST['taller_sucursal_location'] ?? ''),
-            'address' => trim($_POST['taller_sucursal_address'] ?? ''),
-            'schedule' => trim($_POST['taller_sucursal_schedule'] ?? ''),
-            'phone' => trim($_POST['taller_sucursal_phone'] ?? ''),
-            'lat' => trim($_POST['taller_sucursal_lat'] ?? ''),
-            'lng' => trim($_POST['taller_sucursal_lng'] ?? ''),
+            'id'         => $id,
+            'name'       => trim($_POST['taller_sucursal_name']     ?? ''),
+            'location'   => trim($_POST['taller_sucursal_location'] ?? ''),
+            'address'    => trim($_POST['taller_sucursal_address']  ?? ''),
+            'schedule'   => trim($_POST['taller_sucursal_schedule'] ?? ''),
+            'phone'      => trim($_POST['taller_sucursal_phone']    ?? ''),
+            'lat'        => trim($_POST['taller_sucursal_lat']      ?? ''),
+            'lng'        => trim($_POST['taller_sucursal_lng']      ?? ''),
+            'sort_order' => intval($_POST['taller_sucursal_sort_order'] ?? 0),
+            'active'     => isset($_POST['taller_sucursal_active']) && $_POST['taller_sucursal_active'] == '1',
         ];
         if ($contentService->saveAll($siteData)) {
             $successMsg = 'Sucursal de Taller actualizada correctamente.';
@@ -556,5 +562,78 @@ elseif ($action === 'delete_taller_opinion') {
         $successMsg = 'Opinión de Taller eliminada correctamente.';
     } else {
         $errorMsg = 'Error al eliminar la opinión.';
+    }
+}
+elseif ($action === 'save_taller_faqs') {
+    if (!isset($siteData['taller'])) {
+        $siteData['taller'] = [];
+    }
+    $questions = $_POST['faq_question'] ?? [];
+    $answers   = $_POST['faq_answer']   ?? [];
+    $faqs = [];
+    foreach ($questions as $idx => $q) {
+        $q = trim((string) $q);
+        $a = trim((string) ($answers[$idx] ?? ''));
+        if ($q === '' || $a === '') {
+            continue;
+        }
+        $faqs[] = ['question' => $q, 'answer' => $a];
+    }
+    $siteData['taller']['faqs'] = $faqs;
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Preguntas frecuentes de Taller guardadas correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar las preguntas frecuentes de Taller.';
+    }
+}
+elseif ($action === 'save_taller_social_links') {
+    if (!isset($siteData['taller'])) {
+        $siteData['taller'] = [];
+    }
+    $tallerSocialLinks = [];
+    foreach (['facebook', 'instagram', 'linkedin', 'tiktok', 'youtube'] as $tallerNet) {
+        $tallerSocialLinks[$tallerNet] = trim($_POST['taller_social_' . $tallerNet] ?? '');
+    }
+    $siteData['taller']['social_links'] = $tallerSocialLinks;
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Redes sociales de Taller guardadas correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar las redes sociales de Taller.';
+    }
+}
+elseif ($action === 'save_taller_branches') {
+    if (!isset($siteData['taller'])) {
+        $siteData['taller'] = [];
+    }
+    $branchNames     = $_POST['branch_name']      ?? [];
+    $branchAddresses = $_POST['branch_address']   ?? [];
+    $branchPhones    = $_POST['branch_phone']     ?? [];
+    $branchWhatsapps = $_POST['branch_whatsapp']  ?? [];
+    $branchEmails    = $_POST['branch_email']     ?? [];
+    $branchSchedules = $_POST['branch_schedule']  ?? [];
+    $branchMapUrls   = $_POST['branch_map_url']   ?? [];
+    $branchImageUrls = $_POST['branch_image_url'] ?? [];
+    $tallerBranches = [];
+    foreach ($branchNames as $i => $n) {
+        $n = trim((string)$n);
+        if ($n === '') {
+            continue;
+        }
+        $tallerBranches[] = [
+            'name'      => $n,
+            'address'   => trim((string)($branchAddresses[$i]  ?? '')),
+            'phone'     => trim((string)($branchPhones[$i]     ?? '')),
+            'whatsapp'  => trim((string)($branchWhatsapps[$i]  ?? '')),
+            'email'     => trim((string)($branchEmails[$i]     ?? '')),
+            'schedule'  => trim((string)($branchSchedules[$i]  ?? '')),
+            'map_url'   => trim((string)($branchMapUrls[$i]    ?? '')),
+            'image_url' => trim((string)($branchImageUrls[$i]  ?? '')),
+        ];
+    }
+    $siteData['taller']['branches'] = $tallerBranches;
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Sucursales de Taller guardadas correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar las sucursales de Taller.';
     }
 }

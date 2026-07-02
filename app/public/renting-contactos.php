@@ -79,8 +79,8 @@ $contactImageUrl = $contact['contact_image_url'] ?? '';
                             <input type="email" id="rc_email" class="form-control py-3" placeholder="correo@ejemplo.com" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="rc_phone" class="form-label fw-semibold text-navy small">Número telefónico</label>
-                            <input type="tel" id="rc_phone" class="form-control py-3" placeholder="+507 6123-4567" pattern="[0-9+\-() ]+">
+                            <label for="rc_phone" class="form-label fw-semibold text-navy small">Número telefónico <span class="text-danger">*</span></label>
+                            <input type="tel" id="rc_phone" class="form-control py-3" placeholder="+507 6123-4567" pattern="[0-9+\-() ]+" required>
                         </div>
                         <div class="col-12">
                             <label for="rc_auto_interes" class="form-label fw-semibold text-navy small">Auto de tu interés <span class="text-danger">*</span></label>
@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const consent = document.getElementById('rc_consent').checked;
         const okMsg = document.getElementById('rc_success_msg');
 
-        if (!nombre || !email || !autoInteres) {
+        if (!nombre || !email || !telefono || !autoInteres) {
             err.textContent = 'Complete todos los campos obligatorios.';
             err.classList.remove('d-none');
             return;

@@ -30,7 +30,7 @@ $vehicles = $contentService->get('leasing.vehicles', []);
             <button class="btn fleet-filter-btn" data-category="Familiares">Familiares</button>
             <button class="btn fleet-filter-btn" data-category="Comerciales">Comerciales</button>
             <button class="btn fleet-filter-btn" data-category="Promociones">Promociones</button>
-            <button class="btn fleet-filter-btn" data-category="SUV Mini">SUV Mini</button>
+            <button class="btn fleet-filter-btn" data-category="SUV Mini">Compacto</button>
         </div>
     </div>
 

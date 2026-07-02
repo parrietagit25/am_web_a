@@ -571,7 +571,7 @@ class ContentService {
                         [
                             'id' => 3,
                             'category' => 'SUV Mini',
-                            'label' => 'SUV Mini',
+                            'label' => 'Compacto',
                             'image_url' => '/assets/img/carrusel/suvmini.webp',
                             'sort_order' => 30,
                         ],

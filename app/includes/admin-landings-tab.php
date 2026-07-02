@@ -48,6 +48,7 @@ $landingBase = $scheme . '://' . $host . '/l/';
                 <div class="col-md-6">
                     <label class="form-label">Imagen destacada (archivo)</label>
                     <input type="file" id="landing_image" name="landing_image" class="form-control form-control-premium" accept="image/*">
+                    <small class="text-muted d-block mt-1">Recomendado: 1200×630 px — JPG o WebP</small>
                     <div id="landingImageHelp" class="form-text">Opcional. Puedes subir imagen o usar URL.</div>
                 </div>
                 <div class="col-md-6">

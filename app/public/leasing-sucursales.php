@@ -5,7 +5,17 @@
 $activeUnit = 'leasing';
 require_once __DIR__ . '/../includes/header.php';
 
-$sucursales = $contentService->get('leasing.sucursales', []);
+$sucursalesRaw = $contentService->get('leasing.sucursales', []);
+
+$sucursales = array_values(array_filter($sucursalesRaw, function ($s) {
+    return !isset($s['active']) || $s['active'] === true || $s['active'] === 'true' || $s['active'] == 1;
+}));
+
+usort($sucursales, function ($a, $b) {
+    $oa = intval($a['sort_order'] ?? 0);
+    $ob = intval($b['sort_order'] ?? 0);
+    return $oa !== $ob ? $oa - $ob : strcasecmp($a['name'] ?? '', $b['name'] ?? '');
+});
 ?>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>

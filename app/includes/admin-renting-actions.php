@@ -14,6 +14,8 @@ if ($action === 'save_renting_home') {
         $siteData['renting']['hero'] = [];
     }
 
+    $siteData['renting']['hero_title'] = trim($_POST['renting_hero_title'] ?? '');
+    $siteData['renting']['hero_subtitle'] = trim($_POST['renting_hero_subtitle'] ?? '');
     $siteData['renting']['intro_title'] = trim($_POST['renting_intro_title'] ?? '');
     $siteData['renting']['intro_text'] = trim($_POST['renting_intro_text'] ?? '');
     $siteData['renting']['cars_section_title'] = trim($_POST['renting_cars_section_title'] ?? 'Renting de Autos en Panamá');
@@ -751,5 +753,170 @@ elseif ($action === 'delete_renting_servicio_item') {
         $successMsg = 'Ítem del plan eliminado correctamente.';
     } else {
         $errorMsg = 'Error al eliminar el ítem.';
+    }
+}
+elseif ($action === 'save_renting_faqs') {
+    if (!isset($siteData['renting'])) {
+        $siteData['renting'] = [];
+    }
+    $questions = $_POST['faq_question'] ?? [];
+    $answers   = $_POST['faq_answer']   ?? [];
+    $faqs = [];
+    foreach ($questions as $idx => $q) {
+        $q = trim((string) $q);
+        $a = trim((string) ($answers[$idx] ?? ''));
+        if ($q === '' || $a === '') {
+            continue;
+        }
+        $faqs[] = ['question' => $q, 'answer' => $a];
+    }
+    $siteData['renting']['faqs'] = $faqs;
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Preguntas frecuentes de Renting guardadas correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar las preguntas frecuentes de Renting.';
+    }
+}
+elseif ($action === 'save_renting_social_links') {
+    if (!isset($siteData['renting'])) {
+        $siteData['renting'] = [];
+    }
+    $rentingSocialLinks = [];
+    foreach (['facebook', 'instagram', 'linkedin', 'tiktok', 'youtube'] as $rentingNet) {
+        $rentingSocialLinks[$rentingNet] = trim($_POST['renting_social_' . $rentingNet] ?? '');
+    }
+    $siteData['renting']['social_links'] = $rentingSocialLinks;
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Redes sociales de Renting guardadas correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar las redes sociales de Renting.';
+    }
+}
+elseif ($action === 'save_renting_branches') {
+    if (!isset($siteData['renting'])) {
+        $siteData['renting'] = [];
+    }
+    $branchNames     = $_POST['branch_name']      ?? [];
+    $branchAddresses = $_POST['branch_address']   ?? [];
+    $branchPhones    = $_POST['branch_phone']     ?? [];
+    $branchWhatsapps = $_POST['branch_whatsapp']  ?? [];
+    $branchEmails    = $_POST['branch_email']     ?? [];
+    $branchSchedules = $_POST['branch_schedule']  ?? [];
+    $branchMapUrls   = $_POST['branch_map_url']   ?? [];
+    $branchImageUrls = $_POST['branch_image_url'] ?? [];
+    $rentingBranches = [];
+    foreach ($branchNames as $i => $n) {
+        $n = trim((string)$n);
+        if ($n === '') {
+            continue;
+        }
+        $rentingBranches[] = [
+            'name'      => $n,
+            'address'   => trim((string)($branchAddresses[$i]  ?? '')),
+            'phone'     => trim((string)($branchPhones[$i]     ?? '')),
+            'whatsapp'  => trim((string)($branchWhatsapps[$i]  ?? '')),
+            'email'     => trim((string)($branchEmails[$i]     ?? '')),
+            'schedule'  => trim((string)($branchSchedules[$i]  ?? '')),
+            'map_url'   => trim((string)($branchMapUrls[$i]    ?? '')),
+            'image_url' => trim((string)($branchImageUrls[$i]  ?? '')),
+        ];
+    }
+    $siteData['renting']['branches'] = $rentingBranches;
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Sucursales de Renting guardadas correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar las sucursales de Renting.';
+    }
+}
+
+// ADD RENTING SUCURSAL
+elseif ($action === 'add_renting_sucursal') {
+    if (!isset($siteData['renting']['sucursales'])) {
+        $siteData['renting']['sucursales'] = [];
+    }
+    $name    = trim($_POST['renting_sucursal_name']    ?? '');
+    $address = trim($_POST['renting_sucursal_address'] ?? '');
+    $lat     = trim($_POST['renting_sucursal_lat']     ?? '');
+    $lng     = trim($_POST['renting_sucursal_lng']     ?? '');
+    if (!empty($name) && !empty($address) && $lat !== '' && $lng !== '') {
+        $existingIds = array_map('intval', array_column($siteData['renting']['sucursales'], 'id'));
+        $newId = !empty($existingIds) ? (max($existingIds) + 1) : 1;
+        $siteData['renting']['sucursales'][] = [
+            'id'         => $newId,
+            'name'       => $name,
+            'location'   => trim($_POST['renting_sucursal_location']       ?? ''),
+            'address'    => $address,
+            'schedule'   => trim($_POST['renting_sucursal_schedule']       ?? ''),
+            'phone'      => trim($_POST['renting_sucursal_phone']          ?? ''),
+            'email'      => trim($_POST['renting_sucursal_email']          ?? ''),
+            'whatsapp'   => trim($_POST['renting_sucursal_whatsapp']       ?? ''),
+            'map_url'    => trim($_POST['renting_sucursal_map_url']        ?? ''),
+            'lat'        => $lat,
+            'lng'        => $lng,
+            'sort_order' => intval($_POST['renting_sucursal_sort_order']   ?? 0),
+            'active'     => isset($_POST['renting_sucursal_active']) && $_POST['renting_sucursal_active'] == '1',
+        ];
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Sucursal de Renting agregada correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar la sucursal.';
+        }
+    } else {
+        $errorMsg = 'Nombre, dirección, latitud y longitud son obligatorios.';
+    }
+}
+
+// EDIT RENTING SUCURSAL
+elseif ($action === 'edit_renting_sucursal') {
+    $id = intval($_POST['renting_sucursal_id'] ?? 0);
+    if (!isset($siteData['renting']['sucursales'])) {
+        $siteData['renting']['sucursales'] = [];
+    }
+    $foundIdx = -1;
+    foreach ($siteData['renting']['sucursales'] as $idx => $item) {
+        if (intval($item['id']) === $id) {
+            $foundIdx = $idx;
+            break;
+        }
+    }
+    if ($foundIdx !== -1) {
+        $siteData['renting']['sucursales'][$foundIdx] = [
+            'id'         => $id,
+            'name'       => trim($_POST['renting_sucursal_name']       ?? ''),
+            'location'   => trim($_POST['renting_sucursal_location']   ?? ''),
+            'address'    => trim($_POST['renting_sucursal_address']    ?? ''),
+            'schedule'   => trim($_POST['renting_sucursal_schedule']   ?? ''),
+            'phone'      => trim($_POST['renting_sucursal_phone']      ?? ''),
+            'email'      => trim($_POST['renting_sucursal_email']      ?? ''),
+            'whatsapp'   => trim($_POST['renting_sucursal_whatsapp']   ?? ''),
+            'map_url'    => trim($_POST['renting_sucursal_map_url']    ?? ''),
+            'lat'        => trim($_POST['renting_sucursal_lat']        ?? ''),
+            'lng'        => trim($_POST['renting_sucursal_lng']        ?? ''),
+            'sort_order' => intval($_POST['renting_sucursal_sort_order'] ?? 0),
+            'active'     => isset($_POST['renting_sucursal_active']) && $_POST['renting_sucursal_active'] == '1',
+        ];
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Sucursal de Renting actualizada correctamente.';
+        } else {
+            $errorMsg = 'Error al actualizar la sucursal.';
+        }
+    } else {
+        $errorMsg = 'Sucursal no encontrada.';
+    }
+}
+
+// DELETE RENTING SUCURSAL
+elseif ($action === 'delete_renting_sucursal') {
+    $id = intval($_POST['renting_sucursal_id'] ?? 0);
+    if (!isset($siteData['renting']['sucursales'])) {
+        $siteData['renting']['sucursales'] = [];
+    }
+    $siteData['renting']['sucursales'] = array_values(array_filter($siteData['renting']['sucursales'], function ($item) use ($id) {
+        return intval($item['id']) !== $id;
+    }));
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Sucursal de Renting eliminada correctamente.';
+    } else {
+        $errorMsg = 'Error al eliminar la sucursal.';
     }
 }

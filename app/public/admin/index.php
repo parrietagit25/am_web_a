@@ -169,6 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $siteData['seo']['global'] = [
             'site_name' => trim($_POST['seo_site_name'] ?? 'Automarket'),
+            'default_title' => trim($_POST['seo_default_title'] ?? ''),
             'title_suffix' => trim($_POST['seo_title_suffix'] ?? '| Automarket'),
             'default_description' => trim($_POST['seo_default_description'] ?? ''),
             'default_og_image' => trim($_POST['seo_default_og_image'] ?? ''),
@@ -773,7 +774,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'schedule' => $schedule,
                 'phone' => $phone,
                 'lat' => $lat,
-                'lng' => $lng
+                'lng' => $lng,
+                'sort_order' => intval($_POST['sucursal_sort_order'] ?? 0),
+                'active'     => isset($_POST['sucursal_active']) && $_POST['sucursal_active'] == '1',
             ];
 
             if ($contentService->saveAll($siteData)) {
@@ -830,7 +833,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'schedule' => $schedule,
                 'phone' => $phone,
                 'lat' => $lat,
-                'lng' => $lng
+                'lng' => $lng,
+                'sort_order' => intval($_POST['sucursal_sort_order'] ?? 0),
+                'active'     => isset($_POST['sucursal_active']) && $_POST['sucursal_active'] == '1',
             ];
 
             if ($contentService->saveAll($siteData)) {
@@ -1683,7 +1688,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'schedule'   => trim($_POST['suc_schedule'] ?? ''),
             'map_url'    => trim($_POST['suc_map_url'] ?? ''),
             'sort_order' => intval($_POST['suc_sort_order'] ?? 99),
-            'active'     => true
+            'active'     => isset($_POST['suc_active']) && $_POST['suc_active'] == '1',
         ];
         if ($contentService->saveAll($siteData)) {
             $successMsg = 'Sucursal de Seminuevos agregada correctamente.';
@@ -1711,7 +1716,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'schedule'   => trim($_POST['suc_schedule'] ?? ''),
                     'map_url'    => trim($_POST['suc_map_url'] ?? ''),
                     'sort_order' => intval($_POST['suc_sort_order'] ?? 99),
-                    'active'     => $s['active'] ?? true
+                    'active'     => isset($_POST['suc_active']) && $_POST['suc_active'] == '1',
                 ];
                 $found = true;
                 break;
@@ -1760,7 +1765,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     
-    // 37. SAVE LEASING HOME CONTENT
+    // 37. SAVE SEMINUEVOS CONTACT IMAGE
+    elseif ($action === 'save_semi_contact_image') {
+        if (!isset($siteData['seminuevos'])) {
+            $siteData['seminuevos'] = [];
+        }
+        if (isset($_FILES['semi_contact_image']) && $_FILES['semi_contact_image']['error'] === UPLOAD_ERR_OK) {
+            $uploadedPath = $contentService->uploadImage($_FILES['semi_contact_image'], 'semi_contact_img_');
+            if ($uploadedPath) {
+                $siteData['seminuevos']['contact_image_url'] = $uploadedPath;
+            } else {
+                $errorMsg = 'No se pudo subir la imagen de contacto (formato inválido o supera los 5MB).';
+            }
+        }
+        if (empty($errorMsg)) {
+            if ($contentService->saveAll($siteData)) {
+                $successMsg = 'Imagen de contacto de Seminuevos actualizada correctamente.';
+            } else {
+                $errorMsg = 'Error al guardar la imagen de contacto de Seminuevos.';
+            }
+        }
+    }
+
+    // 38. SAVE LEASING HOME CONTENT
     elseif ($action === 'save_leasing_home') {
         if (!isset($siteData['leasing'])) {
             $siteData['leasing'] = [];
@@ -1769,6 +1796,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $siteData['leasing']['hero'] = [];
         }
 
+        $siteData['leasing']['hero_title'] = trim($_POST['leasing_hero_title'] ?? '');
+        $siteData['leasing']['hero_subtitle'] = trim($_POST['leasing_hero_subtitle'] ?? '');
         $siteData['leasing']['intro_text'] = trim($_POST['leasing_intro_text'] ?? '');
         $siteData['leasing']['lead_title'] = trim($_POST['leasing_lead_title'] ?? '');
 
@@ -2073,14 +2102,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($name)) {
             $newId = time();
             $siteData['leasing']['sucursales'][] = [
-                'id' => $newId,
-                'name' => $name,
-                'location' => $location,
-                'address' => $address,
-                'schedule' => $schedule,
-                'phone' => $phone,
-                'lat' => $lat,
-                'lng' => $lng
+                'id'         => $newId,
+                'name'       => $name,
+                'location'   => $location,
+                'address'    => $address,
+                'schedule'   => $schedule,
+                'phone'      => $phone,
+                'lat'        => $lat,
+                'lng'        => $lng,
+                'sort_order' => intval($_POST['leasing_sucursal_sort_order'] ?? 0),
+                'active'     => isset($_POST['leasing_sucursal_active']) && $_POST['leasing_sucursal_active'] == '1',
             ];
 
             if ($contentService->saveAll($siteData)) {
@@ -2118,14 +2149,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($foundIdx !== -1) {
             $siteData['leasing']['sucursales'][$foundIdx] = [
-                'id' => $id,
-                'name' => $name,
-                'location' => $location,
-                'address' => $address,
-                'schedule' => $schedule,
-                'phone' => $phone,
-                'lat' => $lat,
-                'lng' => $lng
+                'id'         => $id,
+                'name'       => $name,
+                'location'   => $location,
+                'address'    => $address,
+                'schedule'   => $schedule,
+                'phone'      => $phone,
+                'lat'        => $lat,
+                'lng'        => $lng,
+                'sort_order' => intval($_POST['leasing_sucursal_sort_order'] ?? 0),
+                'active'     => isset($_POST['leasing_sucursal_active']) && $_POST['leasing_sucursal_active'] == '1',
             ];
 
             if ($contentService->saveAll($siteData)) {
@@ -2505,6 +2538,164 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errorMsg = 'Error al eliminar el mensaje de contacto de Leasing.';
         }
     }
+    // 57. SAVE LEASING FAQS
+    elseif ($action === 'save_leasing_faqs') {
+        if (!isset($siteData['leasing'])) {
+            $siteData['leasing'] = [];
+        }
+        $questions = $_POST['faq_question'] ?? [];
+        $answers   = $_POST['faq_answer']   ?? [];
+        $faqs = [];
+        foreach ($questions as $idx => $q) {
+            $q = trim((string) $q);
+            $a = trim((string) ($answers[$idx] ?? ''));
+            if ($q === '' || $a === '') {
+                continue;
+            }
+            $faqs[] = ['question' => $q, 'answer' => $a];
+        }
+        $siteData['leasing']['faqs'] = $faqs;
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Preguntas frecuentes de Leasing guardadas correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar las preguntas frecuentes de Leasing.';
+        }
+    }
+
+    // 58. SAVE SEMINUEVOS FAQS
+    elseif ($action === 'save_seminuevos_faqs') {
+        if (!isset($siteData['seminuevos'])) {
+            $siteData['seminuevos'] = [];
+        }
+        $questions = $_POST['faq_question'] ?? [];
+        $answers   = $_POST['faq_answer']   ?? [];
+        $faqs = [];
+        foreach ($questions as $idx => $q) {
+            $q = trim((string) $q);
+            $a = trim((string) ($answers[$idx] ?? ''));
+            if ($q === '' || $a === '') {
+                continue;
+            }
+            $faqs[] = ['question' => $q, 'answer' => $a];
+        }
+        $siteData['seminuevos']['faqs'] = $faqs;
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Preguntas frecuentes de Seminuevos guardadas correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar las preguntas frecuentes de Seminuevos.';
+        }
+    }
+
+    // 59. SAVE LEASING SOCIAL LINKS
+    elseif ($action === 'save_leasing_social_links') {
+        if (!isset($siteData['leasing'])) {
+            $siteData['leasing'] = [];
+        }
+        $leasingSocialLinks = [];
+        foreach (['facebook', 'instagram', 'linkedin', 'tiktok', 'youtube'] as $leasingNet) {
+            $leasingSocialLinks[$leasingNet] = trim($_POST['leasing_social_' . $leasingNet] ?? '');
+        }
+        $siteData['leasing']['social_links'] = $leasingSocialLinks;
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Redes sociales de Leasing guardadas correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar las redes sociales de Leasing.';
+        }
+    }
+
+    // 60. SAVE SEMINUEVOS SOCIAL LINKS
+    elseif ($action === 'save_seminuevos_social_links') {
+        if (!isset($siteData['seminuevos'])) {
+            $siteData['seminuevos'] = [];
+        }
+        $seminuevosSocialLinks = [];
+        foreach (['facebook', 'instagram', 'linkedin', 'tiktok', 'youtube'] as $semiNet) {
+            $seminuevosSocialLinks[$semiNet] = trim($_POST['seminuevos_social_' . $semiNet] ?? '');
+        }
+        $siteData['seminuevos']['social_links'] = $seminuevosSocialLinks;
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Redes sociales de Venta de Autos guardadas correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar las redes sociales de Venta de Autos.';
+        }
+    }
+
+    // 61. SAVE LEASING BRANCHES
+    elseif ($action === 'save_leasing_branches') {
+        if (!isset($siteData['leasing'])) {
+            $siteData['leasing'] = [];
+        }
+        $branchNames     = $_POST['branch_name']      ?? [];
+        $branchAddresses = $_POST['branch_address']   ?? [];
+        $branchPhones    = $_POST['branch_phone']     ?? [];
+        $branchWhatsapps = $_POST['branch_whatsapp']  ?? [];
+        $branchEmails    = $_POST['branch_email']     ?? [];
+        $branchSchedules = $_POST['branch_schedule']  ?? [];
+        $branchMapUrls   = $_POST['branch_map_url']   ?? [];
+        $branchImageUrls = $_POST['branch_image_url'] ?? [];
+        $leasingBranches = [];
+        foreach ($branchNames as $i => $n) {
+            $n = trim((string)$n);
+            if ($n === '') {
+                continue;
+            }
+            $leasingBranches[] = [
+                'name'      => $n,
+                'address'   => trim((string)($branchAddresses[$i]  ?? '')),
+                'phone'     => trim((string)($branchPhones[$i]     ?? '')),
+                'whatsapp'  => trim((string)($branchWhatsapps[$i]  ?? '')),
+                'email'     => trim((string)($branchEmails[$i]     ?? '')),
+                'schedule'  => trim((string)($branchSchedules[$i]  ?? '')),
+                'map_url'   => trim((string)($branchMapUrls[$i]    ?? '')),
+                'image_url' => trim((string)($branchImageUrls[$i]  ?? '')),
+            ];
+        }
+        $siteData['leasing']['branches'] = $leasingBranches;
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Sucursales de Leasing guardadas correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar las sucursales de Leasing.';
+        }
+    }
+
+    // 62. SAVE SEMINUEVOS BRANCHES
+    elseif ($action === 'save_seminuevos_branches') {
+        if (!isset($siteData['seminuevos'])) {
+            $siteData['seminuevos'] = [];
+        }
+        $branchNames     = $_POST['branch_name']      ?? [];
+        $branchAddresses = $_POST['branch_address']   ?? [];
+        $branchPhones    = $_POST['branch_phone']     ?? [];
+        $branchWhatsapps = $_POST['branch_whatsapp']  ?? [];
+        $branchEmails    = $_POST['branch_email']     ?? [];
+        $branchSchedules = $_POST['branch_schedule']  ?? [];
+        $branchMapUrls   = $_POST['branch_map_url']   ?? [];
+        $branchImageUrls = $_POST['branch_image_url'] ?? [];
+        $seminuevosBranches = [];
+        foreach ($branchNames as $i => $n) {
+            $n = trim((string)$n);
+            if ($n === '') {
+                continue;
+            }
+            $seminuevosBranches[] = [
+                'name'      => $n,
+                'address'   => trim((string)($branchAddresses[$i]  ?? '')),
+                'phone'     => trim((string)($branchPhones[$i]     ?? '')),
+                'whatsapp'  => trim((string)($branchWhatsapps[$i]  ?? '')),
+                'email'     => trim((string)($branchEmails[$i]     ?? '')),
+                'schedule'  => trim((string)($branchSchedules[$i]  ?? '')),
+                'map_url'   => trim((string)($branchMapUrls[$i]    ?? '')),
+                'image_url' => trim((string)($branchImageUrls[$i]  ?? '')),
+            ];
+        }
+        $siteData['seminuevos']['branches'] = $seminuevosBranches;
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Sucursales de Venta de Autos guardadas correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar las sucursales de Venta de Autos.';
+        }
+    }
+
     elseif ($action === 'add_landing_page') {
         if (!isset($siteData['landings']) || !is_array($siteData['landings'])) {
             $siteData['landings'] = [];
@@ -3014,7 +3205,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                 <a href="/rent-a-car.php" target="_blank" class="btn btn-sm btn-outline-dark rounded-pill px-3"><i class="bi bi-eye me-1"></i> Ver Sitio Web</a>
             </div>
             
-            <div class="p-4 overflow-y-auto" style="max-height: calc(100vh - 73px);">
+            <div id="admin-content-panel" class="p-4 overflow-y-auto" style="max-height: calc(100vh - 73px);">
                 
                 <?php if (!empty($successMsg)): ?>
                     <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm" role="alert">
@@ -3226,6 +3417,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                     <div class="mt-3">
                                                         <label class="form-label small text-muted mb-1">Cambiar Imagen (.webp recomendada)</label>
                                                         <input type="file" name="fleet_image_<?php echo $item['id']; ?>" class="form-control form-control-premium form-control-sm" accept="image/*">
+                                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -3272,6 +3464,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="featured_image" class="form-label">Imagen Destacada (Reemplazar archivo .webp o .png)</label>
                                         <input type="file" id="featured_image" name="featured_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Imagen actual: <code><?php echo esc($homepage['featured']['image_url'] ?? ''); ?></code></div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                         <?php if (!empty($homepage['featured']['image_url'])): ?>
                                             <img src="<?php echo esc($homepage['featured']['image_url']); ?>" alt="Feria David" class="img-thumbnail mt-2" style="max-height: 80px;">
                                         <?php endif; ?>
@@ -3339,9 +3532,10 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="op_avatar" class="form-label">Foto del Avatar (Imagen de Perfil)</label>
                                         <input type="file" id="op_avatar" name="op_avatar" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="opAvatarHelp">Si no subes foto, se generará una burbuja con las iniciales del nombre.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                                     </div>
                                 </div>
- 
+
                                 <div class="text-end mt-4 d-flex justify-content-end gap-2">
                                     <button type="button" class="btn btn-outline-secondary d-none" id="opCancelBtn" onclick="resetOpForm()">Cancelar</button>
                                     <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2" id="opSubmitBtn">
@@ -3523,6 +3717,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="vehicle_image" class="form-label">Foto del Vehículo</label>
                                         <input type="file" id="vehicle_image" name="vehicle_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="vehicleImageHelp">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
 
                                     <!-- Number of Doors -->
@@ -3717,6 +3912,20 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="sucursal_lng" class="form-label">Longitud (Para Mapa)</label>
                                         <input type="text" id="sucursal_lng" name="sucursal_lng" class="form-control form-control-premium" placeholder="Ej: -79.387593">
                                     </div>
+
+                                    <!-- Sort Order -->
+                                    <div class="col-md-4">
+                                        <label for="sucursal_sort_order" class="form-label">Orden</label>
+                                        <input type="number" id="sucursal_sort_order" name="sucursal_sort_order" class="form-control form-control-premium" value="0" min="0">
+                                    </div>
+
+                                    <!-- Active -->
+                                    <div class="col-md-4 d-flex align-items-center pt-2">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="sucursal_active" name="sucursal_active" value="1" checked>
+                                            <label class="form-check-label fw-semibold" for="sucursal_active">Sucursal activa</label>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="text-end mt-4 d-flex justify-content-end gap-2">
@@ -3743,13 +3952,15 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                             <th>Dirección</th>
                                             <th>Horario / Teléfono</th>
                                             <th>Coordenadas</th>
+                                            <th class="text-center">Orden</th>
+                                            <th class="text-center">Activa</th>
                                             <th style="width: 100px;" class="text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty($homepage['sucursales'])): ?>
                                             <tr>
-                                                <td colspan="6" class="text-center py-4 text-muted">No hay sucursales registradas.</td>
+                                                <td colspan="8" class="text-center py-4 text-muted">No hay sucursales registradas.</td>
                                             </tr>
                                         <?php else: ?>
                                             <?php foreach ($homepage['sucursales'] as $suc): ?>
@@ -3772,6 +3983,8 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                 <td>
                                                     <span class="badge bg-light text-dark font-monospace"><?php echo esc($suc['lat']); ?>, <?php echo esc($suc['lng']); ?></span>
                                                 </td>
+                                                <td class="text-center"><span class="badge bg-secondary"><?php echo intval($suc['sort_order'] ?? 0); ?></span></td>
+                                                <td class="text-center"><?php if (!isset($suc['active']) || $suc['active']): ?><span class="badge bg-success-subtle text-success border border-success-subtle">Sí</span><?php else: ?><span class="badge bg-secondary-subtle text-secondary border">No</span><?php endif; ?></td>
                                                 <td class="text-center">
                                                     <div class="d-flex justify-content-center gap-1">
                                                         <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditSucursal(<?php echo json_encode($suc, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'><i class="bi bi-pencil-fill"></i></button>
@@ -3815,6 +4028,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="contact_image" class="form-label">Imagen Lateral del Formulario</label>
                                         <input type="file" id="contact_image" name="contact_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                         <?php if (!empty($homepage['contact_image_url'])): ?>
                                             <div class="mt-3">
                                                 <div class="small fw-semibold text-muted mb-1">Imagen actual:</div>
@@ -4052,6 +4266,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="semi_anatomy" class="form-label fw-semibold">Imagen de Anatomía del Auto (Blueprint)</label>
                                         <input type="file" id="semi_anatomy" name="semi_anatomy" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Puedes subir la imagen del blueprint o del vehículo para interactuar con los puntos. Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 1200×630 px — JPG o WebP</small>
                                         <?php if (!empty($seminuevos['anatomy_image_url'])): ?>
                                             <div class="mt-2">
                                                 <img src="<?php echo esc($seminuevos['anatomy_image_url']); ?>" alt="Anatomía actual" class="img-thumbnail" style="max-height: 120px;">
@@ -4103,6 +4318,73 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 </div>
                             </form>
                         </div>
+
+                        <!-- FAQ SEMINUEVOS -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-question-circle-fill me-2 text-danger"></i>Preguntas frecuentes (Seminuevos)
+                            </h5>
+                            <form method="POST" action="?tab=semi-home" id="seminuevosFaqForm">
+                                <input type="hidden" name="action" value="save_seminuevos_faqs">
+                                <div id="seminuevosFaqList">
+                                    <?php $semi_faqs = $seminuevos['faqs'] ?? []; ?>
+                                    <?php if (empty($semi_faqs)): ?>
+                                        <p class="text-muted small mb-3" id="seminuevosFaqEmpty">No hay preguntas frecuentes. Usa el botón para agregar.</p>
+                                    <?php else: ?>
+                                        <?php foreach ($semi_faqs as $faq): ?>
+                                        <div class="faq-row border rounded p-3 mb-3 bg-light position-relative" data-faq-row>
+                                            <div class="row g-2">
+                                                <div class="col-12">
+                                                    <label class="form-label fw-semibold small text-muted mb-1">Pregunta</label>
+                                                    <input type="text" name="faq_question[]" class="form-control form-control-premium" value="<?php echo esc($faq['question'] ?? ''); ?>" placeholder="¿Cuál es la pregunta?" required>
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label fw-semibold small text-muted mb-1">Respuesta</label>
+                                                    <textarea name="faq_answer[]" rows="3" class="form-control form-control-premium" placeholder="Escribe la respuesta..." required><?php echo esc($faq['answer'] ?? ''); ?></textarea>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amFaqRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="amFaqAddRow('seminuevosFaqList','seminuevosFaqEmpty')">
+                                        <i class="bi bi-plus-lg me-1"></i> Agregar pregunta
+                                    </button>
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar preguntas frecuentes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- REDES SOCIALES SEMINUEVOS -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-share-fill me-2 text-danger"></i>Redes sociales (Venta de Autos)
+                            </h5>
+                            <p class="text-muted small mb-4">Ingresa las URLs completas. Deja en blanco las redes que no apliquen.</p>
+                            <?php $semi_social = $seminuevos['social_links'] ?? []; ?>
+                            <form method="POST" action="?tab=semi-home">
+                                <input type="hidden" name="action" value="save_seminuevos_social_links">
+                                <div class="row g-3">
+                                    <?php foreach (['facebook' => 'Facebook', 'instagram' => 'Instagram', 'linkedin' => 'LinkedIn', 'tiktok' => 'TikTok', 'youtube' => 'YouTube'] as $_rsNet => $_rsLabel): ?>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small"><?php echo esc($_rsLabel); ?></label>
+                                        <input type="url" name="seminuevos_social_<?php echo esc($_rsNet); ?>" class="form-control form-control-premium"
+                                               value="<?php echo esc($semi_social[$_rsNet] ?? ''); ?>"
+                                               placeholder="https://www.<?php echo esc($_rsNet); ?>.com/automarket">
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <div class="d-flex justify-content-end mt-4">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar redes sociales
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
 
                     <!-- TAB 11: SEMINUEVOS OPINIONS -->
@@ -4146,9 +4428,10 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="semi_op_avatar" class="form-label">Foto del Avatar (Imagen de Perfil)</label>
                                         <input type="file" id="semi_op_avatar" name="op_avatar" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="semiOpAvatarHelp">Si no subes foto, se generará una burbuja con las iniciales del nombre.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                                     </div>
                                 </div>
- 
+
                                 <div class="text-end mt-4 d-flex justify-content-end gap-2">
                                     <button type="button" class="btn btn-outline-secondary d-none" id="semiOpCancelBtn" onclick="resetSemiOpForm()">Cancelar</button>
                                     <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2" id="semiOpSubmitBtn">
@@ -4325,6 +4608,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     <div class="col-md-3">
                                         <label for="semi_inv_photo_file" class="form-label">Subir Foto (.webp / .png / .jpg)</label>
                                         <input type="file" id="semi_inv_photo_file" name="photo_file" class="form-control form-control-premium" accept="image/*">
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
 
                                     <div class="col-md-3">
@@ -4519,6 +4803,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="semi_fin_header_image" class="form-label fw-semibold">Imagen de Cabecera (Opcional Banner)</label>
                                         <input type="file" id="semi_fin_header_image" name="header_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Si no se sube, se mostrará el color azul marino plano por defecto.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 1920×700 px — JPG o WebP</small>
                                         <?php if (!empty($semi_financing['header_image_url'])): ?>
                                             <div class="mt-2">
                                                 <img src="<?php echo esc($semi_financing['header_image_url']); ?>" alt="Banner actual" class="img-thumbnail" style="max-height: 80px;">
@@ -4607,6 +4892,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                 <div class="mb-3">
                                                     <label class="form-label">Imagen de Perfil</label>
                                                     <input type="file" name="profile_image_<?php echo $pkey; ?>" class="form-control form-control-premium bg-white form-control-sm" accept="image/*">
+                                                    <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                                                     <?php if (!empty($prof['image_url'])): ?>
                                                         <div class="mt-2 text-center">
                                                             <img src="<?php echo esc($prof['image_url']); ?>" alt="Perfil <?php echo $pkey; ?>" class="img-thumbnail" style="max-height: 80px;">
@@ -4647,6 +4933,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                             <label for="semi_bank_logo" class="form-label">Logo del Banco (.webp recomendado)</label>
                                             <input type="file" id="semi_bank_logo" name="bank_logo" class="form-control form-control-premium" accept="image/*" required>
                                             <div class="form-text" id="semiBankLogoHelp">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                            <small class="text-muted d-block mt-1">Recomendado: 400×200 px — PNG con fondo transparente</small>
                                         </div>
                                         
                                         <div class="text-end d-flex justify-content-end gap-2 mt-4">
@@ -4738,6 +5025,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="team_header_image" class="form-label fw-semibold">Imagen de Cabecera (Banner)</label>
                                         <input type="file" id="team_header_image" name="team_header_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Si no se sube, se mostrará el color azul marino plano por defecto.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 1920×700 px — JPG o WebP</small>
                                         <?php if (!empty($semi_team['header_image_url'])): ?>
                                             <div class="mt-2">
                                                 <img src="<?php echo esc($semi_team['header_image_url']); ?>" alt="Banner actual" class="img-thumbnail" style="max-height: 80px;">
@@ -4827,6 +5115,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                             <label for="semi_agent_photo" class="form-label">Foto del Asesor</label>
                                             <input type="file" id="semi_agent_photo" name="agent_photo" class="form-control form-control-premium" accept="image/*">
                                             <div class="form-text" id="semiAgentPhotoHelp">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                            <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                                         </div>
                                         
                                         <div class="mb-3 form-check form-switch mt-4">
@@ -4946,6 +5235,36 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
 
                     <!-- TAB 15: SEMINUEVOS CONTACTO & SUCURSALES -->
                     <div class="tab-pane fade" id="tab-semi-contact" role="tabpanel" aria-labelledby="tab-semi-contact-nav">
+
+                        <!-- CONTACT IMAGE CARD -->
+                        <div class="admin-card mb-4">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-image-fill me-2 text-danger"></i>Imagen de Contacto — Seminuevos
+                            </h5>
+                            <form method="POST" action="?tab=semi-contact" enctype="multipart/form-data">
+                                <input type="hidden" name="action" value="save_semi_contact_image">
+                                <div class="row g-3 align-items-start">
+                                    <div class="col-md-4">
+                                        <?php
+                                        $semiContactImgPreview = trim($siteData['seminuevos']['contact_image_url'] ?? '') ?: '/assets/img/contactos-sn.webp';
+                                        ?>
+                                        <img src="<?php echo htmlspecialchars($semiContactImgPreview, ENT_QUOTES, 'UTF-8'); ?>" alt="Vista previa imagen contacto Seminuevos" class="img-fluid rounded border" style="max-height:180px;object-fit:cover;width:100%;">
+                                        <small class="text-muted d-block mt-1">Imagen actual</small>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label for="semi_contact_image" class="form-label fw-semibold">Subir nueva imagen</label>
+                                        <input type="file" id="semi_contact_image" name="semi_contact_image" class="form-control form-control-premium" accept="image/*">
+                                        <small class="text-muted d-block mt-1">Recomendado: 800x600 px — WebP o JPG</small>
+                                        <div class="mt-3 text-end">
+                                            <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                                <i class="bi bi-cloud-upload-fill"></i> Guardar imagen
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
                         <div class="row g-4">
 
                             <!-- LEFT: SUCURSAL FORM -->
@@ -4994,6 +5313,12 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                             <textarea id="suc_map_url" name="suc_map_url" class="form-control form-control-premium" rows="3" placeholder="https://www.google.com/maps/embed?pb=..."></textarea>
                                             <div class="form-text">Ir a Google Maps → Compartir → Incorporar un mapa → Copiar el src del iframe.</div>
                                         </div>
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" role="switch" id="suc_active" name="suc_active" value="1" checked>
+                                                <label class="form-check-label fw-semibold" for="suc_active">Sucursal activa</label>
+                                            </div>
+                                        </div>
 
                                         <div class="text-end d-flex justify-content-end gap-2 mt-4">
                                             <button type="button" class="btn btn-outline-secondary d-none" id="semiSucCancelBtn" onclick="resetSemiSucursalForm()">Cancelar</button>
@@ -5019,13 +5344,14 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                     <th>Sucursal</th>
                                                     <th>Contacto</th>
                                                     <th>Horario</th>
+                                                    <th class="text-center">Activa</th>
                                                     <th style="width:110px;" class="text-center">Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <?php if (empty($semi_sucursales)): ?>
                                                     <tr>
-                                                        <td colspan="5" class="text-center py-4 text-muted">No hay sucursales registradas.</td>
+                                                        <td colspan="6" class="text-center py-4 text-muted">No hay sucursales registradas.</td>
                                                     </tr>
                                                 <?php else: ?>
                                                     <?php foreach ($semi_sucursales as $suc): ?>
@@ -5044,6 +5370,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                             <td>
                                                                 <small class="text-muted"><?php echo esc($suc['schedule'] ?? ''); ?></small>
                                                             </td>
+                                                            <td class="text-center"><?php if (!isset($suc['active']) || $suc['active']): ?><span class="badge bg-success-subtle text-success border border-success-subtle">Sí</span><?php else: ?><span class="badge bg-secondary-subtle text-secondary border">No</span><?php endif; ?></td>
                                                             <td class="text-center">
                                                                 <div class="d-flex justify-content-center gap-1">
                                                                     <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditSemiSucursal(<?php echo json_encode($suc, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)' title="Editar"><i class="bi bi-pencil-fill"></i></button>
@@ -5140,6 +5467,47 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                             </div>
                         </div>
 
+                        <!-- BRANCHES SEMINUEVOS — datos web por sucursal -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-building me-2 text-danger"></i>Sucursales — datos web (Venta de Autos)
+                            </h5>
+                            <p class="text-muted small mb-4">Información de contacto y ubicación de cada sucursal para el sitio web. El <strong>Nombre</strong> es obligatorio; los demás campos son opcionales.</p>
+                            <?php $semi_branches_ui = $seminuevos['branches'] ?? []; ?>
+                            <form method="POST" action="?tab=semi-contact" id="semiBranchesForm">
+                                <input type="hidden" name="action" value="save_seminuevos_branches">
+                                <div id="semiBranchList">
+                                    <?php if (empty($semi_branches_ui)): ?>
+                                        <p class="text-muted small mb-3" id="semiBranchEmpty">No hay sucursales configuradas. Usa el botón para agregar.</p>
+                                    <?php else: ?>
+                                        <?php foreach ($semi_branches_ui as $b): ?>
+                                        <div class="branch-row border rounded p-3 mb-3 bg-light position-relative" data-branch-row>
+                                            <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amBranchRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
+                                            <div class="row g-2">
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Nombre *</label><input type="text" name="branch_name[]" class="form-control form-control-premium" value="<?php echo esc($b['name'] ?? ''); ?>" placeholder="Ej: Sucursal Tocumen" required></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Dirección</label><input type="text" name="branch_address[]" class="form-control form-control-premium" value="<?php echo esc($b['address'] ?? ''); ?>" placeholder="Ej: Ave. Tocumen, Panamá"></div>
+                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Teléfono</label><input type="text" name="branch_phone[]" class="form-control form-control-premium" value="<?php echo esc($b['phone'] ?? ''); ?>" placeholder="507-XXXX-XXXX"></div>
+                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">WhatsApp</label><input type="text" name="branch_whatsapp[]" class="form-control form-control-premium" value="<?php echo esc($b['whatsapp'] ?? ''); ?>" placeholder="507XXXXXXXX"></div>
+                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Email</label><input type="email" name="branch_email[]" class="form-control form-control-premium" value="<?php echo esc($b['email'] ?? ''); ?>" placeholder="seminuevos@automarket.com"></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Horario</label><input type="text" name="branch_schedule[]" class="form-control form-control-premium" value="<?php echo esc($b['schedule'] ?? ''); ?>" placeholder="Lun–Vie 8:00am–5:00pm"></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Enlace Google Maps</label><input type="url" name="branch_map_url[]" class="form-control form-control-premium" value="<?php echo esc($b['map_url'] ?? ''); ?>" placeholder="https://maps.app.goo.gl/..."></div>
+                                                <div class="col-12"><label class="form-label fw-semibold small text-muted mb-1">URL imagen (opcional)</label><input type="url" name="branch_image_url[]" class="form-control form-control-premium" value="<?php echo esc($b['image_url'] ?? ''); ?>" placeholder="https://..."></div>
+                                            </div>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="amBranchAddRow('semiBranchList','semiBranchEmpty')">
+                                        <i class="bi bi-plus-lg me-1"></i> Agregar sucursal
+                                    </button>
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar sucursales
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
                     </div>
 
                     <!-- TAB 16: LEASING OPERATIVO HOME -->
@@ -5164,6 +5532,18 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         $hbDomId = 'hb-leasing-home';
                                         require __DIR__ . '/../../includes/admin-header-banner-section.php';
                                         ?>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="leasing_hero_title" class="form-label fw-semibold">Titulo del Hero (sobre la imagen de cabecera)</label>
+                                        <textarea id="leasing_hero_title" name="leasing_hero_title" class="form-control form-control-premium" rows="2" placeholder="Optimiza la flota de tu empresa"><?php echo esc($leasing['hero_title'] ?? ''); ?></textarea>
+                                        <div class="form-text">Puedes usar saltos de linea para estructurar la visualizacion. Si se deja en blanco se usara el texto por defecto.</div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="leasing_hero_subtitle" class="form-label fw-semibold">Subtitulo del Hero</label>
+                                        <input type="text" id="leasing_hero_subtitle" name="leasing_hero_subtitle" class="form-control form-control-premium" placeholder="Soluciones integrales de Leasing Operativo..." value="<?php echo esc($leasing['hero_subtitle'] ?? ''); ?>">
+                                        <div class="form-text">Texto descriptivo breve bajo el titulo principal del hero.</div>
                                     </div>
 
                                     <div class="col-md-6">
@@ -5211,11 +5591,13 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     <div class="col-md-6">
                                         <label for="leasing_post_image_url" class="form-label">URL de imagen de tarjeta (opcional)</label>
                                         <input type="url" id="leasing_post_image_url" name="leasing_post_image_url" class="form-control form-control-premium" placeholder="https://...">
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="leasing_post_image" class="form-label">Imagen de la tarjeta</label>
                                         <input type="file" id="leasing_post_image" name="leasing_post_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="leasingPostImageHelp">Puedes subir archivo o usar URL. Si subes archivo, tiene prioridad.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
 
                                     <hr class="my-2">
@@ -5329,6 +5711,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="leasing_op_avatar" class="form-label">Avatar (Imagen)</label>
                                         <input type="file" id="leasing_op_avatar" name="op_avatar" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="leasingOpAvatarHelp">Si no subes foto, se generan iniciales.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                                     </div>
                                 </div>
 
@@ -5399,6 +5782,73 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 </table>
                             </div>
                         </div>
+
+                        <!-- FAQ LEASING -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-question-circle-fill me-2 text-danger"></i>Preguntas frecuentes (Leasing)
+                            </h5>
+                            <form method="POST" action="?tab=leasing-home" id="leasingFaqForm">
+                                <input type="hidden" name="action" value="save_leasing_faqs">
+                                <div id="leasingFaqList">
+                                    <?php $leasing_faqs = $leasing['faqs'] ?? []; ?>
+                                    <?php if (empty($leasing_faqs)): ?>
+                                        <p class="text-muted small mb-3" id="leasingFaqEmpty">No hay preguntas frecuentes. Usa el botón para agregar.</p>
+                                    <?php else: ?>
+                                        <?php foreach ($leasing_faqs as $faq): ?>
+                                        <div class="faq-row border rounded p-3 mb-3 bg-light position-relative" data-faq-row>
+                                            <div class="row g-2">
+                                                <div class="col-12">
+                                                    <label class="form-label fw-semibold small text-muted mb-1">Pregunta</label>
+                                                    <input type="text" name="faq_question[]" class="form-control form-control-premium" value="<?php echo esc($faq['question'] ?? ''); ?>" placeholder="¿Cuál es la pregunta?" required>
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label fw-semibold small text-muted mb-1">Respuesta</label>
+                                                    <textarea name="faq_answer[]" rows="3" class="form-control form-control-premium" placeholder="Escribe la respuesta..." required><?php echo esc($faq['answer'] ?? ''); ?></textarea>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amFaqRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="amFaqAddRow('leasingFaqList','leasingFaqEmpty')">
+                                        <i class="bi bi-plus-lg me-1"></i> Agregar pregunta
+                                    </button>
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar preguntas frecuentes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- REDES SOCIALES LEASING -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-share-fill me-2 text-danger"></i>Redes sociales (Leasing)
+                            </h5>
+                            <p class="text-muted small mb-4">Ingresa las URLs completas. Deja en blanco las redes que no apliquen.</p>
+                            <?php $leasing_social = $leasing['social_links'] ?? []; ?>
+                            <form method="POST" action="?tab=leasing-home">
+                                <input type="hidden" name="action" value="save_leasing_social_links">
+                                <div class="row g-3">
+                                    <?php foreach (['facebook' => 'Facebook', 'instagram' => 'Instagram', 'linkedin' => 'LinkedIn', 'tiktok' => 'TikTok', 'youtube' => 'YouTube'] as $_rsNet => $_rsLabel): ?>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small"><?php echo esc($_rsLabel); ?></label>
+                                        <input type="url" name="leasing_social_<?php echo esc($_rsNet); ?>" class="form-control form-control-premium"
+                                               value="<?php echo esc($leasing_social[$_rsNet] ?? ''); ?>"
+                                               placeholder="https://www.<?php echo esc($_rsNet); ?>.com/automarket">
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <div class="d-flex justify-content-end mt-4">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar redes sociales
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
 
                     <!-- TAB 17: LEASING SUCURSALES CRUD -->
@@ -5442,6 +5892,16 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="leasing_sucursal_lng" class="form-label">Longitud (Para Mapa)</label>
                                         <input type="text" id="leasing_sucursal_lng" name="leasing_sucursal_lng" class="form-control form-control-premium" placeholder="Ej: -79.387593">
                                     </div>
+                                    <div class="col-md-6">
+                                        <label for="leasing_sucursal_sort_order" class="form-label">Orden de visualización</label>
+                                        <input type="number" id="leasing_sucursal_sort_order" name="leasing_sucursal_sort_order" class="form-control form-control-premium" value="0" min="0" placeholder="0">
+                                    </div>
+                                    <div class="col-md-6 d-flex align-items-center pt-2">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" id="leasing_sucursal_active" name="leasing_sucursal_active" value="1" checked>
+                                            <label class="form-check-label fw-semibold" for="leasing_sucursal_active">Sucursal activa</label>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="text-end mt-4 d-flex justify-content-end gap-2">
@@ -5467,13 +5927,15 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                             <th>Dirección</th>
                                             <th>Horario / Teléfono</th>
                                             <th>Coordenadas</th>
+                                            <th class="text-center">Orden</th>
+                                            <th class="text-center">Activa</th>
                                             <th style="width: 100px;" class="text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty($leasing_sucursales)): ?>
                                             <tr>
-                                                <td colspan="6" class="text-center py-4 text-muted">No hay sucursales de Leasing registradas.</td>
+                                                <td colspan="8" class="text-center py-4 text-muted">No hay sucursales de Leasing registradas.</td>
                                             </tr>
                                         <?php else: ?>
                                             <?php foreach ($leasing_sucursales as $suc): ?>
@@ -5493,6 +5955,16 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                     <span class="badge bg-light text-dark font-monospace"><?php echo esc($suc['lat']); ?>, <?php echo esc($suc['lng']); ?></span>
                                                 </td>
                                                 <td class="text-center">
+                                                    <span class="badge bg-secondary"><?php echo intval($suc['sort_order'] ?? 0); ?></span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <?php if (!isset($suc['active']) || $suc['active']): ?>
+                                                        <span class="badge bg-success">Sí</span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-secondary">No</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td class="text-center">
                                                     <div class="d-flex justify-content-center gap-1">
                                                         <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditLeasingSucursal(<?php echo json_encode($suc, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'><i class="bi bi-pencil-fill"></i></button>
                                                         <form method="POST" action="?tab=leasing-sucursales" onsubmit="return confirm('¿Está seguro de eliminar esta sucursal de Leasing?');" style="display:inline;">
@@ -5508,6 +5980,47 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+
+                        <!-- BRANCHES LEASING — datos web por sucursal -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-building me-2 text-danger"></i>Sucursales — datos web (Leasing)
+                            </h5>
+                            <p class="text-muted small mb-4">Información de contacto y ubicación de cada sucursal para el sitio web. El <strong>Nombre</strong> es obligatorio; los demás campos son opcionales.</p>
+                            <?php $leasing_branches_ui = $leasing['branches'] ?? []; ?>
+                            <form method="POST" action="?tab=leasing-sucursales" id="leasingBranchesForm">
+                                <input type="hidden" name="action" value="save_leasing_branches">
+                                <div id="leasingBranchList">
+                                    <?php if (empty($leasing_branches_ui)): ?>
+                                        <p class="text-muted small mb-3" id="leasingBranchEmpty">No hay sucursales configuradas. Usa el botón para agregar.</p>
+                                    <?php else: ?>
+                                        <?php foreach ($leasing_branches_ui as $b): ?>
+                                        <div class="branch-row border rounded p-3 mb-3 bg-light position-relative" data-branch-row>
+                                            <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amBranchRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
+                                            <div class="row g-2">
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Nombre *</label><input type="text" name="branch_name[]" class="form-control form-control-premium" value="<?php echo esc($b['name'] ?? ''); ?>" placeholder="Ej: Sucursal Tocumen" required></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Dirección</label><input type="text" name="branch_address[]" class="form-control form-control-premium" value="<?php echo esc($b['address'] ?? ''); ?>" placeholder="Ej: Ave. Tocumen, Panamá"></div>
+                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Teléfono</label><input type="text" name="branch_phone[]" class="form-control form-control-premium" value="<?php echo esc($b['phone'] ?? ''); ?>" placeholder="507-XXXX-XXXX"></div>
+                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">WhatsApp</label><input type="text" name="branch_whatsapp[]" class="form-control form-control-premium" value="<?php echo esc($b['whatsapp'] ?? ''); ?>" placeholder="507XXXXXXXX"></div>
+                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Email</label><input type="email" name="branch_email[]" class="form-control form-control-premium" value="<?php echo esc($b['email'] ?? ''); ?>" placeholder="leasing@automarket.com"></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Horario</label><input type="text" name="branch_schedule[]" class="form-control form-control-premium" value="<?php echo esc($b['schedule'] ?? ''); ?>" placeholder="Lun–Vie 8:00am–5:00pm"></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Enlace Google Maps</label><input type="url" name="branch_map_url[]" class="form-control form-control-premium" value="<?php echo esc($b['map_url'] ?? ''); ?>" placeholder="https://maps.app.goo.gl/..."></div>
+                                                <div class="col-12"><label class="form-label fw-semibold small text-muted mb-1">URL imagen (opcional)</label><input type="url" name="branch_image_url[]" class="form-control form-control-premium" value="<?php echo esc($b['image_url'] ?? ''); ?>" placeholder="https://..."></div>
+                                            </div>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="amBranchAddRow('leasingBranchList','leasingBranchEmpty')">
+                                        <i class="bi bi-plus-lg me-1"></i> Agregar sucursal
+                                    </button>
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar sucursales
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
 
@@ -5536,13 +6049,14 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                             <option value="Familiares">Familiares</option>
                                             <option value="Comerciales">Comerciales</option>
                                             <option value="Promociones">Promociones</option>
-                                            <option value="SUV Mini">SUV Mini</option>
+                                            <option value="SUV Mini">Compacto</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="leasing_vehicle_image" class="form-label">Foto del Vehículo</label>
                                         <input type="file" id="leasing_vehicle_image" name="leasing_vehicle_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="leasingVehicleImageHelp">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
                                     <div class="col-md-3">
                                         <label for="leasing_vehicle_doors" class="form-label">Número de Puertas</label>
@@ -5719,6 +6233,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                             <label for="leasing_agent_photo" class="form-label">Foto del Asesor</label>
                                             <input type="file" id="leasing_agent_photo" name="leasing_agent_photo" class="form-control form-control-premium" accept="image/*">
                                             <div class="form-text" id="leasingAgentPhotoHelp">Formatos: JPG, PNG, WEBP. Recomendado retrato vertical.</div>
+                                            <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                                         </div>
                                         <div class="mb-3 form-check form-switch">
                                             <input class="form-check-input" type="checkbox" role="switch" id="leasing_agent_active" name="leasing_agent_active" value="1" checked>
@@ -5856,6 +6371,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="leasing_contact_image" class="form-label">Imagen lateral del formulario</label>
                                         <input type="file" id="leasing_contact_image" name="leasing_contact_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Formatos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                         <?php if (!empty($leasing_contact['contact_image_url'])): ?>
                                             <div class="mt-3">
                                                 <div class="small fw-semibold text-muted mb-1">Imagen actual:</div>
@@ -5960,6 +6476,56 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+// ---- Branch helpers (shared across all units) ----
+function amBranchAddRow(listId, emptyId) {
+    var list = document.getElementById(listId);
+    var empty = document.getElementById(emptyId);
+    if (empty) { empty.style.display = 'none'; }
+    var row = document.createElement('div');
+    row.className = 'branch-row border rounded p-3 mb-3 bg-light position-relative';
+    row.setAttribute('data-branch-row', '');
+    row.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amBranchRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>'
+        + '<div class="row g-2">'
+        + '<div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Nombre *</label><input type="text" name="branch_name[]" class="form-control form-control-premium" placeholder="Ej: Sucursal Tocumen" required></div>'
+        + '<div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Dirección</label><input type="text" name="branch_address[]" class="form-control form-control-premium" placeholder="Ej: Ave. Tocumen, Panamá"></div>'
+        + '<div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Teléfono</label><input type="text" name="branch_phone[]" class="form-control form-control-premium" placeholder="507-XXXX-XXXX"></div>'
+        + '<div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">WhatsApp</label><input type="text" name="branch_whatsapp[]" class="form-control form-control-premium" placeholder="507XXXXXXXX"></div>'
+        + '<div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Email</label><input type="email" name="branch_email[]" class="form-control form-control-premium" placeholder="sucursal@automarket.com"></div>'
+        + '<div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Horario</label><input type="text" name="branch_schedule[]" class="form-control form-control-premium" placeholder="Lun–Vie 8:00am–5:00pm"></div>'
+        + '<div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Enlace Google Maps</label><input type="url" name="branch_map_url[]" class="form-control form-control-premium" placeholder="https://maps.app.goo.gl/..."></div>'
+        + '<div class="col-12"><label class="form-label fw-semibold small text-muted mb-1">URL imagen (opcional)</label><input type="url" name="branch_image_url[]" class="form-control form-control-premium" placeholder="https://..."></div>'
+        + '</div>';
+    list.appendChild(row);
+}
+function amBranchRemoveRow(btn) {
+    var row = btn.closest('[data-branch-row]');
+    if (row) { row.remove(); }
+}
+// ---- end Branch helpers ----
+
+// ---- FAQ helpers (shared across all units) ----
+function amFaqAddRow(listId, emptyId) {
+    var list = document.getElementById(listId);
+    var empty = document.getElementById(emptyId);
+    if (empty) { empty.style.display = 'none'; }
+    var row = document.createElement('div');
+    row.className = 'faq-row border rounded p-3 mb-3 bg-light position-relative';
+    row.setAttribute('data-faq-row', '');
+    row.innerHTML = '<div class="row g-2">'
+        + '<div class="col-12"><label class="form-label fw-semibold small text-muted mb-1">Pregunta</label>'
+        + '<input type="text" name="faq_question[]" class="form-control form-control-premium" placeholder="¿Cuál es la pregunta?" required></div>'
+        + '<div class="col-12"><label class="form-label fw-semibold small text-muted mb-1">Respuesta</label>'
+        + '<textarea name="faq_answer[]" rows="3" class="form-control form-control-premium" placeholder="Escribe la respuesta..." required></textarea></div>'
+        + '</div>'
+        + '<button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amFaqRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>';
+    list.appendChild(row);
+}
+function amFaqRemoveRow(btn) {
+    var row = btn.closest('[data-faq-row]');
+    if (row) { row.remove(); }
+}
+// ---- end FAQ helpers ----
+
 function initEditNews(noticia) {
     document.getElementById('newsFormTitle').innerHTML = '<i class="bi bi-pencil-square me-2 text-danger"></i>Editar Noticia';
     document.getElementById('newsFormAction').value = 'edit_news';
@@ -6120,6 +6686,8 @@ function initEditSucursal(suc) {
     document.getElementById('sucursal_phone').value = suc.phone || '';
     document.getElementById('sucursal_lat').value = suc.lat || '';
     document.getElementById('sucursal_lng').value = suc.lng || '';
+    document.getElementById('sucursal_sort_order').value = suc.sort_order ?? 0;
+    document.getElementById('sucursal_active').checked = !Object.prototype.hasOwnProperty.call(suc, 'active') || suc.active === true || suc.active === 1 || suc.active === '1';
 
     document.getElementById('sucursalCancelBtn').classList.remove('d-none');
     document.getElementById('sucursalSubmitBtn').className = 'btn btn-primary d-inline-flex align-items-center gap-2';
@@ -6286,6 +6854,8 @@ function initEditLeasingSucursal(suc) {
     document.getElementById('leasing_sucursal_phone').value = suc.phone || '';
     document.getElementById('leasing_sucursal_lat').value = suc.lat || '';
     document.getElementById('leasing_sucursal_lng').value = suc.lng || '';
+    document.getElementById('leasing_sucursal_sort_order').value = suc.sort_order ?? 0;
+    document.getElementById('leasing_sucursal_active').checked = !Object.prototype.hasOwnProperty.call(suc, 'active') || suc.active === true || suc.active === 1 || suc.active === '1';
 
     document.getElementById('leasingSucursalCancelBtn').classList.remove('d-none');
     document.getElementById('leasingSucursalSubmitBtn').className = 'btn btn-primary d-inline-flex align-items-center gap-2';
@@ -6643,6 +7213,8 @@ function initEditTallerSucursal(suc) {
     document.getElementById('taller_sucursal_phone').value = suc.phone || '';
     document.getElementById('taller_sucursal_lat').value = suc.lat || '';
     document.getElementById('taller_sucursal_lng').value = suc.lng || '';
+    document.getElementById('taller_sucursal_sort_order').value = suc.sort_order ?? 0;
+    document.getElementById('taller_sucursal_active').checked = !Object.prototype.hasOwnProperty.call(suc, 'active') || suc.active === true || suc.active === 1 || suc.active === '1';
     document.getElementById('tallerSucursalCancelBtn').classList.remove('d-none');
     document.getElementById('tallerSucursalSubmitBtn').className = 'btn btn-primary d-inline-flex align-items-center gap-2';
     document.getElementById('tallerSucursalSubmitText').innerText = 'Guardar sucursal';
@@ -6828,6 +7400,7 @@ function initEditSemiSucursal(suc) {
     document.getElementById('suc_schedule').value = suc.schedule || '';
     document.getElementById('suc_sort_order').value = suc.sort_order || 99;
     document.getElementById('suc_map_url').value = suc.map_url || '';
+    document.getElementById('suc_active').checked = !Object.prototype.hasOwnProperty.call(suc, 'active') || suc.active === true || suc.active === 1 || suc.active === '1';
 
     document.getElementById('semiSucCancelBtn').classList.remove('d-none');
     document.getElementById('semiSucSubmitBtn').className = 'btn btn-primary d-inline-flex align-items-center gap-2';
@@ -7173,6 +7746,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 collapseEl = collapseEl.parentElement
                     ? collapseEl.parentElement.closest('.collapse')
                     : null;
+            }
+
+            // Restaurar scroll: ir al top del panel o al flash message si existe
+            const contentPanel = document.getElementById('admin-content-panel');
+            if (contentPanel) {
+                const flashMsg = contentPanel.querySelector('.alert-success, .alert-danger');
+                if (flashMsg) {
+                    flashMsg.scrollIntoView({ block: 'start' });
+                } else {
+                    contentPanel.scrollTop = 0;
+                }
             }
         }
     }

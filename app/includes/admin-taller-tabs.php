@@ -67,6 +67,16 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                     ?>
                 </div>
                 <div class="col-md-6">
+                    <label for="taller_hero_title" class="form-label fw-semibold">Titulo del Hero (sobre la imagen de cabecera)</label>
+                    <textarea id="taller_hero_title" name="taller_hero_title" class="form-control form-control-premium" rows="2" placeholder="Automarket Taller"><?php echo esc($taller['hero_title'] ?? ''); ?></textarea>
+                    <div class="form-text">Puedes usar saltos de linea. Si se deja en blanco se usara el texto por defecto.</div>
+                </div>
+                <div class="col-md-6">
+                    <label for="taller_hero_subtitle" class="form-label fw-semibold">Subtitulo del Hero</label>
+                    <input type="text" id="taller_hero_subtitle" name="taller_hero_subtitle" class="form-control form-control-premium" placeholder="Servicio de mantenimiento certificado..." value="<?php echo esc($taller['hero_subtitle'] ?? ''); ?>">
+                    <div class="form-text">Texto descriptivo breve bajo el titulo principal del hero.</div>
+                </div>
+                <div class="col-md-6">
                     <label for="taller_services_title" class="form-label fw-semibold">Título sección servicios</label>
                     <input type="text" id="taller_services_title" name="taller_services_title" class="form-control form-control-premium" value="<?php echo esc($taller['services_title'] ?? 'Conoce Nuestros Servicios'); ?>">
                 </div>
@@ -88,6 +98,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                     <div class="col-md-4">
                         <label for="taller_team_image_<?php echo $i; ?>" class="form-label fw-semibold">Imagen equipo <?php echo $i; ?></label>
                         <input type="file" id="taller_team_image_<?php echo $i; ?>" name="taller_team_image_<?php echo $i; ?>" class="form-control form-control-premium" accept="image/*">
+                        <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                         <?php if (!empty($taller_team_images[$i - 1])): ?>
                             <div class="mt-2"><img src="<?php echo esc($taller_team_images[$i - 1]); ?>" class="img-thumbnail w-100" style="max-height: 120px; object-fit: cover;" alt="Equipo Taller"></div>
                         <?php endif; ?>
@@ -139,6 +150,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                     <label for="taller_service_image" class="form-label">Imagen de fondo</label>
                     <input type="file" id="taller_service_image" name="taller_service_image" class="form-control form-control-premium" accept="image/*" required>
                     <div class="form-text" id="tallerServiceImageHelp">Obligatoria al crear.</div>
+                    <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                 </div>
                 <div class="col-md-6">
                     <label for="taller_service_description" class="form-label">Descripción</label>
@@ -196,7 +208,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 <div class="col-md-4 d-flex align-items-end pb-2">
                     <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="taller_brand_active" name="taller_brand_active" value="1" checked><label class="form-check-label fw-semibold text-navy" for="taller_brand_active">Activa</label></div>
                 </div>
-                <div class="col-md-6"><label for="taller_brand_logo" class="form-label">Logo</label><input type="file" id="taller_brand_logo" name="taller_brand_logo" class="form-control form-control-premium" accept="image/*"><div class="form-text" id="tallerBrandLogoHelp">Obligatorio al crear.</div></div>
+                <div class="col-md-6"><label for="taller_brand_logo" class="form-label">Logo</label><input type="file" id="taller_brand_logo" name="taller_brand_logo" class="form-control form-control-premium" accept="image/*"><div class="form-text" id="tallerBrandLogoHelp">Obligatorio al crear.</div><small class="text-muted d-block mt-1">Recomendado: 400×200 px — PNG con fondo transparente</small></div>
             </div>
             <div class="text-end mt-4 d-flex justify-content-end gap-2">
                 <button type="button" class="btn btn-outline-secondary d-none" id="tallerBrandCancelBtn" onclick="resetTallerBrandForm()">Cancelar</button>
@@ -215,7 +227,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 <div class="col-md-4"><label for="taller_op_branch" class="form-label">Sucursal</label><input type="text" id="taller_op_branch" name="taller_op_branch" class="form-control form-control-premium"></div>
                 <div class="col-md-2"><label for="taller_op_stars" class="form-label">Estrellas</label><input type="number" min="1" max="5" id="taller_op_stars" name="taller_op_stars" class="form-control form-control-premium" value="5"></div>
                 <div class="col-md-2"><label for="taller_op_date" class="form-label">Fecha</label><input type="text" id="taller_op_date" name="taller_op_date" class="form-control form-control-premium" value="<?php echo esc(date('d/m/Y')); ?>"></div>
-                <div class="col-md-6"><label for="taller_op_avatar" class="form-label">Avatar</label><input type="file" id="taller_op_avatar" name="taller_op_avatar" class="form-control form-control-premium" accept="image/*"><div class="form-text" id="tallerOpAvatarHelp">Si no subes foto, se generan iniciales.</div></div>
+                <div class="col-md-6"><label for="taller_op_avatar" class="form-label">Avatar</label><input type="file" id="taller_op_avatar" name="taller_op_avatar" class="form-control form-control-premium" accept="image/*"><div class="form-text" id="tallerOpAvatarHelp">Si no subes foto, se generan iniciales.</div><small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small></div>
                 <div class="col-md-6 d-flex align-items-end pb-2"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="taller_op_active" name="taller_op_active" value="1" checked><label class="form-check-label fw-semibold text-navy" for="taller_op_active">Visible en web</label></div></div>
                 <div class="col-12"><label for="taller_op_text" class="form-label">Comentario</label><textarea id="taller_op_text" name="taller_op_text" rows="3" class="form-control form-control-premium" required></textarea></div>
             </div>
@@ -291,6 +303,73 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
             </table>
         </div>
     </div>
+
+    <!-- FAQ TALLER -->
+    <div class="admin-card">
+        <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+            <i class="bi bi-question-circle-fill me-2 text-danger"></i>Preguntas frecuentes (Taller)
+        </h5>
+        <form method="POST" action="?tab=taller-home" id="tallerFaqForm">
+            <input type="hidden" name="action" value="save_taller_faqs">
+            <div id="tallerFaqList">
+                <?php $taller_faqs = $taller['faqs'] ?? []; ?>
+                <?php if (empty($taller_faqs)): ?>
+                    <p class="text-muted small mb-3" id="tallerFaqEmpty">No hay preguntas frecuentes. Usa el botón para agregar.</p>
+                <?php else: ?>
+                    <?php foreach ($taller_faqs as $fi => $faq): ?>
+                    <div class="faq-row border rounded p-3 mb-3 bg-light position-relative" data-faq-row>
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small text-muted mb-1">Pregunta</label>
+                                <input type="text" name="faq_question[]" class="form-control form-control-premium" value="<?php echo esc($faq['question'] ?? ''); ?>" placeholder="¿Cuál es la pregunta?" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small text-muted mb-1">Respuesta</label>
+                                <textarea name="faq_answer[]" rows="3" class="form-control form-control-premium" placeholder="Escribe la respuesta..." required><?php echo esc($faq['answer'] ?? ''); ?></textarea>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amFaqRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                <button type="button" class="btn btn-outline-secondary" onclick="amFaqAddRow('tallerFaqList','tallerFaqEmpty')">
+                    <i class="bi bi-plus-lg me-1"></i> Agregar pregunta
+                </button>
+                <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                    <i class="bi bi-save"></i> Guardar preguntas frecuentes
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- REDES SOCIALES TALLER -->
+    <div class="admin-card">
+        <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+            <i class="bi bi-share-fill me-2 text-danger"></i>Redes sociales (Taller)
+        </h5>
+        <p class="text-muted small mb-4">Ingresa las URLs completas. Deja en blanco las redes que no apliquen.</p>
+        <?php $taller_social = $taller['social_links'] ?? []; ?>
+        <form method="POST" action="?tab=taller-home">
+            <input type="hidden" name="action" value="save_taller_social_links">
+            <div class="row g-3">
+                <?php foreach (['facebook' => 'Facebook', 'instagram' => 'Instagram', 'linkedin' => 'LinkedIn', 'tiktok' => 'TikTok', 'youtube' => 'YouTube'] as $_rsNet => $_rsLabel): ?>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small"><?php echo esc($_rsLabel); ?></label>
+                    <input type="url" name="taller_social_<?php echo esc($_rsNet); ?>" class="form-control form-control-premium"
+                           value="<?php echo esc($taller_social[$_rsNet] ?? ''); ?>"
+                           placeholder="https://www.<?php echo esc($_rsNet); ?>.com/automarket">
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <div class="d-flex justify-content-end mt-4">
+                <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                    <i class="bi bi-save"></i> Guardar redes sociales
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- TAB: TALLER CONTACTO -->
@@ -329,6 +408,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 <div class="col-md-6">
                     <label for="taller_contact_image" class="form-label fw-semibold">Imagen lateral derecha</label>
                     <input type="file" id="taller_contact_image" name="taller_contact_image" class="form-control form-control-premium" accept="image/*">
+                    <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                     <?php if (!empty($taller_contact['image_url'])): ?>
                         <div class="mt-2"><img src="<?php echo esc($taller_contact['image_url']); ?>" alt="Contacto Taller" class="img-thumbnail" style="max-height: 160px;"></div>
                     <?php endif; ?>
@@ -399,6 +479,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 <div class="col-md-6">
                     <label for="taller_sobre_main_image" class="form-label fw-semibold">Imagen principal (izquierda)</label>
                     <input type="file" id="taller_sobre_main_image" name="taller_sobre_main_image" class="form-control form-control-premium" accept="image/*">
+                    <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                     <?php if (!empty($taller_sobre['main_image_url'] ?? '')): ?>
                         <div class="mt-2"><img src="<?php echo esc($taller_sobre['main_image_url']); ?>" alt="" class="img-thumbnail" style="max-height: 160px;"></div>
                     <?php endif; ?>
@@ -421,6 +502,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                     <div class="col-md-4">
                         <label for="taller_sobre_stat_image_<?php echo $i; ?>" class="form-label fw-semibold">Imagen final <?php echo $i; ?></label>
                         <input type="file" id="taller_sobre_stat_image_<?php echo $i; ?>" name="taller_sobre_stat_image_<?php echo $i; ?>" class="form-control form-control-premium" accept="image/*">
+                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                         <input type="text" id="taller_sobre_stat_caption_<?php echo $i; ?>" name="taller_sobre_stat_caption_<?php echo $i; ?>" class="form-control form-control-premium mt-2" value="<?php echo esc($st['caption'] ?? ''); ?>" placeholder="Texto opcional">
                         <?php if (!empty($st['image_url'])): ?>
                             <div class="mt-2"><img src="<?php echo esc($st['image_url']); ?>" alt="" class="img-thumbnail w-100" style="max-height: 120px; object-fit: contain;"></div>
@@ -456,6 +538,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 <div class="col-md-6">
                     <label for="taller_sucursales_image" class="form-label fw-semibold">Imagen lateral derecha</label>
                     <input type="file" id="taller_sucursales_image" name="taller_sucursales_image" class="form-control form-control-premium" accept="image/*">
+                    <small class="text-muted d-block mt-1">Recomendado: 1200×800 px — JPG o WebP</small>
                     <?php if (!empty($taller['sucursales_image_url'] ?? '')): ?>
                         <div class="mt-2"><img src="<?php echo esc($taller['sucursales_image_url']); ?>" class="img-thumbnail" style="max-height: 140px;" alt="Sucursal Taller"></div>
                     <?php endif; ?>
@@ -482,6 +565,8 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 <div class="col-md-4"><label for="taller_sucursal_phone" class="form-label">Teléfono</label><input type="text" id="taller_sucursal_phone" name="taller_sucursal_phone" class="form-control form-control-premium"></div>
                 <div class="col-md-4"><label for="taller_sucursal_lat" class="form-label">Latitud</label><input type="text" id="taller_sucursal_lat" name="taller_sucursal_lat" class="form-control form-control-premium" required></div>
                 <div class="col-md-4"><label for="taller_sucursal_lng" class="form-label">Longitud</label><input type="text" id="taller_sucursal_lng" name="taller_sucursal_lng" class="form-control form-control-premium" required></div>
+                <div class="col-md-4"><label for="taller_sucursal_sort_order" class="form-label">Orden</label><input type="number" id="taller_sucursal_sort_order" name="taller_sucursal_sort_order" class="form-control form-control-premium" value="0" min="0"></div>
+                <div class="col-md-4 d-flex align-items-center pt-2"><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" role="switch" id="taller_sucursal_active" name="taller_sucursal_active" value="1" checked><label class="form-check-label fw-semibold" for="taller_sucursal_active">Sucursal activa</label></div></div>
             </div>
             <div class="text-end mt-4 d-flex justify-content-end gap-2">
                 <button type="button" class="btn btn-outline-secondary d-none" id="tallerSucursalCancelBtn" onclick="resetTallerSucursalForm()">Cancelar</button>
@@ -495,17 +580,19 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="table-light">
-                    <tr><th>Sucursal</th><th>Dirección</th><th>Horario</th><th>Mapa</th><th style="width:100px;" class="text-center">Acciones</th></tr>
+                    <tr><th>Sucursal</th><th>Dirección</th><th>Horario</th><th>Mapa</th><th class="text-center">Orden</th><th class="text-center">Activa</th><th style="width:100px;" class="text-center">Acciones</th></tr>
                 </thead>
                 <tbody>
                 <?php if (empty($taller_sucursales)): ?>
-                    <tr><td colspan="5" class="text-center py-4 text-muted">No hay sucursales registradas.</td></tr>
+                    <tr><td colspan="7" class="text-center py-4 text-muted">No hay sucursales registradas.</td></tr>
                 <?php else: foreach ($taller_sucursales as $suc): ?>
                     <tr>
                         <td><strong class="text-navy"><?php echo esc($suc['name'] ?? ''); ?></strong><div class="small text-muted"><?php echo esc($suc['location'] ?? ''); ?></div></td>
                         <td><small><?php echo esc($suc['address'] ?? ''); ?></small></td>
                         <td><small><?php echo esc($suc['schedule'] ?? ''); ?></small></td>
                         <td><small class="text-muted"><?php echo esc(($suc['lat'] ?? '') . ', ' . ($suc['lng'] ?? '')); ?></small></td>
+                        <td class="text-center"><span class="badge bg-secondary"><?php echo intval($suc['sort_order'] ?? 0); ?></span></td>
+                        <td class="text-center"><?php if (!isset($suc['active']) || $suc['active']): ?><span class="badge bg-success-subtle text-success border border-success-subtle">Sí</span><?php else: ?><span class="badge bg-secondary-subtle text-secondary border">No</span><?php endif; ?></td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-1">
                                 <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditTallerSucursal(<?php echo json_encode($suc, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'><i class="bi bi-pencil-fill"></i></button>
@@ -522,5 +609,46 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
             </table>
         </div>
         <p class="form-text mb-0 mt-2">Vista pública: <a href="/taller-sucursales.php" target="_blank" rel="noopener">/taller-sucursales.php</a></p>
+    </div>
+
+    <!-- BRANCHES TALLER — datos web por sucursal -->
+    <div class="admin-card">
+        <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+            <i class="bi bi-building me-2 text-danger"></i>Sucursales — datos web (Taller)
+        </h5>
+        <p class="text-muted small mb-4">Información de contacto y ubicación de cada sucursal para el sitio web. Distinto del sistema de coordenadas del mapa. El <strong>Nombre</strong> es obligatorio; los demás campos son opcionales.</p>
+        <?php $taller_branches = $taller['branches'] ?? []; ?>
+        <form method="POST" action="?tab=taller-sucursales" id="tallerBranchesForm">
+            <input type="hidden" name="action" value="save_taller_branches">
+            <div id="tallerBranchList">
+                <?php if (empty($taller_branches)): ?>
+                    <p class="text-muted small mb-3" id="tallerBranchEmpty">No hay sucursales configuradas. Usa el botón para agregar.</p>
+                <?php else: ?>
+                    <?php foreach ($taller_branches as $b): ?>
+                    <div class="branch-row border rounded p-3 mb-3 bg-light position-relative" data-branch-row>
+                        <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amBranchRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
+                        <div class="row g-2">
+                            <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Nombre *</label><input type="text" name="branch_name[]" class="form-control form-control-premium" value="<?php echo esc($b['name'] ?? ''); ?>" placeholder="Ej: Sucursal Tocumen" required></div>
+                            <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Dirección</label><input type="text" name="branch_address[]" class="form-control form-control-premium" value="<?php echo esc($b['address'] ?? ''); ?>" placeholder="Ej: Ave. Tocumen, Panamá"></div>
+                            <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Teléfono</label><input type="text" name="branch_phone[]" class="form-control form-control-premium" value="<?php echo esc($b['phone'] ?? ''); ?>" placeholder="507-XXXX-XXXX"></div>
+                            <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">WhatsApp</label><input type="text" name="branch_whatsapp[]" class="form-control form-control-premium" value="<?php echo esc($b['whatsapp'] ?? ''); ?>" placeholder="507XXXXXXXX"></div>
+                            <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Email</label><input type="email" name="branch_email[]" class="form-control form-control-premium" value="<?php echo esc($b['email'] ?? ''); ?>" placeholder="taller@automarket.com"></div>
+                            <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Horario</label><input type="text" name="branch_schedule[]" class="form-control form-control-premium" value="<?php echo esc($b['schedule'] ?? ''); ?>" placeholder="Lun–Vie 8:00am–5:00pm"></div>
+                            <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Enlace Google Maps</label><input type="url" name="branch_map_url[]" class="form-control form-control-premium" value="<?php echo esc($b['map_url'] ?? ''); ?>" placeholder="https://maps.app.goo.gl/..."></div>
+                            <div class="col-12"><label class="form-label fw-semibold small text-muted mb-1">URL imagen (opcional)</label><input type="url" name="branch_image_url[]" class="form-control form-control-premium" value="<?php echo esc($b['image_url'] ?? ''); ?>" placeholder="https://..."></div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                <button type="button" class="btn btn-outline-secondary" onclick="amBranchAddRow('tallerBranchList','tallerBranchEmpty')">
+                    <i class="bi bi-plus-lg me-1"></i> Agregar sucursal
+                </button>
+                <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                    <i class="bi bi-save"></i> Guardar sucursales
+                </button>
+            </div>
+        </form>
     </div>
 </div>

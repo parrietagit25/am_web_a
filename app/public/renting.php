@@ -9,13 +9,13 @@ require_once __DIR__ . '/../includes/renting-posts.php';
 $renting = $contentService->get('renting', []);
 require_once __DIR__ . '/../services/HeaderBannerService.php';
 $hbConfig = HeaderBannerService::normalizeFromNode($renting['hero'] ?? []);
-$introTitle = $renting['intro_title'] ?? 'Renting de Autos en Panamá — Anda Siempre en Auto Nuevo';
-$introText = $renting['intro_text'] ?? 'En Automarket Renting te ofrecemos una solución de movilidad simple, eficiente y confiable: accede a un auto nuevo 0 km pagando una cuota mensual fija con todo incluido, sin abono inicial, sin preocupaciones. Solo tienes que elegir tu auto y disfrutar de conducirlo nosotros nos ocupamos del resto.';
-$carsTitle = $renting['cars_section_title'] ?? 'Renting de Autos en Panamá';
-$quoteTitle = $renting['quote_section_title'] ?? 'COTIZA TU PLAN DE RENTING';
-$quoteIntro = $renting['quote_intro'] ?? 'Déjanos tus datos para que uno de nuestros asesores se ponga en contacto contigo si quieres saber más.';
-$brandsTitle = $renting['brands_title'] ?? 'MARCAS ALIADAS';
-$opinionsTitle = $renting['opinions_title'] ?? 'Lo que opinan nuestros clientes de nosotros...';
+$introTitle = trim($renting['intro_title'] ?? '') ?: 'Soluciones de renting para empresas';
+$introText = trim($renting['intro_text'] ?? '') ?: 'En Automarket Renting te ofrecemos una solución de movilidad simple, eficiente y confiable: accede a un auto nuevo 0 km pagando una cuota mensual fija con todo incluido, sin abono inicial, sin preocupaciones. Solo tienes que elegir tu auto y disfrutar de conducirlo nosotros nos ocupamos del resto.';
+$carsTitle = trim($renting['cars_section_title'] ?? '') ?: 'Renting de Autos en Panamá';
+$quoteTitle = trim($renting['quote_section_title'] ?? '') ?: 'COTIZA TU PLAN DE RENTING';
+$quoteIntro = trim($renting['quote_intro'] ?? '') ?: 'Déjanos tus datos para que uno de nuestros asesores se ponga en contacto contigo si quieres saber más.';
+$brandsTitle = trim($renting['brands_title'] ?? '') ?: 'MARCAS ALIADAS';
+$opinionsTitle = trim($renting['opinions_title'] ?? '') ?: 'Lo que opinan nuestros clientes de nosotros...';
 $quoteSideImage = $renting['quote_side_image_url'] ?? '';
 
 $rentingCars = array_values(array_filter($renting['cars'] ?? [], function ($c) {
@@ -224,9 +224,11 @@ $rentingOpiniones = array_values(array_filter($renting['opiniones'] ?? [], funct
 
 <?php
 $hbSectionId = 'cta-hero';
+$rentingHeroTitle = trim($renting['hero_title'] ?? '') ?: 'Automarket Renting';
+$rentingHeroSubtitle = trim($renting['hero_subtitle'] ?? '') ?: 'Tu auto nuevo, una cuota mensual con todo incluido.';
 $hbInnerHtml = '<div class="col-lg-8 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">'
-    . '<h1 class="display-4 fw-bold mb-3 font-montserrat">Automarket Renting</h1>'
-    . '<p class="fs-5 mb-4 opacity-90 font-poppins">Tu auto nuevo, una cuota mensual con todo incluido.</p>'
+    . '<h1 class="display-4 fw-bold mb-3 font-montserrat">' . nl2br(esc($rentingHeroTitle)) . '</h1>'
+    . '<p class="fs-5 mb-4 opacity-90 font-poppins">' . esc($rentingHeroSubtitle) . '</p>'
     . '<a href="#cotizar-seccion" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg">Cotizar ahora</a>'
     . '</div>';
 require __DIR__ . '/../includes/render-header-banner.php';
@@ -523,4 +525,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php $ucUnitKey = 'renting'; require __DIR__ . '/../includes/unit-content-home-sections.php'; ?>
 
+<?php
+$_unitBranches = $renting['branches'] ?? [];
+require __DIR__ . '/../includes/unit-branches-section.php';
+?>
+
+<?php
+$_sfItems  = $renting['faqs'] ?? [];
+require __DIR__ . '/../includes/schema-faq.php';
+?>
+<?php
+$_ufsItems = $renting['faqs'] ?? [];
+require __DIR__ . '/../includes/unit-faq-section.php';
+?>
+
+<?php
+$_upsUnitSocialLinks = $renting['social_links'] ?? [];
+require __DIR__ . '/../includes/unit-payment-social.php';
+?>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

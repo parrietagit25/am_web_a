@@ -69,6 +69,7 @@ class AdminPermissionRegistry
                     'renting_cotizaciones' => 'Cotizaciones',
                     'renting_marcas' => 'Marcas aliadas',
                     'renting_opiniones' => 'Opiniones',
+                    'renting_sucursales' => 'Sucursales',
                 ],
             ],
             'taller' => [
@@ -292,6 +293,27 @@ class AdminPermissionRegistry
             'add_taller_opinion' => 'taller_sobre',
             'edit_taller_opinion' => 'taller_sobre',
             'delete_taller_opinion' => 'taller_sobre',
+            'save_taller_faqs' => 'taller_home',
+            // Renting FAQs
+            'save_renting_faqs' => 'renting_home',
+            // Leasing FAQs
+            'save_leasing_faqs' => 'leasing_home',
+            // Seminuevos FAQs
+            'save_seminuevos_faqs' => 'semi_home',
+            // Redes sociales por unidad
+            'save_taller_social_links'     => 'taller_home',
+            'save_renting_social_links'    => 'renting_home',
+            'save_leasing_social_links'    => 'leasing_home',
+            'save_seminuevos_social_links' => 'semi_home',
+            // Branches por unidad (SU1)
+            'save_taller_branches'         => 'taller_sucursales',
+            'save_renting_branches'        => 'renting_home',
+            'save_leasing_branches'        => 'leasing_sucursales',
+            'save_seminuevos_branches'     => 'semi_contact',
+            // Sucursales por unidad — CRUD individual (SU1B-1)
+            'add_renting_sucursal'         => 'renting_sucursales',
+            'edit_renting_sucursal'        => 'renting_sucursales',
+            'delete_renting_sucursal'      => 'renting_sucursales',
         ];
     }
 

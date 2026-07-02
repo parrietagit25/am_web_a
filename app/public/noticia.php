@@ -32,7 +32,7 @@ if ($type === 'blog') {
     $backLabel = 'Volver al Blog';
 } elseif ($type === 'latest') {
     $backUrl = '/contenido-reciente.php' . $unitQuery;
-    $backLabel = 'Volver a Cont. Reciente';
+    $backLabel = 'Volver a Novedades';
 } else {
     $backUrl = '/noticias.php' . $unitQuery;
     $backLabel = 'Volver a Noticias';

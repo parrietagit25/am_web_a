@@ -54,7 +54,7 @@ $seminuevosTabs = array_merge(['semi-home'], $seminuevosContentTabs, ['semi-inve
 $leasingContentTabs = UnitContentService::contentTabSlugs('leasing');
 $leasingTabs = array_merge(['leasing-home'], $leasingContentTabs, ['leasing-sucursales', 'leasing-flota', 'leasing-equipo', 'leasing-contacto']);
 $rentingContentTabs = UnitContentService::contentTabSlugs('renting');
-$rentingTabs = array_merge(['renting-home'], $rentingContentTabs, ['renting-servicios', 'renting-sobre', 'renting-publicaciones', 'renting-contacto', 'renting-cotizaciones', 'renting-marcas', 'renting-opiniones']);
+$rentingTabs = array_merge(['renting-home'], $rentingContentTabs, ['renting-servicios', 'renting-sobre', 'renting-publicaciones', 'renting-contacto', 'renting-cotizaciones', 'renting-marcas', 'renting-opiniones', 'renting-sucursales']);
 $tallerContentTabs = UnitContentService::contentTabSlugs('taller');
 $tallerTabs = array_merge(['taller-home'], $tallerContentTabs, ['taller-contacto', 'taller-sobre', 'taller-sucursales']);
 $chatbotTabs = ['chatbot', 'chatbot-sessions'];
@@ -208,6 +208,7 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
             <?php if (admin_can('renting_cotizaciones')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('renting-cotizaciones', $defaultAdminTab); ?>" id="tab-renting-cotizaciones-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-cotizaciones" type="button" role="tab" data-admin-perm="renting_cotizaciones"><i class="bi bi-clipboard-check-fill me-2"></i> Cotizaciones</button><?php endif; ?>
             <?php if (admin_can('renting_marcas')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('renting-marcas', $defaultAdminTab); ?>" id="tab-renting-marcas-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-marcas" type="button" role="tab" data-admin-perm="renting_marcas"><i class="bi bi-award-fill me-2"></i> Marcas Aliadas</button><?php endif; ?>
             <?php if (admin_can('renting_opiniones')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('renting-opiniones', $defaultAdminTab); ?>" id="tab-renting-opiniones-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-opiniones" type="button" role="tab" data-admin-perm="renting_opiniones"><i class="bi bi-chat-left-quote-fill me-2"></i> Opiniones</button><?php endif; ?>
+            <?php if (admin_can('renting_sucursales')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('renting-sucursales', $defaultAdminTab); ?>" id="tab-renting-sucursales-nav" data-bs-toggle="pill" data-bs-target="#tab-renting-sucursales" type="button" role="tab" data-admin-perm="renting_sucursales"><i class="bi bi-geo-alt-fill me-2"></i> Sucursales</button><?php endif; ?>
         </div>
     <?php endif; ?>
 

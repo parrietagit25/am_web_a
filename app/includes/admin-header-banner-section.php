@@ -47,6 +47,7 @@ $hbTransition = (string) ($hbConfig['slider']['transition'] ?? 'fade');
         <input type="hidden" name="<?php echo esc($hbPrefix); ?>_static_url" value="<?php echo esc($hbStaticUrl); ?>">
         <input type="file" name="<?php echo esc($hbPrefix); ?>_static_file" class="form-control form-control-premium hb-static-file" accept="image/*">
         <div class="form-text">JPG, PNG, GIF o WEBP. Máx. 5MB.</div>
+        <small class="text-muted d-block mt-1">Recomendado: 1920×700 px — JPG o WebP</small>
         <?php if ($hbStaticUrl !== ''): ?>
         <div class="mt-2">
             <img src="<?php echo esc($hbStaticUrl); ?>" alt="" class="img-thumbnail hb-static-preview" style="max-height: 120px;">
@@ -89,6 +90,7 @@ $hbTransition = (string) ($hbConfig['slider']['transition'] ?? 'fade');
                 <div class="flex-grow-1" style="min-width: 200px;">
                     <input type="file" name="<?php echo esc($hbPrefix); ?>_slide_file[]" class="form-control form-control-sm" accept="image/*">
                     <div class="form-text">Deje vacío para conservar la imagen actual.</div>
+                    <small class="text-muted d-block mt-1">Recomendado: 1920×700 px — JPG o WebP</small>
                 </div>
                 <?php if (!empty($slide['image_url'])): ?>
                 <img src="<?php echo esc($slide['image_url']); ?>" alt="" class="img-thumbnail" style="max-height: 70px;">

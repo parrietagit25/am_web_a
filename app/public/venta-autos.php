@@ -6,6 +6,7 @@ $activeUnit = 'seminuevos';
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../services/Database.php';
 require_once __DIR__ . '/../services/HeaderBannerService.php';
+require_once __DIR__ . '/../services/VehicleSlugHelper.php';
 
 // Fetch Seminuevos data from content service
 $seminuevosData = $contentService->get('seminuevos', []);
@@ -292,6 +293,12 @@ $hbInnerHtml = '';
 require __DIR__ . '/../includes/render-header-banner.php';
 ?>
 
+<div class="container">
+    <h1 class="visually-hidden">
+        <?php echo htmlspecialchars(trim($seminuevosData['hero_title'] ?? '') ?: 'Autos Seminuevos en Venta en Panamá', ENT_QUOTES, 'UTF-8'); ?>
+    </h1>
+</div>
+
 <!-- Content Sections -->
 <div class="container py-5" id="inventario">
     <div class="text-center mb-5">
@@ -327,6 +334,7 @@ require __DIR__ . '/../includes/render-header-banner.php';
                         $fullName = trim($vehicle['Make'] . ' ' . $vehicle['Model']);
                         $priceVal = (float)$vehicle['Price'];
                         $carType = !empty($vehicle['CarType']) ? $vehicle['CarType'] : 'Seminuevo';
+                        $_vaUrl = VehicleSlugHelper::toDetalleUrl($vehicle) ?? ('/detalle.php?placa=' . urlencode($vehicle['LicensePlate'] ?? ''));
                         ?>
                         <div class="inventory-carousel-item">
                             <div class="card vehicle-card border-0 shadow-sm rounded-4 w-100 h-100 d-flex flex-column justify-content-between overflow-hidden position-relative">
@@ -334,13 +342,13 @@ require __DIR__ . '/../includes/render-header-banner.php';
                                     <?php echo esc($carType); ?>
                                 </span>
                                 
-                                <a href="/detalle.php?placa=<?php echo urlencode($vehicle['LicensePlate']); ?>" class="vehicle-img-container bg-light-gray text-center overflow-hidden d-block" style="height: 190px; display: flex; align-items: center; justify-content: center; position: relative;">
+                                <a href="<?php echo esc($_vaUrl); ?>" class="vehicle-img-container bg-light-gray text-center overflow-hidden d-block" style="height: 190px; display: flex; align-items: center; justify-content: center; position: relative;">
                                     <img src="<?php echo esc($photoUrl); ?>" alt="<?php echo esc($fullName); ?>" class="w-100 h-100" style="object-fit: cover; transition: transform 0.3s ease;">
                                 </a>
                                 
                                 <div class="card-body p-4 d-flex flex-column justify-content-between flex-grow-1">
                                     <div>
-                                        <a href="/detalle.php?placa=<?php echo urlencode($vehicle['LicensePlate']); ?>" class="text-decoration-none">
+                                        <a href="<?php echo esc($_vaUrl); ?>" class="text-decoration-none">
                                             <h5 class="fw-bold text-navy card-title mb-2 text-uppercase font-montserrat" style="font-size: 1.05rem; min-height: 2.7rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.3;">
                                                 <?php echo esc($fullName); ?>
                                             </h5>
@@ -358,12 +366,12 @@ require __DIR__ . '/../includes/render-header-banner.php';
                                             <div class="card-price-blue font-poppins">$<?php echo number_format($priceVal, 0); ?></div>
                                             <div class="price-subtext">Precio sin impuesto</div>
                                         </div>
-                                        <a href="/detalle.php?placa=<?php echo urlencode($vehicle['LicensePlate']); ?>" class="btn btn-theme rounded-pill px-3 py-2 text-white text-sm fw-semibold text-decoration-none" style="font-size: 0.82rem; font-family: 'Poppins', sans-serif;">Ver detalles</a>
+                                        <a href="<?php echo esc($_vaUrl); ?>" class="btn btn-theme rounded-pill px-3 py-2 text-white text-sm fw-semibold text-decoration-none" style="font-size: 0.82rem; font-family: 'Poppins', sans-serif;">Ver detalles</a>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    <?php endforeach; ?>
+                    <?php unset($_vaUrl); endforeach; ?>
                 <?php endif; ?>
             </div>
         </div>
@@ -641,4 +649,22 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
+<?php
+$_unitBranches = $seminuevosData['branches'] ?? [];
+require __DIR__ . '/../includes/unit-branches-section.php';
+?>
+
+<?php
+$_sfItems  = $seminuevosData['faqs'] ?? [];
+require __DIR__ . '/../includes/schema-faq.php';
+?>
+<?php
+$_ufsItems = $seminuevosData['faqs'] ?? [];
+require __DIR__ . '/../includes/unit-faq-section.php';
+?>
+
+<?php
+$_upsUnitSocialLinks = $seminuevosData['social_links'] ?? [];
+require __DIR__ . '/../includes/unit-payment-social.php';
+?>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

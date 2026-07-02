@@ -1,0 +1,64 @@
+AUTOMARKET PAGINA
+ 
+-Sucursal de footer - Poner las que ya existen, para no replicar todas denuevo
+-Tema de redes sociales: Que varie dependiendo de la pagina, es decir, que si estoy en Ren A Car, el link de las paginas no me mande a otro, si no que cada uno tenga el suyo para el modelo negocio
+ 
+-Tema de guardado, cuando se hace un cambio, va hasta arriba del otod, y es tedioso a la hora de estar cambiando varias cosas a la vez.
+-Poner tamaño recomendado a la hora de subir las fotos, tamaño de contenedor
+-Cambiar cont- reciente a novedades.
+ 
+-Pregunta: se puede diseccionar dependiendo de la unidad de negocio
+Ejm. quieren preguntar sobre rent a car, como un FAQ, que se vaya desplegando por unidad de negocio, y luego ir expandiendo
+ 
+-Que cada sección de cada unidad de negocio tenga su banner 
+-Arreglar el margen de las fotos de mi equipo, el correo se ve muy apiñado
+ 
+-En la sección de principal de venta de autos, poder cambiar el titulo de los banners
+-Sliders de imagen, que se pueda cambiar el titulo por banner, y que el titulo no sea fijo, solo si es banner.
+-En el blog, que se pueda desactivar o activar por ejemplo el de la feria de david
+ 
+-Análisis en los cambios de ingles/español. En la rent a car actual se hacen dos modulos completos, no por palabras
+ 
+-Los logos de los aliados financieros se vean más grandes.
+-Venta de autos -> Contacto, tampoco se puede cambiar imagen
+ 
+-Que cada titulo de la pagina se pueda cambiar, que se tenga un control completo de tdo el texto de la pagina, por cemas del CEO
+-Adicional misma revisión, imagen en leasing operativo no se puede cambiar
+-Cambiar nombre de SUV mini a compacto
+ 
+-En leasing operativo sucursales, que la imagen sea sticky, la que esta a la derecha, dice lo mismo que para preguntas frecuentes
+-Slug de TyC sale como pagina institucional, el slug
+-Sostenibilidad debe hacer el cambio con Fundación, de hecho se borró para que sostenibilidad la cambie. Que conviva dentro de las unidades de negocio.
+ 
+-Se pidió integrar que las partes de vacantes, el de trabaja con nosotros, tenga las vacantes de konzerta
+-En el footer, que no solo sea un HTML puro o texto puro, para no haber diferencia de diseño. Contenido estandarizado, que se puedan agregar cositas pero que se vea parte de la pagina y no hago sobrepuesto. Básicamente que se pueda crear a base de columna, ya que comenta que le limita el CEO
+-Ejemplo a lo que se quiere, es como un Word press o canva, que se pueda cambiar bien como un CMS/WordPress real, y no cambiarlo como un HTML puro.
+-Que exista un botón para ver todas las categorías del carro y al clickearlos me de las especificaciones del carro.
+-Si se puede hacer la opción de crear la misma pagina
+ 
+ 
+PRIORIDAD: Que TODOS los títulos y subtitulos puedan ser modificados, y que los textos se puedan crear por columnas, WordPress, SquareSpace.
+ 
+ 
+Aida:
+-Redundancia a la hora de "ver flota", ya que es la misma del botón rojo que la de alquieres -> ver flota
+-Lo mismo pasa en venta de autos con "Ver inventario"
+-Rectificar información n venta de autos, el "Garantizado" o "Seminuevos" se ve un gran id con 20k como garantizado, analizar
+-Redundancia por mi equipo en tema de sucursal
+ 
+-Faltaria sucursales de: Seminuevos, ya que no son las mismas. Arreglar le carga del preview de la primera sucursal que me sale cuando le doy a s sucursal.
+-Poner la información de contacto, el nunero de la unidad de negocio, horario, todo, adicional.
+Esto ultimo también se peude hacer en el encabezado negro de la pagina, adiconal que se pueda cmabiar por unidad de negocio.
+-Medios de pago solo aparecen en rent a car, en ninguna otra parte.
+ 
+-En contactanos poner el teléfono como obligatorio.
+-Se habló de los contactos, en seminuevos y renting solo tiene la imagen y no el contacto, como las demás unidades de negocio
+-Hacer la integracion futura de que se pueda modificar el como se en celular, doble pantalla maybe?
+-En taller desaparaecia el siguenos y el método de pago
+ 
+-La sección de sucursales no hay en venta de autos, se habló antes
+-Lo mismo de siempre, se esta pidiendo mucho un WordPress a la hora de editar las partes informativas, como el sobrenostros de taller.
+ 
+-idea, para poder diferenciar el sucursal de footer con el de por unidad de negocio, a este ultimo se le agregue la opción de detalles y que diga a que unidad de negocio tiene, para asi tener TODAS y segmentadas por lo que ofrecen
+ 
+-En capama evento destacado, la opción de agregar más eventos, y ocultar el que no quiero que salga.

@@ -16,15 +16,33 @@ $footerData = $footerService->getFooter();
 $fg = $footerData['general'];
 $trackingCodes = $globalSettings['tracking_codes'] ?? [];
 
-$resourceLinks = [
-    ['label' => t('footer.about_us'), 'url' => '/pagina-institucional.php?p=sobre-nosotros'],
-    ['label' => t('footer.terms'), 'url' => '/pagina-institucional.php?p=terminos'],
-    ['label' => t('footer.faq'), 'url' => '/pagina-institucional.php?p=faq'],
-    ['label' => t('footer.branches'), 'url' => '/sucursales-grupo.php'],
-    ['label' => t('footer.sustainability'), 'url' => '/sostenibilidad.php'],
-    ['label' => t('footer.auctions'), 'url' => '/pagina-institucional.php?p=subastas'],
-    ['label' => t('footer.blog'), 'url' => '/blog-grupo.php'],
-];
+$_recursosCol = null;
+foreach ($footerData['columns'] as $_fc) {
+    if (($_fc['id'] ?? '') === 'recursos') { $_recursosCol = $_fc; break; }
+}
+if ($_recursosCol !== null && !empty($_recursosCol['links'])) {
+    $resourceLinks = [];
+    foreach ($_recursosCol['links'] as $_fl) {
+        $_fl_label = trim((string)($_fl['label'] ?? ''));
+        $_fl_url   = trim((string)($_fl['url']   ?? ''));
+        if ($_fl_label === '' || $_fl_url === '' || ($_fl['active'] ?? true) === false) {
+            continue;
+        }
+        $resourceLinks[] = ['label' => $_fl_label, 'url' => $_fl_url, 'sort_order' => intval($_fl['sort_order'] ?? 99)];
+    }
+    usort($resourceLinks, fn($a, $b) => $a['sort_order'] - $b['sort_order']);
+} else {
+    $resourceLinks = [
+        ['label' => t('footer.about_us'), 'url' => '/pagina-institucional.php?p=sobre-nosotros'],
+        ['label' => t('footer.terms'), 'url' => '/pagina-institucional.php?p=terminos'],
+        ['label' => t('footer.faq'), 'url' => '/pagina-institucional.php?p=faq'],
+        ['label' => t('footer.branches'), 'url' => '/sucursales-grupo.php'],
+        ['label' => t('footer.sustainability'), 'url' => '/sostenibilidad.php'],
+        ['label' => t('footer.auctions'), 'url' => '/pagina-institucional.php?p=subastas'],
+        ['label' => t('footer.blog'), 'url' => '/blog-grupo.php'],
+    ];
+}
+unset($_recursosCol, $_fc, $_fl, $_fl_label, $_fl_url);
 
 $alsoKnow = array_filter($footerData['also_know'], fn($l) => !empty($l['active']));
 usort($alsoKnow, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b['sort_order'] ?? 99));

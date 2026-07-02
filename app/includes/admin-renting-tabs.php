@@ -89,6 +89,18 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                     </div>
 
                                     <div class="col-md-6">
+                                        <label for="renting_hero_title" class="form-label fw-semibold">Titulo del Hero (sobre la imagen de cabecera)</label>
+                                        <textarea id="renting_hero_title" name="renting_hero_title" class="form-control form-control-premium" rows="2" placeholder="Automarket Renting"><?php echo esc($renting['hero_title'] ?? ''); ?></textarea>
+                                        <div class="form-text">Puedes usar saltos de linea. Si se deja en blanco se usara el texto por defecto.</div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="renting_hero_subtitle" class="form-label fw-semibold">Subtitulo del Hero</label>
+                                        <input type="text" id="renting_hero_subtitle" name="renting_hero_subtitle" class="form-control form-control-premium" placeholder="Tu auto nuevo, una cuota mensual con todo incluido." value="<?php echo esc($renting['hero_subtitle'] ?? ''); ?>">
+                                        <div class="form-text">Texto descriptivo breve bajo el titulo principal del hero.</div>
+                                    </div>
+
+                                    <div class="col-md-6">
                                         <label for="renting_intro_title" class="form-label fw-semibold">Título introductorio</label>
                                         <input type="text" id="renting_intro_title" name="renting_intro_title" class="form-control form-control-premium" value="<?php echo esc($renting['intro_title'] ?? 'Renting de Autos en Panamá — Anda Siempre en Auto Nuevo'); ?>" required>
                                     </div>
@@ -112,6 +124,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <label for="renting_quote_side_image" class="form-label fw-semibold">Imagen lateral del formulario de cotización</label>
                                         <input type="file" id="renting_quote_side_image" name="renting_quote_side_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">Se muestra a la derecha del formulario en la página pública.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                         <?php if (!empty($renting['quote_side_image_url'] ?? '')): ?>
                                             <div class="mt-2">
                                                 <img src="<?php echo esc($renting['quote_side_image_url']); ?>" alt="Imagen cotización" class="img-thumbnail" style="max-height: 120px;">
@@ -172,6 +185,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <label for="renting_car_image" class="form-label">Imagen del vehículo</label>
                                         <input type="file" id="renting_car_image" name="renting_car_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="rentingCarImageHelp">Formatos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
                                 </div>
 
@@ -239,6 +253,114 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+
+                        <!-- FAQ RENTING -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-question-circle-fill me-2 text-danger"></i>Preguntas frecuentes (Renting)
+                            </h5>
+                            <form method="POST" action="?tab=renting-home" id="rentingFaqForm">
+                                <input type="hidden" name="action" value="save_renting_faqs">
+                                <div id="rentingFaqList">
+                                    <?php $renting_faqs = $renting['faqs'] ?? []; ?>
+                                    <?php if (empty($renting_faqs)): ?>
+                                        <p class="text-muted small mb-3" id="rentingFaqEmpty">No hay preguntas frecuentes. Usa el botón para agregar.</p>
+                                    <?php else: ?>
+                                        <?php foreach ($renting_faqs as $faq): ?>
+                                        <div class="faq-row border rounded p-3 mb-3 bg-light position-relative" data-faq-row>
+                                            <div class="row g-2">
+                                                <div class="col-12">
+                                                    <label class="form-label fw-semibold small text-muted mb-1">Pregunta</label>
+                                                    <input type="text" name="faq_question[]" class="form-control form-control-premium" value="<?php echo esc($faq['question'] ?? ''); ?>" placeholder="¿Cuál es la pregunta?" required>
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label fw-semibold small text-muted mb-1">Respuesta</label>
+                                                    <textarea name="faq_answer[]" rows="3" class="form-control form-control-premium" placeholder="Escribe la respuesta..." required><?php echo esc($faq['answer'] ?? ''); ?></textarea>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amFaqRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="amFaqAddRow('rentingFaqList','rentingFaqEmpty')">
+                                        <i class="bi bi-plus-lg me-1"></i> Agregar pregunta
+                                    </button>
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar preguntas frecuentes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- REDES SOCIALES RENTING -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-share-fill me-2 text-danger"></i>Redes sociales (Renting)
+                            </h5>
+                            <p class="text-muted small mb-4">Ingresa las URLs completas. Deja en blanco las redes que no apliquen.</p>
+                            <?php $renting_social = $renting['social_links'] ?? []; ?>
+                            <form method="POST" action="?tab=renting-home">
+                                <input type="hidden" name="action" value="save_renting_social_links">
+                                <div class="row g-3">
+                                    <?php foreach (['facebook' => 'Facebook', 'instagram' => 'Instagram', 'linkedin' => 'LinkedIn', 'tiktok' => 'TikTok', 'youtube' => 'YouTube'] as $_rsNet => $_rsLabel): ?>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small"><?php echo esc($_rsLabel); ?></label>
+                                        <input type="url" name="renting_social_<?php echo esc($_rsNet); ?>" class="form-control form-control-premium"
+                                               value="<?php echo esc($renting_social[$_rsNet] ?? ''); ?>"
+                                               placeholder="https://www.<?php echo esc($_rsNet); ?>.com/automarket">
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <div class="d-flex justify-content-end mt-4">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar redes sociales
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- BRANCHES RENTING — datos web por sucursal -->
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-building me-2 text-danger"></i>Sucursales — datos web (Renting)
+                            </h5>
+                            <p class="text-muted small mb-4">Información de contacto y ubicación de cada sucursal para el sitio web. El <strong>Nombre</strong> es obligatorio; los demás campos son opcionales.</p>
+                            <?php $renting_branches = $renting['branches'] ?? []; ?>
+                            <form method="POST" action="?tab=renting-home" id="rentingBranchesForm">
+                                <input type="hidden" name="action" value="save_renting_branches">
+                                <div id="rentingBranchList">
+                                    <?php if (empty($renting_branches)): ?>
+                                        <p class="text-muted small mb-3" id="rentingBranchEmpty">No hay sucursales configuradas. Usa el botón para agregar.</p>
+                                    <?php else: ?>
+                                        <?php foreach ($renting_branches as $b): ?>
+                                        <div class="branch-row border rounded p-3 mb-3 bg-light position-relative" data-branch-row>
+                                            <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amBranchRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
+                                            <div class="row g-2">
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Nombre *</label><input type="text" name="branch_name[]" class="form-control form-control-premium" value="<?php echo esc($b['name'] ?? ''); ?>" placeholder="Ej: Sucursal Tocumen" required></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Dirección</label><input type="text" name="branch_address[]" class="form-control form-control-premium" value="<?php echo esc($b['address'] ?? ''); ?>" placeholder="Ej: Ave. Tocumen, Panamá"></div>
+                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Teléfono</label><input type="text" name="branch_phone[]" class="form-control form-control-premium" value="<?php echo esc($b['phone'] ?? ''); ?>" placeholder="507-XXXX-XXXX"></div>
+                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">WhatsApp</label><input type="text" name="branch_whatsapp[]" class="form-control form-control-premium" value="<?php echo esc($b['whatsapp'] ?? ''); ?>" placeholder="507XXXXXXXX"></div>
+                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Email</label><input type="email" name="branch_email[]" class="form-control form-control-premium" value="<?php echo esc($b['email'] ?? ''); ?>" placeholder="renting@automarket.com"></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Horario</label><input type="text" name="branch_schedule[]" class="form-control form-control-premium" value="<?php echo esc($b['schedule'] ?? ''); ?>" placeholder="Lun–Vie 8:00am–5:00pm"></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Enlace Google Maps</label><input type="url" name="branch_map_url[]" class="form-control form-control-premium" value="<?php echo esc($b['map_url'] ?? ''); ?>" placeholder="https://maps.app.goo.gl/..."></div>
+                                                <div class="col-12"><label class="form-label fw-semibold small text-muted mb-1">URL imagen (opcional)</label><input type="url" name="branch_image_url[]" class="form-control form-control-premium" value="<?php echo esc($b['image_url'] ?? ''); ?>" placeholder="https://..."></div>
+                                            </div>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="amBranchAddRow('rentingBranchList','rentingBranchEmpty')">
+                                        <i class="bi bi-plus-lg me-1"></i> Agregar sucursal
+                                    </button>
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar sucursales
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
 
@@ -311,6 +433,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <label for="renting_servicio_item_image" class="form-label">Imagen (columna derecha en la web)</label>
                                         <input type="file" id="renting_servicio_item_image" name="renting_servicio_item_image" class="form-control form-control-premium" accept="image/*" required>
                                         <div class="form-text" id="rentingServicioItemImageHelp">Obligatoria al crear. Al editar, déjala vacía para conservar la actual.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
                                 </div>
 
@@ -424,6 +547,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <div class="border rounded-3 p-3 bg-light h-100">
                                             <label class="form-label fw-semibold">Imagen <?php echo $gi; ?></label>
                                             <input type="file" id="renting_sobre_gallery_<?php echo $gi; ?>" name="renting_sobre_gallery_<?php echo $gi; ?>" class="form-control form-control-premium mb-2" accept="image/*">
+                                            <small class="text-muted d-block mt-1 mb-2">Recomendado: 800×600 px — JPG o WebP</small>
                                             <label for="renting_sobre_gallery_alt_<?php echo $gi; ?>" class="form-label small">Texto alternativo (opcional)</label>
                                             <input type="text" id="renting_sobre_gallery_alt_<?php echo $gi; ?>" name="renting_sobre_gallery_alt_<?php echo $gi; ?>" class="form-control form-control-premium form-control-sm" value="<?php echo esc($galleryItem['alt'] ?? ''); ?>" placeholder="Descripción de la imagen">
                                             <?php if (!empty($galleryItem['image_url'])): ?>
@@ -479,11 +603,13 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                     <div class="col-md-6">
                                         <label for="renting_post_image_url" class="form-label">URL de imagen (opcional)</label>
                                         <input type="url" id="renting_post_image_url" name="renting_post_image_url" class="form-control form-control-premium" placeholder="https://...">
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="renting_post_image" class="form-label">Imagen de la tarjeta</label>
                                         <input type="file" id="renting_post_image" name="renting_post_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="rentingPostImageHelp">Puedes subir archivo o usar URL. Si subes archivo, tiene prioridad.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                     </div>
 
                                     <hr class="my-2">
@@ -594,6 +720,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <label for="renting_contact_image" class="form-label fw-semibold">Imagen lateral (derecha del formulario)</label>
                                         <input type="file" id="renting_contact_image" name="renting_contact_image" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text">JPG, PNG, GIF o WEBP. Máx. 5MB.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>
                                         <?php if (!empty($renting_contact['contact_image_url'])): ?>
                                             <div class="mt-2">
                                                 <img src="<?php echo esc($renting_contact['contact_image_url']); ?>" alt="Contacto Renting" class="img-thumbnail" style="max-height: 160px;">
@@ -863,6 +990,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <label for="renting_brand_logo" class="form-label">Logo</label>
                                         <input type="file" id="renting_brand_logo" name="renting_brand_logo" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="rentingBrandLogoHelp">Formatos: JPG, PNG, GIF, WEBP, SVG. Fondo transparente recomendado.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 400×200 px — PNG con fondo transparente</small>
                                     </div>
                                 </div>
 
@@ -933,6 +1061,178 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                         </div>
                     </div>
 
+                    <!-- TAB: RENTING SUCURSALES -->
+                    <div class="tab-pane fade" id="tab-renting-sucursales" role="tabpanel" aria-labelledby="tab-renting-sucursales-nav">
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="rentingSucursalFormTitle">
+                                <i class="bi bi-geo-alt-fill me-2 text-danger"></i>Agregar sucursal (Renting)
+                            </h5>
+
+                            <form method="POST" action="?tab=renting-sucursales" id="rentingSucursalForm">
+                                <input type="hidden" name="action" id="rentingSucursalFormAction" value="add_renting_sucursal">
+                                <input type="hidden" name="renting_sucursal_id" id="rentingSucursalFormId" value="">
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="renting_sucursal_name" class="form-label">Nombre *</label>
+                                        <input type="text" id="renting_sucursal_name" name="renting_sucursal_name" class="form-control form-control-premium" placeholder="Ej: Sucursal Tocumen" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="renting_sucursal_location" class="form-label">Referencia de ubicación</label>
+                                        <input type="text" id="renting_sucursal_location" name="renting_sucursal_location" class="form-control form-control-premium" placeholder="Ej: Avenida Domingo Díaz">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="renting_sucursal_address" class="form-label">Dirección completa *</label>
+                                        <input type="text" id="renting_sucursal_address" name="renting_sucursal_address" class="form-control form-control-premium" placeholder="Ej: Centro Comercial Multiplaza, local 210" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="renting_sucursal_schedule" class="form-label">Horario</label>
+                                        <input type="text" id="renting_sucursal_schedule" name="renting_sucursal_schedule" class="form-control form-control-premium" placeholder="Ej: Lun–Vie 8:00am–5:00pm">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="renting_sucursal_phone" class="form-label">Teléfono</label>
+                                        <input type="text" id="renting_sucursal_phone" name="renting_sucursal_phone" class="form-control form-control-premium" placeholder="507-XXXX-XXXX">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="renting_sucursal_email" class="form-label">Email</label>
+                                        <input type="email" id="renting_sucursal_email" name="renting_sucursal_email" class="form-control form-control-premium" placeholder="renting@automarket.com">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="renting_sucursal_whatsapp" class="form-label">WhatsApp</label>
+                                        <input type="text" id="renting_sucursal_whatsapp" name="renting_sucursal_whatsapp" class="form-control form-control-premium" placeholder="507XXXXXXXX">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="renting_sucursal_map_url" class="form-label">Enlace Google Maps</label>
+                                        <input type="url" id="renting_sucursal_map_url" name="renting_sucursal_map_url" class="form-control form-control-premium" placeholder="https://maps.app.goo.gl/...">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="renting_sucursal_lat" class="form-label">Latitud *</label>
+                                        <input type="text" id="renting_sucursal_lat" name="renting_sucursal_lat" class="form-control form-control-premium" placeholder="9.066325" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="renting_sucursal_lng" class="form-label">Longitud *</label>
+                                        <input type="text" id="renting_sucursal_lng" name="renting_sucursal_lng" class="form-control form-control-premium" placeholder="-79.380726" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="renting_sucursal_sort_order" class="form-label">Orden</label>
+                                        <input type="number" id="renting_sucursal_sort_order" name="renting_sucursal_sort_order" class="form-control form-control-premium" value="0" min="0" step="1">
+                                        <div class="form-text">Menor número = aparece primero.</div>
+                                    </div>
+                                    <div class="col-md-3 d-flex align-items-end pb-2">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="renting_sucursal_active" name="renting_sucursal_active" value="1" checked>
+                                            <label class="form-check-label fw-semibold text-navy" for="renting_sucursal_active">Activa en la web</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="text-end mt-4 d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-outline-secondary d-none" id="rentingSucursalCancelBtn" onclick="resetRentingSucursalForm()">Cancelar</button>
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2" id="rentingSucursalSubmitBtn">
+                                        <i class="bi bi-plus-lg"></i> <span id="rentingSucursalSubmitText">Agregar sucursal</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-table me-2 text-danger"></i>Sucursales registradas (Renting)
+                            </h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Nombre</th>
+                                            <th>Dirección</th>
+                                            <th>Teléfono</th>
+                                            <th style="width: 70px;">Orden</th>
+                                            <th style="width: 90px;">Estado</th>
+                                            <th style="width: 100px;" class="text-center">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $renting_sucursales_list = $renting['sucursales'] ?? [];
+                                        usort($renting_sucursales_list, function ($a, $b) {
+                                            $oa = intval($a['sort_order'] ?? 0);
+                                            $ob = intval($b['sort_order'] ?? 0);
+                                            return $oa !== $ob ? $oa - $ob : strcasecmp($a['name'] ?? '', $b['name'] ?? '');
+                                        });
+                                        ?>
+                                        <?php if (empty($renting_sucursales_list)): ?>
+                                            <tr>
+                                                <td colspan="6" class="text-center py-4 text-muted">No hay sucursales de Renting registradas.</td>
+                                            </tr>
+                                        <?php else: ?>
+                                            <?php foreach ($renting_sucursales_list as $suc):
+                                                $sucActive = !isset($suc['active']) || $suc['active'] === true || $suc['active'] === 'true' || $suc['active'] == 1;
+                                            ?>
+                                                <tr>
+                                                    <td>
+                                                        <strong class="text-navy d-block"><?php echo esc($suc['name'] ?? ''); ?></strong>
+                                                        <small class="text-muted"><?php echo esc($suc['location'] ?? ''); ?></small>
+                                                    </td>
+                                                    <td><small><?php echo esc($suc['address'] ?? ''); ?></small></td>
+                                                    <td><small><?php echo esc($suc['phone'] ?? '—'); ?></small></td>
+                                                    <td><span class="badge bg-light text-dark border"><?php echo intval($suc['sort_order'] ?? 0); ?></span></td>
+                                                    <td>
+                                                        <?php if ($sucActive): ?>
+                                                            <span class="badge bg-success-subtle text-success border border-success-subtle">ACTIVA</span>
+                                                        <?php else: ?>
+                                                            <span class="badge bg-secondary-subtle text-secondary border">INACTIVA</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="d-flex justify-content-center gap-1">
+                                                            <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditRentingSucursal(<?php echo json_encode($suc, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'><i class="bi bi-pencil-fill"></i></button>
+                                                            <form method="POST" action="?tab=renting-sucursales" onsubmit="return confirm('¿Eliminar esta sucursal de Renting?');" style="display:inline;">
+                                                                <input type="hidden" name="action" value="delete_renting_sucursal">
+                                                                <input type="hidden" name="renting_sucursal_id" value="<?php echo intval($suc['id']); ?>">
+                                                                <button type="submit" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash3-fill"></i></button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <script>
+                        function initEditRentingSucursal(suc) {
+                            document.getElementById('rentingSucursalFormTitle').innerHTML = '<i class="bi bi-pencil-fill me-2 text-danger"></i>Editar sucursal (Renting)';
+                            document.getElementById('rentingSucursalFormAction').value = 'edit_renting_sucursal';
+                            document.getElementById('rentingSucursalFormId').value = suc.id;
+                            document.getElementById('renting_sucursal_name').value = suc.name || '';
+                            document.getElementById('renting_sucursal_location').value = suc.location || '';
+                            document.getElementById('renting_sucursal_address').value = suc.address || '';
+                            document.getElementById('renting_sucursal_schedule').value = suc.schedule || '';
+                            document.getElementById('renting_sucursal_phone').value = suc.phone || '';
+                            document.getElementById('renting_sucursal_email').value = suc.email || '';
+                            document.getElementById('renting_sucursal_whatsapp').value = suc.whatsapp || '';
+                            document.getElementById('renting_sucursal_map_url').value = suc.map_url || '';
+                            document.getElementById('renting_sucursal_lat').value = suc.lat || '';
+                            document.getElementById('renting_sucursal_lng').value = suc.lng || '';
+                            document.getElementById('renting_sucursal_sort_order').value = suc.sort_order || 0;
+                            document.getElementById('renting_sucursal_active').checked = suc.active === true || suc.active === 'true' || suc.active == 1;
+                            document.getElementById('rentingSucursalSubmitText').textContent = 'Guardar cambios';
+                            document.getElementById('rentingSucursalCancelBtn').classList.remove('d-none');
+                            document.getElementById('rentingSucursalForm').scrollIntoView({behavior: 'smooth'});
+                        }
+                        function resetRentingSucursalForm() {
+                            document.getElementById('rentingSucursalFormTitle').innerHTML = '<i class="bi bi-geo-alt-fill me-2 text-danger"></i>Agregar sucursal (Renting)';
+                            document.getElementById('rentingSucursalFormAction').value = 'add_renting_sucursal';
+                            document.getElementById('rentingSucursalFormId').value = '';
+                            document.getElementById('rentingSucursalForm').reset();
+                            document.getElementById('renting_sucursal_active').checked = true;
+                            document.getElementById('rentingSucursalSubmitText').textContent = 'Agregar sucursal';
+                            document.getElementById('rentingSucursalCancelBtn').classList.add('d-none');
+                        }
+                        </script>
+                    </div>
+
                     <!-- TAB: RENTING OPINIONES -->
                     <div class="tab-pane fade" id="tab-renting-opiniones" role="tabpanel" aria-labelledby="tab-renting-opiniones-nav">
                         <div class="admin-card">
@@ -977,6 +1277,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <label for="renting_op_avatar" class="form-label">Avatar (imagen)</label>
                                         <input type="file" id="renting_op_avatar" name="renting_op_avatar" class="form-control form-control-premium" accept="image/*">
                                         <div class="form-text" id="rentingOpAvatarHelp">Si no subes foto, se generan iniciales.</div>
+                                        <small class="text-muted d-block mt-1">Recomendado: 600×600 px — JPG o WebP</small>
                                     </div>
                                 </div>
 

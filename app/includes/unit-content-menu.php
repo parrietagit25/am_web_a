@@ -14,7 +14,7 @@ function unit_content_nav_menu_item(string $unitKey): array
         'submenu' => [
             ['label' => 'Noticias', 'link' => '/noticias.php' . $query],
             ['label' => 'Blog', 'link' => '/blog.php' . $query],
-            ['label' => 'Cont. Reciente', 'link' => '/contenido-reciente.php' . $query],
+            ['label' => 'Novedades', 'link' => '/contenido-reciente.php' . $query],
         ],
     ];
 }
@@ -27,7 +27,7 @@ function unit_content_nav_menu_item(string $unitKey): array
  */
 function unit_content_strip_legacy_menu_links(array $menu): array
 {
-    $skip = ['blog', 'noticias', 'cont. reciente', 'contenido reciente', 'contenido más reciente'];
+    $skip = ['blog', 'noticias', 'cont. reciente', 'contenido reciente', 'contenido más reciente', 'novedades'];
 
     foreach ($menu as &$item) {
         if (empty($item['submenu']) || !is_array($item['submenu'])) {
