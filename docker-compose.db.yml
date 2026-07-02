@@ -1,0 +1,37 @@
+# Oleada 2 — MariaDB como overlay separado (DB1B-PROD-2C/2D/2E).
+# Cutover completado: la app corre sobre MariaDB (DB_HOST/DB_REQUIRE_MYSQL
+# activos en app/config/config.php). No expone el puerto 3306 al host.
+#
+# Uso en producción:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.db.yml up -d
+#
+# env_file apunta a una ruta fuera del repo (creada manualmente en el
+# servidor, permisos 600, nunca versionada) con MARIADB_DATABASE,
+# MARIADB_USER, MARIADB_PASSWORD y MARIADB_ROOT_PASSWORD.
+services:
+  db:
+    image: mariadb:11.4
+    container_name: automarket_db
+    restart: unless-stopped
+    env_file:
+      - /root/am_web_a_mariadb.env
+    command:
+      - --innodb-buffer-pool-size=64M
+      - --max-connections=30
+      - --performance-schema=OFF
+      - --skip-name-resolve
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - automarket-network
+    mem_limit: 256m
+    memswap_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p$$MARIADB_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mariadb_data:
+    name: automarket_mariadb_data

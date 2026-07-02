@@ -5,8 +5,8 @@
  * Script CLI standalone.
  *
  * Uso:
- *   php app/storage/migrate-sqlite-to-mysql.php --dry-run
- *   php app/storage/migrate-sqlite-to-mysql.php --execute --yes-i-am-sure
+ *   php scripts/migrate-sqlite-to-mysql.php --dry-run
+ *   php scripts/migrate-sqlite-to-mysql.php --execute --yes-i-am-sure
  *
  * --execute exige --yes-i-am-sure explícito; sin él, aborta sin tocar nada.
  * --execute corre primero el mismo preflight que --dry-run; si hay cualquier
@@ -22,7 +22,7 @@ if (PHP_SAPI !== 'cli') {
     exit(1);
 }
 
-const SQLITE_PATH = __DIR__ . '/database.sqlite';
+const SQLITE_PATH = __DIR__ . '/../app/storage/database.sqlite';
 
 /** Tablas incluidas en el ETL, en el orden de migración diseñado en DB1B-2B. */
 const TABLES = [
@@ -140,7 +140,7 @@ function preflight(): array
         define('DB_PASS', getenv('DB_PASS'));
     }
 
-    require_once __DIR__ . '/../services/Database.php';
+    require_once __DIR__ . '/../app/services/Database.php';
 
     try {
         $db = Database::getInstance();
