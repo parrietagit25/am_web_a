@@ -81,8 +81,8 @@ $rac_show_payments = ($rac_home['show_payment_methods'] ?? true) !== false;
         <i class="bi bi-telephone-fill me-2 text-danger"></i>Contacto y medios de pago (Rent A Car)
     </h5>
     <p class="text-muted small mb-4">
-        Teléfono/WhatsApp de esta unidad para el bloque inferior del home RAC.
-        El topbar del sitio sigue usando <strong>Configuración global</strong> (pestaña General) hasta una fase posterior.
+        Teléfono/WhatsApp de esta unidad para el bloque inferior del home RAC y el <strong>topbar</strong> en páginas Rent A Car.
+        Si quedan vacíos, se usa la configuración global (pestaña General). El botón flotante de WhatsApp sigue siendo global.
     </p>
     <form method="POST" action="?tab=hero">
         <input type="hidden" name="action" value="save_rac_unit_contact">

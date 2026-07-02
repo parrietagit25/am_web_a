@@ -310,8 +310,10 @@ class AdminPermissionRegistry
             'save_renting_unit_footer'     => 'renting_home',
             'save_leasing_social_links'    => 'leasing_home',
             'save_leasing_unit_footer'     => 'leasing_home',
+            'save_leasing_sucursales_page' => 'leasing_sucursales',
             'save_seminuevos_social_links' => 'semi_home',
             'save_seminuevos_unit_footer'  => 'semi_home',
+            'save_seminuevos_sucursales_page' => 'semi_contact',
             // Branches por unidad (SU1)
             'save_taller_branches'         => 'taller_sucursales',
             'save_renting_branches'        => 'renting_home',

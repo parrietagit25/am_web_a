@@ -17,8 +17,8 @@ $ufFieldPrefix = preg_replace('/[^a-z0-9_]/', '_', $ufUnitKey);
         <i class="bi bi-telephone-fill me-2 text-danger"></i>Contacto y medios de pago (<?php echo esc($ufUnitLabel); ?>)
     </h5>
     <p class="text-muted small mb-4">
-        Teléfono, WhatsApp, correo y horario para el bloque inferior del home de esta unidad.
-        El <strong>topbar global</strong> del sitio sigue en Configuración general (fase 3B3).
+        Teléfono, WhatsApp, correo y horario para el bloque inferior del home y el <strong>topbar</strong> de esta unidad.
+        Si un campo queda vacío, el topbar usa la configuración global (pestaña General).
     </p>
     <form method="POST" action="?tab=<?php echo esc($ufTabSlug); ?>">
         <input type="hidden" name="action" value="<?php echo esc($ufSaveAction); ?>">

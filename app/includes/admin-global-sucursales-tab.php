@@ -13,7 +13,9 @@ if (!is_array($globalSucursales)) {
             <i class="bi bi-geo-alt-fill me-2 text-danger"></i>Agregar sucursal
         </h5>
         <p class="text-muted small mb-4">
-            Registre sucursales del grupo con nombre, foto opcional y coordenadas para mapa (latitud / longitud opcionales).
+            Catálogo maestro de nombres de sucursal (p. ej. dropdown del equipo de ventas). Las páginas públicas leen listas por unidad
+            (<code>homepage.sucursales</code>, <code>seminuevos.sucursales</code>, etc.) o el consolidado en Pie de página → Sucursales
+            (<code>footer.sucursales</code> → <code>/sucursales-grupo.php</code>). Los cambios aquí no se propagan automáticamente a otras secciones.
         </p>
 
         <form method="POST" action="?tab=global-sucursales" enctype="multipart/form-data" id="globalSucursalForm">

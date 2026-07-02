@@ -4,13 +4,15 @@
  */
 $activeUnit = 'renting';
 require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/unit-footer-prepare.php';
 
 $renting = $contentService->get('renting', []);
-$contact = $renting['contact'] ?? [];
+$contactRaw = $renting['contact'] ?? [];
+$contact = am_unit_contact_with_footer_fallback($contactRaw, $renting);
 
-$pageTitle = $contact['page_title'] ?? 'Contactos';
-$introText = $contact['intro_text'] ?? 'Gracias por escribirnos. Tus comentarios son muy importantes para nosotros; completa el formulario y pronto te responderemos.';
-$contactImageUrl = $contact['contact_image_url'] ?? '';
+$pageTitle = $contactRaw['page_title'] ?? 'Contactos';
+$introText = $contactRaw['intro_text'] ?? 'Gracias por escribirnos. Tus comentarios son muy importantes para nosotros; completa el formulario y pronto te responderemos.';
+$contactImageUrl = $contactRaw['contact_image_url'] ?? '';
 ?>
 
 <style>

@@ -4,9 +4,22 @@
  */
 $activeUnit = 'leasing';
 require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/unit-footer-prepare.php';
 
-$leasingContact = $contentService->get('leasing.contact', []);
-$contactImageUrl = $leasingContact['contact_image_url'] ?? '';
+$leasingData = $contentService->get('leasing', []);
+$leasingContactRaw = $contentService->get('leasing.contact', []);
+$leasingContact = am_unit_contact_with_footer_fallback($leasingContactRaw, $leasingData);
+$pageTitle = trim((string) ($leasingContactRaw['page_title'] ?? '')) ?: 'Contactos';
+$introText = trim((string) ($leasingContactRaw['intro_text'] ?? '')) ?: 'Gracias por escribirnos. Tus comentarios son muy importantes para nosotros; completa el formulario y pronto te responderemos.';
+$lcPhone = trim((string) ($leasingContact['phone_display'] ?? '')) ?: trim((string) ($contentService->get('global.phone_display', '(507) 279-2700')));
+$lcWhatsappDigits = preg_replace('/\D/', '', (string) ($leasingContact['whatsapp_number'] ?? ''));
+if ($lcWhatsappDigits === '') {
+    $lcWhatsappDigits = preg_replace('/\D/', '', (string) ($contentService->get('global.whatsapp_number', '50767470070')));
+}
+$lcWhatsappLabel = trim((string) ($leasingContact['whatsapp_number'] ?? '')) !== ''
+    ? $leasingContact['whatsapp_number']
+    : '(507) 6747-0070';
+$contactImageUrl = $leasingContactRaw['contact_image_url'] ?? '';
 $defaultImage = '/assets/img/sucursales-rac.webp';
 if (empty($contactImageUrl)) {
     $contactImageUrl = $contentService->get('homepage.contact_image_url', $defaultImage);
@@ -65,9 +78,9 @@ if (empty($contactImageUrl)) {
                 <li class="breadcrumb-item active" aria-current="page">Contactos</li>
             </ol>
         </nav>
-        <h1 class="display-5 fw-bold text-navy font-montserrat mb-0" style="font-size: 2.3rem; letter-spacing: -0.5px;">Contactos</h1>
+        <h1 class="display-5 fw-bold text-navy font-montserrat mb-0" style="font-size: 2.3rem; letter-spacing: -0.5px;"><?php echo esc($pageTitle); ?></h1>
         <p class="text-muted font-poppins mt-2 mb-0">
-            Gracias por escribirnos. Tus comentarios son muy importantes para nosotros; completa el formulario y pronto te responderemos.
+            <?php echo esc($introText); ?>
         </p>
     </div>
 </section>
@@ -158,18 +171,15 @@ if (empty($contactImageUrl)) {
                 <div class="mb-4">
                     <h5 class="fw-bold font-montserrat text-navy text-uppercase mb-3" style="font-size: 1.05rem; letter-spacing: 0.5px;">Teléfono:</h5>
                     <div class="d-flex flex-column gap-2">
-                        <a href="tel:5072792700" class="leasing-contact-phone-link text-navy font-poppins fs-5 text-decoration-none fw-semibold d-flex align-items-center gap-2">
-                            <i class="bi bi-telephone-fill text-muted"></i> (507) 279-2700
-                        </a>
-                        <a href="tel:50767470070" class="leasing-contact-phone-link text-navy font-poppins fs-5 text-decoration-none fw-semibold d-flex align-items-center gap-2">
-                            <i class="bi bi-telephone-fill text-muted"></i> (507) 6747-0070
+                        <a href="tel:<?php echo esc(preg_replace('/\D/', '', $lcPhone)); ?>" class="leasing-contact-phone-link text-navy font-poppins fs-5 text-decoration-none fw-semibold d-flex align-items-center gap-2">
+                            <i class="bi bi-telephone-fill text-muted"></i> <?php echo esc($lcPhone); ?>
                         </a>
                     </div>
                 </div>
                 <div class="mb-4">
                     <h5 class="fw-bold font-montserrat text-navy text-uppercase mb-3" style="font-size: 1.05rem; letter-spacing: 0.5px;">WhatsApp:</h5>
-                    <a href="https://api.whatsapp.com/send?phone=50767470070" target="_blank" rel="noopener" class="btn text-white fw-bold d-inline-flex align-items-center gap-2 px-4 py-2 rounded-3 shadow-sm" style="background-color: #25d366; font-family: 'Poppins', sans-serif;">
-                        <i class="bi bi-whatsapp fs-5"></i> (507) 6747-0070
+                    <a href="https://api.whatsapp.com/send?phone=<?php echo esc($lcWhatsappDigits); ?>" target="_blank" rel="noopener" class="btn text-white fw-bold d-inline-flex align-items-center gap-2 px-4 py-2 rounded-3 shadow-sm" style="background-color: #25d366; font-family: 'Poppins', sans-serif;">
+                        <i class="bi bi-whatsapp fs-5"></i> <?php echo esc($lcWhatsappLabel); ?>
                     </a>
                 </div>
                 <?php if (!empty($contactImageUrl)): ?>

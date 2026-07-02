@@ -6,7 +6,15 @@ $activeUnit = 'seminuevos';
 require_once __DIR__ . '/../includes/header.php';
 
 $siteData = $contentService->getAll();
-$semiSucursales = $siteData['seminuevos']['sucursales'] ?? [];
+$semiData = $siteData['seminuevos'] ?? [];
+$semiPage = $semiData['sucursales_page'] ?? [];
+$semiPageTitle = trim((string) ($semiPage['title'] ?? '')) ?: 'Sucursales';
+$semiPageSubtitle = trim((string) ($semiPage['subtitle'] ?? '')) ?: 'Encuentra la sucursal de seminuevos más cercana y cómo llegar.';
+$semiSectionEyebrow = trim((string) ($semiPage['section_eyebrow'] ?? '')) ?: 'Nuestras Ubicaciones';
+$semiSectionTitle = trim((string) ($semiPage['section_title'] ?? '')) ?: 'Sucursales';
+$semiSectionHighlight = trim((string) ($semiPage['section_title_highlight'] ?? '')) ?: 'Automarket';
+$semiSectionSubtitleTpl = trim((string) ($semiPage['section_subtitle'] ?? '')) ?: 'Visítanos en cualquiera de nuestras {count} sucursales a nivel nacional';
+$semiSucursales = $semiData['sucursales'] ?? [];
 usort($semiSucursales, function ($a, $b) {
     return intval($a['sort_order'] ?? 99) - intval($b['sort_order'] ?? 99);
 });
@@ -45,9 +53,9 @@ $activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
                 <li class="breadcrumb-item active" aria-current="page">Sucursales</li>
             </ol>
         </nav>
-        <h1 class="sn-page-title fw-bold text-navy font-montserrat mb-1">Sucursales</h1>
+        <h1 class="sn-page-title fw-bold text-navy font-montserrat mb-1"><?php echo esc($semiPageTitle); ?></h1>
         <p class="text-muted font-poppins mb-0" style="font-size:.9rem;">
-            Encuentra la sucursal de seminuevos m&aacute;s cercana y c&oacute;mo llegar.
+            <?php echo esc($semiPageSubtitle); ?>
         </p>
     </div>
 </section>
@@ -55,11 +63,11 @@ $activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
 <section class="container py-5 mb-3">
     <div class="text-center mb-5">
         <span class="d-inline-block text-danger fw-bold text-uppercase font-poppins mb-2" style="font-size:.78rem;letter-spacing:2px;">
-            <i class="bi bi-geo-alt-fill me-1"></i>Nuestras Ubicaciones
+            <i class="bi bi-geo-alt-fill me-1"></i><?php echo esc($semiSectionEyebrow); ?>
         </span>
-        <h2 class="sn-section-title font-montserrat">Sucursales <span>Automarket</span></h2>
+        <h2 class="sn-section-title font-montserrat"><?php echo esc($semiSectionTitle); ?> <span><?php echo esc($semiSectionHighlight); ?></span></h2>
         <p class="text-muted font-poppins mt-2" style="max-width:500px;margin:0 auto;font-size:.88rem;">
-            Vis&iacute;tanos en cualquiera de nuestras <?php echo count($activeSucursales); ?> sucursales a nivel nacional
+            <?php echo esc(str_replace('{count}', (string) count($activeSucursales), $semiSectionSubtitleTpl)); ?>
         </p>
     </div>
 
