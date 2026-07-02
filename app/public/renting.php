@@ -16,6 +16,17 @@ $quoteTitle = trim($renting['quote_section_title'] ?? '') ?: 'COTIZA TU PLAN DE 
 $quoteIntro = trim($renting['quote_intro'] ?? '') ?: 'Déjanos tus datos para que uno de nuestros asesores se ponga en contacto contigo si quieres saber más.';
 $brandsTitle = trim($renting['brands_title'] ?? '') ?: 'MARCAS ALIADAS';
 $opinionsTitle = trim($renting['opinions_title'] ?? '') ?: 'Lo que opinan nuestros clientes de nosotros...';
+
+if (!function_exists('renting_render_section_heading')) {
+    function renting_render_section_heading(string $title, string $class, string $tag = 'h2'): void
+    {
+        $plain = trim(strip_tags(html_entity_decode($title, ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+        if ($plain === '') {
+            return;
+        }
+        echo '<' . $tag . ' class="' . esc($class) . '">' . esc(trim($title)) . '</' . $tag . '>';
+    }
+}
 $quoteSideImage = $renting['quote_side_image_url'] ?? '';
 
 $rentingCars = array_values(array_filter($renting['cars'] ?? [], function ($c) {
@@ -237,7 +248,7 @@ require __DIR__ . '/../includes/render-header-banner.php';
 <!-- Intro -->
 <section class="py-5 bg-white">
     <div class="container">
-        <h2 class="renting-intro-title text-center mb-3"><?php echo esc($introTitle); ?></h2>
+        <?php renting_render_section_heading($introTitle, 'renting-intro-title text-center mb-3'); ?>
         <p class="text-center text-muted font-poppins mb-0 mx-auto" style="max-width: 900px; line-height: 1.7;">
             <?php echo nl2br(esc($introText)); ?>
         </p>
@@ -246,7 +257,7 @@ require __DIR__ . '/../includes/render-header-banner.php';
 
 <!-- Carrusel de autos -->
 <section class="container py-5" id="autos-renting">
-    <h2 class="renting-section-title text-center mb-5"><?php echo esc($carsTitle); ?></h2>
+    <?php renting_render_section_heading($carsTitle, 'renting-section-title text-center mb-5'); ?>
 
     <?php if (empty($rentingCars)): ?>
         <p class="text-center text-muted">Próximamente más modelos disponibles.</p>
@@ -302,7 +313,7 @@ require __DIR__ . '/../includes/render-header-banner.php';
 <!-- Cotización -->
 <section class="renting-quote-section py-5" id="cotizar-seccion">
     <div class="container">
-        <h2 class="renting-section-title text-center mb-4"><?php echo esc($quoteTitle); ?></h2>
+        <?php renting_render_section_heading($quoteTitle, 'renting-section-title text-center mb-4'); ?>
         <div class="row g-4 renting-quote-layout">
             <div class="col-lg-6 col-12">
                 <div class="renting-quote-form-panel p-4 p-md-5 shadow-sm">
@@ -359,7 +370,7 @@ require __DIR__ . '/../includes/render-header-banner.php';
 <?php if (!empty($rentingBrands)): ?>
 <section class="py-5 bg-white" id="marcas-aliadas">
     <div class="container">
-        <h2 class="renting-section-title text-center mb-4"><?php echo esc($brandsTitle); ?></h2>
+        <?php renting_render_section_heading($brandsTitle, 'renting-section-title text-center mb-4'); ?>
         <div class="renting-brands-marquee">
             <div class="renting-brands-track">
                 <?php

@@ -204,7 +204,7 @@ $banks = $financing['banks'] ?? [
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 90px;
+    height: 100px;
     width: 220px; /* Consistent column box width */
     flex-shrink: 0;
     transition: all 0.3s ease;
@@ -217,7 +217,7 @@ $banks = $financing['banks'] ?? [
     filter: grayscale(100%);
     opacity: 0.75;
     transition: all 0.3s ease;
-    max-height: 70px; /* Enlarged logos from 48px to 70px */
+    max-height: 88px;
     max-width: 90%;
     object-fit: contain;
 }

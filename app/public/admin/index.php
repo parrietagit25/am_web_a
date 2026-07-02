@@ -6049,7 +6049,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                             <option value="Familiares">Familiares</option>
                                             <option value="Comerciales">Comerciales</option>
                                             <option value="Promociones">Promociones</option>
-                                            <option value="SUV Mini">Compacto</option>
+                                            <option value="SUV Mini">SUV compacto</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
@@ -7550,6 +7550,18 @@ function showSemiMessageDetail(msg) {
 
 // On page load, check URL parameter 'tab' to activate the correct tab
 document.addEventListener('DOMContentLoaded', function () {
+    const adminContentPanel = document.getElementById('admin-content-panel');
+    document.querySelectorAll('form').forEach(function(form) {
+        if ((form.getAttribute('method') || '').toLowerCase() !== 'post') {
+            return;
+        }
+        form.addEventListener('submit', function() {
+            if (adminContentPanel) {
+                sessionStorage.setItem('adminContentScrollTop', String(adminContentPanel.scrollTop));
+            }
+        });
+    });
+
     const tabPermMap = <?php echo json_encode($tabPermMap, JSON_UNESCAPED_UNICODE); ?>;
     const allowedPerms = <?php echo json_encode(AdminUserService::permissions(), JSON_UNESCAPED_UNICODE); ?>;
     const isSuperAdmin = <?php echo AdminUserService::isSuperAdmin() ? 'true' : 'false'; ?>;
@@ -7748,14 +7760,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     : null;
             }
 
-            // Restaurar scroll: ir al top del panel o al flash message si existe
+            // Restaurar scroll tras guardar; no forzar ir al inicio del panel
             const contentPanel = document.getElementById('admin-content-panel');
             if (contentPanel) {
-                const flashMsg = contentPanel.querySelector('.alert-success, .alert-danger');
-                if (flashMsg) {
-                    flashMsg.scrollIntoView({ block: 'start' });
+                const savedScroll = sessionStorage.getItem('adminContentScrollTop');
+                if (savedScroll !== null) {
+                    contentPanel.scrollTop = parseInt(savedScroll, 10) || 0;
+                    sessionStorage.removeItem('adminContentScrollTop');
                 } else {
-                    contentPanel.scrollTop = 0;
+                    const flashMsg = contentPanel.querySelector('.alert-success, .alert-danger');
+                    if (flashMsg) {
+                        flashMsg.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    }
                 }
             }
         }

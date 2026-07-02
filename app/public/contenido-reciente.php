@@ -1,6 +1,6 @@
 <?php
 /**
- * Automarket - Contenido más reciente (estilo Expedia Travel Blog)
+ * Automarket - Novedades (listado de contenido reciente)
  */
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/ContentService.php';

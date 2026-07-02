@@ -293,17 +293,13 @@ $hbInnerHtml = '';
 require __DIR__ . '/../includes/render-header-banner.php';
 ?>
 
-<div class="container">
-    <h1 class="visually-hidden">
-        <?php echo htmlspecialchars(trim($seminuevosData['hero_title'] ?? '') ?: 'Autos Seminuevos en Venta en Panamá', ENT_QUOTES, 'UTF-8'); ?>
-    </h1>
-</div>
-
 <!-- Content Sections -->
 <div class="container py-5" id="inventario">
     <div class="text-center mb-5">
         <span class="badge px-3 py-2 bg-primary-subtle text-primary rounded-pill fw-bold text-uppercase tracking-wider mb-2">Seminuevos</span>
-        <h2 class="display-5 fw-bold text-navy font-montserrat">Vehículos en Inventario</h2>
+        <h1 class="display-5 fw-bold text-navy font-montserrat">
+            <?php echo htmlspecialchars(trim($seminuevosData['hero_title'] ?? '') ?: 'Autos Seminuevos en Venta en Panamá', ENT_QUOTES, 'UTF-8'); ?>
+        </h1>
         <p class="text-muted">Todos nuestros autos han pasado por inspección de 150 puntos.</p>
     </div>
 
