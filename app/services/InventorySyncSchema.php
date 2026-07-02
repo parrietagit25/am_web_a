@@ -60,7 +60,7 @@ class InventorySyncSchema
                 foto_impel VARCHAR(500) DEFAULT NULL,
                 PRIMARY KEY (id),
                 KEY idx_temp_vin (VIN)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         } else {
             $db->execute("CREATE TABLE IF NOT EXISTS Automarket_Invs_web_temp (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
