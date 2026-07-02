@@ -425,16 +425,14 @@ class TelemetryService
         $nowExpr = $db->getDriverName() === 'mysql' ? 'NOW()' : "datetime('now')";
 
         if (!$existing) {
-            $db->execute(
-                "INSERT INTO telemetry_visitors
+            $insertSql = "INSERT INTO telemetry_visitors
                 (visitor_id, first_seen_at, last_seen_at, visit_count, ip_address, country, country_code, region, city,
                  latitude, longitude, timezone, isp, user_agent, browser, os, device_type, language, screen_width, screen_height,
                  viewport_width, viewport_height, pixel_ratio, referrer_first)
                  VALUES
                 (:visitor_id, $nowExpr, $nowExpr, 1, :ip, :country, :country_code, :region, :city,
-                 :lat, :lon, :timezone, :isp, :ua, :browser, :os, :device, :lang, :sw, :sh, :vw, :vh, :dpr, :ref)",
-                $params
-            );
+                 :lat, :lon, :timezone, :isp, :ua, :browser, :os, :device, :lang, :sw, :sh, :vw, :vh, :dpr, :ref)";
+            $db->execute($insertSql, self::bindParamsForSql($insertSql, $params));
             return;
         }
 
@@ -464,7 +462,26 @@ class TelemetryService
             isp = :isp';
         }
         $sql .= ' WHERE visitor_id = :visitor_id';
-        $db->execute($sql, $params);
+        $db->execute($sql, self::bindParamsForSql($sql, $params));
+    }
+
+    /**
+     * PDO MySQL rechaza parámetros nombrados que no aparecen en el SQL (HY093).
+     * SQLite con emulate prepares es más permisivo; filtrar mantiene compatibilidad.
+     *
+     * @param array<string, mixed> $params
+     * @return array<string, mixed>
+     */
+    private static function bindParamsForSql(string $sql, array $params): array
+    {
+        $bound = [];
+        foreach ($params as $name => $value) {
+            if (preg_match('/' . preg_quote($name, '/') . '(?![a-zA-Z0-9_])/u', $sql)) {
+                $bound[$name] = $value;
+            }
+        }
+
+        return $bound;
     }
 
     /** @param array<string, mixed> $geo @param array<string, mixed> $screen @param array<string, mixed> $viewport @param array<string, mixed> $payload @return array<string, mixed> */
@@ -566,17 +583,15 @@ class TelemetryService
         ];
 
         $db = Database::getInstance();
-        $db->execute(
-            'INSERT INTO telemetry_events
+        $insertSql = 'INSERT INTO telemetry_events
             (visitor_id, session_id, event_type, page_path, page_title, page_query, business_unit,
              entity_type, entity_id, entity_label, duration_seconds, scroll_depth, ip_address, country, city,
              referrer, utm_source, utm_medium, utm_campaign, meta_json, created_at)
              VALUES
             (:visitor_id, :session_id, :event_type, :page_path, :page_title, :page_query, :business_unit,
              :entity_type, :entity_id, :entity_label, :duration, :scroll, :ip, :country, :city,
-             :referrer, :utm_source, :utm_medium, :utm_campaign, :meta, ' . self::nowSql() . ')',
-            $row
-        );
+             :referrer, :utm_source, :utm_medium, :utm_campaign, :meta, ' . self::nowSql() . ')';
+        $db->execute($insertSql, self::bindParamsForSql($insertSql, $row));
         return intval($db->lastInsertId());
     }
 
@@ -596,26 +611,26 @@ class TelemetryService
         $scroll = min(100, max(0, intval($payload['scroll_depth'] ?? 0)));
         $nowExpr = $db->getDriverName() === 'mysql' ? 'NOW()' : "datetime('now')";
 
-        $db->execute(
-            "UPDATE telemetry_events SET
+        $updateHitSql = "UPDATE telemetry_events SET
                 duration_seconds = CASE WHEN :duration_cmp > duration_seconds THEN :duration_set ELSE duration_seconds END,
                 scroll_depth = CASE WHEN :scroll_cmp > scroll_depth THEN :scroll_set ELSE scroll_depth END,
                 updated_at = $nowExpr
-             WHERE id = :id AND visitor_id = :vid",
-            [
-                ':duration_cmp' => $duration,
-                ':duration_set' => $duration,
-                ':scroll_cmp' => $scroll,
-                ':scroll_set' => $scroll,
-                ':id' => $hitId,
-                ':vid' => $visitorId,
-            ]
-        );
+             WHERE id = :id AND visitor_id = :vid";
+        $updateHitParams = [
+            ':duration_cmp' => $duration,
+            ':duration_set' => $duration,
+            ':scroll_cmp' => $scroll,
+            ':scroll_set' => $scroll,
+            ':id' => $hitId,
+            ':vid' => $visitorId,
+        ];
+        $db->execute($updateHitSql, self::bindParamsForSql($updateHitSql, $updateHitParams));
 
         if ($isExit && !empty($payload['meta']) && is_array($payload['meta'])) {
+            $metaSql = 'UPDATE telemetry_events SET meta_json = :meta WHERE id = :id';
             $db->execute(
-                'UPDATE telemetry_events SET meta_json = :meta WHERE id = :id',
-                [':id' => $hitId, ':meta' => self::encodeMeta($payload['meta'])]
+                $metaSql,
+                self::bindParamsForSql($metaSql, [':id' => $hitId, ':meta' => self::encodeMeta($payload['meta'])])
             );
         }
     }
