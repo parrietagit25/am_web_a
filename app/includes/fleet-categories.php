@@ -3,6 +3,21 @@
  * Categorías de flota Rent A Car (carrusel home + filtros en /flota.php).
  */
 
+function am_fleet_category_display_label(string $category, string $label = ''): string
+{
+    $label = trim($label);
+    if ($label !== '') {
+        return $label;
+    }
+
+    $aliases = [
+        'SUV Mini' => 'SUV compacto',
+        'SUV mini' => 'SUV compacto',
+    ];
+
+    return $aliases[$category] ?? $category;
+}
+
 /**
  * @param array<int, array<string, mixed>> $items
  * @return list<array<string, mixed>>
@@ -21,9 +36,12 @@ function am_fleet_categories_sorted(array $items): array
             continue;
         }
 
+        $category = trim((string) ($item['category'] ?? $label)) ?: $label;
+        $label = am_fleet_category_display_label($category, $label);
+
         $normalized[] = [
             'id' => intval($item['id'] ?? ($idx + 1)),
-            'category' => trim((string) ($item['category'] ?? $label)) ?: $label,
+            'category' => $category,
             'label' => $label,
             'image_url' => trim((string) ($item['image_url'] ?? '')),
             'sort_order' => intval($item['sort_order'] ?? (($idx + 1) * 10)),

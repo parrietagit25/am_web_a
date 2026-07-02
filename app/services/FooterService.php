@@ -147,6 +147,8 @@ class FooterService
             'payment_badges_html' => '',
         ], $stored['general'] ?? []);
 
+        $general['copyright'] = self::normalizeCopyrightText((string) ($general['copyright'] ?? ''));
+
         if (in_array($general['privacy_url'] ?? '', ['#privacidad', '#', ''], true)) {
             $general['privacy_url'] = '/pagina-institucional.php?p=privacidad';
         }
@@ -217,6 +219,22 @@ class FooterService
             'sucursales'=> $sucursales,
             'columns'   => $columns,
         ];
+    }
+
+    /**
+     * Evita duplicar © y año cuando el CMS ya los incluye en el texto.
+     */
+    public static function normalizeCopyrightText(string $raw): string
+    {
+        $text = trim(html_entity_decode($raw, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        if ($text === '') {
+            return 'Automarket. Todos los derechos reservados.';
+        }
+
+        $text = preg_replace('/^©\s*/u', '', $text);
+        $text = preg_replace('/^\d{4}\s*[-–—]?\s*/', '', $text);
+
+        return trim($text) !== '' ? trim($text) : 'Automarket. Todos los derechos reservados.';
     }
 
     /**

@@ -10,7 +10,13 @@ $ucAlign = $ucHeader['align'] ?? 'left';
 if (!in_array($ucAlign, ['left', 'center', 'right'], true)) {
     $ucAlign = 'left';
 }
-$ucPageTitle = $ucHeader['title'] ?? '';
+$ucPageTitle = trim((string) ($ucHeader['title'] ?? ''));
+if ($ucPageTitle === '') {
+    if (!class_exists('UnitContentService')) {
+        require_once __DIR__ . '/../services/UnitContentService.php';
+    }
+    $ucPageTitle = UnitContentService::TYPE_LABELS[$ucActiveType] ?? 'Novedades';
+}
 $ucPageSubtitle = $ucHeader['subtitle'] ?? '';
 $ucPageKicker = $ucHeader['kicker'] ?? '';
 $ucBannerUrl = trim((string) ($ucHeader['banner'] ?? ''));

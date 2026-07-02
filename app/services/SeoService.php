@@ -61,9 +61,13 @@ class SeoService {
             $title = $defaultTitle !== '' ? $defaultTitle : trim($fallbackTitle . ' ' . $titleSuffix);
         }
 
+        $pageFallbackDesc = self::getPageFallbackDescription($pageKey, $fallbackDescription);
+
         $description = trim((string)($pageSeo['description'] ?? ''));
         if ($description === '') {
-            $description = $defaultDesc;
+            $description = $pageFallbackDesc !== ''
+                ? $pageFallbackDesc
+                : ($defaultDesc !== '' ? $defaultDesc : $fallbackDescription);
         }
 
         $keywords = trim((string)($pageSeo['keywords'] ?? ''));
@@ -98,6 +102,7 @@ class SeoService {
         if ($ogImage === '') {
             $ogImage = 'https://www.automarket.com.pa/assets/img/uploads/hero_bg_6a15c9ebb5ca7.webp';
         }
+        $ogImage = self::toAbsoluteUrl($ogImage, $canonicalBase);
 
         return [
             'page_key' => $pageKey,
@@ -120,6 +125,57 @@ class SeoService {
             return 'home';
         }
         return $base;
+    }
+
+    /**
+     * Descripciones únicas por página cuando no hay override en admin.
+     */
+    public static function getPageFallbackDescription(string $pageKey, string $callerFallback = ''): string {
+        $map = [
+            'home' => 'Reserva tu vehículo en Panamá con Automarket Rent a Car. Flota moderna, sucursales en todo el país y reserva en línea.',
+            'venta-autos' => 'Encuentra autos seminuevos certificados en Panamá. Garantía, financiamiento y asesoría personalizada con Automarket.',
+            'inventario' => 'Explora el inventario de autos seminuevos disponibles en Automarket Panamá. Filtra por marca, precio y ubicación.',
+            'detalle' => 'Consulta la ficha completa de este vehículo seminuevo en Automarket Panamá.',
+            'financiamiento' => 'Financiamiento de autos seminuevos en Panamá. Requisitos, perfiles y aliados bancarios de Automarket.',
+            'nuestro-equipo' => 'Conoce al equipo de asesores de venta de Automarket Seminuevos en Panamá.',
+            'contactos' => 'Contáctanos en Automarket Panamá. Rent a Car, Seminuevos, Leasing, Renting y Taller.',
+            'leasing' => 'Leasing operativo para empresas en Panamá. Flota, mantenimiento y movilidad con Automarket.',
+            'leasing-flota' => 'Flota de vehículos disponibles para leasing operativo con Automarket en Panamá.',
+            'leasing-equipo' => 'Equipo comercial de Leasing Operativo Automarket en Panamá.',
+            'leasing-sucursales' => 'Sucursales de Leasing Operativo Automarket en Panamá.',
+            'leasing-contactos' => 'Solicita información de leasing operativo con Automarket en Panamá.',
+            'renting' => 'Renting de autos en Panamá con cuota mensual todo incluido. Cotiza tu plan con Automarket.',
+            'renting-servicios' => 'Servicios de renting corporativo y movilidad con Automarket Panamá.',
+            'renting-sobre-nosotros' => 'Conoce Automarket Renting: soluciones de movilidad a largo plazo en Panamá.',
+            'renting-contactos' => 'Contacta al equipo de Automarket Renting en Panamá.',
+            'taller' => 'Taller autorizado Automarket en Panamá. Mantenimiento preventivo y correctivo.',
+            'taller-sucursales' => 'Ubicación y horarios de los talleres Automarket en Panamá.',
+            'taller-sobre-nosotros' => 'Servicios, marcas y equipo del taller Automarket en Panamá.',
+            'blog' => 'Noticias y artículos del grupo Automarket en Panamá.',
+            'noticia' => 'Artículo de Automarket Panamá.',
+            'flota' => 'Catálogo de vehículos de alquiler Automarket Rent a Car en Panamá.',
+            'sucursales' => 'Sucursales de Automarket Rent a Car en Panamá. Horarios y ubicación.',
+            'terminos-condiciones' => 'Términos y condiciones de alquiler de Automarket Rent a Car.',
+            'requisitos-alquiler' => 'Requisitos para alquilar un vehículo con Automarket en Panamá.',
+            'pago-seguro' => 'Paga tu reserva de alquiler de forma segura con Automarket Rent a Car.',
+            'contenido-reciente' => 'Novedades y actualizaciones de Automarket en Panamá.',
+            'seminuevos-sucursales' => 'Sucursales de venta de autos seminuevos Automarket en Panamá.',
+        ];
+
+        return trim($map[$pageKey] ?? $callerFallback);
+    }
+
+    private static function toAbsoluteUrl(string $url, string $canonicalBase): string {
+        $url = trim($url);
+        if ($url === '' || preg_match('#^https?://#i', $url)) {
+            return $url;
+        }
+        $base = $canonicalBase !== '' ? $canonicalBase : 'https://www.automarket.com.pa';
+        if ($url[0] !== '/') {
+            $url = '/' . $url;
+        }
+
+        return rtrim($base, '/') . $url;
     }
 }
 
