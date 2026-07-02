@@ -16,7 +16,15 @@ $telFilters = [
 ];
 
 $telDashboard = TelemetryService::dashboard($telFilters);
-$telEvents = TelemetryService::listEvents($telFilters);
+$telDashboardError = trim((string) ($telDashboard['error'] ?? ''));
+$telEvents = ['rows' => [], 'total' => 0, 'page' => 1, 'pages' => 1];
+$telEventsError = '';
+try {
+    $telEvents = TelemetryService::listEvents($telFilters);
+} catch (Throwable $e) {
+    error_log('[admin-telemetry-tab] listEvents: ' . $e->getMessage());
+    $telEventsError = $e->getMessage();
+}
 $telUnitLabels = TelemetryService::businessUnitLabels();
 $telVisitorDetail = null;
 if ($telFilters['visitor_id'] !== '') {
@@ -71,6 +79,20 @@ function tel_render_stat_list(array $rows, callable $labelFn, int $maxVisitors =
             Comportamiento en el sitio público: páginas vistas, vehículos consultados, tiempo por sección, IP, ubicación, dispositivo y navegador.
         </p>
     </div>
+
+    <?php if ($telDashboardError !== ''): ?>
+    <div class="alert alert-warning border-0 shadow-sm mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        No se pudieron cargar todas las métricas de telemetría: <?php echo esc($telDashboardError); ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($telEventsError !== ''): ?>
+    <div class="alert alert-warning border-0 shadow-sm mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        No se pudo cargar el listado de eventos: <?php echo esc($telEventsError); ?>
+    </div>
+    <?php endif; ?>
 
     <div class="row g-3 mb-3">
         <div class="col-md-3">
