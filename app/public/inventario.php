@@ -17,8 +17,11 @@ $distinctTypes = $db->select("SELECT DISTINCT CarType FROM Automarket_Invs_web W
 $distinctCompras = $db->select("SELECT DISTINCT tipo_compra FROM Automarket_Invs_web WHERE tipo_compra IS NOT NULL AND tipo_compra != '' ORDER BY tipo_compra");
 
 // Initial query (first page, default order by price asc)
+// LIMIT interpolado tras cast/clamp a entero: PDO bindea :params como string
+// por defecto, y MySQL (a diferencia de SQLite) rechaza un string en LIMIT.
 $limit = 9;
-$vehicles = $db->select("SELECT * FROM Automarket_Invs_web WHERE Status = 'DISPONIBLE' ORDER BY Price ASC LIMIT :limit", [':limit' => $limit]);
+$limit = max(1, min(100, (int) $limit));
+$vehicles = $db->select("SELECT * FROM Automarket_Invs_web WHERE Status = 'DISPONIBLE' ORDER BY Price ASC LIMIT {$limit}");
 $totalMatchesRow = $db->selectOne("SELECT COUNT(*) as count FROM Automarket_Invs_web WHERE Status = 'DISPONIBLE'");
 $totalMatches = intval($totalMatchesRow['count'] ?? 0);
 $totalPages = ceil($totalMatches / $limit);
