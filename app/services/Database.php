@@ -10,11 +10,24 @@ class Database {
     private $driver;
 
     private function __construct() {
+        // DB_REQUIRE_MYSQL: cuando está activo, la app NUNCA debe caer a SQLite
+        // en silencio — cualquier falla de configuración/conexión debe fallar
+        // de forma explícita (RuntimeException) en vez de servir datos obsoletos.
+        $requireMysql = defined('DB_REQUIRE_MYSQL') && DB_REQUIRE_MYSQL === true;
+
         // Check if database constants are defined in config.php
-        $useMysql = defined('DB_HOST') && defined('DB_NAME') && defined('DB_USER') && defined('DB_PASS') 
+        $hasMysqlConfig = defined('DB_HOST') && defined('DB_NAME') && defined('DB_USER') && defined('DB_PASS')
                     && !empty(DB_HOST) && !empty(DB_NAME);
 
-        if ($useMysql) {
+        if ($requireMysql && !$hasMysqlConfig) {
+            throw new RuntimeException('DB_REQUIRE_MYSQL está activo pero faltan DB_HOST/DB_NAME/DB_USER/DB_PASS en config.php.');
+        }
+
+        if ($requireMysql && !extension_loaded('pdo_mysql')) {
+            throw new RuntimeException('DB_REQUIRE_MYSQL está activo pero la extensión pdo_mysql no está disponible en PHP.');
+        }
+
+        if ($hasMysqlConfig) {
             try {
                 $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
                 $this->pdo = new PDO($dsn, DB_USER, DB_PASS, [
@@ -24,11 +37,28 @@ class Database {
                 ]);
                 $this->driver = 'mysql';
             } catch (PDOException $e) {
+                if ($requireMysql) {
+                    throw new RuntimeException('MySQL requerido pero no se pudo conectar. Revisar configuración DB y pdo_mysql.', 0, $e);
+                }
                 // Fall back to SQLite if MySQL connection fails in development environment
+                $this->logMysqlFallback($e);
                 $this->connectSQLite();
             }
         } else {
             $this->connectSQLite();
+        }
+    }
+
+    /**
+     * Log de la caída MySQL -> SQLite. Nunca incluye DB_PASS; PDOException::getMessage()
+     * de un fallo de conexión no expone el password en texto plano (solo "(using password: YES)").
+     */
+    private function logMysqlFallback(PDOException $e): void {
+        $message = 'MySQL connection failed, falling back to SQLite: ' . $e->getMessage();
+        if (function_exists('am_log')) {
+            am_log($message, 'ERROR');
+        } else {
+            error_log('[Database] ' . $message);
         }
     }
 
