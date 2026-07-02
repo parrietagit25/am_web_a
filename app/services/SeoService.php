@@ -82,6 +82,8 @@ class SeoService {
             $canonical = $canonicalBase . $path;
         }
 
+        $hreflangBase = $canonicalBase !== '' ? $canonicalBase : 'https://www.automarket.com.pa';
+
         $ogTitle = trim((string)($pageSeo['og_title'] ?? ''));
         if ($ogTitle === '') {
             $ogTitle = $title;
@@ -111,6 +113,7 @@ class SeoService {
             'keywords' => $keywords,
             'robots' => $robots,
             'canonical' => $canonical,
+            'canonical_base' => $hreflangBase,
             'og_title' => $ogTitle,
             'og_description' => $ogDescription,
             'og_image' => $ogImage,
@@ -176,6 +179,74 @@ class SeoService {
         }
 
         return rtrim($base, '/') . $url;
+    }
+
+    /**
+     * Páginas donde no debe emitirse hreflang (formularios, admin, detalle dinámico).
+     */
+    public static function shouldEmitHreflang(): bool
+    {
+        $script = basename($_SERVER['SCRIPT_NAME'] ?? '');
+        $skipScripts = [
+            'sitemap.php', 'landing.php', 'detalle.php', 'noticia.php', 'unidad.php',
+            'reservar.php', 'confirmacion.php', 'mi-reserva.php', 'extras.php', 'resultados.php',
+        ];
+        if (in_array($script, $skipScripts, true)) {
+            return false;
+        }
+        $path = $_SERVER['SCRIPT_NAME'] ?? '';
+        if (str_contains($path, '/admin/') || str_contains($path, '/api/')) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @return list<array{hreflang:string,href:string}>
+     */
+    public static function buildHreflangAlternates(string $canonicalBase): array
+    {
+        if (!self::shouldEmitHreflang()) {
+            return [];
+        }
+
+        $base = rtrim(trim($canonicalBase), '/');
+        if ($base === '') {
+            $base = 'https://www.automarket.com.pa';
+        }
+
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        $path = parse_url($uri, PHP_URL_PATH) ?: '/';
+        $query = [];
+        $rawQuery = parse_url($uri, PHP_URL_QUERY);
+        if (is_string($rawQuery) && $rawQuery !== '') {
+            parse_str($rawQuery, $query);
+        }
+        unset($query['lang']);
+
+        $build = static function (string $lang) use ($base, $path, $query): string {
+            $q = $query;
+            $q['lang'] = $lang;
+            $qs = http_build_query($q);
+
+            return rtrim($base, '/') . $path . ($qs !== '' ? '?' . $qs : '');
+        };
+
+        $esUrl = $build('es');
+
+        return [
+            ['hreflang' => 'es', 'href' => $esUrl],
+            ['hreflang' => 'en', 'href' => $build('en')],
+            ['hreflang' => 'x-default', 'href' => $esUrl],
+        ];
+    }
+
+    public static function canonicalBaseFromSiteData(array $siteData): string
+    {
+        $base = rtrim(trim((string) ($siteData['seo']['global']['canonical_base_url'] ?? '')), '/');
+
+        return $base !== '' ? $base : 'https://www.automarket.com.pa';
     }
 }
 
