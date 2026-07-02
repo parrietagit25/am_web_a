@@ -45,3 +45,56 @@ elseif ($action === 'update_rac_reservation_status') {
         $errorMsg = 'No se pudo actualizar la reserva.';
     }
 }
+elseif ($action === 'save_rac_faqs') {
+    if (!isset($siteData['homepage'])) {
+        $siteData['homepage'] = [];
+    }
+    $questions = $_POST['faq_question'] ?? [];
+    $answers   = $_POST['faq_answer']   ?? [];
+    $faqs = [];
+    foreach ($questions as $idx => $q) {
+        $q = trim((string) $q);
+        $a = trim((string) ($answers[$idx] ?? ''));
+        if ($q === '' || $a === '') {
+            continue;
+        }
+        $faqs[] = ['question' => $q, 'answer' => $a];
+    }
+    $siteData['homepage']['faqs'] = $faqs;
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Preguntas frecuentes de Rent A Car guardadas correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar las preguntas frecuentes de Rent A Car.';
+    }
+}
+elseif ($action === 'save_rac_social_links') {
+    if (!isset($siteData['homepage'])) {
+        $siteData['homepage'] = [];
+    }
+    $racSocialLinks = [];
+    foreach (['facebook', 'instagram', 'linkedin', 'tiktok', 'youtube'] as $racNet) {
+        $racSocialLinks[$racNet] = trim($_POST['rac_social_' . $racNet] ?? '');
+    }
+    $siteData['homepage']['social_links'] = $racSocialLinks;
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Redes sociales de Rent A Car guardadas correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar las redes sociales de Rent A Car.';
+    }
+}
+elseif ($action === 'save_rac_unit_contact') {
+    if (!isset($siteData['homepage'])) {
+        $siteData['homepage'] = [];
+    }
+    $siteData['homepage']['contact'] = [
+        'phone_display'   => trim($_POST['rac_contact_phone'] ?? ''),
+        'whatsapp_number' => preg_replace('/\D/', '', $_POST['rac_contact_whatsapp'] ?? ''),
+        'email'           => trim($_POST['rac_contact_email'] ?? ''),
+    ];
+    $siteData['homepage']['show_payment_methods'] = isset($_POST['rac_show_payment_methods']) && $_POST['rac_show_payment_methods'] === '1';
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Contacto y medios de pago de Rent A Car guardados correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar contacto de Rent A Car.';
+    }
+}

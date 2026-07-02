@@ -222,6 +222,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $siteData['homepage']['featured']['description'] = trim($_POST['featured_description'] ?? '');
         $siteData['homepage']['featured']['button_text'] = trim($_POST['featured_button_text'] ?? '');
         $siteData['homepage']['featured']['button_link'] = trim($_POST['featured_button_link'] ?? '');
+        $siteData['homepage']['featured']['active'] = isset($_POST['featured_active']) && $_POST['featured_active'] === '1';
 
         // Upload featured image if provided
         if (isset($_FILES['featured_image']) && $_FILES['featured_image']['error'] === UPLOAD_ERR_OK) {
@@ -3427,6 +3428,14 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 </div>
 
                                 <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy"><i class="bi bi-star me-2 text-danger"></i>Campaña / Evento Destacado (Feria de David)</h5>
+
+                                <?php $featuredActive = ($homepage['featured']['active'] ?? true) !== false; ?>
+                                <div class="form-check form-switch mb-4">
+                                    <input class="form-check-input" type="checkbox" id="featured_active" name="featured_active" value="1"
+                                        <?php echo $featuredActive ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="featured_active">Mostrar evento destacado en el home de Rent A Car</label>
+                                    <div class="form-text">Desactivar solo oculta el bloque en el sitio; el contenido se conserva en el CMS.</div>
+                                </div>
                                 
                                 <div class="row g-3">
                                     <div class="col-md-4">
@@ -3478,6 +3487,8 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 </div>
                             </form>
                         </div>
+
+                        <?php require_once __DIR__ . '/../../includes/admin-rac-home-sections.php'; ?>
                     </div>
                     
                     <!-- TAB: CONTENIDO POR UNIDAD -->

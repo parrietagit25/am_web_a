@@ -167,6 +167,8 @@ $intervalVal = intval($fleetCarousel['interval'] ?? 3000);
 <!-- 4. Sección Destino del Mes / Feria de David -->
 <?php
 $featured = $contentService->get('homepage.featured');
+$featuredActive = ($featured['active'] ?? true) !== false;
+if ($featuredActive):
 $featuredBadge = $featured['badge'] ?? 'Recomendado';
 $featuredTitle = $featured['title'] ?? 'Feria de David 2026';
 $featuredHeading = $featured['heading'] ?? 'Feria Internacional de David 2026: tradición, desarrollo y crecimiento en Chiriquí';
@@ -206,6 +208,7 @@ $featuredImageUrl = $featured['image_url'] ?? '/assets/img/feria_david.webp';
         </div>
     </div>
 </section>
+<?php endif; ?>
 
 <!-- 5. Destacado en home (rotación o único) + contenido más reciente -->
 <?php
@@ -268,12 +271,15 @@ $opiniones = $contentService->get('homepage.opiniones', []);
 </style>
 
 <?php
-// Rent-a-car aún no tiene key propia en site_data; cuando se cree 'rentacar'
-// en el CMS, $_ufsItems se poblará automáticamente sin otro cambio aquí.
-$_racData  = $contentService->get('rentacar', []);
-$_sfItems  = $_racData['faqs'] ?? [];
-$_ufsItems = $_racData['faqs'] ?? [];
-unset($_racData);
+$_racHome = $contentService->get('homepage', []);
+$_legacyRac = $contentService->get('rentacar', []);
+$_racFaqs = $_racHome['faqs'] ?? ($_legacyRac['faqs'] ?? []);
+$_sfItems  = $_racFaqs;
+$_ufsItems = $_racFaqs;
+$_upsUnitSocialLinks = $_racHome['social_links'] ?? ($_legacyRac['social_links'] ?? []);
+$_upsShowPayments = ($_racHome['show_payment_methods'] ?? true) !== false;
+$_upsUnitContact = $_racHome['contact'] ?? [];
+unset($_racHome, $_legacyRac, $_racFaqs);
 require __DIR__ . '/../includes/schema-faq.php';
 ?>
 <?php

@@ -21,6 +21,11 @@ $statusLabels = [
 ];
 ?>
 <div class="tab-pane fade" id="tab-rac-reservations" role="tabpanel" aria-labelledby="tab-rac-reservations-nav">
+    <div class="alert alert-light border small mb-4" role="note">
+        <i class="bi bi-info-circle me-1 text-danger"></i>
+        FAQs, redes sociales, evento destacado y contacto del home RAC se editan en
+        <strong>Principal (Hero y eventos)</strong> (<code>?tab=hero</code>).
+    </div>
     <div class="row g-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4 p-4">

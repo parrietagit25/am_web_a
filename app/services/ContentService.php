@@ -477,6 +477,7 @@ class ContentService {
                     'image_url' => 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=1920&auto=format&fit=crop'
                 ],
                 'featured' => [
+                    'active' => true,
                     'badge' => 'Recomendado',
                     'title' => 'Feria de David 2026',
                     'heading' => 'Feria Internacional de David 2026: tradición, desarrollo y crecimiento en Chiriquí',
@@ -485,6 +486,14 @@ class ContentService {
                     'button_link' => '/blog.php',
                     'image_url' => '/assets/img/feria_david.webp'
                 ],
+                'faqs' => [],
+                'social_links' => [],
+                'contact' => [
+                    'phone_display' => '',
+                    'whatsapp_number' => '',
+                    'email' => '',
+                ],
+                'show_payment_methods' => true,
                 'noticias' => [
                     [
                         'id' => 1,
