@@ -9,7 +9,8 @@ require_once __DIR__ . '/../services/FooterService.php';
 
 $contentService = new ContentService();
 $footerService = new FooterService($contentService);
-$sucursales = $footerService->getActiveSucursales();
+require_once __DIR__ . '/../includes/location-public-helper.php';
+$sucursales = am_list_footer_sucursales($contentService, $footerService);
 
 $byUnit = [];
 foreach ($sucursales as $s) {

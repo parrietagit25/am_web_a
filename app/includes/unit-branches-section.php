@@ -16,6 +16,15 @@
 $_unitBranches = $_unitBranches ?? [];
 $_ubsTitle     = trim($_ubsTitle ?? '') ?: 'Nuestras Sucursales';
 
+if (!empty($_unitBranchesUnitKey) && isset($contentService)) {
+    require_once __DIR__ . '/location-public-helper.php';
+    $_unitBranches = am_list_branches_for_unit(
+        $contentService,
+        (string) $_unitBranchesUnitKey,
+        is_array($_unitBranches) ? $_unitBranches : []
+    );
+}
+
 // Ignorar registros sin name
 $_ubsValid = array_values(array_filter(
     $_unitBranches,

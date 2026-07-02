@@ -5,17 +5,10 @@
 $activeUnit = 'rentacar';
 require_once __DIR__ . '/../includes/header.php';
 
+require_once __DIR__ . '/../includes/location-public-helper.php';
+
 $sucursalesRaw = $contentService->get('homepage.sucursales', []);
-
-$sucursales = array_values(array_filter($sucursalesRaw, function ($s) {
-    return !isset($s['active']) || $s['active'] === true || $s['active'] === 'true' || $s['active'] == 1;
-}));
-
-usort($sucursales, function ($a, $b) {
-    $oa = intval($a['sort_order'] ?? 0);
-    $ob = intval($b['sort_order'] ?? 0);
-    return $oa !== $ob ? $oa - $ob : strcasecmp($a['name'] ?? '', $b['name'] ?? '');
-});
+$sucursales = am_list_sucursales_for_unit($contentService, 'rentacar', $sucursalesRaw);
 ?>
 
 <!-- Leaflet.js Interactive Map Assets -->

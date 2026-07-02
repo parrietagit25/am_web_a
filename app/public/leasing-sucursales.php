@@ -5,6 +5,8 @@
 $activeUnit = 'leasing';
 require_once __DIR__ . '/../includes/header.php';
 
+require_once __DIR__ . '/../includes/location-public-helper.php';
+
 $sucursalesRaw = $contentService->get('leasing.sucursales', []);
 $leasingData = $contentService->get('leasing', []);
 $lsTitle = trim((string) ($leasingData['sucursales_title'] ?? '')) ?: 'Nuestras Sucursales';
@@ -12,15 +14,7 @@ $lsSubtitle = trim((string) ($leasingData['sucursales_subtitle'] ?? '')) ?: 'Enc
 $lsCtaTitle = trim((string) ($leasingData['sucursales_cta_title'] ?? '')) ?: 'Cotiza tu flota corporativa';
 $lsCtaText = trim((string) ($leasingData['sucursales_cta_text'] ?? '')) ?: 'Soluciones de movilidad para empresas con cobertura en todo el país.';
 
-$sucursales = array_values(array_filter($sucursalesRaw, function ($s) {
-    return !isset($s['active']) || $s['active'] === true || $s['active'] === 'true' || $s['active'] == 1;
-}));
-
-usort($sucursales, function ($a, $b) {
-    $oa = intval($a['sort_order'] ?? 0);
-    $ob = intval($b['sort_order'] ?? 0);
-    return $oa !== $ob ? $oa - $ob : strcasecmp($a['name'] ?? '', $b['name'] ?? '');
-});
+$sucursales = am_list_sucursales_for_unit($contentService, 'leasing', $sucursalesRaw);
 ?>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
