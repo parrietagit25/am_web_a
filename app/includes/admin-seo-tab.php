@@ -45,9 +45,9 @@ $seoPage = $siteData['seo']['pages'][$selectedSeoPage] ?? [];
                     <label class="form-label">Canonical base URL</label>
                     <input type="text" name="seo_canonical_base_url" class="form-control form-control-premium" value="<?php echo esc($seoGlobal['canonical_base_url'] ?? ''); ?>" placeholder="https://www.automarket.com.pa">
                     <div class="form-text text-muted">
-                        Obligatorio para emitir <code>&lt;link rel="canonical"&gt;</code> en el sitio público.
+                        Obligatorio para emitir <code>&lt;link rel="canonical"&gt;</code>, <code>hreflang</code> y el sitemap dinámico.
                         Ejemplo producción: <strong>https://www.automarket.com.pa</strong> (sin barra final).
-                        Cada página usa esta base + su ruta (<code>/venta-autos.php</code>, etc.).
+                        Sitemap público: <code>/sitemap.php</code> (referenciado en <code>robots.txt</code>).
                     </div>
                 </div>
             </div>

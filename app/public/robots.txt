@@ -32,4 +32,4 @@ Disallow: /api/
 # Allow: /assets/
 # Allow: /uploads/
 
-Sitemap: https://automarket.com.pa/sitemap.xml
+Sitemap: https://www.automarket.com.pa/sitemap.php
