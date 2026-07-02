@@ -43,10 +43,13 @@ define('RECAPTCHA_SITE_KEY', '');
 define('RECAPTCHA_SECRET_KEY', '');
 define('RECAPTCHA_MIN_SCORE', 0.5);
 
-// define('DB_HOST', 'localhost');
+// DB_REQUIRE_MYSQL: si es true, Database.php lanza RuntimeException en vez de
+// caer a SQLite cuando falta configuración o falla la conexión a MySQL.
+// define('DB_REQUIRE_MYSQL', false);
+// define('DB_HOST', 'db');
 // define('DB_NAME', 'automarket');
-// define('DB_USER', 'root');
-// define('DB_PASS', '');
+// define('DB_USER', 'automarket_app');
+// define('DB_PASS', 'change_me');
 
 function esc($value) {
     if ($value === null) {
