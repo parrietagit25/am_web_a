@@ -1,12 +1,14 @@
 <?php
 /**
- * AM-SEO-3C-A0 — Dry-run de migración de sucursales a locations[] master.
+ * AM-SEO-3C — Migración de sucursales a locations[] master.
  *
- * Solo lectura. No escribe site_data.json ni modifica silos legacy.
+ * Por defecto: dry-run (solo lectura + reporte).
+ * Con --execute: backup + escribe locations[] y location_refs (silos legacy intactos).
  *
  * Uso:
  *   php scripts/location-migration-dry-run.php
  *   php scripts/location-migration-dry-run.php --output=docs/AM-SEO-3C-A0-location-migration-dry-run.md
+ *   php scripts/location-migration-dry-run.php --execute
  */
 
 if (PHP_SAPI !== 'cli') {
@@ -18,13 +20,21 @@ if (PHP_SAPI !== 'cli') {
 const SITE_DATA_PATH = __DIR__ . '/../app/storage/site_data.json';
 const RAC_JSON_PATH = __DIR__ . '/../app/data/sucursales.json';
 const DEFAULT_OUTPUT = __DIR__ . '/../docs/AM-SEO-3C-A0-location-migration-dry-run.md';
+const BACKUP_DIR = __DIR__ . '/../app/storage/backups';
 const COORD_MATCH_METERS = 200;
 const NAME_SIMILAR_THRESHOLD = 0.82;
 
 function main(array $argv): int
 {
+    require_once __DIR__ . '/../app/services/LocationService.php';
+
     $outputPath = DEFAULT_OUTPUT;
+    $execute = false;
     foreach (array_slice($argv, 1) as $arg) {
+        if ($arg === '--execute') {
+            $execute = true;
+            continue;
+        }
         if (str_starts_with($arg, '--output=')) {
             $outputPath = substr($arg, 9);
             if (!str_starts_with($outputPath, '/') && !preg_match('#^[A-Za-z]:\\\\#', $outputPath)) {
@@ -40,6 +50,8 @@ function main(array $argv): int
         return 1;
     }
 
+    $legacyCounts = LocationMigrationWriter::snapshotLegacyCounts($siteData);
+
     $racRows = loadJsonFile(RAC_JSON_PATH);
     if (!is_array($racRows)) {
         fwrite(STDERR, "No se pudo leer sucursales.json en " . RAC_JSON_PATH . "\n");
@@ -51,11 +63,15 @@ function main(array $argv): int
     $collector->collectFromRacJson($racRows);
     $analysis = $collector->analyze();
 
+    $phoneConflicts = LocationMigrationWriter::filterPhoneConflicts($analysis['conflicts']);
+
     $markdown = LocationDryRunReporter::toMarkdown($analysis, [
         'generated_at' => date('Y-m-d H:i:s'),
         'site_data_path' => SITE_DATA_PATH,
         'rac_json_path' => RAC_JSON_PATH,
         'site_data_mtime' => $siteMtimeBefore,
+        'execute_mode' => $execute,
+        'phone_conflicts' => $phoneConflicts,
     ]);
 
     $dir = dirname($outputPath);
@@ -69,19 +85,72 @@ function main(array $argv): int
         return 1;
     }
 
-    $siteMtimeAfter = is_file(SITE_DATA_PATH) ? filemtime(SITE_DATA_PATH) : null;
-    if ($siteMtimeBefore !== $siteMtimeAfter) {
-        fwrite(STDERR, "ADVERTENCIA: site_data.json cambió durante el dry-run.\n");
+    if (!$execute) {
+        $siteMtimeAfter = is_file(SITE_DATA_PATH) ? filemtime(SITE_DATA_PATH) : null;
+        if ($siteMtimeBefore !== $siteMtimeAfter) {
+            fwrite(STDERR, "ADVERTENCIA: site_data.json cambió durante el dry-run.\n");
+            return 1;
+        }
+
+        echo "Dry-run completado.\n";
+        echo "Reporte: {$outputPath}\n";
+        echo "Registros por fuente: " . array_sum($analysis['counts_by_source']) . "\n";
+        echo "Locations candidatas: " . count($analysis['candidate_locations']) . "\n";
+        echo "Conflictos: " . count($analysis['conflicts']) . "\n";
+        echo "Conflictos de teléfono (revisión manual): " . count($phoneConflicts) . "\n";
+        echo "Huérfanos: " . count($analysis['orphans']) . "\n";
+        echo "site_data.json: sin cambios (mtime intacto)\n";
+
+        return 0;
+    }
+
+    $backupPath = LocationMigrationWriter::createBackup(SITE_DATA_PATH);
+    if ($backupPath === null) {
+        fwrite(STDERR, "No se pudo crear backup de site_data.json.\n");
         return 1;
     }
 
-    echo "Dry-run completado.\n";
+    $writeResult = LocationMigrationWriter::apply($siteData, $analysis);
+    if (!$writeResult['ok']) {
+        fwrite(STDERR, "Migración abortada: " . ($writeResult['error'] ?? 'error desconocido') . "\n");
+        return 1;
+    }
+
+    if (!LocationMigrationWriter::saveSiteData($writeResult['site_data'], SITE_DATA_PATH)) {
+        fwrite(STDERR, "No se pudo escribir site_data.json. Backup disponible en: {$backupPath}\n");
+        return 1;
+    }
+
+  $after = loadJsonFile(SITE_DATA_PATH);
+    if ($after === null) {
+        fwrite(STDERR, "site_data.json ilegible tras escritura. Restaure desde: {$backupPath}\n");
+        return 1;
+    }
+
+    $legacyAfter = LocationMigrationWriter::snapshotLegacyCounts($after);
+    if ($legacyCounts !== $legacyAfter) {
+        fwrite(STDERR, "ADVERTENCIA: conteos de silos legacy cambiaron. Restaure desde: {$backupPath}\n");
+        fwrite(STDERR, "Antes: " . json_encode($legacyCounts) . "\n");
+        fwrite(STDERR, "Después: " . json_encode($legacyAfter) . "\n");
+        return 1;
+    }
+
+    $refs = $writeResult['refs_counts'];
+    echo "Migración --execute completada.\n";
     echo "Reporte: {$outputPath}\n";
-    echo "Registros por fuente: " . array_sum($analysis['counts_by_source']) . "\n";
-    echo "Locations candidatas: " . count($analysis['candidate_locations']) . "\n";
-    echo "Conflictos: " . count($analysis['conflicts']) . "\n";
-    echo "Huérfanos: " . count($analysis['orphans']) . "\n";
-    echo "site_data.json: sin cambios (mtime intacto)\n";
+    echo "Backup: {$backupPath}\n";
+    echo "locations[] escritas: " . count($after['locations'] ?? []) . "\n";
+    echo "location_refs homepage: " . ($refs['homepage'] ?? 0) . "\n";
+    echo "location_refs footer: " . ($refs['footer'] ?? 0) . "\n";
+    echo "location_refs seminuevos: " . ($refs['seminuevos'] ?? 0) . "\n";
+    echo "location_refs leasing: " . ($refs['leasing'] ?? 0) . "\n";
+    echo "location_refs renting: " . ($refs['renting'] ?? 0) . "\n";
+    echo "location_refs taller: " . ($refs['taller'] ?? 0) . "\n";
+    echo "Conflictos de teléfono pendientes: " . count($phoneConflicts) . "\n";
+    foreach ($phoneConflicts as $pc) {
+        echo "  - [{$pc['location_id']}] {$pc['name']}: " . implode(', ', $pc['values'] ?? []) . "\n";
+    }
+    echo "Silos legacy: intactos (conteos verificados)\n";
 
     return 0;
 }
@@ -328,7 +397,7 @@ final class LocationDryRunCollector
             $locationId = sprintf('loc_%03d', $locNum);
             $merged = self::mergeCluster($members);
             $merged['id'] = $locationId;
-            $merged['slug'] = self::slugify($merged['name'] !== '' ? $merged['name'] : ('ubicacion-' . $locNum));
+            $merged['slug'] = LocationService::normalizeSlug($merged['name'] !== '' ? $merged['name'] : ('ubicacion-' . $locNum));
             $merged['sources'] = array_values(array_unique(array_map(fn ($m) => $m['source'], $members)));
             $merged['source_records'] = array_map(fn ($m) => $m['record_id'], $members);
             $merged['units'] = self::unitsFromMembers($members);
@@ -417,11 +486,7 @@ final class LocationDryRunCollector
         ];
 
         usort($members, function ($a, $b) {
-            $score = fn ($r) => ($r['kind'] === 'rac_json' ? 100 : 0)
-                + ($r['address'] !== '' ? 10 : 0)
-                + ($r['phone'] !== '' ? 5 : 0)
-                + ($r['lat'] !== '' && $r['lng'] !== '' ? 5 : 0);
-            return $score($b) <=> $score($a);
+            return self::sourcePriority($b['source']) <=> self::sourcePriority($a['source']);
         });
 
         foreach ($members as $member) {
@@ -435,7 +500,31 @@ final class LocationDryRunCollector
             }
         }
 
+        $racMember = null;
+        foreach ($members as $member) {
+            if ($member['kind'] === 'rac_json') {
+                $racMember = $member;
+                break;
+            }
+        }
+        if ($racMember !== null && $racMember['phone'] !== '') {
+            $merged['phone'] = $racMember['phone'];
+        }
+
         return $merged;
+    }
+
+    private static function sourcePriority(string $source): int
+    {
+        return match ($source) {
+            'app/data/sucursales.json' => 100,
+            'homepage.sucursales' => 90,
+            'seminuevos.sucursales', 'leasing.sucursales', 'renting.sucursales', 'taller.sucursales' => 70,
+            'seminuevos.branches', 'leasing.branches', 'renting.branches', 'taller.branches' => 65,
+            'footer.sucursales' => 50,
+            'global.sucursales' => 20,
+            default => 0,
+        };
     }
 
     /** @param list<array<string, mixed>> $members */
@@ -740,6 +829,21 @@ final class LocationDryRunReporter
         }
         $lines[] = '';
 
+        $phoneConflicts = $meta['phone_conflicts'] ?? [];
+        $lines[] = '## 5b. Conflictos de teléfono (revisión manual)';
+        $lines[] = '';
+        if ($phoneConflicts === []) {
+            $lines[] = '_Sin conflictos de teléfono._';
+        } else {
+            $lines[] = '| Location | Nombre | Teléfonos en conflicto |';
+            $lines[] = '|----------|--------|----------------------|';
+            foreach ($phoneConflicts as $pc) {
+                $phones = implode(', ', array_map('strval', $pc['values'] ?? []));
+                $lines[] = '| `' . ($pc['location_id'] ?? '') . '` | ' . self::esc($pc['name'] ?? '') . ' | ' . self::esc($phones) . ' |';
+            }
+        }
+        $lines[] = '';
+
         $lines[] = '## 6. Huérfanos (muestra)';
         $lines[] = '';
         if ($analysis['orphans'] === []) {
@@ -843,6 +947,247 @@ final class LocationDryRunReporter
     private static function esc(string $value): string
     {
         return str_replace(['|', "\n"], ['\\|', ' '], $value);
+    }
+}
+
+final class LocationMigrationWriter
+{
+    /** @param array<string, mixed> $siteData */
+    public static function snapshotLegacyCounts(array $siteData): array
+    {
+        return [
+            'homepage.sucursales' => count($siteData['homepage']['sucursales'] ?? []),
+            'footer.sucursales' => count($siteData['footer']['sucursales'] ?? []),
+            'global.sucursales' => count($siteData['global']['sucursales'] ?? []),
+            'seminuevos.sucursales' => count($siteData['seminuevos']['sucursales'] ?? []),
+            'leasing.sucursales' => count($siteData['leasing']['sucursales'] ?? []),
+            'renting.sucursales' => count($siteData['renting']['sucursales'] ?? []),
+            'taller.sucursales' => count($siteData['taller']['sucursales'] ?? []),
+            'seminuevos.branches' => count($siteData['seminuevos']['branches'] ?? []),
+            'leasing.branches' => count($siteData['leasing']['branches'] ?? []),
+            'renting.branches' => count($siteData['renting']['branches'] ?? []),
+            'taller.branches' => count($siteData['taller']['branches'] ?? []),
+        ];
+    }
+
+    /** @param list<array<string, mixed>> $conflicts */
+    /** @return list<array<string, mixed>> */
+    public static function filterPhoneConflicts(array $conflicts): array
+    {
+        return array_values(array_filter($conflicts, function (array $c): bool {
+            return in_array($c['type'] ?? '', ['same_cluster_different_phone', 'same_name_different_phone'], true);
+        }));
+    }
+
+    public static function createBackup(string $siteDataPath): ?string
+    {
+        if (!is_readable($siteDataPath)) {
+            return null;
+        }
+        if (!is_dir(BACKUP_DIR) && !mkdir(BACKUP_DIR, 0755, true)) {
+            return null;
+        }
+
+        $stamp = date('Ymd-His');
+        $backupPath = BACKUP_DIR . '/site_data-before-locations-' . $stamp . '.json';
+        if (!copy($siteDataPath, $backupPath)) {
+            return null;
+        }
+
+        return $backupPath;
+    }
+
+    /**
+     * @param array<string, mixed> $siteData
+     * @param array<string, mixed> $analysis
+     * @return array{ok:bool, site_data?:array<string,mixed>, refs_counts?:array<string,int>, error?:string}
+     */
+    public static function apply(array $siteData, array $analysis): array
+    {
+        $candidates = $analysis['candidate_locations'] ?? [];
+        if (!is_array($candidates) || $candidates === []) {
+            return ['ok' => false, 'error' => 'No hay locations candidatas para escribir.'];
+        }
+
+        $locations = [];
+        $usedSlugs = [];
+        $usedRacCodes = [];
+
+        foreach ($candidates as $candidate) {
+            if (!is_array($candidate)) {
+                continue;
+            }
+
+            $id = (string) ($candidate['id'] ?? '');
+            if ($id === '') {
+                continue;
+            }
+
+            $baseSlug = LocationService::normalizeSlug((string) ($candidate['slug'] ?? $candidate['name'] ?? $id));
+            $slug = $baseSlug;
+            $suffix = 2;
+            while (isset($usedSlugs[$slug])) {
+                $slug = $baseSlug . '-' . $suffix;
+                $suffix++;
+            }
+            $usedSlugs[$slug] = true;
+
+            $racCode = strtoupper(trim((string) ($candidate['rac_code'] ?? '')));
+            if ($racCode !== '') {
+                if (isset($usedRacCodes[$racCode])) {
+                    return ['ok' => false, 'error' => "rac_code duplicado en migración: {$racCode}"];
+                }
+                $usedRacCodes[$racCode] = true;
+            }
+
+            $phone = trim((string) ($candidate['phone'] ?? ''));
+            $locations[] = [
+                'id' => $id,
+                'slug' => $slug,
+                'name' => (string) ($candidate['name'] ?? ''),
+                'location_label' => (string) ($candidate['location_label'] ?? ''),
+                'address' => (string) ($candidate['address'] ?? ''),
+                'city' => 'Ciudad de Panamá',
+                'country' => 'PA',
+                'lat' => (string) ($candidate['lat'] ?? ''),
+                'lng' => (string) ($candidate['lng'] ?? ''),
+                'image_url' => (string) ($candidate['image_url'] ?? ''),
+                'map_url' => '',
+                'phones' => $phone !== '' ? [$phone] : [],
+                'whatsapp' => (string) ($candidate['whatsapp'] ?? ''),
+                'email' => (string) ($candidate['email'] ?? ''),
+                'hours' => [
+                    'display' => (string) ($candidate['schedule'] ?? ''),
+                    'structured' => $candidate['hours_structured'] ?? null,
+                ],
+                'rac_code' => $racCode,
+                'active' => true,
+                'sort_order' => 99,
+                'units' => self::normalizeUnitsForStorage($candidate['units'] ?? []),
+                'meta' => [
+                    'migrated_at' => date('c'),
+                    'sources' => $candidate['sources'] ?? [],
+                ],
+            ];
+        }
+
+        $service = new LocationService($siteData);
+        foreach ($locations as $location) {
+            if (!$service->isSlugUnique((string) $location['slug'], (string) $location['id'])) {
+                return ['ok' => false, 'error' => 'slug duplicado: ' . $location['slug']];
+            }
+            $rac = (string) ($location['rac_code'] ?? '');
+            if ($rac !== '' && !$service->isRacCodeUnique($rac, (string) $location['id'])) {
+                return ['ok' => false, 'error' => 'rac_code duplicado existente: ' . $rac];
+            }
+        }
+
+        $siteData['locations'] = $locations;
+
+        $refs = $analysis['proposed_location_refs'] ?? [];
+        $siteData['homepage']['location_refs'] = self::dedupeRefs($refs['homepage'] ?? [], false);
+        $siteData['footer']['location_refs'] = self::dedupeRefs($refs['footer'] ?? [], true);
+        $siteData['seminuevos']['location_refs'] = self::dedupeRefs($refs['seminuevos'] ?? [], false);
+        $siteData['leasing']['location_refs'] = self::dedupeRefs($refs['leasing'] ?? [], false);
+        $siteData['renting']['location_refs'] = self::dedupeRefs($refs['renting'] ?? [], false);
+        $siteData['taller']['location_refs'] = self::dedupeRefs($refs['taller'] ?? [], false);
+
+        return [
+            'ok' => true,
+            'site_data' => $siteData,
+            'refs_counts' => [
+                'homepage' => count($siteData['homepage']['location_refs'] ?? []),
+                'footer' => count($siteData['footer']['location_refs'] ?? []),
+                'seminuevos' => count($siteData['seminuevos']['location_refs'] ?? []),
+                'leasing' => count($siteData['leasing']['location_refs'] ?? []),
+                'renting' => count($siteData['renting']['location_refs'] ?? []),
+                'taller' => count($siteData['taller']['location_refs'] ?? []),
+            ],
+        ];
+    }
+
+    /** @param array<string, mixed> $siteData */
+    public static function saveSiteData(array $siteData, string $path): bool
+    {
+        $json = json_encode($siteData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($json === false) {
+            return false;
+        }
+
+        $tmp = $path . '.tmp.' . getmypid();
+        if (file_put_contents($tmp, $json) === false) {
+            @unlink($tmp);
+            return false;
+        }
+
+        if (!rename($tmp, $path)) {
+            @unlink($tmp);
+            return false;
+        }
+
+        return true;
+    }
+
+    /** @param list<mixed> $refs */
+    /** @return list<array<string, mixed>> */
+    private static function dedupeRefs(array $refs, bool $withUnit): array
+    {
+        $seen = [];
+        $out = [];
+        foreach ($refs as $ref) {
+            if (!is_array($ref)) {
+                continue;
+            }
+            $locationId = trim((string) ($ref['location_id'] ?? ''));
+            if ($locationId === '') {
+                continue;
+            }
+            $unit = $withUnit ? trim((string) ($ref['unit'] ?? 'grupo')) : '';
+            $key = $locationId . '|' . $unit;
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+
+            $row = [
+                'location_id' => $locationId,
+                'sort_order' => (int) ($ref['sort_order'] ?? 99),
+                'active' => ($ref['active'] ?? true) !== false,
+            ];
+            if ($withUnit) {
+                $row['unit'] = $unit !== '' ? $unit : 'grupo';
+            }
+            $out[] = $row;
+        }
+
+        return $out;
+    }
+
+    /** @param array<string, mixed> $units */
+    /** @return array<string, array<string, mixed>> */
+    private static function normalizeUnitsForStorage(array $units): array
+    {
+        $out = [];
+        foreach ($units as $unitKey => $unitData) {
+            if (!is_string($unitKey) || !is_array($unitData)) {
+                continue;
+            }
+            $row = ['active' => ($unitData['active'] ?? true) !== false];
+            foreach (['phone', 'whatsapp', 'email', 'schedule'] as $field) {
+                $overrideKey = $field . '_override';
+                if (isset($unitData[$overrideKey]) && trim((string) $unitData[$overrideKey]) !== '') {
+                    $row[$field] = trim((string) $unitData[$overrideKey]);
+                } elseif (isset($unitData[$field]) && trim((string) $unitData[$field]) !== '') {
+                    $row[$field] = trim((string) $unitData[$field]);
+                }
+            }
+            if (isset($unitData['sort_order'])) {
+                $row['sort_order'] = (int) $unitData['sort_order'];
+            }
+            $out[$unitKey] = $row;
+        }
+
+        return $out;
     }
 }
 
