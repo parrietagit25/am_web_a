@@ -379,6 +379,62 @@ class UnitContentService
         return null;
     }
 
+    /**
+     * Busca un artículo publicado por slug dentro de unit+type.
+     * Retorna null si el slug está vacío, hay colisión o no hay coincidencia visible.
+     *
+     * @param array<string, mixed> $siteData
+     * @return array<string, mixed>|null
+     */
+    public static function findItemBySlug(array $siteData, string $unitKey, string $type, string $slug): ?array
+    {
+        $slug = trim($slug);
+        if ($slug === '' || !self::isValidType($type) || !self::isSupportedUnit($unitKey, $siteData)) {
+            return null;
+        }
+
+        self::ensureMigrated($siteData, $unitKey);
+
+        $matches = [];
+        foreach (self::getItems($siteData, $unitKey, $type) as $item) {
+            $itemSlug = trim((string) ($item['slug'] ?? ''));
+            if ($itemSlug === '' || strcasecmp($itemSlug, $slug) !== 0) {
+                continue;
+            }
+            if (!self::isPubliclyVisible($item)) {
+                continue;
+            }
+            $matches[] = $item;
+        }
+
+        if (count($matches) > 1) {
+            return null;
+        }
+        if (count($matches) === 1) {
+            return $matches[0];
+        }
+
+        if ($unitKey === 'rentacar' && $type === 'news') {
+            $legacyMatches = [];
+            foreach (self::getLegacyNoticias($siteData, $unitKey) as $legacy) {
+                $legacyItem = self::legacyNoticiaToNews($legacy);
+                $itemSlug = trim((string) ($legacyItem['slug'] ?? ''));
+                if ($itemSlug === '' || strcasecmp($itemSlug, $slug) !== 0) {
+                    continue;
+                }
+                if (!self::isPubliclyVisible($legacyItem)) {
+                    continue;
+                }
+                $legacyMatches[] = $legacyItem;
+            }
+            if (count($legacyMatches) === 1) {
+                return $legacyMatches[0];
+            }
+        }
+
+        return null;
+    }
+
     /** @param array<string, mixed> $legacy */
     public static function legacyNoticiaToNews(array $legacy): array
     {

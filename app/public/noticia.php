@@ -11,12 +11,25 @@ $unitKey = unit_content_resolve_unit_key($preContent, 'rentacar');
 $activeUnit = $unitKey;
 
 $newsId = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$slugParam = trim($_GET['slug'] ?? '');
 $type = trim($_GET['type'] ?? 'news');
 if (!in_array($type, ['latest', 'blog', 'news'], true)) {
     $type = 'news';
 }
 
-$article = unit_content_find_article($preContent, $unitKey, $type, $newsId);
+$article = null;
+if ($newsId > 0) {
+    $article = unit_content_find_article($preContent, $unitKey, $type, $newsId);
+} elseif ($slugParam !== '') {
+    $siteDataForSlug = $preContent->getAll();
+    $foundBySlug = UnitContentService::findItemBySlug($siteDataForSlug, $unitKey, $type, $slugParam);
+    if ($foundBySlug) {
+        $newsId = intval($foundBySlug['id'] ?? 0);
+        $article = unit_content_to_card($foundBySlug);
+    }
+} else {
+    $article = unit_content_find_article($preContent, $unitKey, $type, 0);
+}
 $unitHome = unit_content_unit_home_url($preContent, $unitKey);
 $unitQuery = $unitKey !== 'rentacar' ? ('?unit=' . rawurlencode($unitKey)) : '';
 
