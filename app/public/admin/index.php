@@ -928,6 +928,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!isset($siteData['seminuevos'])) {
             $siteData['seminuevos'] = [];
         }
+
+        $siteData['seminuevos']['hero_title'] = trim($_POST['semi_hero_title'] ?? '');
+        $siteData['seminuevos']['hero_subtitle'] = trim($_POST['semi_hero_subtitle'] ?? '');
+        $siteData['seminuevos']['inventory_eyebrow'] = trim($_POST['semi_inventory_eyebrow'] ?? '');
+        $siteData['seminuevos']['anatomy_eyebrow'] = trim($_POST['semi_anatomy_eyebrow'] ?? '');
+        $siteData['seminuevos']['anatomy_title'] = trim($_POST['semi_anatomy_title'] ?? '');
+        $siteData['seminuevos']['anatomy_subtitle'] = trim($_POST['semi_anatomy_subtitle'] ?? '');
+        $siteData['seminuevos']['anatomy_image_alt'] = trim($_POST['semi_anatomy_image_alt'] ?? '');
+        $siteData['seminuevos']['inventory_page_title'] = trim($_POST['semi_inventory_page_title'] ?? '');
+        $siteData['seminuevos']['inventory_page_subtitle'] = trim($_POST['semi_inventory_page_subtitle'] ?? '');
         
         // Save tooltips
         $points = $_POST['anatomy_points'] ?? [];
@@ -4301,6 +4311,56 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                             
                             <form method="POST" action="" enctype="multipart/form-data">
                                 <input type="hidden" name="action" value="save_seminuevos_home">
+
+                                <?php
+                                require_once __DIR__ . '/../../includes/seminuevos-public-copy.php';
+                                $semiCopyDefaults = seminuevos_public_copy_defaults();
+                                ?>
+
+                                <h5 class="fw-bold mb-3 font-montserrat border-bottom pb-2 text-navy">
+                                    <i class="bi bi-type me-2 text-danger"></i>Textos visibles — Venta de Autos
+                                </h5>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label for="semi_hero_title" class="form-label fw-semibold">Título principal (H1 inventario en home)</label>
+                                        <input type="text" id="semi_hero_title" name="semi_hero_title" class="form-control form-control-premium" value="<?php echo esc($seminuevos['hero_title'] ?? ''); ?>" placeholder="<?php echo esc($semiCopyDefaults['hero_title']); ?>">
+                                        <div class="form-text">Vacío = «<?php echo esc($semiCopyDefaults['hero_title']); ?>»</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="semi_hero_subtitle" class="form-label fw-semibold">Subtítulo bajo el H1</label>
+                                        <input type="text" id="semi_hero_subtitle" name="semi_hero_subtitle" class="form-control form-control-premium" value="<?php echo esc($seminuevos['hero_subtitle'] ?? ''); ?>" placeholder="<?php echo esc($semiCopyDefaults['hero_subtitle']); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="semi_inventory_eyebrow" class="form-label fw-semibold">Badge sección inventario</label>
+                                        <input type="text" id="semi_inventory_eyebrow" name="semi_inventory_eyebrow" class="form-control form-control-premium" value="<?php echo esc($seminuevos['inventory_eyebrow'] ?? ''); ?>" placeholder="<?php echo esc($semiCopyDefaults['inventory_eyebrow']); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="semi_anatomy_eyebrow" class="form-label fw-semibold">Badge anatomía</label>
+                                        <input type="text" id="semi_anatomy_eyebrow" name="semi_anatomy_eyebrow" class="form-control form-control-premium" value="<?php echo esc($seminuevos['anatomy_eyebrow'] ?? ''); ?>" placeholder="<?php echo esc($semiCopyDefaults['anatomy_eyebrow']); ?>">
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label for="semi_anatomy_title" class="form-label fw-semibold">Título anatomía (H2)</label>
+                                        <input type="text" id="semi_anatomy_title" name="semi_anatomy_title" class="form-control form-control-premium" value="<?php echo esc($seminuevos['anatomy_title'] ?? ''); ?>" placeholder="<?php echo esc($semiCopyDefaults['anatomy_title']); ?>">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="semi_anatomy_subtitle" class="form-label fw-semibold">Intro anatomía</label>
+                                        <textarea id="semi_anatomy_subtitle" name="semi_anatomy_subtitle" class="form-control form-control-premium" rows="2" placeholder="<?php echo esc($semiCopyDefaults['anatomy_subtitle']); ?>"><?php echo esc($seminuevos['anatomy_subtitle'] ?? ''); ?></textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="semi_anatomy_image_alt" class="form-label fw-semibold">Alt imagen anatomía</label>
+                                        <input type="text" id="semi_anatomy_image_alt" name="semi_anatomy_image_alt" class="form-control form-control-premium" value="<?php echo esc($seminuevos['anatomy_image_alt'] ?? ''); ?>" placeholder="<?php echo esc($semiCopyDefaults['anatomy_image_alt']); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="semi_inventory_page_title" class="form-label fw-semibold">Título página inventario (/inventario.php)</label>
+                                        <input type="text" id="semi_inventory_page_title" name="semi_inventory_page_title" class="form-control form-control-premium" value="<?php echo esc($seminuevos['inventory_page_title'] ?? ''); ?>" placeholder="Vacío = traducción inventory.title">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="semi_inventory_page_subtitle" class="form-label fw-semibold">Subtítulo página inventario</label>
+                                        <input type="text" id="semi_inventory_page_subtitle" name="semi_inventory_page_subtitle" class="form-control form-control-premium" value="<?php echo esc($seminuevos['inventory_page_subtitle'] ?? ''); ?>" placeholder="Vacío = traducción inventory.subtitle">
+                                    </div>
+                                </div>
+
+                                <hr class="my-4">
                                 
                                 <div class="row g-3 mb-4">
                                     <?php

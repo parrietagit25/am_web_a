@@ -8,7 +8,7 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-CMS-5B0',
+        'version_tablero'  => 'AM-CMS-5B2',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
@@ -25,7 +25,7 @@ return [
     'pendientes_funcionales' => [
         ['item' => 'Vacantes / Trabaja con nosotros (sección base)', 'nota' => 'Falta módulo público de vacantes antes de integrar Konzerta.'],
         ['item' => 'Footer builder columnas (AM-CMS-5A-B)', 'nota' => 'B0–B3 cerrados prod (builder columnas enlaces; also_know/redes/pagos v1 separados).'],
-        ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'B0 diagnóstico aprobado; próximo AM-CMS-5B2 Seminuevos (anatomía, hero_title).'],
+        ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'B2 Seminuevos en validación: hero, anatomía, inventario page titles vía CMS.'],
     ],
 
     'modulos_contenido_pendiente' => [
@@ -78,6 +78,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5A-B3 cerrado prod HEAD 80bb952 — deploy ff-only; smoke admin Columnas sin escritura; 11 rutas 200; EO5144/sitemap 144/20'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B0: diagnóstico títulos hardcodeados — 13 páginas; top CEO (Vehículos Disponibles, Anatomía Seminuevo, Ventajas Corporativas); sub-bloques 5B1–5B5'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B0 cerrado — diagnóstico aprobado; docs/am-cms-5b-diagnostico-titulos.md; próximo AM-CMS-5B2 Seminuevos'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B2 local: seminuevos hero/anatomía/inventario títulos CMS; admin Principal Venta de Autos; fallbacks conservadores'],
     ],
 
     'bloques' => [
@@ -484,7 +485,21 @@ return [
             'dependencias'        => ['AM-CMS-5A-B'],
             'ultimo_commit'       => '6695461',
             'evidencia'           => 'B0 cerrado: matriz 13 páginas en docs/; brechas RAC, seminuevos anatomía, leasing ventajas, contactos semi.',
-            'siguiente_accion'    => 'Iniciar AM-CMS-5B2 — Venta de Autos títulos/secciones visibles.',
+            'siguiente_accion'    => 'Validar AM-CMS-5B2 Seminuevos títulos CMS y cerrar en prod.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-CMS-5B2',
+            'nombre'              => 'Seminuevos títulos y secciones editables',
+            'area'                => 'CMS/editorial',
+            'prioridad'           => 'Media',
+            'estado'              => 'En validación',
+            'porcentaje_estimado' => 90,
+            'descripcion'         => 'venta-autos.php + inventario.php: hero, anatomía, badge inventario, títulos página inventario; admin semi-home; fallbacks actuales.',
+            'dependencias'        => ['AM-CMS-5B0'],
+            'ultimo_commit'       => '—',
+            'evidencia'           => 'seminuevos-public-copy.php; save_seminuevos_home ampliado; hero_title cableado admin; anatomía CMS.',
+            'siguiente_accion'    => 'Revisión y cierre prod tras QA local.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [

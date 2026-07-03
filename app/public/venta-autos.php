@@ -8,8 +8,18 @@ require_once __DIR__ . '/../services/Database.php';
 require_once __DIR__ . '/../services/HeaderBannerService.php';
 require_once __DIR__ . '/../services/VehicleSlugHelper.php';
 
+require_once __DIR__ . '/../includes/seminuevos-public-copy.php';
+
 // Fetch Seminuevos data from content service
 $seminuevosData = $contentService->get('seminuevos', []);
+$semiCopyDefaults = seminuevos_public_copy_defaults();
+$semiHeroTitle = seminuevos_public_copy($seminuevosData, 'hero_title', $semiCopyDefaults['hero_title']);
+$semiHeroSubtitle = seminuevos_public_copy($seminuevosData, 'hero_subtitle', $semiCopyDefaults['hero_subtitle']);
+$semiInventoryEyebrow = seminuevos_public_copy($seminuevosData, 'inventory_eyebrow', $semiCopyDefaults['inventory_eyebrow']);
+$semiAnatomyEyebrow = seminuevos_public_copy($seminuevosData, 'anatomy_eyebrow', $semiCopyDefaults['anatomy_eyebrow']);
+$semiAnatomyTitle = seminuevos_public_copy($seminuevosData, 'anatomy_title', $semiCopyDefaults['anatomy_title']);
+$semiAnatomySubtitle = seminuevos_public_copy($seminuevosData, 'anatomy_subtitle', $semiCopyDefaults['anatomy_subtitle']);
+$semiAnatomyImageAlt = seminuevos_public_copy($seminuevosData, 'anatomy_image_alt', $semiCopyDefaults['anatomy_image_alt']);
 $hbConfig = HeaderBannerService::normalizeFromNode($seminuevosData, 'banner_image_url');
 $anatomyImage = $seminuevosData['anatomy_image_url'] ?? 'https://dev.automarket.com.pa/images/anatomia-sn.webp';
 $anatomyPoints = $seminuevosData['anatomy_points'] ?? [];
@@ -296,11 +306,11 @@ require __DIR__ . '/../includes/render-header-banner.php';
 <!-- Content Sections -->
 <div class="container py-5" id="inventario">
     <div class="text-center mb-5">
-        <span class="badge px-3 py-2 bg-primary-subtle text-primary rounded-pill fw-bold text-uppercase tracking-wider mb-2">Seminuevos</span>
+        <span class="badge px-3 py-2 bg-primary-subtle text-primary rounded-pill fw-bold text-uppercase tracking-wider mb-2"><?php echo esc($semiInventoryEyebrow); ?></span>
         <h1 class="display-5 fw-bold text-navy font-montserrat">
-            <?php echo htmlspecialchars(trim($seminuevosData['hero_title'] ?? '') ?: 'Autos Seminuevos en Venta en Panamá', ENT_QUOTES, 'UTF-8'); ?>
+            <?php echo esc($semiHeroTitle); ?>
         </h1>
-        <p class="text-muted">Todos nuestros autos han pasado por inspección de 150 puntos.</p>
+        <p class="text-muted"><?php echo esc($semiHeroSubtitle); ?></p>
     </div>
 
     <!-- Inventory list dynamic autoplaying carousel -->
@@ -379,9 +389,9 @@ require __DIR__ . '/../includes/render-header-banner.php';
 <section class="py-5 bg-white border-top border-bottom" id="anatomia">
     <div class="container py-3">
         <div class="text-center mb-5">
-            <span class="badge px-3 py-2 bg-danger-subtle text-danger rounded-pill fw-bold text-uppercase tracking-wider mb-2">Garantía y Calidad</span>
-            <h2 class="display-5 fw-bold text-navy font-montserrat">Anatomía de tu Seminuevo</h2>
-            <p class="text-muted max-w-600 mx-auto">Pasa el cursor por los puntos interactivos del vehículo para descubrir por qué comprar en Automarket es tu mejor opción.</p>
+            <span class="badge px-3 py-2 bg-danger-subtle text-danger rounded-pill fw-bold text-uppercase tracking-wider mb-2"><?php echo esc($semiAnatomyEyebrow); ?></span>
+            <h2 class="display-5 fw-bold text-navy font-montserrat"><?php echo esc($semiAnatomyTitle); ?></h2>
+            <p class="text-muted max-w-600 mx-auto"><?php echo esc($semiAnatomySubtitle); ?></p>
         </div>
 
         <div class="row justify-content-center">
@@ -389,7 +399,7 @@ require __DIR__ . '/../includes/render-header-banner.php';
                 <div class="anatomy-container">
                     <div class="position-relative overflow-hidden w-100" style="min-height: 250px;">
                         <!-- Vehicle Blueprint Image -->
-                        <img src="<?php echo esc($anatomyImage); ?>" alt="Anatomía del Vehículo" class="anatomy-img mx-auto rounded-3">
+                        <img src="<?php echo esc($anatomyImage); ?>" alt="<?php echo esc($semiAnatomyImageAlt); ?>" class="anatomy-img mx-auto rounded-3">
                         
                         <!-- Hotspots -->
                         <div class="punto-anatomia" style="left: 2%; top: 48%;" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="top" title="<?php echo esc($anatomyPoints['punto1'] ?? ''); ?>"></div>

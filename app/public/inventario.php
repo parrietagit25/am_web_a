@@ -10,6 +10,11 @@ $seoOverride = [
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../services/Database.php';
 require_once __DIR__ . '/../services/InventoryHighlightService.php';
+require_once __DIR__ . '/../includes/seminuevos-public-copy.php';
+
+$seminuevosPageData = $contentService->get('seminuevos', []);
+$inventoryPageTitle = seminuevos_inventory_page_title($seminuevosPageData);
+$inventoryPageSubtitle = seminuevos_inventory_page_subtitle($seminuevosPageData);
 
 $db = Database::getInstance();
 $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($contentService->get('seminuevos', []));
@@ -324,8 +329,8 @@ $totalPages = ceil($totalMatches / $limit);
 <div class="py-4 bg-navy text-white mb-5 border-bottom border-secondary">
     <div class="container d-flex justify-content-between align-items-center">
         <div>
-            <h1 class="h3 fw-bold font-montserrat mb-1 text-uppercase"><?php echo esc(t('inventory.title')); ?></h1>
-            <p class="text-white-50 text-sm mb-0"><?php echo esc(t('inventory.subtitle')); ?></p>
+            <h1 class="h3 fw-bold font-montserrat mb-1 text-uppercase"><?php echo esc($inventoryPageTitle); ?></h1>
+            <p class="text-white-50 text-sm mb-0"><?php echo esc($inventoryPageSubtitle); ?></p>
         </div>
         <nav aria-label="breadcrumb" class="d-none d-md-block">
             <ol class="breadcrumb mb-0">
