@@ -320,6 +320,7 @@ require __DIR__ . '/../includes/render-header-banner.php';
 
 <?php
 $_unitBranches = $leasingData['branches'] ?? [];
+$_unitBranchesUnitKey = 'leasing';
 require __DIR__ . '/../includes/unit-branches-section.php';
 ?>
 

@@ -162,6 +162,7 @@ require __DIR__ . '/../includes/render-header-banner.php';
 
 <?php
 $_unitBranches = $taller['branches'] ?? [];
+$_unitBranchesUnitKey = 'taller';
 require __DIR__ . '/../includes/unit-branches-section.php';
 ?>
 

@@ -647,6 +647,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <?php
 $_unitBranches = $seminuevosData['branches'] ?? [];
+$_unitBranchesUnitKey = 'seminuevos';
 require __DIR__ . '/../includes/unit-branches-section.php';
 ?>
 

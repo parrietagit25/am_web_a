@@ -538,6 +538,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php
 $_unitBranches = $renting['branches'] ?? [];
+$_unitBranchesUnitKey = 'renting';
 require __DIR__ . '/../includes/unit-branches-section.php';
 ?>
 
