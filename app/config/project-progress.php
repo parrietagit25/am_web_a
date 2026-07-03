@@ -106,6 +106,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-6E: diagnóstico blog/noticias/novedades RAC aprobado — infraestructura CMS/listados/detalle/schema/sitemap existente; noticias con contenido real; blog/novedades pendientes Mercadeo; sin tocar site_data ni código público'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-6E cerrado prod HEAD 0066014 — deploy ff-only; php -l OK; dashboard test 200+noindex/www 404+noindex; blog/noticias/novedades RAC diagnosticado; noticias reales; blog/novedades pendientes Mercadeo; sin site_data ni código público'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0D: recalibración post 6C/6D/6E — avance_global 77%; cms_editorial 91%; contenido_aeo_geo 65%; seo_tecnico 78% y ux_conversion 64% sin cambio; módulos editoriales listos pero contenido Mercadeo pendiente.'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0D cerrado prod HEAD f755edd — deploy ff-only; php -l OK; dashboard test 200+noindex/www 404; métricas recalibradas avance_global 77, cms_editorial 91, contenido_aeo_geo 65, seo_tecnico 78, ux_conversion 64'],
     ],
 
     'bloques' => [
@@ -352,13 +353,13 @@ return [
             'nombre'              => 'Recalibración dashboard post 6C/6D/6E',
             'area'                => 'Infraestructura',
             'prioridad'           => 'Media',
-            'estado'              => 'En validación',
-            'porcentaje_estimado' => 95,
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
             'descripcion'         => 'Recalibración de métricas tras cierre de Sostenibilidad/Fundación, FAQ y Blog/Noticias/Novedades RAC.',
             'dependencias'        => ['AM-CMS-6C', 'AM-CONT-6D', 'AM-CONT-6E'],
-            'ultimo_commit'       => '—',
-            'evidencia'           => 'Local; 6C/6D/6E cerrados end-to-end; métricas recalibradas con contenido editorial aún pendiente de Mercadeo.',
-            'siguiente_accion'    => 'Validar dashboard test; luego cierre dashboard si producción queda OK.',
+            'ultimo_commit'       => 'f755edd',
+            'evidencia'           => 'Producción validada con deploy ff-only; php -l OK; dashboard test HTTP 200 + noindex; dashboard www HTTP 404 + noindex; métricas visibles avance_global 77, cms_editorial 91, contenido_aeo_geo 65, seo_tecnico 78, ux_conversion 64.',
+            'siguiente_accion'    => 'Continuar con el próximo bloque del roadmap priorizado.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
