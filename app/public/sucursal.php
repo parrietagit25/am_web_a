@@ -65,6 +65,11 @@ $hasMapCoords = $locLat !== '' && $locLng !== '';
 $hasMapEmbed = $mapEmbed !== '';
 
 require_once __DIR__ . '/../includes/header.php';
+
+$_schemaLocation = $location;
+$_schemaLocationSlug = $slug;
+$_schemaActiveUnits = $activeUnits;
+require_once __DIR__ . '/../includes/schema-location.php';
 ?>
 
 <?php if ($hasMapCoords): ?>
