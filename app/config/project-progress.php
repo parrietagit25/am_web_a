@@ -15,7 +15,7 @@ return [
     ],
 
     'resumen' => [
-        'avance_global'     => 73,
+        'avance_global'     => 74,
         'seo_tecnico'       => 78,
         'cms_editorial'     => 88,
         'ux_conversion'     => 64,
@@ -36,7 +36,7 @@ return [
     'bloqueados_decision_negocio' => [
         ['item' => 'CTAs redundantes en páginas clave', 'nota' => 'Requiere decisión de negocio antes de eliminar o consolidar botones duplicados.'],
         ['item' => 'Sostenibilidad vs Fundación', 'nota' => 'Definir arquitectura de páginas y mensajes institucionales. CMS editable debe existir donde aplique.'],
-        ['item' => 'Integración avanzada vacantes (API/automatización)', 'nota' => 'Futuro opcional; enlace oficial Konzerta en código (AM-NEG-7B). No requerido actualmente.'],
+        ['item' => 'Integración avanzada vacantes (API/automatización)', 'nota' => 'Futuro opcional; enlace oficial Konzerta en prod (AM-NEG-7B cerrado). No requerido actualmente.'],
         ['item' => 'Traducción ES/EN', 'nota' => 'Alcance y prioridad de páginas bilingües.'],
     ],
 
@@ -97,6 +97,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7A local: trabaja-con-nosotros.php base; SEO/canonical; footer Recursos link; sitemap; sin Konzerta ni formulario'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7A cerrado prod HEAD 2fbd0bd — deploy ff-only; compose exec app php -l 6/6; trabaja-con-nosotros 200; H1/canonical/mailto/footer OK; sitemap 1/147/0/20/0; dashboard test 200/www 404'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7B: enlace oficial Konzerta en trabaja-con-nosotros.php; CTA externo seguro; mailto secundario; sin scraping/DB'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7B cerrado prod HEAD 9dc6856 — deploy ff-only; compose exec app php -l 2/2; trabaja-con-nosotros 200; CTA Konzerta URL exacta target/rel OK; sitemap 1/147/0/20/0; dashboard test 200/www 404'],
     ],
 
     'bloques' => [
@@ -637,13 +638,13 @@ return [
             'nombre'              => 'Konzerta — enlace externo oficial vacantes',
             'area'                => 'Contenido/AEO/GEO',
             'prioridad'           => 'Media',
-            'estado'              => 'En validación',
-            'porcentaje_estimado' => 85,
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
             'descripcion'         => 'CTA en trabaja-con-nosotros.php hacia Konzerta (URL oficial grupo); target blank + noopener; mailto secundario; sin listado ni scraping en sitio.',
             'dependencias'        => ['AM-NEG-7A'],
-            'ultimo_commit'       => '—',
-            'evidencia'           => 'Local: Konzerta empleos-busqueda-panama-car-rental; CTA Ver vacantes target blank noopener; mailto info@automarket.com.pa secundario; pendiente deploy ff-only.',
-            'siguiente_accion'    => 'Pendiente deploy ff-only y validación en producción.',
+            'ultimo_commit'       => '9dc6856',
+            'evidencia'           => 'Prod 9dc6856: deploy ff-only; compose exec app php -l 2/2; trabaja-con-nosotros 200; CTA Konzerta empleos-busqueda-panama-car-rental target/rel OK; mailto secundario; sitemap 1/147/0/20/0; dashboard test 200/www 404.',
+            'siguiente_accion'    => 'Cerrado producción.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
