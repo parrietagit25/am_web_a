@@ -14,8 +14,8 @@ return [
     ],
 
     'resumen' => [
-        'avance_global'     => 56,
-        'seo_tecnico'       => 70,
+        'avance_global'     => 57,
+        'seo_tecnico'       => 72,
         'cms_editorial'     => 55,
         'ux_conversion'     => 64,
         'contenido_aeo_geo' => 35,
@@ -35,7 +35,7 @@ return [
     'evidencias' => [
         ['fecha' => '2026-07-02', 'texto' => 'Producción HEAD 1f8f317 antes de AM-SEO-4A'],
         ['fecha' => '2026-07-03', 'texto' => 'Producción HEAD b7746a0 después de AM-SEO-4A'],
-        ['fecha' => '2026-07-03', 'texto' => 'Sitemap: 144 detalle.php'],
+        ['fecha' => '2026-07-03', 'texto' => 'Sitemap: 144 /autos/, 0 detalle.php?placa='],
         ['fecha' => '2026-07-03', 'texto' => 'Sitemap: 20 /sucursal/'],
         ['fecha' => '2026-07-03', 'texto' => 'Sitemap: 0 sucursal.php?slug='],
         ['fecha' => '2026-07-03', 'texto' => '/sucursal/tumba-muerto → HTTP 200 y canonical correcto'],
@@ -46,6 +46,8 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-BUGS-4D-A: menú Seminuevos garantiza /seminuevos-sucursales.php si CMS lo omitió'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-BUGS-4D-A cerrado prod HEAD d3f5c53 — menú/sucursales 200, copyright OK, 0 bi-tiktok inválido, venta-autos con Nuestras Sucursales'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-INV-4B local: nginx /autos/{slug}/{placa} → detalle.php; regla id() prioritaria y exclusión en placa'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-INV-4B cerrado prod HEAD fd0b5db — restart contenedor web (reload nginx no aplicó MD5); /autos/toyota-hilux-2025/eo5144 → 200, H1 TOYOTA HILUX 2025, canonical amigable'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-INV-4B prod: legacy /detalle.php?placa=EO5144 → 200; sitemap 144 /autos/, 0 detalle.php?placa=; sucursales 20 /sucursal/ intactas'],
     ],
 
     'bloques' => [
@@ -264,13 +266,13 @@ return [
             'nombre'              => 'URL amigable vehículo',
             'area'                => 'SEO técnico',
             'prioridad'           => 'Alta',
-            'estado'              => 'En validación',
-            'porcentaje_estimado' => 85,
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
             'descripcion'         => 'Rutas /autos/{slug}/{placa} vía nginx; legacy /detalle.php?placa= viva; sitemap y canonical alineados.',
             'dependencias'        => ['AM-SEO-4A'],
-            'ultimo_commit'       => '48c77b3',
-            'evidencia'           => 'nginx rewrite + SitemapService::vehicleDetallePath amigable; lookup placa case-insensitive.',
-            'siguiente_accion'    => 'Validar local/staging; en prod verificar MD5 nginx y restart contenedor web si reload no aplica.',
+            'ultimo_commit'       => 'fd0b5db',
+            'evidencia'           => 'Prod fd0b5db: EO5144 legacy 200 y /autos/toyota-hilux-2025/eo5144 200, H1 TOYOTA HILUX 2025, canonical amigable, 0 errores; sitemap 144 /autos/, 0 detalle.php?placa=; restart web tras MD5 host≠contenedor.',
+            'siguiente_accion'    => 'Cerrado. Deploy nginx: verificar MD5 host vs contenedor; si reload no aplica, restart solo contenedor web.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
