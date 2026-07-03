@@ -215,6 +215,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     elseif ($action === 'save_homepage') {
         $siteData['homepage']['hero']['title'] = trim($_POST['hero_title'] ?? '');
         $siteData['homepage']['hero']['subtitle'] = trim($_POST['hero_subtitle'] ?? '');
+
+        if (!isset($siteData['homepage']['fleet_section']) || !is_array($siteData['homepage']['fleet_section'])) {
+            $siteData['homepage']['fleet_section'] = [];
+        }
+        $siteData['homepage']['fleet_section']['eyebrow'] = trim($_POST['rac_fleet_eyebrow'] ?? '');
+        $siteData['homepage']['fleet_section']['title'] = trim($_POST['rac_fleet_title'] ?? '');
+        $siteData['homepage']['fleet_section']['subtitle'] = trim($_POST['rac_fleet_subtitle'] ?? '');
+        $siteData['homepage']['fleet_section']['cta_text'] = trim($_POST['rac_fleet_cta_text'] ?? '');
+
+        if (!isset($siteData['homepage']['search_results']) || !is_array($siteData['homepage']['search_results'])) {
+            $siteData['homepage']['search_results'] = [];
+        }
+        $siteData['homepage']['search_results']['title'] = trim($_POST['rac_search_results_title'] ?? '');
+
+        if (!isset($siteData['homepage']['opiniones_section']) || !is_array($siteData['homepage']['opiniones_section'])) {
+            $siteData['homepage']['opiniones_section'] = [];
+        }
+        $siteData['homepage']['opiniones_section']['title'] = trim($_POST['rac_opiniones_title'] ?? '');
+        $siteData['homepage']['opiniones_section']['subtitle'] = trim($_POST['rac_opiniones_subtitle'] ?? '');
         
         $siteData['homepage']['featured']['badge'] = trim($_POST['featured_badge'] ?? '');
         $siteData['homepage']['featured']['title'] = trim($_POST['featured_title'] ?? '');
@@ -3406,6 +3425,51 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     <div class="col-12">
                                         <label for="hero_subtitle" class="form-label">Subtítulo (Hero)</label>
                                         <input type="text" id="hero_subtitle" name="hero_subtitle" class="form-control form-control-premium" value="<?php echo esc($homepage['hero']['subtitle'] ?? ''); ?>" required>
+                                    </div>
+
+                                    <?php
+                                    require_once __DIR__ . '/../../includes/rentacar-public-copy.php';
+                                    $racFleetDefaults = rentacar_fleet_section_defaults();
+                                    $racSearchDefaults = rentacar_search_results_defaults();
+                                    $racOpinionesDefaults = rentacar_opiniones_section_defaults();
+                                    $racFleetSection = is_array($homepage['fleet_section'] ?? null) ? $homepage['fleet_section'] : [];
+                                    $racSearchSection = is_array($homepage['search_results'] ?? null) ? $homepage['search_results'] : [];
+                                    $racOpinionesSection = is_array($homepage['opiniones_section'] ?? null) ? $homepage['opiniones_section'] : [];
+                                    ?>
+
+                                    <div class="col-12">
+                                        <h5 class="fw-bold mb-3 mt-2 font-montserrat border-bottom pb-2 text-navy">
+                                            <i class="bi bi-type me-2 text-danger"></i>Textos visibles — Rent A Car
+                                        </h5>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="rac_search_results_title" class="form-label fw-semibold">Título resultados de búsqueda</label>
+                                        <input type="text" id="rac_search_results_title" name="rac_search_results_title" class="form-control form-control-premium" value="<?php echo esc($racSearchSection['title'] ?? ''); ?>" placeholder="<?php echo esc($racSearchDefaults['title']); ?>">
+                                        <div class="form-text">Vacío = «<?php echo esc($racSearchDefaults['title']); ?>» (rent-a-car.php)</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="rac_fleet_eyebrow" class="form-label fw-semibold">Badge sección flota</label>
+                                        <input type="text" id="rac_fleet_eyebrow" name="rac_fleet_eyebrow" class="form-control form-control-premium" value="<?php echo esc($racFleetSection['eyebrow'] ?? ''); ?>" placeholder="<?php echo esc($racFleetDefaults['eyebrow']); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="rac_fleet_title" class="form-label fw-semibold">Título sección flota (carrusel + /flota.php H1)</label>
+                                        <input type="text" id="rac_fleet_title" name="rac_fleet_title" class="form-control form-control-premium" value="<?php echo esc($racFleetSection['title'] ?? ''); ?>" placeholder="<?php echo esc($racFleetDefaults['title']); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="rac_fleet_subtitle" class="form-label fw-semibold">Subtítulo sección flota</label>
+                                        <input type="text" id="rac_fleet_subtitle" name="rac_fleet_subtitle" class="form-control form-control-premium" value="<?php echo esc($racFleetSection['subtitle'] ?? ''); ?>" placeholder="<?php echo esc($racFleetDefaults['subtitle']); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="rac_fleet_cta_text" class="form-label fw-semibold">Texto botón «ver flota» (carrusel home)</label>
+                                        <input type="text" id="rac_fleet_cta_text" name="rac_fleet_cta_text" class="form-control form-control-premium" value="<?php echo esc($racFleetSection['cta_text'] ?? ''); ?>" placeholder="<?php echo esc($racFleetDefaults['cta_text']); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="rac_opiniones_title" class="form-label fw-semibold">Título sección opiniones</label>
+                                        <input type="text" id="rac_opiniones_title" name="rac_opiniones_title" class="form-control form-control-premium" value="<?php echo esc($racOpinionesSection['title'] ?? ''); ?>" placeholder="<?php echo esc($racOpinionesDefaults['title']); ?>">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="rac_opiniones_subtitle" class="form-label fw-semibold">Subtítulo sección opiniones</label>
+                                        <input type="text" id="rac_opiniones_subtitle" name="rac_opiniones_subtitle" class="form-control form-control-premium" value="<?php echo esc($racOpinionesSection['subtitle'] ?? ''); ?>" placeholder="<?php echo esc($racOpinionesDefaults['subtitle']); ?>">
                                     </div>
 
                                     <div class="col-12">

@@ -7,6 +7,11 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../services/HeaderBannerService.php';
 
 $homepageHero = $contentService->get('homepage.hero', []);
+$homepageData = $contentService->get('homepage', []);
+require_once __DIR__ . '/../includes/rentacar-public-copy.php';
+$racFleetSection = rentacar_fleet_section_copy(is_array($homepageData) ? $homepageData : []);
+$racSearchResultsTitle = rentacar_search_results_title(is_array($homepageData) ? $homepageData : []);
+$racOpinionesSection = rentacar_opiniones_section_copy(is_array($homepageData) ? $homepageData : []);
 $hbConfig = HeaderBannerService::normalizeFromNode(is_array($homepageHero) ? $homepageHero : []);
 $heroTitle = $homepageHero['title'] ?? 'Te acompañamos a tu destino';
 $heroSubtitle = $homepageHero['subtitle'] ?? 'Reserva tu vehículo en línea en segundos con la flota más moderna';
@@ -70,7 +75,7 @@ require __DIR__ . '/../includes/render-header-banner.php';
     <div class="bg-navy text-white rounded-4 p-4 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
             <span class="badge bg-danger mb-2">Disponibilidad en Vivo</span>
-            <h4 class="fw-bold mb-0 font-montserrat">Vehículos Disponibles</h4>
+            <h4 class="fw-bold mb-0 font-montserrat"><?php echo esc($racSearchResultsTitle); ?></h4>
             <small id="searchSummaryText" class="opacity-75"></small>
         </div>
         <button id="modifySearchBtn" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">
@@ -114,9 +119,9 @@ $intervalVal = intval($fleetCarousel['interval'] ?? 3000);
 ?>
 <section class="container py-5 mb-4" id="alquileres">
     <div class="text-center mb-5">
-        <span class="badge px-3 py-2 bg-danger-subtle text-danger rounded-pill fw-bold text-uppercase tracking-wider mb-2">Categorías</span>
-        <h2 class="fw-bold text-navy font-montserrat text-uppercase tracking-wide" style="font-size: 1.75rem;">Descubre Nuestra Flota de Alquiler</h2>
-        <p class="text-muted max-width-600 mx-auto">Selecciona la categoría que mejor se adapte a tus necesidades de viaje.</p>
+        <span class="badge px-3 py-2 bg-danger-subtle text-danger rounded-pill fw-bold text-uppercase tracking-wider mb-2"><?php echo esc($racFleetSection['eyebrow']); ?></span>
+        <h2 class="fw-bold text-navy font-montserrat text-uppercase tracking-wide" style="font-size: 1.75rem;"><?php echo esc($racFleetSection['title']); ?></h2>
+        <p class="text-muted max-width-600 mx-auto"><?php echo esc($racFleetSection['subtitle']); ?></p>
     </div>
 
     <!-- Carousel Container -->
@@ -159,7 +164,7 @@ $intervalVal = intval($fleetCarousel['interval'] ?? 3000);
     <!-- Extra CTA button to view all categories -->
     <div class="text-center mt-5">
         <a href="/flota.php" class="btn btn-theme px-5 py-3 rounded-pill fw-bold text-white shadow text-uppercase">
-            Ver todas las categorías
+            <?php echo esc($racFleetSection['cta_text']); ?>
         </a>
     </div>
 </section>
@@ -222,8 +227,8 @@ $opiniones = $contentService->get('homepage.opiniones', []);
 ?>
 <section class="container py-5 mb-5 border-top">
     <div class="text-center mb-5">
-        <h2 class="fw-bold text-navy display-6 font-montserrat">Opiniones de Nuestros Clientes</h2>
-        <p class="text-muted">Conoce la experiencia de quienes viajan y confían en nosotros todos los días.</p>
+        <h2 class="fw-bold text-navy display-6 font-montserrat"><?php echo esc($racOpinionesSection['title']); ?></h2>
+        <p class="text-muted"><?php echo esc($racOpinionesSection['subtitle']); ?></p>
     </div>
 
     <div class="row g-4 justify-content-center">

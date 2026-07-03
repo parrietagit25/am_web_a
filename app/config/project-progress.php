@@ -8,7 +8,7 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-CMS-5B2',
+        'version_tablero'  => 'AM-CMS-5B1',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
@@ -25,7 +25,7 @@ return [
     'pendientes_funcionales' => [
         ['item' => 'Vacantes / Trabaja con nosotros (sección base)', 'nota' => 'Falta módulo público de vacantes antes de integrar Konzerta.'],
         ['item' => 'Footer builder columnas (AM-CMS-5A-B)', 'nota' => 'B0–B3 cerrados prod (builder columnas enlaces; also_know/redes/pagos v1 separados).'],
-        ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'B2 Seminuevos cerrado prod (8d14e8b); pendientes 5B1 RAC, 5B3 Leasing/Renting/Taller, 5B4 contactos, 5B5 cierre epic.'],
+        ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'B2 Seminuevos cerrado prod; B1 RAC/flota en validación local.'],
     ],
 
     'modulos_contenido_pendiente' => [
@@ -80,6 +80,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B0 cerrado — diagnóstico aprobado; docs/am-cms-5b-diagnostico-titulos.md; próximo AM-CMS-5B2 Seminuevos'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B2 local: seminuevos hero/anatomía/inventario títulos CMS; admin Principal Venta de Autos; fallbacks conservadores'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B2 cerrado prod HEAD 8d14e8b — QA local guardar/vaciar/restaurar; deploy ff-only; php -l 5/5; venta-autos/inventario fallbacks OK; EO5144 H1+canonical; sitemap 147/0/20/0; admin Textos visibles sin escritura'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B1 local: RAC/flota fleet_section compartido, search_results.title, opiniones_section; admin Principal RAC; fallbacks conservadores'],
     ],
 
     'bloques' => [
@@ -486,7 +487,21 @@ return [
             'dependencias'        => ['AM-CMS-5A-B'],
             'ultimo_commit'       => '8d14e8b',
             'evidencia'           => 'B0 cerrado docs/; B2 prod 8d14e8b: seminuevos-public-copy.php, admin Textos visibles, fallbacks conservadores.',
-            'siguiente_accion'    => 'Siguiente sub-bloque 5B1 RAC o 5B3 Leasing/Renting/Taller tras aprobación.',
+            'siguiente_accion'    => 'Validar AM-CMS-5B1 RAC/flota títulos CMS y cerrar en prod.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-CMS-5B1',
+            'nombre'              => 'RAC + flota.php títulos y secciones editables',
+            'area'                => 'CMS/editorial',
+            'prioridad'           => 'Media',
+            'estado'              => 'En validación',
+            'porcentaje_estimado' => 90,
+            'descripcion'         => 'rent-a-car.php + flota.php: fleet_section compartido, search_results.title, opiniones_section; admin tab Hero RAC; fallbacks actuales.',
+            'dependencias'        => ['AM-CMS-5B0'],
+            'ultimo_commit'       => '—',
+            'evidencia'           => 'rentacar-public-copy.php; save_homepage ampliado; Textos visibles — Rent A Car.',
+            'siguiente_accion'    => 'Revisión y cierre prod tras QA local.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [

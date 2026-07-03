@@ -9,9 +9,12 @@ $seoOverride = [
 ];
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/fleet-categories.php';
+require_once __DIR__ . '/../includes/rentacar-public-copy.php';
 
 // Fetch vehicles list
 $vehicles = $contentService->get('homepage.vehicles', []);
+$homepageData = $contentService->get('homepage', []);
+$racFleetSection = rentacar_fleet_section_copy(is_array($homepageData) ? $homepageData : []);
 $fleetCarousel = $contentService->get('homepage.fleet_carousel', ['items' => []]);
 $fleetCategoryItems = am_fleet_categories_sorted($fleetCarousel['items'] ?? []);
 ?>
@@ -19,8 +22,8 @@ $fleetCategoryItems = am_fleet_categories_sorted($fleetCarousel['items'] ?? []);
 <!-- 1. Page Header -->
 <section class="py-5" style="background-color: #f8f9fc;">
     <div class="container">
-        <h1 class="display-5 fw-bold text-navy font-montserrat mb-2" style="font-size: 2.2rem; letter-spacing: -0.5px;">Descubre Nuestra Flota de Alquiler</h1>
-        <p class="text-muted font-poppins mb-0">Selecciona la categoría que mejor se adapte a tus necesidades de viaje.</p>
+        <h1 class="display-5 fw-bold text-navy font-montserrat mb-2" style="font-size: 2.2rem; letter-spacing: -0.5px;"><?php echo esc($racFleetSection['title']); ?></h1>
+        <p class="text-muted font-poppins mb-0"><?php echo esc($racFleetSection['subtitle']); ?></p>
     </div>
 </section>
 
