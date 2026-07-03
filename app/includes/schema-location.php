@@ -17,9 +17,18 @@ if ($_slName === '' || $_schemaLocationSlug === '') {
     return;
 }
 
-$_slSiteUrl = 'https://www.automarket.com.pa';
-$_slPageUrl = $_slSiteUrl . '/sucursal.php?' . http_build_query(['slug' => $_schemaLocationSlug]);
+if (!function_exists('am_location_canonical_url')) {
+    require_once __DIR__ . '/location-public-helper.php';
+}
+
+$_slPageUrl = am_location_canonical_url($_schemaLocationSlug);
+if ($_slPageUrl === '') {
+    unset($_schemaLocation, $_schemaLocationSlug, $_schemaActiveUnits, $_slName);
+    return;
+}
 $_slEntityId = $_slPageUrl . '#location';
+
+$_slSiteUrl = 'https://www.automarket.com.pa';
 
 $_slSchema = [
     '@context' => 'https://schema.org',

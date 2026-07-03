@@ -1,6 +1,6 @@
 <?php
 /**
- * Ficha pública canónica de ubicación — /sucursal.php?slug={slug}
+ * Ficha pública canónica de ubicación — /sucursal/{slug} (también /sucursal.php?slug={slug} sin 301)
  */
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/ContentService.php';

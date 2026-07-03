@@ -87,6 +87,7 @@ class SitemapService
     private static function collectLocationUrls(string $base, string $lastmod, ContentService $contentService): array
     {
         require_once __DIR__ . '/LocationService.php';
+        require_once __DIR__ . '/../includes/location-public-helper.php';
 
         $siteData = $contentService->getAll();
         $locationService = new LocationService($siteData);
@@ -106,7 +107,7 @@ class SitemapService
             }
 
             $urls[] = [
-                'loc' => rtrim($base, '/') . '/sucursal.php?' . http_build_query(['slug' => $slug]),
+                'loc' => rtrim($base, '/') . am_location_detail_path($slug),
                 'changefreq' => 'monthly',
                 'priority' => '0.6',
                 'lastmod' => $lastmod,

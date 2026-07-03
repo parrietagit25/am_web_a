@@ -280,7 +280,7 @@ function am_location_detail_path(string $slug): string
 {
     $slug = trim($slug);
 
-    return $slug !== '' ? '/sucursal.php?slug=' . rawurlencode($slug) : '';
+    return $slug !== '' ? '/sucursal/' . rawurlencode($slug) : '';
 }
 
 function am_location_canonical_url(string $slug): string
