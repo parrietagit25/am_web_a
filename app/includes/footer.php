@@ -47,8 +47,7 @@ unset($_recursosCol, $_fc, $_fl, $_fl_label, $_fl_url);
 $alsoKnow = array_filter($footerData['also_know'], fn($l) => !empty($l['active']));
 usort($alsoKnow, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b['sort_order'] ?? 99));
 
-$socialNetworks = array_filter($footerData['social'], fn($s) => !empty($s['active']));
-usort($socialNetworks, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b['sort_order'] ?? 99));
+$socialNetworks = FooterService::filterRenderableSocial($footerData['social']);
 
 $reqPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
 $isPublicSite = strpos($reqPath, '/admin') !== 0;

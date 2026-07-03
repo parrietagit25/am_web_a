@@ -96,6 +96,68 @@ function am_sort_business_units(array $units): array
 }
 
 /**
+ * Garantiza enlaces esenciales del menú cuando el CMS reemplazó el menú por defecto.
+ *
+ * @param array<string, mixed> $unit
+ * @return array<string, mixed>
+ */
+function am_ensure_builtin_menu_essentials(array $unit, string $unitKey): array
+{
+    static $essentials = [
+        'seminuevos' => ['label' => 'SUCURSALES', 'link' => '/seminuevos-sucursales.php'],
+    ];
+
+    if (!isset($essentials[$unitKey])) {
+        return $unit;
+    }
+
+    $menu = is_array($unit['menu'] ?? null) ? $unit['menu'] : [];
+    $essentialLink = $essentials[$unitKey]['link'];
+
+    $hasLink = static function (array $items) use (&$hasLink, $essentialLink): bool {
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $link = trim((string) ($item['link'] ?? ''));
+            if ($link === $essentialLink || str_contains($link, 'seminuevos-sucursales')) {
+                return true;
+            }
+            $label = mb_strtoupper(trim((string) ($item['label'] ?? '')), 'UTF-8');
+            if (str_contains($label, 'SUCURSAL') && str_contains($link, 'sucursal')) {
+                return true;
+            }
+            if (!empty($item['submenu']) && is_array($item['submenu']) && $hasLink($item['submenu'])) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    if ($hasLink($menu)) {
+        return $unit;
+    }
+
+    $insertAt = count($menu);
+    foreach ($menu as $index => $item) {
+        $label = mb_strtoupper(trim((string) ($item['label'] ?? '')), 'UTF-8');
+        if (str_contains($label, 'CONTACTO')) {
+            $insertAt = $index;
+            break;
+        }
+    }
+
+    array_splice($menu, $insertAt, 0, [[
+        'label' => $essentials[$unitKey]['label'],
+        'link'  => $essentialLink,
+    ]]);
+    $unit['menu'] = $menu;
+
+    return $unit;
+}
+
+/**
  * @param array<string, array<string, mixed>> $stored
  * @return array<string, array<string, mixed>>
  */
@@ -114,6 +176,7 @@ function am_merge_business_units(array $stored): array
         if (!isset($unit['sort_order'])) {
             $unit['sort_order'] = $sortDefaults[$key] ?? 99;
         }
+        $unit = am_ensure_builtin_menu_essentials($unit, $key);
         $merged[$key] = $unit;
     }
 

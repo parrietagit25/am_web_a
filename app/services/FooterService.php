@@ -188,7 +188,7 @@ class FooterService
             ];
         }
 
-        $social = array_map([self::class, 'normalizeSocialEntry'], $social);
+        $social = self::filterRenderableSocial($social);
 
         $sucursales = $stored['sucursales'] ?? [];
 
@@ -231,10 +231,170 @@ class FooterService
             return 'Automarket. Todos los derechos reservados.';
         }
 
-        $text = preg_replace('/^©\s*/u', '', $text);
-        $text = preg_replace('/^\d{4}\s*[-–—]?\s*/', '', $text);
+        $currentYear = (string) date('Y');
+        $yearPattern = preg_quote($currentYear, '/');
+
+        $text = preg_replace('/\s*©\s*/u', ' ', $text);
+        $text = preg_replace('/\b' . $yearPattern . '\b/u', ' ', $text);
+        $text = preg_replace('/^(?:\d{4}\s*[-–—:.]?\s*)+/u', '', $text);
+        $text = preg_replace('/\s{2,}/u', ' ', $text);
+        $text = trim($text, " \t\n\r\0\x0B©-–—:.");
 
         return trim($text) !== '' ? trim($text) : 'Automarket. Todos los derechos reservados.';
+    }
+
+    /**
+     * @return array<string, array{label: string, icon: string, hosts: list<string>}>
+     */
+    public static function socialPlatformCatalog(): array
+    {
+        return [
+            'facebook'  => ['label' => 'Facebook',  'icon' => 'bi-facebook',  'hosts' => ['facebook.com', 'fb.com', 'fb.me']],
+            'instagram' => ['label' => 'Instagram', 'icon' => 'bi-instagram', 'hosts' => ['instagram.com']],
+            'linkedin'  => ['label' => 'LinkedIn',  'icon' => 'bi-linkedin',  'hosts' => ['linkedin.com']],
+            'youtube'   => ['label' => 'YouTube',   'icon' => 'bi-youtube',   'hosts' => ['youtube.com', 'youtu.be']],
+            'tiktok'    => ['label' => 'TikTok',    'icon' => 'bi-tiktok',    'hosts' => ['tiktok.com']],
+            'twitter'   => ['label' => 'Twitter',   'icon' => 'bi-twitter-x', 'hosts' => ['twitter.com', 'x.com']],
+        ];
+    }
+
+    public static function detectSocialPlatformFromUrl(string $url): ?string
+    {
+        $url = trim($url);
+        if ($url === '' || $url === '#') {
+            return null;
+        }
+
+        $host = strtolower((string) (parse_url($url, PHP_URL_HOST) ?? ''));
+        $host = preg_replace('/^www\./', '', $host);
+        if ($host === '') {
+            return null;
+        }
+
+        foreach (self::socialPlatformCatalog() as $platform => $meta) {
+            if (in_array($host, $meta['hosts'], true)) {
+                return $platform;
+            }
+        }
+
+        return null;
+    }
+
+    public static function detectSocialPlatformFromLabel(string $label): ?string
+    {
+        $normalized = strtolower(trim($label));
+        $normalized = preg_replace('/[^a-z0-9]/', '', $normalized) ?? '';
+        if ($normalized === '') {
+            return null;
+        }
+
+        foreach (array_keys(self::socialPlatformCatalog()) as $platform) {
+            if ($normalized === $platform || str_contains($normalized, $platform)) {
+                return $platform;
+            }
+        }
+
+        return null;
+    }
+
+    public static function detectSocialPlatformFromIcon(string $icon): ?string
+    {
+        $icon = strtolower(trim($icon));
+        if ($icon === '') {
+            return null;
+        }
+
+        foreach (self::socialPlatformCatalog() as $platform => $meta) {
+            if (str_contains($icon, $platform)) {
+                return $platform;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $entry
+     */
+    public static function isSocialEntryRenderable(array $entry): bool
+    {
+        if (($entry['active'] ?? true) === false) {
+            return false;
+        }
+
+        $url = trim((string) ($entry['url'] ?? ''));
+        if ($url === '' || $url === '#') {
+            return false;
+        }
+
+        $urlPlatform = self::detectSocialPlatformFromUrl($url);
+        if ($urlPlatform === null) {
+            return false;
+        }
+
+        $labelPlatform = self::detectSocialPlatformFromLabel((string) ($entry['label'] ?? ''));
+        if ($labelPlatform !== null && $labelPlatform !== $urlPlatform) {
+            return false;
+        }
+
+        $iconPlatform = self::detectSocialPlatformFromIcon((string) ($entry['icon'] ?? ''));
+        if ($iconPlatform !== null && $iconPlatform !== $urlPlatform) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $entries
+     * @return array<int, array<string, mixed>>
+     */
+    public static function filterRenderableSocial(array $entries): array
+    {
+        $seenUrls = [];
+        $seenPlatforms = [];
+        $filtered = [];
+
+        foreach ($entries as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $entry = self::normalizeSocialEntry($entry);
+            if (!self::isSocialEntryRenderable($entry)) {
+                continue;
+            }
+
+            $url = strtolower(rtrim(trim((string) ($entry['url'] ?? '')), '/'));
+            $platform = self::detectSocialPlatformFromUrl((string) ($entry['url'] ?? ''));
+            if ($url !== '' && isset($seenUrls[$url])) {
+                continue;
+            }
+            if ($platform !== null && isset($seenPlatforms[$platform])) {
+                continue;
+            }
+
+            if ($url !== '') {
+                $seenUrls[$url] = true;
+            }
+            if ($platform !== null) {
+                $seenPlatforms[$platform] = true;
+            }
+
+            $filtered[] = $entry;
+        }
+
+        usort($filtered, static fn ($a, $b) => intval($a['sort_order'] ?? 99) <=> intval($b['sort_order'] ?? 99));
+
+        return array_values($filtered);
+    }
+
+    public static function isSocialUrlMatchingPlatform(string $platformKey, string $url): bool
+    {
+        $platformKey = strtolower(trim($platformKey));
+        $urlPlatform = self::detectSocialPlatformFromUrl($url);
+
+        return $urlPlatform !== null && $urlPlatform === $platformKey;
     }
 
     /**
@@ -250,44 +410,20 @@ class FooterService
      */
     public static function normalizeSocialEntry(array $entry): array
     {
-        static $domainMap = [
-            'facebook.com'  => ['label' => 'Facebook',  'icon' => 'bi-facebook'],
-            'instagram.com' => ['label' => 'Instagram', 'icon' => 'bi-instagram'],
-            'linkedin.com'  => ['label' => 'LinkedIn',  'icon' => 'bi-linkedin'],
-            'youtube.com'   => ['label' => 'YouTube',   'icon' => 'bi-youtube'],
-            'youtu.be'      => ['label' => 'YouTube',   'icon' => 'bi-youtube'],
-            'tiktok.com'    => ['label' => 'TikTok',    'icon' => 'bi-tiktok'],
-            'twitter.com'   => ['label' => 'Twitter',   'icon' => 'bi-twitter-x'],
-            'x.com'         => ['label' => 'Twitter',   'icon' => 'bi-twitter-x'],
-        ];
+        $url = trim((string) ($entry['url'] ?? '#'));
+        $labelPlatform = self::detectSocialPlatformFromLabel((string) ($entry['label'] ?? ''));
+        $urlPlatform = self::detectSocialPlatformFromUrl($url);
+        $catalog = self::socialPlatformCatalog();
 
-        static $labelIconMap = [
-            'facebook'  => 'bi-facebook',
-            'instagram' => 'bi-instagram',
-            'linkedin'  => 'bi-linkedin',
-            'youtube'   => 'bi-youtube',
-            'tiktok'    => 'bi-tiktok',
-            'twitter'   => 'bi-twitter-x',
-            'x'         => 'bi-twitter-x',
-        ];
+        if ($urlPlatform !== null && ($labelPlatform === null || $labelPlatform === $urlPlatform)) {
+            $entry['label'] = $catalog[$urlPlatform]['label'];
+            $entry['icon']  = $catalog[$urlPlatform]['icon'];
 
-        $url = $entry['url'] ?? '#';
-
-        // Normalizar por URL cuando apunta a un dominio reconocido
-        if ($url !== '#' && $url !== '') {
-            $host = strtolower(parse_url($url, PHP_URL_HOST) ?? '');
-            $host = preg_replace('/^www\./', '', $host);
-            if (isset($domainMap[$host])) {
-                $entry['label'] = $domainMap[$host]['label'];
-                $entry['icon']  = $domainMap[$host]['icon'];
-                return $entry;
-            }
+            return $entry;
         }
 
-        // Normalizar icon por label cuando la URL es '#' o vacía
-        $labelKey = strtolower(trim((string) ($entry['label'] ?? '')));
-        if (isset($labelIconMap[$labelKey])) {
-            $entry['icon'] = $labelIconMap[$labelKey];
+        if ($labelPlatform !== null) {
+            $entry['icon'] = $catalog[$labelPlatform]['icon'];
         }
 
         return $entry;

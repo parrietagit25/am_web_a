@@ -648,6 +648,7 @@ document.addEventListener('DOMContentLoaded', function () {
 <?php
 $_unitBranches = $seminuevosData['branches'] ?? [];
 $_unitBranchesUnitKey = 'seminuevos';
+$_ubsTitle = trim((string) ($seminuevosData['branches_title'] ?? '')) ?: 'Nuestras Sucursales';
 require __DIR__ . '/../includes/unit-branches-section.php';
 ?>
 

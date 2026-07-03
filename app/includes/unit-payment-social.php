@@ -22,15 +22,22 @@ $_upsNetMeta = [
 // Redes por unidad (si la página las pasó)
 $_upsFromUnit = [];
 if (!empty($_upsUnitSocialLinks) && is_array($_upsUnitSocialLinks)) {
+    if (!class_exists('FooterService')) {
+        require_once __DIR__ . '/../services/FooterService.php';
+    }
     foreach ($_upsUnitSocialLinks as $_upsNet => $_upsUrl) {
         $_upsUrl = trim((string)$_upsUrl);
-        if ($_upsUrl !== '' && isset($_upsNetMeta[$_upsNet])) {
-            $_upsFromUnit[] = [
-                'url'   => $_upsUrl,
-                'icon'  => $_upsNetMeta[$_upsNet]['icon'],
-                'label' => $_upsNetMeta[$_upsNet]['label'],
-            ];
+        if ($_upsUrl === '' || !isset($_upsNetMeta[$_upsNet])) {
+            continue;
         }
+        if (!FooterService::isSocialUrlMatchingPlatform((string) $_upsNet, $_upsUrl)) {
+            continue;
+        }
+        $_upsFromUnit[] = [
+            'url'   => $_upsUrl,
+            'icon'  => $_upsNetMeta[$_upsNet]['icon'],
+            'label' => $_upsNetMeta[$_upsNet]['label'],
+        ];
     }
 }
 
@@ -43,11 +50,7 @@ if (!empty($_upsFromUnit)) {
     }
     $_upsSvc    = new FooterService();
     $_upsFooter = $_upsSvc->getFooter();
-    $_upsSocial = array_values(array_filter(
-        $_upsFooter['social'] ?? [],
-        fn($s) => !empty($s['active']) && !empty($s['url']) && $s['url'] !== '#'
-    ));
-    usort($_upsSocial, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b['sort_order'] ?? 99));
+    $_upsSocial = FooterService::filterRenderableSocial($_upsFooter['social'] ?? []);
     unset($_upsSvc, $_upsFooter);
 }
 
