@@ -181,49 +181,38 @@ elseif ($action === 'delete_footer_sucursal') {
     }
 }
 elseif ($action === 'save_footer_columns') {
-    $colTitle = trim($_POST['col_title'] ?? 'Recursos');
-    $links = [];
-    $labels = $_POST['res_label'] ?? [];
-    $urls = $_POST['res_url'] ?? [];
-    $orders = $_POST['res_order'] ?? [];
-    $ids = $_POST['res_id'] ?? [];
-    $actives = $_POST['res_active'] ?? [];
-
-    foreach ($labels as $i => $label) {
-        $label = trim((string) $label);
-        $url = trim((string) ($urls[$i] ?? ''));
-        if ($label === '' || $url === '') {
-            continue;
-        }
-        $links[] = [
-            'id' => trim((string) ($ids[$i] ?? '')) ?: ('res_' . $i . '_' . time()),
-            'label' => $label,
-            'url' => $url,
-            'sort_order' => intval($orders[$i] ?? 99),
-            'active' => isset($actives[$i]),
-        ];
-    }
-    usort($links, fn($a, $b) => $a['sort_order'] - $b['sort_order']);
-
-    $columns = $siteData['footer']['columns'] ?? [];
-    $found = false;
-    foreach ($columns as $ci => $col) {
-        if (($col['id'] ?? '') === 'recursos') {
-            $columns[$ci]['title'] = $colTitle;
-            $columns[$ci]['links'] = $links;
-            $found = true;
-            break;
-        }
-    }
-    if (!$found) {
-        $columns[] = ['id' => 'recursos', 'title' => $colTitle, 'links' => $links];
-    }
-    $siteData['footer']['columns'] = $columns;
+    $general = is_array($siteData['footer']['general'] ?? null) ? $siteData['footer']['general'] : [];
+    $built = FooterService::buildColumnsFromAdminPost($_POST);
+    $siteData['footer']['columns'] = FooterService::normalizeColumns($built, $general);
 
     if ($contentService->saveAll($siteData)) {
-        $successMsg = 'Columna "Recursos" actualizada.';
+        $successMsg = 'Columnas del footer actualizadas.';
     } else {
-        $errorMsg = 'Error al guardar la columna de Recursos.';
+        $errorMsg = 'Error al guardar las columnas del footer.';
+    }
+}
+elseif ($action === 'delete_footer_column') {
+    $colId = FooterService::sanitizeFooterColumnId($_POST['column_id'] ?? '');
+    if (FooterService::isProtectedFooterColumnId($colId)) {
+        $errorMsg = 'La columna Recursos no puede eliminarse.';
+    } elseif ($colId === '') {
+        $errorMsg = 'Columna no válida.';
+    } else {
+        $general = is_array($siteData['footer']['general'] ?? null) ? $siteData['footer']['general'] : [];
+        $remaining = [];
+        foreach ($siteData['footer']['columns'] ?? [] as $col) {
+            if (!is_array($col) || ($col['id'] ?? '') === $colId) {
+                continue;
+            }
+            $remaining[] = $col;
+        }
+        $siteData['footer']['columns'] = FooterService::normalizeColumns($remaining, $general);
+
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Columna eliminada.';
+        } else {
+            $errorMsg = 'Error al eliminar la columna.';
+        }
     }
 }
 elseif ($action === 'sync_footer_sucursales') {

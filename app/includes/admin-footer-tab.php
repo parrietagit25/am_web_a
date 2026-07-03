@@ -9,11 +9,8 @@ $footerSocial = $footerData['social'];
 $footerSucursales = $footerData['sucursales'];
 $footerBlogPosts = $footerService->collectAllBlogPosts();
 $footerColumns = $footerData['columns'] ?? [];
-$footerRecursos = ['id' => 'recursos', 'title' => 'Recursos', 'links' => []];
-foreach ($footerColumns as $_col) {
-    if (($_col['id'] ?? '') === 'recursos') { $footerRecursos = $_col; break; }
-}
-unset($_col);
+$footerColumnsAdmin = $footerColumns;
+usort($footerColumnsAdmin, static fn ($a, $b) => intval($a['sort_order'] ?? 99) <=> intval($b['sort_order'] ?? 99));
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $publicBase = $scheme . '://' . $host;
@@ -38,7 +35,7 @@ $publicBase = $scheme . '://' . $host;
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-blog" type="button">Blog</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-social" type="button">Redes sociales</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-also" type="button">Conoce también</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-recursos" type="button">Recursos</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#footer-sub-recursos" type="button">Columnas</button></li>
     </ul>
 
     <div class="tab-content">
@@ -292,30 +289,105 @@ $publicBase = $scheme . '://' . $host;
             </div>
         </div>
 
-        <!-- RECURSOS (columna del footer) -->
+        <!-- COLUMNAS DE ENLACES (footer builder B3) -->
         <div class="tab-pane fade" id="footer-sub-recursos">
-            <div class="admin-card">
-                <form method="POST" action="?tab=footer">
-                    <input type="hidden" name="action" value="save_footer_columns">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Título de la columna</label>
-                        <input type="text" name="col_title" class="form-control form-control-premium" value="<?php echo esc($footerRecursos['title'] ?? 'Recursos'); ?>">
-                    </div>
-                    <div id="footerResRows">
-                        <?php foreach ($footerRecursos['links'] as $i => $link): ?>
-                        <div class="row g-2 align-items-end mb-2 footer-res-row">
-                            <input type="hidden" name="res_id[]" value="<?php echo esc($link['id'] ?? ''); ?>">
-                            <div class="col-md-4"><input type="text" name="res_label[]" class="form-control form-control-premium" placeholder="Etiqueta" value="<?php echo esc($link['label'] ?? ''); ?>"></div>
-                            <div class="col-md-5"><input type="text" name="res_url[]" class="form-control form-control-premium" placeholder="/ruta o https://..." value="<?php echo esc($link['url'] ?? ''); ?>"></div>
-                            <div class="col-md-2"><input type="number" name="res_order[]" class="form-control form-control-premium" value="<?php echo esc((string)($link['sort_order'] ?? 99)); ?>"></div>
-                            <div class="col-md-1"><div class="form-check"><input class="form-check-input" type="checkbox" name="res_active[<?php echo $i; ?>]" <?php echo !empty($link['active']) ? 'checked' : ''; ?>><label class="form-check-label small">On</label></div></div>
-                        </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-outline-secondary mb-3" onclick="addFooterResRow()"><i class="bi bi-plus"></i> Agregar enlace</button>
-                    <div class="text-end"><button type="submit" class="btn btn-premium"><i class="bi bi-save"></i> Guardar Recursos</button></div>
-                </form>
+            <div class="admin-card mb-3">
+                <p class="text-muted small mb-0">
+                    Gestión de columnas de enlaces del footer. La columna <strong>recursos</strong> es la base protegida (no se puede eliminar).
+                    Conoce también, redes, pagos y contacto se editan en sus pestañas.
+                </p>
             </div>
+            <form method="POST" action="?tab=footer" id="footerColumnsForm">
+                <input type="hidden" name="action" value="save_footer_columns">
+                <div id="footerColumnsBlocks">
+                    <?php foreach ($footerColumnsAdmin as $ci => $col):
+                        $colId = (string) ($col['id'] ?? '');
+                        $isProtected = FooterService::isProtectedFooterColumnId($colId);
+                        $colLinks = is_array($col['links'] ?? null) ? $col['links'] : [];
+                    ?>
+                    <div class="admin-card mb-3 footer-col-block" data-col-idx="<?php echo (int) $ci; ?>">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                            <div>
+                                <?php if ($isProtected): ?>
+                                <span class="badge bg-secondary me-1">Protegida</span>
+                                <?php endif; ?>
+                                <span class="fw-semibold">Columna</span>
+                                <code class="small"><?php echo esc($colId); ?></code>
+                            </div>
+                            <?php if (!$isProtected): ?>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFooterColumnBlock(this)" title="Quitar del formulario (guardar para persistir)">
+                                <i class="bi bi-trash"></i> Eliminar columna
+                            </button>
+                            <?php endif; ?>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">ID</label>
+                                <input type="text" name="col_id[]" class="form-control form-control-premium" value="<?php echo esc($colId); ?>" <?php echo $isProtected ? 'readonly' : ''; ?> placeholder="auto si vacío">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Título</label>
+                                <input type="text" name="col_title[]" class="form-control form-control-premium" value="<?php echo esc($col['title'] ?? ''); ?>">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Orden</label>
+                                <input type="number" name="col_sort_order[]" class="form-control form-control-premium" value="<?php echo esc((string) ($col['sort_order'] ?? 99)); ?>">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <div class="form-check mb-2">
+                                    <input type="hidden" name="col_active_flag[<?php echo (int) $ci; ?>]" value="0">
+                                    <input class="form-check-input" type="checkbox" name="col_active_flag[<?php echo (int) $ci; ?>]" value="1" id="col_active_<?php echo (int) $ci; ?>" <?php echo ($col['active'] ?? true) !== false ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="col_active_<?php echo (int) $ci; ?>">Activa</label>
+                                </div>
+                            </div>
+                        </div>
+                        <?php if ($isProtected && ($col['active'] ?? true) === false): ?>
+                        <div class="alert alert-warning py-2 small">Recursos está desactivada: no aparecerá en el frontend hasta reactivarla.</div>
+                        <?php endif; ?>
+                        <div class="small text-muted mb-2">Enlaces</div>
+                        <div class="footer-col-links" data-col-idx="<?php echo (int) $ci; ?>">
+                            <?php foreach ($colLinks as $li => $link):
+                                $openIn = (string) ($link['open_in'] ?? 'auto');
+                            ?>
+                            <div class="row g-2 align-items-end mb-2 footer-col-link-row">
+                                <input type="hidden" name="link_id[<?php echo (int) $ci; ?>][]" value="<?php echo esc($link['id'] ?? ''); ?>">
+                                <div class="col-md-3">
+                                    <input type="text" name="link_label[<?php echo (int) $ci; ?>][]" class="form-control form-control-premium" placeholder="Etiqueta" value="<?php echo esc($link['label'] ?? ''); ?>">
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" name="link_url[<?php echo (int) $ci; ?>][]" class="form-control form-control-premium" placeholder="/ruta o https://..." value="<?php echo esc($link['url'] ?? ''); ?>">
+                                </div>
+                                <div class="col-md-1">
+                                    <input type="number" name="link_sort_order[<?php echo (int) $ci; ?>][]" class="form-control form-control-premium" value="<?php echo esc((string) ($link['sort_order'] ?? 99)); ?>" title="Orden">
+                                </div>
+                                <div class="col-md-2">
+                                    <select name="link_open_in[<?php echo (int) $ci; ?>][]" class="form-select form-select-sm" title="Pestaña">
+                                        <option value="auto" <?php echo ($openIn === 'auto' || $openIn === '') ? 'selected' : ''; ?>>Auto</option>
+                                        <option value="same" <?php echo $openIn === 'same' ? 'selected' : ''; ?>>Misma</option>
+                                        <option value="new" <?php echo $openIn === 'new' ? 'selected' : ''; ?>>Nueva</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-1">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="link_active[<?php echo (int) $ci; ?>][<?php echo (int) $li; ?>]" <?php echo ($link['active'] ?? true) !== false ? 'checked' : ''; ?>>
+                                        <label class="form-check-label small">On</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="removeFooterColumnLinkRow(this)" title="Quitar enlace"><i class="bi bi-x-lg"></i></button>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addFooterColumnLinkRow(<?php echo (int) $ci; ?>)"><i class="bi bi-plus"></i> Agregar enlace</button>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary mb-3" onclick="addFooterColumnBlock()"><i class="bi bi-plus-lg"></i> Agregar columna</button>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-premium"><i class="bi bi-save"></i> Guardar columnas</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -346,18 +418,111 @@ function addFooterAlsoRow() {
         '<div class="col-md-1"><div class="form-check"><input class="form-check-input" type="checkbox" name="also_active[' + idx + ']"><label class="form-check-label small">On</label></div></div>';
     wrap.appendChild(div);
 }
-function addFooterResRow() {
-    const wrap = document.getElementById('footerResRows');
-    const idx = wrap.querySelectorAll('.footer-res-row').length;
-    const div = document.createElement('div');
-    div.className = 'row g-2 align-items-end mb-2 footer-res-row';
-    div.innerHTML = '<input type="hidden" name="res_id[]" value="">' +
-        '<div class="col-md-4"><input type="text" name="res_label[]" class="form-control form-control-premium" placeholder="Etiqueta"></div>' +
-        '<div class="col-md-5"><input type="text" name="res_url[]" class="form-control form-control-premium" placeholder="/ruta"></div>' +
-        '<div class="col-md-2"><input type="number" name="res_order[]" class="form-control form-control-premium" value="99"></div>' +
-        '<div class="col-md-1"><div class="form-check"><input class="form-check-input" type="checkbox" name="res_active[' + idx + ']"><label class="form-check-label small">On</label></div></div>';
-    wrap.appendChild(div);
+function reindexFooterColumnBlocks() {
+    const blocks = document.querySelectorAll('#footerColumnsBlocks .footer-col-block');
+    blocks.forEach(function (block, ci) {
+        block.setAttribute('data-col-idx', String(ci));
+        block.querySelectorAll('[name^="col_active_flag["]').forEach(function (el) {
+            el.name = 'col_active_flag[' + ci + ']';
+            if (el.id && el.id.indexOf('col_active_') === 0) {
+                el.id = 'col_active_' + ci;
+            }
+        });
+        block.querySelectorAll('label[for^="col_active_"]').forEach(function (el) {
+            el.setAttribute('for', 'col_active_' + ci);
+        });
+        const idInput = block.querySelector('input[name="col_id[]"]');
+        if (idInput) { /* col_id[] order follows DOM */ }
+        const linksWrap = block.querySelector('.footer-col-links');
+        if (linksWrap) {
+            linksWrap.setAttribute('data-col-idx', String(ci));
+            linksWrap.querySelectorAll('.footer-col-link-row').forEach(function (row, li) {
+                row.querySelectorAll('[name]').forEach(function (input) {
+                    const n = input.getAttribute('name');
+                    if (!n) return;
+                    if (n.indexOf('link_id[') === 0) input.name = 'link_id[' + ci + '][]';
+                    else if (n.indexOf('link_label[') === 0) input.name = 'link_label[' + ci + '][]';
+                    else if (n.indexOf('link_url[') === 0) input.name = 'link_url[' + ci + '][]';
+                    else if (n.indexOf('link_sort_order[') === 0) input.name = 'link_sort_order[' + ci + '][]';
+                    else if (n.indexOf('link_open_in[') === 0) input.name = 'link_open_in[' + ci + '][]';
+                    else if (n.indexOf('link_active[') === 0) input.name = 'link_active[' + ci + '][' + li + ']';
+                });
+            });
+        }
+        const addBtn = block.querySelector('button[onclick^="addFooterColumnLinkRow"]');
+        if (addBtn) addBtn.setAttribute('onclick', 'addFooterColumnLinkRow(' + ci + ')');
+    });
 }
+function footerColumnsNextIdx() {
+    return document.querySelectorAll('#footerColumnsBlocks .footer-col-block').length;
+}
+function footerColumnLinkRowHtml(ci, li, checked) {
+    const onAttr = checked ? ' checked' : '';
+    return '<div class="row g-2 align-items-end mb-2 footer-col-link-row">' +
+        '<input type="hidden" name="link_id[' + ci + '][]" value="">' +
+        '<div class="col-md-3"><input type="text" name="link_label[' + ci + '][]" class="form-control form-control-premium" placeholder="Etiqueta"></div>' +
+        '<div class="col-md-4"><input type="text" name="link_url[' + ci + '][]" class="form-control form-control-premium" placeholder="/ruta o https://..."></div>' +
+        '<div class="col-md-1"><input type="number" name="link_sort_order[' + ci + '][]" class="form-control form-control-premium" value="99" title="Orden"></div>' +
+        '<div class="col-md-2"><select name="link_open_in[' + ci + '][]" class="form-select form-select-sm"><option value="auto" selected>Auto</option><option value="same">Misma</option><option value="new">Nueva</option></select></div>' +
+        '<div class="col-md-1"><div class="form-check"><input class="form-check-input" type="checkbox" name="link_active[' + ci + '][' + li + ']"' + onAttr + '><label class="form-check-label small">On</label></div></div>' +
+        '<div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="removeFooterColumnLinkRow(this)"><i class="bi bi-x-lg"></i></button></div>' +
+        '</div>';
+}
+function addFooterColumnLinkRow(ci) {
+    const wrap = document.querySelector('.footer-col-links[data-col-idx="' + ci + '"]');
+    if (!wrap) return;
+    const li = wrap.querySelectorAll('.footer-col-link-row').length;
+    const div = document.createElement('div');
+    div.innerHTML = footerColumnLinkRowHtml(ci, li, true);
+    wrap.appendChild(div.firstElementChild);
+}
+function removeFooterColumnLinkRow(btn) {
+    const row = btn.closest('.footer-col-link-row');
+    if (row) row.remove();
+}
+function addFooterColumnBlock() {
+    const ci = footerColumnsNextIdx();
+    const wrap = document.getElementById('footerColumnsBlocks');
+    const div = document.createElement('div');
+    div.className = 'admin-card mb-3 footer-col-block';
+    div.setAttribute('data-col-idx', String(ci));
+    div.innerHTML =
+        '<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">' +
+        '<div><span class="fw-semibold">Columna nueva</span></div>' +
+        '<button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFooterColumnBlock(this)"><i class="bi bi-trash"></i> Eliminar columna</button>' +
+        '</div>' +
+        '<div class="row g-3 mb-3">' +
+        '<div class="col-md-4"><label class="form-label">ID</label><input type="text" name="col_id[]" class="form-control form-control-premium" placeholder="auto si vacío"></div>' +
+        '<div class="col-md-4"><label class="form-label">Título</label><input type="text" name="col_title[]" class="form-control form-control-premium" placeholder="Título visible"></div>' +
+        '<div class="col-md-2"><label class="form-label">Orden</label><input type="number" name="col_sort_order[]" class="form-control form-control-premium" value="' + ((ci + 1) * 10) + '"></div>' +
+        '<div class="col-md-2 d-flex align-items-end"><div class="form-check mb-2"><input type="hidden" name="col_active_flag[' + ci + ']" value="0"><input class="form-check-input" type="checkbox" name="col_active_flag[' + ci + ']" value="1" id="col_active_' + ci + '" checked><label class="form-check-label" for="col_active_' + ci + '">Activa</label></div></div>' +
+        '</div>' +
+        '<div class="small text-muted mb-2">Enlaces</div>' +
+        '<div class="footer-col-links" data-col-idx="' + ci + '"></div>' +
+        '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="addFooterColumnLinkRow(' + ci + ')"><i class="bi bi-plus"></i> Agregar enlace</button>';
+    wrap.appendChild(div);
+    reindexFooterColumnBlocks();
+}
+function removeFooterColumnBlock(btn) {
+    const block = btn.closest('.footer-col-block');
+    if (!block) return;
+    const idInput = block.querySelector('input[name="col_id[]"]');
+    const colId = idInput ? (idInput.value || '').trim() : '';
+    if (colId === 'recursos') {
+        alert('La columna Recursos no puede eliminarse.');
+        return;
+    }
+    block.remove();
+    reindexFooterColumnBlocks();
+}
+document.addEventListener('DOMContentLoaded', function () {
+    const colForm = document.getElementById('footerColumnsForm');
+    if (colForm) {
+        colForm.addEventListener('submit', function () {
+            reindexFooterColumnBlocks();
+        });
+    }
+});
 function editFooterSucursal(s) {
     document.getElementById('footer_sucursal_id').value = s.id || '';
     document.getElementById('footer_sucursal_unit').value = s.unit || 'grupo';

@@ -187,6 +187,59 @@ class FooterService
         return $url !== '' && preg_match('/^https?:\/\//i', $url) === 1;
     }
 
+    public static function isProtectedFooterColumnId(string $id): bool
+    {
+        return trim($id) === 'recursos';
+    }
+
+    public static function sanitizeFooterColumnId(string $raw): string
+    {
+        $id = strtolower(trim($raw));
+        $id = preg_replace('/[^a-z0-9_-]/', '-', $id) ?? '';
+        $id = trim($id, '-');
+
+        return $id;
+    }
+
+    public static function generateFooterColumnId(string $title, int $index): string
+    {
+        $slug = strtolower(trim($title));
+        $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? '';
+        $slug = trim($slug, '-');
+        if ($slug === '' || $slug === 'recursos') {
+            $slug = 'col';
+        }
+
+        $base = self::sanitizeFooterColumnId($slug . '-' . ($index + 1));
+        if ($base === '' || self::isProtectedFooterColumnId($base)) {
+            $base = 'col-' . ($index + 1) . '-' . substr((string) time(), -4);
+        }
+
+        return $base;
+    }
+
+    public static function sanitizeFooterUrl(string $url): string
+    {
+        $url = trim($url);
+        if ($url === '' || $url === '#') {
+            return '';
+        }
+        if (preg_match('/^(javascript|data|vbscript):/i', $url)) {
+            return '';
+        }
+        if (preg_match('/^https?:\/\//i', $url)) {
+            return $url;
+        }
+        if (str_starts_with($url, '/')) {
+            return $url;
+        }
+        if (preg_match('/^[a-z0-9_\-./?=&%#]+$/i', $url) && !preg_match('/^[a-z]+:/i', $url)) {
+            return $url;
+        }
+
+        return '';
+    }
+
     /**
      * @return array{link_type: string, open_in: string}
      */
@@ -213,17 +266,22 @@ class FooterService
      */
     public static function normalizeFooterLink(array $link, int $index = 0, string $columnId = 'col'): array
     {
-        $label = trim((string) ($link['label'] ?? ''));
-        $url = trim((string) ($link['url'] ?? ''));
-        $id = trim((string) ($link['id'] ?? ''));
+        $label = trim(strip_tags((string) ($link['label'] ?? '')));
+        $url = self::sanitizeFooterUrl((string) ($link['url'] ?? ''));
+        $id = self::sanitizeFooterColumnId((string) ($link['id'] ?? ''));
         if ($id === '') {
             $id = $columnId . '_link_' . $index;
+        }
+
+        $openInRaw = isset($link['open_in']) ? trim((string) $link['open_in']) : null;
+        if ($openInRaw === '' || $openInRaw === 'auto') {
+            $openInRaw = null;
         }
 
         $meta = self::deriveFooterLinkMeta(
             $url,
             isset($link['link_type']) ? (string) $link['link_type'] : null,
-            isset($link['open_in']) ? (string) $link['open_in'] : null
+            $openInRaw
         );
 
         return [
@@ -682,5 +740,124 @@ class FooterService
     public static function slugifyPageKey(string $key): string
     {
         return str_replace('_', '-', $key);
+    }
+
+    /**
+     * Construye columnas desde POST del admin (B3). Compatible con formulario legacy res_*.
+     *
+     * @param array<string, mixed> $post
+     * @return array<int, array<string, mixed>>
+     */
+    public static function buildColumnsFromAdminPost(array $post): array
+    {
+        if (!isset($post['col_id']) && isset($post['res_label'])) {
+            return self::buildLegacyRecursosColumnFromPost($post);
+        }
+
+        $colIds = is_array($post['col_id'] ?? null) ? $post['col_id'] : [];
+        $colTitles = is_array($post['col_title'] ?? null) ? $post['col_title'] : [];
+        $colOrders = is_array($post['col_sort_order'] ?? null) ? $post['col_sort_order'] : [];
+        $colActives = is_array($post['col_active_flag'] ?? null) ? $post['col_active_flag'] : [];
+        $linkLabels = is_array($post['link_label'] ?? null) ? $post['link_label'] : [];
+        $linkUrls = is_array($post['link_url'] ?? null) ? $post['link_url'] : [];
+        $linkOrders = is_array($post['link_sort_order'] ?? null) ? $post['link_sort_order'] : [];
+        $linkIds = is_array($post['link_id'] ?? null) ? $post['link_id'] : [];
+        $linkActives = is_array($post['link_active'] ?? null) ? $post['link_active'] : [];
+        $linkOpenIn = is_array($post['link_open_in'] ?? null) ? $post['link_open_in'] : [];
+
+        $columns = [];
+        $seenColIds = [];
+
+        foreach ($colIds as $ci => $rawId) {
+            $rawId = trim((string) $rawId);
+            if ($rawId === '' || $rawId === '0') {
+                $id = self::generateFooterColumnId((string) ($colTitles[$ci] ?? ''), (int) $ci);
+            } else {
+                $id = self::sanitizeFooterColumnId($rawId);
+                if ($id === '') {
+                    $id = self::generateFooterColumnId((string) ($colTitles[$ci] ?? ''), (int) $ci);
+                }
+            }
+
+            if (isset($seenColIds[$id])) {
+                continue;
+            }
+            $seenColIds[$id] = true;
+
+            $title = trim(strip_tags((string) ($colTitles[$ci] ?? '')));
+            $links = [];
+            $labels = is_array($linkLabels[$ci] ?? null) ? $linkLabels[$ci] : [];
+            $urls = is_array($linkUrls[$ci] ?? null) ? $linkUrls[$ci] : [];
+            $orders = is_array($linkOrders[$ci] ?? null) ? $linkOrders[$ci] : [];
+            $ids = is_array($linkIds[$ci] ?? null) ? $linkIds[$ci] : [];
+            $actives = is_array($linkActives[$ci] ?? null) ? $linkActives[$ci] : [];
+            $openIns = is_array($linkOpenIn[$ci] ?? null) ? $linkOpenIn[$ci] : [];
+
+            foreach ($labels as $li => $label) {
+                $label = trim(strip_tags((string) $label));
+                $url = self::sanitizeFooterUrl((string) ($urls[$li] ?? ''));
+                $linkId = self::sanitizeFooterColumnId((string) ($ids[$li] ?? ''));
+                if ($linkId === '') {
+                    $linkId = $id . '_link_' . $ci . '_' . $li;
+                }
+
+                $openIn = trim((string) ($openIns[$li] ?? 'auto'));
+                if ($openIn === 'auto') {
+                    $openIn = null;
+                }
+
+                $links[] = [
+                    'id'         => $linkId,
+                    'label'      => $label,
+                    'url'        => $url,
+                    'sort_order' => intval($orders[$li] ?? 99),
+                    'active'     => isset($actives[$li]),
+                    'open_in'    => $openIn,
+                ];
+            }
+
+            $columns[] = [
+                'id'         => $id,
+                'title'      => $title !== '' ? $title : ($id === 'recursos' ? 'Recursos' : 'Columna'),
+                'sort_order' => intval($colOrders[$ci] ?? (($ci + 1) * 10)),
+                'active'     => (string) ($colActives[$ci] ?? '0') === '1',
+                'links'      => $links,
+            ];
+        }
+
+        return $columns;
+    }
+
+    /**
+     * @param array<string, mixed> $post
+     * @return array<int, array<string, mixed>>
+     */
+    private static function buildLegacyRecursosColumnFromPost(array $post): array
+    {
+        $colTitle = trim(strip_tags((string) ($post['col_title'] ?? 'Recursos')));
+        $links = [];
+        $labels = is_array($post['res_label'] ?? null) ? $post['res_label'] : [];
+        $urls = is_array($post['res_url'] ?? null) ? $post['res_url'] : [];
+        $orders = is_array($post['res_order'] ?? null) ? $post['res_order'] : [];
+        $ids = is_array($post['res_id'] ?? null) ? $post['res_id'] : [];
+        $actives = is_array($post['res_active'] ?? null) ? $post['res_active'] : [];
+
+        foreach ($labels as $i => $label) {
+            $links[] = [
+                'id'         => trim((string) ($ids[$i] ?? '')) ?: ('res_' . $i),
+                'label'      => trim(strip_tags((string) $label)),
+                'url'        => self::sanitizeFooterUrl((string) ($urls[$i] ?? '')),
+                'sort_order' => intval($orders[$i] ?? 99),
+                'active'     => isset($actives[$i]),
+            ];
+        }
+
+        return [[
+            'id'         => 'recursos',
+            'title'      => $colTitle !== '' ? $colTitle : 'Recursos',
+            'sort_order' => 1,
+            'active'     => true,
+            'links'      => $links,
+        ]];
     }
 }
