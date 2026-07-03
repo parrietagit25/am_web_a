@@ -15,7 +15,7 @@ return [
     ],
 
     'resumen' => [
-        'avance_global'     => 72,
+        'avance_global'     => 73,
         'seo_tecnico'       => 78,
         'cms_editorial'     => 88,
         'ux_conversion'     => 64,
@@ -36,7 +36,7 @@ return [
     'bloqueados_decision_negocio' => [
         ['item' => 'CTAs redundantes en páginas clave', 'nota' => 'Requiere decisión de negocio antes de eliminar o consolidar botones duplicados.'],
         ['item' => 'Sostenibilidad vs Fundación', 'nota' => 'Definir arquitectura de páginas y mensajes institucionales. CMS editable debe existir donde aplique.'],
-        ['item' => 'Konzerta / Trabaja con nosotros', 'nota' => 'Integración o enlace externo tras validar AM-NEG-7A (página base trabaja-con-nosotros.php).'],
+        ['item' => 'Konzerta / integración externa vacantes', 'nota' => 'Decisión de integración o enlace externo tras cierre AM-NEG-7A (página base en prod).'],
         ['item' => 'Traducción ES/EN', 'nota' => 'Alcance y prioridad de páginas bilingües.'],
     ],
 
@@ -95,6 +95,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6B: auditoría perfiles oficiales — sameAs footer FB/IG/LinkedIn; excluye #/cruces; slots GBP/Wikidata/TikTok; verified_same_as_urls[] vacío'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6B cerrado prod HEAD a7d6393 — deploy ff-only; compose exec app php -l 2/2; smoke páginas principales 200; JSON-LD Organization/sameAs OK; GBP/Wikidata no inventados; sitemap 147/0/20/0; dashboard test 200/www 404'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7A local: trabaja-con-nosotros.php base; SEO/canonical; footer Recursos link; sitemap; sin Konzerta ni formulario'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7A cerrado prod HEAD 2fbd0bd — deploy ff-only; compose exec app php -l 6/6; trabaja-con-nosotros 200; H1/canonical/mailto/footer OK; sitemap 1/147/0/20/0; dashboard test 200/www 404'],
     ],
 
     'bloques' => [
@@ -621,13 +622,13 @@ return [
             'nombre'              => 'Vacantes / Trabaja con Nosotros — módulo público base',
             'area'                => 'Contenido/AEO/GEO',
             'prioridad'           => 'Media',
-            'estado'              => 'En validación',
-            'porcentaje_estimado' => 85,
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
             'descripcion'         => 'Página pública trabaja-con-nosotros.php con H1, intro, estado sin vacantes y CTA mailto global; footer Recursos; sitemap; sin Konzerta/DB/formulario.',
             'dependencias'        => [],
-            'ultimo_commit'       => '—',
-            'evidencia'           => 'Local: trabaja-con-nosotros.php 200; canonical/H1 OK; mailto info@automarket.com.pa; BreadcrumbList; sitemap +1 URL estática.',
-            'siguiente_accion'    => 'Validar copy con RR. HH.; luego Konzerta o CMS careers_page en bloque posterior.',
+            'ultimo_commit'       => '2fbd0bd',
+            'evidencia'           => 'Prod 2fbd0bd: deploy ff-only; compose exec app php -l 6/6; trabaja-con-nosotros/rent-a-car/venta-autos 200; H1/canonical/mailto info@automarket.com.pa; footer Recursos OK; sitemap 1/147/0/20/0; dashboard test 200/www 404.',
+            'siguiente_accion'    => 'Cerrado producción. Konzerta o CMS careers_page en bloque posterior.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
