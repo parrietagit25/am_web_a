@@ -8,7 +8,7 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-DASH-0C',
+        'version_tablero'  => 'AM-CMS-6C',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
@@ -32,7 +32,7 @@ return [
 
     'bloqueados_decision_negocio' => [
         ['item' => 'CTAs redundantes en páginas clave', 'nota' => 'Requiere decisión de negocio antes de eliminar o consolidar botones duplicados.'],
-        ['item' => 'Sostenibilidad vs Fundación', 'nota' => 'Definir arquitectura de páginas y mensajes institucionales. CMS editable debe existir donde aplique.'],
+        ['item' => 'Sostenibilidad vs Fundación', 'nota' => 'Sostenibilidad: página propia sostenibilidad.php (sin cambios AM-CMS-6C). Fundación: pendiente decisión negocio; sin ruta pública, footer, sitemap ni migración funda-am; sin inventar contenido.'],
         ['item' => 'Integración avanzada vacantes (API/automatización)', 'nota' => 'Futuro opcional; enlace oficial Konzerta en prod (AM-NEG-7B cerrado). No requerido actualmente.'],
         ['item' => 'Traducción ES/EN', 'nota' => 'Alcance y prioridad de páginas bilingües.'],
     ],
@@ -99,6 +99,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5C cerrado prod HEAD f3e2143 — deploy ff-only; php-l 11/11; smoke venta-autos/inventario/leasing-flota 200; admin 302 login; fallbacks OK; sitemap 1/147/0/20/0; dashboard test 200/www 404'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0C: limpieza pendientes post-5C — removido Footer builder (5A-B cerrado) y post-5B de pendiente funcional; métricas 75/90/78/62 sin cambio'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0C cerrado prod HEAD df4e40a — deploy ff-only; compose exec app php -l OK; dashboard test 200/www 404; pendientes_funcionales limpiados; métricas 75/90/78/62 sin cambio'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-6C: diagnóstico opción C aprobado — Sostenibilidad página propia intacta; Fundación sin publicar; sin site_data/nginx/footer/sitemap; bloque en validación'],
     ],
 
     'bloques' => [
@@ -338,6 +339,20 @@ return [
             'ultimo_commit'       => 'df4e40a',
             'evidencia'           => 'Prod df4e40a: deploy ff-only; compose exec app php -l OK; dashboard test 200/www 404; pendientes_funcionales vacío; métricas 75/90/78/62.',
             'siguiente_accion'    => 'Cerrado. Mantener backlog alineado tras epic 5C.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-CMS-6C',
+            'nombre'              => 'Sostenibilidad vs Fundación — arquitectura',
+            'area'                => 'CMS editorial',
+            'prioridad'           => 'Media',
+            'estado'              => 'En validación',
+            'porcentaje_estimado' => 85,
+            'descripcion'         => 'Preparación opción C: Sostenibilidad como página propia sin cambios visibles; Fundación pendiente negocio; sin nueva ruta, footer, sitemap ni migración funda-am; sin inventar contenido ni tocar site_data.json.',
+            'dependencias'        => ['AM-DASH-0C'],
+            'ultimo_commit'       => '—',
+            'evidencia'           => 'Local: diagnóstico aprobado ChatGPT; sostenibilidad.php intacto; ítem negocio actualizado en dashboard; métricas 75/90/78/62 sin cambio.',
+            'siguiente_accion'    => 'Validar dashboard test; commit local tras revisión; negocio define arquitectura Fundación; futuro sprint CMS sostenibilidad opcional.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
