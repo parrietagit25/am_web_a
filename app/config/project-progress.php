@@ -15,7 +15,7 @@ return [
     ],
 
     'resumen' => [
-        'avance_global'     => 74,
+        'avance_global'     => 75,
         'seo_tecnico'       => 78,
         'cms_editorial'     => 90,
         'ux_conversion'     => 64,
@@ -98,6 +98,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7B: enlace oficial Konzerta en trabaja-con-nosotros.php; CTA externo seguro; mailto secundario; sin scraping/DB'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7B cerrado prod HEAD 9dc6856 — deploy ff-only; compose exec app php -l 2/2; trabaja-con-nosotros 200; CTA Konzerta URL exacta target/rel OK; sitemap 1/147/0/20/0; dashboard test 200/www 404'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5C local: opiniones venta-autos; Destacados/Novedades unit-content; leasing-flota cabecera; admin mínimo; fallbacks conservadores'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5C cerrado prod HEAD f3e2143 — deploy ff-only; php-l 11/11; smoke venta-autos/inventario/leasing-flota 200; admin 302 login; fallbacks OK; sitemap 1/147/0/20/0; dashboard test 200/www 404'],
     ],
 
     'bloques' => [
@@ -540,13 +541,13 @@ return [
             'nombre'              => 'Títulos/subtítulos secundarios post-5B',
             'area'                => 'CMS/editorial',
             'prioridad'           => 'Media',
-            'estado'              => 'En validación',
-            'porcentaje_estimado' => 85,
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
             'descripcion'         => 'Opiniones venta-autos (seminuevos opiniones_section); Destacados/Novedades home unit-content; leasing-flota cabecera; fallbacks + admin mínimo.',
             'dependencias'        => ['AM-CMS-5B'],
-            'ultimo_commit'       => '—',
-            'evidencia'           => 'Local: seminuevos-public-copy + lrt-public-copy + unit_content_home_section_titles; venta-autos/leasing-flota/unit-content-home-sections; admin campos mínimos.',
-            'siguiente_accion'    => 'Validar en staging; deploy ff-only y cierre prod.',
+            'ultimo_commit'       => 'f3e2143',
+            'evidencia'           => 'Prod f3e2143: deploy ff-only; php-l 11/11; smoke venta-autos/inventario/leasing-flota/rent-a-car 200; admin 302 login; fallbacks opiniones/Destacados/Novedades/leasing-flota OK; sitemap 1/147/0/20/0; dashboard test 200/www 404.',
+            'siguiente_accion'    => 'Cerrado producción.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
