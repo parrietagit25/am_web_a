@@ -172,6 +172,7 @@ class SeoService {
             'flota' => 'Catálogo de vehículos de alquiler Automarket Rent a Car en Panamá.',
             'sucursales' => 'Sucursales de Automarket Rent a Car en Panamá. Horarios y ubicación.',
             'terminos-condiciones' => 'Términos y condiciones de alquiler de Automarket Rent a Car.',
+            'trabaja-con-nosotros' => 'Oportunidades laborales y cultura corporativa en Automarket Panamá.',
             'requisitos-alquiler' => 'Requisitos para alquilar un vehículo con Automarket en Panamá.',
             'pago-seguro' => 'Paga tu reserva de alquiler de forma segura con Automarket Rent a Car.',
             'contenido-reciente' => 'Novedades y actualizaciones de Automarket en Panamá.',

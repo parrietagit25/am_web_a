@@ -175,6 +175,7 @@ class FooterService
                     ['id' => 'res5', 'label' => 'Sostenibilidad',         'url' => '/sostenibilidad.php',                         'sort_order' => 5, 'active' => true],
                     ['id' => 'res6', 'label' => 'Subastas',               'url' => '/pagina-institucional.php?p=subastas',         'sort_order' => 6, 'active' => true],
                     ['id' => 'res7', 'label' => 'Blog',                   'url' => '/blog-grupo.php',                             'sort_order' => 7, 'active' => true],
+                    ['id' => 'res8', 'label' => 'Trabaja con nosotros',   'url' => '/trabaja-con-nosotros.php',                   'sort_order' => 8, 'active' => true],
                 ],
             ],
         ];
@@ -379,6 +380,19 @@ class FooterService
         }
 
         $links = self::normalizeColumnLinks(is_array($column['links'] ?? null) ? $column['links'] : [], $id);
+        if ($id === 'recursos') {
+            $links = self::ensureRecursosLinkIfMissing(
+                $links,
+                '/trabaja-con-nosotros.php',
+                [
+                    'id'         => 'res_careers',
+                    'label'      => 'Trabaja con nosotros',
+                    'url'        => '/trabaja-con-nosotros.php',
+                    'sort_order' => 8,
+                    'active'     => true,
+                ]
+            );
+        }
 
         return [
             'id'         => $id,
@@ -698,6 +712,35 @@ class FooterService
         usort($filtered, static fn ($a, $b) => intval($a['sort_order'] ?? 99) <=> intval($b['sort_order'] ?? 99));
 
         return array_values($filtered);
+    }
+
+    /**
+     * Garantiza enlace en columna Recursos si aún no existe (AM-NEG-7A; sin tocar site_data).
+     *
+     * @param array<int, array<string, mixed>> $links
+     * @param array<string, mixed> $linkTemplate
+     * @return array<int, array<string, mixed>>
+     */
+    public static function ensureRecursosLinkIfMissing(array $links, string $urlNeedle, array $linkTemplate): array
+    {
+        $needle = strtolower(trim($urlNeedle));
+        foreach ($links as $link) {
+            if (!is_array($link)) {
+                continue;
+            }
+            $url = strtolower(trim((string) ($link['url'] ?? '')));
+            $label = strtolower(trim((string) ($link['label'] ?? '')));
+            if ($url !== '' && str_contains($url, $needle)) {
+                return $links;
+            }
+            if (str_contains($label, 'trabaja con nosotros') || str_contains($label, 'vacantes')) {
+                return $links;
+            }
+        }
+
+        $links[] = self::normalizeFooterLink($linkTemplate, count($links), 'recursos');
+
+        return self::normalizeColumnLinks($links, 'recursos');
     }
 
     public static function isSocialUrlMatchingPlatform(string $platformKey, string $url): bool

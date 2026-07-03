@@ -170,6 +170,7 @@ $themeRgb = "$r, $g, $b";
             'leasing-flota'        => 'Leasing — Flota',
             'rent-a-car-contactos' => 'Rent A Car — Contacto',
             'contenido-reciente'   => 'Novedades',
+            'trabaja-con-nosotros' => 'Trabaja con Nosotros',
         ];
 
         // Eliminar extensión .php antes de buscar en el mapa

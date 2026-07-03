@@ -8,7 +8,7 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-AIO-6B',
+        'version_tablero'  => 'AM-NEG-7A',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
@@ -23,7 +23,6 @@ return [
     ],
 
     'pendientes_funcionales' => [
-        ['item' => 'Vacantes / Trabaja con nosotros (sección base)', 'nota' => 'Falta módulo público de vacantes antes de integrar Konzerta.'],
         ['item' => 'Footer builder columnas (AM-CMS-5A-B)', 'nota' => 'Cerrado prod (80bb952). Builder columnas enlaces; also_know/redes/pagos v1 separados.'],
         ['item' => 'Títulos/subtítulos secundarios (post-5B)', 'nota' => 'Epic AM-CMS-5B cerrado prod (555458a). Backlog menor: opiniones venta-autos, Destacados/Novedades unit-content, leasing-flota cabecera.'],
     ],
@@ -37,7 +36,7 @@ return [
     'bloqueados_decision_negocio' => [
         ['item' => 'CTAs redundantes en páginas clave', 'nota' => 'Requiere decisión de negocio antes de eliminar o consolidar botones duplicados.'],
         ['item' => 'Sostenibilidad vs Fundación', 'nota' => 'Definir arquitectura de páginas y mensajes institucionales. CMS editable debe existir donde aplique.'],
-        ['item' => 'Konzerta / Trabaja con nosotros', 'nota' => 'Decisión de integración o enlace externo tras existir sección base.'],
+        ['item' => 'Konzerta / Trabaja con nosotros', 'nota' => 'Integración o enlace externo tras validar AM-NEG-7A (página base trabaja-con-nosotros.php).'],
         ['item' => 'Traducción ES/EN', 'nota' => 'Alcance y prioridad de páginas bilingües.'],
     ],
 
@@ -95,6 +94,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0B: recalibración post 5B/6A — avance_global 72%; cms_editorial 88%; seo_tecnico 78%; contenido_aeo_geo 58%; epic 5B y 6A cerrados prod'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6B: auditoría perfiles oficiales — sameAs footer FB/IG/LinkedIn; excluye #/cruces; slots GBP/Wikidata/TikTok; verified_same_as_urls[] vacío'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6B cerrado prod HEAD a7d6393 — deploy ff-only; compose exec app php -l 2/2; smoke páginas principales 200; JSON-LD Organization/sameAs OK; GBP/Wikidata no inventados; sitemap 147/0/20/0; dashboard test 200/www 404'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7A local: trabaja-con-nosotros.php base; SEO/canonical; footer Recursos link; sitemap; sin Konzerta ni formulario'],
     ],
 
     'bloques' => [
@@ -618,16 +618,16 @@ return [
         ],
         [
             'codigo'              => 'AM-NEG-7A',
-            'nombre'              => 'Decisiones negocio: sostenibilidad, fundación, Konzerta, i18n',
+            'nombre'              => 'Vacantes / Trabaja con Nosotros — módulo público base',
             'area'                => 'Contenido/AEO/GEO',
-            'prioridad'           => 'Baja',
-            'estado'              => 'Bloqueado por decisión de negocio',
-            'porcentaje_estimado' => 0,
-            'descripcion'         => 'Sostenibilidad vs Fundación, Konzerta, traducción ES/EN y arquitectura institucional.',
+            'prioridad'           => 'Media',
+            'estado'              => 'En validación',
+            'porcentaje_estimado' => 85,
+            'descripcion'         => 'Página pública trabaja-con-nosotros.php con H1, intro, estado sin vacantes y CTA mailto global; footer Recursos; sitemap; sin Konzerta/DB/formulario.',
             'dependencias'        => [],
             'ultimo_commit'       => '—',
-            'evidencia'           => 'Páginas existen; contenido y alcance por definir.',
-            'siguiente_accion'    => 'Reunión de negocio para priorizar.',
+            'evidencia'           => 'Local: trabaja-con-nosotros.php 200; canonical/H1 OK; mailto info@automarket.com.pa; BreadcrumbList; sitemap +1 URL estática.',
+            'siguiente_accion'    => 'Validar copy con RR. HH.; luego Konzerta o CMS careers_page en bloque posterior.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [

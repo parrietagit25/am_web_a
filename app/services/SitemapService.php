@@ -26,6 +26,7 @@ class SitemapService
         ['path' => '/pagina-institucional.php', 'query' => ['p' => 'sobre-nosotros'], 'changefreq' => 'yearly', 'priority' => '0.5'],
         ['path' => '/pagina-institucional.php', 'query' => ['p' => 'faq'], 'changefreq' => 'yearly', 'priority' => '0.5'],
         ['path' => '/sostenibilidad.php', 'changefreq' => 'yearly', 'priority' => '0.5'],
+        ['path' => '/trabaja-con-nosotros.php', 'changefreq' => 'monthly', 'priority' => '0.5'],
     ];
 
     public static function canonicalBase(ContentService $contentService): string
