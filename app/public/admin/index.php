@@ -3914,6 +3914,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
 
                     <!-- TAB 6: SUCURSALES CRUD -->
                     <div class="tab-pane fade" id="tab-sucursales" role="tabpanel" aria-labelledby="tab-sucursales-nav">
+                        <?php require __DIR__ . '/../../includes/admin-legacy-locations-notice.php'; ?>
                         <!-- Sucursal Form Card -->
                         <div class="admin-card">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="sucursalFormTitle">
@@ -5386,6 +5387,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                             </form>
                         </div>
 
+                        <?php require __DIR__ . '/../../includes/admin-legacy-locations-notice.php'; ?>
                         <div class="row g-4">
 
                             <!-- LEFT: SUCURSAL FORM -->
@@ -5590,6 +5592,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
 
                         <!-- BRANCHES SEMINUEVOS — datos web por sucursal -->
                         <div class="admin-card">
+                            <?php require __DIR__ . '/../../includes/admin-legacy-locations-notice.php'; ?>
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
                                 <i class="bi bi-building me-2 text-danger"></i>Sucursales — datos web (Venta de Autos)
                             </h5>
@@ -6018,6 +6021,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                             </form>
                         </div>
                         <div class="admin-card">
+                            <?php require __DIR__ . '/../../includes/admin-legacy-locations-notice.php'; ?>
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="leasingSucursalFormTitle">
                                 <i class="bi bi-geo-alt-fill me-2 text-danger"></i>Agregar Sucursal (Leasing Operativo)
                             </h5>
@@ -6148,6 +6152,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
 
                         <!-- BRANCHES LEASING — datos web por sucursal -->
                         <div class="admin-card">
+                            <?php require __DIR__ . '/../../includes/admin-legacy-locations-notice.php'; ?>
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
                                 <i class="bi bi-building me-2 text-danger"></i>Sucursales — datos web (Leasing)
                             </h5>

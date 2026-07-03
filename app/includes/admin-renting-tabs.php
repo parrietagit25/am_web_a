@@ -333,6 +333,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
 
                         <!-- BRANCHES RENTING — datos web por sucursal -->
                         <div class="admin-card">
+                            <?php require __DIR__ . '/admin-legacy-locations-notice.php'; ?>
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
                                 <i class="bi bi-building me-2 text-danger"></i>Sucursales — datos web (Renting)
                             </h5>
@@ -1072,6 +1073,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
 
                     <!-- TAB: RENTING SUCURSALES -->
                     <div class="tab-pane fade" id="tab-renting-sucursales" role="tabpanel" aria-labelledby="tab-renting-sucursales-nav">
+                        <?php require __DIR__ . '/admin-legacy-locations-notice.php'; ?>
                         <div class="admin-card">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="rentingSucursalFormTitle">
                                 <i class="bi bi-geo-alt-fill me-2 text-danger"></i>Agregar sucursal (Renting)

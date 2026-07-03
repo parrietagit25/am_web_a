@@ -8,6 +8,7 @@ if (!is_array($globalSucursales)) {
      id="tab-global-sucursales"
      role="tabpanel"
      aria-labelledby="tab-global-sucursales-nav">
+    <?php require __DIR__ . '/admin-legacy-locations-notice.php'; ?>
     <div class="admin-card">
         <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy" id="globalSucursalFormTitle">
             <i class="bi bi-geo-alt-fill me-2 text-danger"></i>Agregar sucursal

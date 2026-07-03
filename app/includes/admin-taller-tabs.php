@@ -560,6 +560,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
         </form>
     </div>
 
+    <?php require __DIR__ . '/admin-legacy-locations-notice.php'; ?>
     <div class="admin-card">
         <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="tallerSucursalFormTitle">
             <i class="bi bi-building-add me-2 text-danger"></i>Agregar sucursal (Taller)
@@ -623,6 +624,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
 
     <!-- BRANCHES TALLER — datos web por sucursal -->
     <div class="admin-card">
+        <?php require __DIR__ . '/admin-legacy-locations-notice.php'; ?>
         <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
             <i class="bi bi-building me-2 text-danger"></i>Sucursales — datos web (Taller)
         </h5>

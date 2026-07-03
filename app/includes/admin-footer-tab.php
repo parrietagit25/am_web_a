@@ -149,6 +149,7 @@ $publicBase = $scheme . '://' . $host;
                     </form>
                 </div>
                 <p class="small text-muted mb-2">Página pública: <a href="/sucursales-grupo.php" target="_blank" rel="noopener">/sucursales-grupo.php</a> (no aparece en el pie visual del sitio).</p>
+                <?php require __DIR__ . '/admin-legacy-locations-notice.php'; ?>
                 <div class="alert alert-light border small py-2 mb-3">
                     Cada unidad también tiene su propio listado en <code>*-sucursales.php</code>. Use el campo <strong>Unidad</strong> para agrupar en la vista consolidada. La sincronización importa desde las unidades sin borrar entradas existentes.
                 </div>
