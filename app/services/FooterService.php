@@ -227,13 +227,16 @@ class FooterService
         if (preg_match('/^(javascript|data|vbscript):/i', $url)) {
             return '';
         }
+        if (str_starts_with($url, '//')) {
+            return '';
+        }
         if (preg_match('/^https?:\/\//i', $url)) {
             return $url;
         }
         if (str_starts_with($url, '/')) {
             return $url;
         }
-        if (preg_match('/^[a-z0-9_\-./?=&%#]+$/i', $url) && !preg_match('/^[a-z]+:/i', $url)) {
+        if (preg_match('~^[a-z0-9_\-./?=&%#]+$~i', $url) && !preg_match('/^[a-z]+:/i', $url)) {
             return $url;
         }
 
