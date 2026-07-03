@@ -57,6 +57,7 @@ if (empty($sideImage)) {
                             </h2>
                             <div id="<?php echo $collapseId; ?>" class="accordion-collapse collapse <?php echo $isFirst ? 'show' : ''; ?>" data-bs-parent="#tallerSucursalesAccordion">
                                 <div class="accordion-body p-4 bg-white border-top">
+                                    <?php $_locSlug = $suc['slug'] ?? ''; require __DIR__ . '/../includes/location-ficha-link.php'; ?>
                                     <div class="row g-4 align-items-stretch">
                                         <div class="col-md-6 col-12">
                                             <div class="sucursal-info-list d-flex flex-column gap-2">

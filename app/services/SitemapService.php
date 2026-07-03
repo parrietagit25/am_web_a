@@ -49,6 +49,10 @@ class SitemapService
             $urls[] = self::entryFromStaticPage($base, $page, $lastmod);
         }
 
+        foreach (self::collectLocationUrls($base, $lastmod, $contentService) as $locationEntry) {
+            $urls[] = $locationEntry;
+        }
+
         foreach (self::collectVehicleUrls($base, $lastmod) as $vehicleEntry) {
             $urls[] = $vehicleEntry;
         }
@@ -75,6 +79,41 @@ class SitemapService
             'priority' => $page['priority'] ?? '0.5',
             'lastmod' => $lastmod,
         ];
+    }
+
+    /**
+     * @return list<array{loc:string,changefreq:string,priority:string,lastmod?:string}>
+     */
+    private static function collectLocationUrls(string $base, string $lastmod, ContentService $contentService): array
+    {
+        require_once __DIR__ . '/LocationService.php';
+
+        $siteData = $contentService->getAll();
+        $locationService = new LocationService($siteData);
+        $urls = [];
+
+        foreach ($locationService->getAll() as $location) {
+            if (!is_array($location)) {
+                continue;
+            }
+            if (($location['active'] ?? true) === false) {
+                continue;
+            }
+
+            $slug = trim((string) ($location['slug'] ?? ''));
+            if ($slug === '') {
+                continue;
+            }
+
+            $urls[] = [
+                'loc' => rtrim($base, '/') . '/sucursal.php?' . http_build_query(['slug' => $slug]),
+                'changefreq' => 'monthly',
+                'priority' => '0.6',
+                'lastmod' => $lastmod,
+            ];
+        }
+
+        return $urls;
     }
 
     /**

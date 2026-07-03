@@ -89,6 +89,7 @@ function am_map_master_to_sucursales_card(array $row, int $index): array
 
     return [
         'id'         => $numericId,
+        'slug'       => trim((string) ($row['slug'] ?? '')),
         'name'       => trim((string) ($row['name'] ?? '')),
         'location'   => trim((string) ($row['location_label'] ?? ($row['location'] ?? ''))),
         'address'    => trim((string) ($row['address'] ?? '')),
@@ -132,6 +133,7 @@ function am_map_master_to_footer_card(array $row, string $unit): array
         'lat'        => trim((string) ($row['lat'] ?? '')),
         'lng'        => trim((string) ($row['lng'] ?? '')),
         'unit'       => $unit,
+        'slug'       => trim((string) ($row['slug'] ?? '')),
         'sort_order' => (int) ($row['sort_order'] ?? 99),
         'active'     => ($row['active'] ?? true) !== false,
     ];
@@ -272,4 +274,76 @@ function am_list_footer_sucursales(ContentService $contentService, FooterService
     });
 
     return array_values($out);
+}
+
+function am_location_detail_path(string $slug): string
+{
+    $slug = trim($slug);
+
+    return $slug !== '' ? '/sucursal.php?slug=' . rawurlencode($slug) : '';
+}
+
+function am_location_canonical_url(string $slug): string
+{
+    $path = am_location_detail_path($slug);
+
+    return $path !== '' ? 'https://www.automarket.com.pa' . $path : '';
+}
+
+/**
+ * @return array<string, string>
+ */
+function am_location_unit_labels(): array
+{
+    return [
+        'rentacar'   => 'Rent A Car',
+        'seminuevos' => 'Venta de Autos',
+        'leasing'    => 'Leasing Operativo',
+        'renting'    => 'Renting',
+        'taller'     => 'Taller',
+    ];
+}
+
+/**
+ * Unidades con location_refs activo que apuntan a esta ubicación.
+ *
+ * @param array<string, mixed> $siteData
+ * @param array<string, mixed> $location
+ * @return list<string>
+ */
+function am_location_active_units_for(array $siteData, array $location): array
+{
+    $locationId = trim((string) ($location['id'] ?? ''));
+    if ($locationId === '') {
+        return [];
+    }
+
+    $out = [];
+    foreach (array_keys(am_location_unit_labels()) as $unitKey) {
+        $section = am_location_section_for_unit($unitKey);
+        if ($section === null) {
+            continue;
+        }
+
+        $refs = $siteData[$section]['location_refs'] ?? [];
+        if (!is_array($refs)) {
+            continue;
+        }
+
+        foreach ($refs as $ref) {
+            if (!is_array($ref)) {
+                continue;
+            }
+            if (trim((string) ($ref['location_id'] ?? '')) !== $locationId) {
+                continue;
+            }
+            if (($ref['active'] ?? true) === false) {
+                continue;
+            }
+            $out[] = $unitKey;
+            break;
+        }
+    }
+
+    return $out;
 }

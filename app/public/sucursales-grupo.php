@@ -54,7 +54,18 @@ require_once __DIR__ . '/../includes/header.php';
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100 border-0 shadow-sm rounded-3">
                         <div class="card-body">
-                            <h5 class="fw-bold text-navy mb-3"><?php echo esc($suc['name'] ?? ''); ?></h5>
+                            <?php
+                            $_locSlug = trim((string) ($suc['slug'] ?? ''));
+                            $_locName = esc($suc['name'] ?? '');
+                            ?>
+                            <h5 class="fw-bold text-navy mb-3">
+                                <?php if ($_locSlug !== ''): ?>
+                                    <a href="<?php echo esc(am_location_detail_path($_locSlug)); ?>" class="text-navy text-decoration-none"><?php echo $_locName; ?></a>
+                                <?php else: ?>
+                                    <?php echo $_locName; ?>
+                                <?php endif; ?>
+                            </h5>
+                            <?php unset($_locSlug, $_locName); ?>
                             <?php if (!empty($suc['location'])): ?>
                                 <p class="small mb-1"><i class="bi bi-geo-alt text-danger me-1"></i><?php echo esc($suc['location']); ?></p>
                             <?php endif; ?>

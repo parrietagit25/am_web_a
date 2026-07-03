@@ -57,6 +57,7 @@ if (empty($_ubsValid)) {
                 $_ubsSchedule = trim((string)($_ubsBranch['schedule']  ?? ''));
                 $_ubsMapUrl   = trim((string)($_ubsBranch['map_url']   ?? ''));
                 $_ubsImgUrl   = trim((string)($_ubsBranch['image_url'] ?? ''));
+                $_ubsSlug     = trim((string)($_ubsBranch['slug']     ?? ''));
                 $_ubsWaNum    = preg_replace('/\D/', '', $_ubsWa);
                 $_ubsPhoneNum = preg_replace('/\D/', '', $_ubsPhone);
             ?>
@@ -74,7 +75,16 @@ if (empty($_ubsValid)) {
                     <div class="card-body d-flex flex-column gap-2 p-4">
 
                         <h3 class="fw-bold text-navy font-montserrat mb-1" style="font-size: 1.1rem;">
-                            <?php echo htmlspecialchars($_ubsName, ENT_QUOTES, 'UTF-8'); ?>
+                            <?php if ($_ubsSlug !== ''): ?>
+                                <?php
+                                if (!function_exists('am_location_detail_path')) {
+                                    require_once __DIR__ . '/location-public-helper.php';
+                                }
+                                ?>
+                                <a href="<?php echo htmlspecialchars(am_location_detail_path($_ubsSlug), ENT_QUOTES, 'UTF-8'); ?>" class="text-navy text-decoration-none"><?php echo htmlspecialchars($_ubsName, ENT_QUOTES, 'UTF-8'); ?></a>
+                            <?php else: ?>
+                                <?php echo htmlspecialchars($_ubsName, ENT_QUOTES, 'UTF-8'); ?>
+                            <?php endif; ?>
                         </h3>
 
                         <?php if ($_ubsAddress !== ''): ?>
@@ -151,5 +161,5 @@ unset(
     $_unitBranches, $_ubsTitle, $_ubsValid, $_ubsItem,
     $_ubsIdx, $_ubsBranch,
     $_ubsName, $_ubsAddress, $_ubsPhone, $_ubsWa, $_ubsEmail,
-    $_ubsSchedule, $_ubsMapUrl, $_ubsImgUrl, $_ubsWaNum, $_ubsPhoneNum
+    $_ubsSchedule, $_ubsMapUrl, $_ubsImgUrl, $_ubsSlug, $_ubsWaNum, $_ubsPhoneNum
 );
