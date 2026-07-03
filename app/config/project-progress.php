@@ -8,7 +8,7 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-NEG-7A',
+        'version_tablero'  => 'AM-NEG-7B',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
@@ -36,7 +36,7 @@ return [
     'bloqueados_decision_negocio' => [
         ['item' => 'CTAs redundantes en páginas clave', 'nota' => 'Requiere decisión de negocio antes de eliminar o consolidar botones duplicados.'],
         ['item' => 'Sostenibilidad vs Fundación', 'nota' => 'Definir arquitectura de páginas y mensajes institucionales. CMS editable debe existir donde aplique.'],
-        ['item' => 'Konzerta / integración externa vacantes', 'nota' => 'Decisión de integración o enlace externo tras cierre AM-NEG-7A (página base en prod).'],
+        ['item' => 'Integración avanzada vacantes (API/automatización)', 'nota' => 'Futuro opcional; enlace oficial Konzerta en código (AM-NEG-7B). No requerido actualmente.'],
         ['item' => 'Traducción ES/EN', 'nota' => 'Alcance y prioridad de páginas bilingües.'],
     ],
 
@@ -96,6 +96,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6B cerrado prod HEAD a7d6393 — deploy ff-only; compose exec app php -l 2/2; smoke páginas principales 200; JSON-LD Organization/sameAs OK; GBP/Wikidata no inventados; sitemap 147/0/20/0; dashboard test 200/www 404'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7A local: trabaja-con-nosotros.php base; SEO/canonical; footer Recursos link; sitemap; sin Konzerta ni formulario'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7A cerrado prod HEAD 2fbd0bd — deploy ff-only; compose exec app php -l 6/6; trabaja-con-nosotros 200; H1/canonical/mailto/footer OK; sitemap 1/147/0/20/0; dashboard test 200/www 404'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7B: enlace oficial Konzerta en trabaja-con-nosotros.php; CTA externo seguro; mailto secundario; sin scraping/DB'],
     ],
 
     'bloques' => [
@@ -628,7 +629,21 @@ return [
             'dependencias'        => [],
             'ultimo_commit'       => '2fbd0bd',
             'evidencia'           => 'Prod 2fbd0bd: deploy ff-only; compose exec app php -l 6/6; trabaja-con-nosotros/rent-a-car/venta-autos 200; H1/canonical/mailto info@automarket.com.pa; footer Recursos OK; sitemap 1/147/0/20/0; dashboard test 200/www 404.',
-            'siguiente_accion'    => 'Cerrado producción. Konzerta o CMS careers_page en bloque posterior.',
+            'siguiente_accion'    => 'Cerrado producción.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-NEG-7B',
+            'nombre'              => 'Konzerta — enlace externo oficial vacantes',
+            'area'                => 'Contenido/AEO/GEO',
+            'prioridad'           => 'Media',
+            'estado'              => 'En validación',
+            'porcentaje_estimado' => 85,
+            'descripcion'         => 'CTA en trabaja-con-nosotros.php hacia Konzerta (URL oficial grupo); target blank + noopener; mailto secundario; sin listado ni scraping en sitio.',
+            'dependencias'        => ['AM-NEG-7A'],
+            'ultimo_commit'       => '—',
+            'evidencia'           => 'Local: Konzerta empleos-busqueda-panama-car-rental; CTA Ver vacantes target blank noopener; mailto info@automarket.com.pa secundario; pendiente deploy ff-only.',
+            'siguiente_accion'    => 'Pendiente deploy ff-only y validación en producción.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [

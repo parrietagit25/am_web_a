@@ -1,21 +1,28 @@
 <?php
 /**
- * Automarket — Trabaja con Nosotros / Vacantes (módulo público base AM-NEG-7A).
- * Sin integración Konzerta ni almacenamiento de postulaciones en esta fase.
+ * Automarket — Trabaja con Nosotros / Vacantes (AM-NEG-7A base, AM-NEG-7B enlace Konzerta).
+ * Vacantes oficiales en Konzerta; sin scraping, DB ni formulario de postulación en sitio.
  */
 $activeUnit = 'rentacar';
 $skipUnitBusinessSchema = true;
 $seoOverride = [
     'title'       => 'Trabaja con Nosotros | Automarket',
-    'description' => 'Oportunidades laborales en Automarket Panamá. Conoce nuestra cultura y envíanos tu información mientras publicamos vacantes.',
+    'description' => 'Oportunidades laborales en Automarket Panamá. Consulta vacantes abiertas en Konzerta o escríbenos para futuras oportunidades.',
     'robots'      => 'index,follow',
 ];
 require_once __DIR__ . '/../includes/header.php';
+
+$konzertaOfficialUrl = 'https://www.konzerta.com/empleos-busqueda-panama-car-rental.html';
 
 $global = $contentService->get('global', []);
 $careersCms = $contentService->get('global.careers_page', []);
 if (!is_array($careersCms)) {
     $careersCms = [];
+}
+
+$konzertaUrl = trim((string) ($careersCms['konzerta_url'] ?? ''));
+if ($konzertaUrl === '' || !str_starts_with($konzertaUrl, 'https://www.konzerta.com/')) {
+    $konzertaUrl = $konzertaOfficialUrl;
 }
 
 $intro = trim((string) ($careersCms['intro'] ?? ''));
@@ -25,10 +32,10 @@ if ($intro === '') {
         . 'comprometidas, con actitud de servicio y ganas de crecer junto a nosotros.';
 }
 
-$emptyState = trim((string) ($careersCms['empty_state'] ?? ''));
-if ($emptyState === '') {
-    $emptyState = 'Actualmente no hay vacantes publicadas en el sitio. '
-        . 'Puedes enviarnos tu información para futuras oportunidades.';
+$vacanciesNote = trim((string) ($careersCms['vacancies_note'] ?? ''));
+if ($vacanciesNote === '') {
+    $vacanciesNote = 'Todas las vacantes abiertas del grupo se publican en Konzerta, nuestra plataforma oficial de reclutamiento. '
+        . 'No publicamos listados duplicados en este sitio.';
 }
 
 $contactEmail = trim((string) ($global['email'] ?? ''));
@@ -36,8 +43,8 @@ if ($contactEmail === '') {
     $contactEmail = 'info@automarket.com.pa';
 }
 
-$futureNote = 'La integración con plataformas externas de reclutamiento (por ejemplo Konzerta) '
-    . 'se evaluará en un bloque posterior, una vez definida la estrategia con Mercadeo y RR. HH.';
+$futureNote = 'Las postulaciones y vacantes activas se gestionan en Konzerta. '
+    . 'Una integración avanzada por API o automatización queda como mejora futura, no requerida actualmente.';
 ?>
 
 <section class="py-5" style="background-color: #f8f9fc;">
@@ -63,9 +70,15 @@ $futureNote = 'La integración con plataformas externas de reclutamiento (por ej
             <div class="card border-0 shadow-sm p-4 p-md-5 rounded-4 bg-white text-center">
                 <i class="bi bi-briefcase-fill text-danger display-5 mb-3" aria-hidden="true"></i>
                 <h2 class="h4 fw-bold text-navy font-montserrat mb-3">Vacantes</h2>
-                <p class="text-muted font-poppins mb-4"><?php echo esc($emptyState); ?></p>
+                <p class="text-muted font-poppins mb-4"><?php echo esc($vacanciesNote); ?></p>
+                <a href="<?php echo esc($konzertaUrl); ?>"
+                   class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase mb-4"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    Ver vacantes en Konzerta <i class="bi bi-box-arrow-up-right ms-2" aria-hidden="true"></i>
+                </a>
                 <p class="font-poppins text-navy mb-4">
-                    Si deseas dejarnos tu información de contacto, escríbenos a
+                    ¿Prefieres dejarnos tu información para futuras oportunidades? Escríbenos a
                     <a href="mailto:<?php echo esc($contactEmail); ?>" class="text-danger fw-semibold text-decoration-none"><?php echo esc($contactEmail); ?></a>.
                 </p>
                 <p class="small text-muted font-poppins mb-0"><?php echo esc($futureNote); ?></p>
