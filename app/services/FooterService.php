@@ -73,15 +73,29 @@ class FooterService
             if (!UnitContentService::isPubliclyVisible($item)) {
                 continue;
             }
-            $legacy = UnitContentService::newsToLegacyNoticia($item);
-            $posts[] = $this->normalizePost($legacy, 'rentacar', 'Rent A Car', '/noticia.php?id=', 'thumbnail');
+            $posts[] = $this->normalizePost(
+                $item,
+                'rentacar',
+                'Rent A Car',
+                '',
+                'thumbnail',
+                null,
+                UnitContentService::detailUrlForItem($item, 'rentacar', 'news')
+            );
         }
         foreach (UnitContentService::getItems($site, 'rentacar', 'blog') as $item) {
             if (!UnitContentService::isPubliclyVisible($item)) {
                 continue;
             }
-            $legacy = UnitContentService::newsToLegacyNoticia($item);
-            $posts[] = $this->normalizePost($legacy, 'rentacar', 'Rent A Car', '/noticia.php?type=blog&id=', 'thumbnail');
+            $posts[] = $this->normalizePost(
+                $item,
+                'rentacar',
+                'Rent A Car',
+                '',
+                'thumbnail',
+                null,
+                UnitContentService::detailUrlForItem($item, 'rentacar', 'blog')
+            );
         }
         foreach ($site['leasing']['posts'] ?? [] as $item) {
             $id = $item['id'] ?? 0;
@@ -449,10 +463,10 @@ class FooterService
         return array_values($normalized);
     }
 
-    private function normalizePost(array $item, string $unitKey, string $unitLabel, string $urlPrefix, string $imageKey, $id = null): array
+    private function normalizePost(array $item, string $unitKey, string $unitLabel, string $urlPrefix, string $imageKey, $id = null, ?string $urlOverride = null): array
     {
         $postId = $id ?? ($item['id'] ?? 0);
-        $url = $urlPrefix . urlencode((string) $postId);
+        $url = $urlOverride ?? ($urlPrefix . urlencode((string) $postId));
         if ($unitKey === 'leasing') {
             $url = '/leasing.php';
         }

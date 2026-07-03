@@ -52,7 +52,7 @@ if ($type === 'blog') {
 require_once __DIR__ . '/../services/SeoService.php';
 require_once __DIR__ . '/../services/SitemapService.php';
 
-$detailPath = UnitContentService::detailUrl($unitKey, $type, $newsId);
+$detailPath = UnitContentService::detailUrl($unitKey, $type, $newsId, trim((string) ($article['slug'] ?? '')));
 $canonicalBase = SitemapService::canonicalBase($preContent);
 $articleCanonical = rtrim($canonicalBase, '/') . $detailPath;
 $articleSeoTitle = UnitContentService::articleMetaTitle($article);

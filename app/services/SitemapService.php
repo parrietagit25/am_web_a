@@ -92,7 +92,7 @@ class SitemapService
                     if ($id <= 0) {
                         continue;
                     }
-                    $path = UnitContentService::detailUrl($unitKey, $type, $id);
+                    $path = UnitContentService::detailUrlForItem($item, $unitKey, $type);
                     $itemLastmod = UnitContentService::articleIsoDate($item);
                     $urls[] = [
                         'loc' => rtrim($base, '/') . $path,

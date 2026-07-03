@@ -61,6 +61,7 @@ function unit_content_to_card(array $item): array
         'content' => $item['content'] ?? '',
         'show_on_home' => $item['show_on_home'] ?? true,
         'source_type' => $item['source_type'] ?? 'news',
+        'slug' => $item['slug'] ?? '',
         'detail_url' => $item['detail_url'] ?? '',
     ];
 }
@@ -75,7 +76,7 @@ function unit_content_get_items(ContentService $contentService, string $unitKey,
         if (!UnitContentService::isPubliclyVisible($item)) {
             continue;
         }
-        $item['detail_url'] = UnitContentService::detailUrl($unitKey, $type, intval($item['id'] ?? 0));
+        $item['detail_url'] = UnitContentService::detailUrlForItem($item, $unitKey, $type);
         $items[] = unit_content_to_card($item);
     }
 
@@ -145,7 +146,7 @@ function unit_content_get_latest_home(ContentService $contentService, string $un
             if (!unit_content_item_shows_on_latest_home($item, $type)) {
                 continue;
             }
-            $item['detail_url'] = UnitContentService::detailUrl($unitKey, $type, intval($item['id'] ?? 0));
+            $item['detail_url'] = UnitContentService::detailUrlForItem($item, $unitKey, $type);
             $item['source_type'] = $type;
             $pool[] = $item;
         }

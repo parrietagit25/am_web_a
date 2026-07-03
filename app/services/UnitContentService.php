@@ -920,7 +920,44 @@ class UnitContentService
         return true;
     }
 
-    public static function detailUrl(string $unitKey, string $type, int $id): string
+    public static function detailUrl(string $unitKey, string $type, int $id, string $slug = ''): string
+    {
+        if (self::hasFriendlySlug($slug)) {
+            return self::friendlyDetailPath($unitKey, $type, $slug);
+        }
+
+        return self::legacyDetailUrl($unitKey, $type, $id);
+    }
+
+    /** @param array<string, mixed> $item */
+    public static function detailUrlForItem(array $item, string $unitKey, string $type): string
+    {
+        return self::detailUrl(
+            $unitKey,
+            $type,
+            intval($item['id'] ?? 0),
+            trim((string) ($item['slug'] ?? ''))
+        );
+    }
+
+    public static function friendlyDetailPath(string $unitKey, string $type, string $slug): string
+    {
+        return '/blog/'
+            . rawurlencode(trim($unitKey))
+            . '/'
+            . rawurlencode(trim($type))
+            . '/'
+            . rawurlencode(trim($slug));
+    }
+
+    private static function hasFriendlySlug(string $slug): bool
+    {
+        $slug = trim($slug);
+
+        return $slug !== '' && preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/i', $slug) === 1;
+    }
+
+    private static function legacyDetailUrl(string $unitKey, string $type, int $id): string
     {
         if ($unitKey === 'rentacar') {
             if ($type === 'blog') {
@@ -1077,7 +1114,7 @@ class UnitContentService
         }
 
         $item['source_type'] = $type;
-        $item['detail_url'] = self::detailUrl($unitKey, $type, $id);
+        $item['detail_url'] = self::detailUrlForItem($item, $unitKey, $type);
 
         return $item;
     }
