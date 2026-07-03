@@ -18,6 +18,9 @@ require_once __DIR__ . '/../includes/location-public-helper.php';
 
 $semiSucursales = $semiData['sucursales'] ?? [];
 $activeSucursales = am_list_sucursales_for_unit($contentService, 'seminuevos', $semiSucursales);
+
+$_schemaLocationList = $activeSucursales;
+require_once __DIR__ . '/../includes/schema-location-itemlist.php';
 ?>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>

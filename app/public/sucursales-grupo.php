@@ -22,6 +22,9 @@ foreach ($sucursales as $s) {
 }
 
 require_once __DIR__ . '/../includes/header.php';
+
+$_schemaLocationList = $sucursales;
+require_once __DIR__ . '/../includes/schema-location-itemlist.php';
 ?>
 
 <section class="py-5" style="background-color: #f8f9fc;">

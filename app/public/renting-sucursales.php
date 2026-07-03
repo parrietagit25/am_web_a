@@ -10,6 +10,9 @@ require_once __DIR__ . '/../includes/location-public-helper.php';
 $sucursalesRaw = $contentService->get('renting.sucursales', []);
 $sucursales = am_list_sucursales_for_unit($contentService, 'renting', $sucursalesRaw);
 
+$_schemaLocationList = $sucursales;
+require_once __DIR__ . '/../includes/schema-location-itemlist.php';
+
 $hasMap = false;
 foreach ($sucursales as $s) {
     if (trim((string)($s['lat'] ?? '')) !== '' && trim((string)($s['lng'] ?? '')) !== '') {

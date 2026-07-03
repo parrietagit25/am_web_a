@@ -10,6 +10,9 @@ require_once __DIR__ . '/../includes/location-public-helper.php';
 $sucursalesRaw = $contentService->get('taller.sucursales', []);
 $sucursales = am_list_sucursales_for_unit($contentService, 'taller', $sucursalesRaw);
 
+$_schemaLocationList = $sucursales;
+require_once __DIR__ . '/../includes/schema-location-itemlist.php';
+
 $title = $contentService->get('taller.sucursales_title', 'Nuestras Sucursales');
 $subtitle = $contentService->get('taller.sucursales_subtitle', 'Encuentra nuestros talleres y centros de atención.');
 $sideImage = $contentService->get('taller.sucursales_image_url', '');

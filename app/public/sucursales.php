@@ -9,6 +9,9 @@ require_once __DIR__ . '/../includes/location-public-helper.php';
 
 $sucursalesRaw = $contentService->get('homepage.sucursales', []);
 $sucursales = am_list_sucursales_for_unit($contentService, 'rentacar', $sucursalesRaw);
+
+$_schemaLocationList = $sucursales;
+require_once __DIR__ . '/../includes/schema-location-itemlist.php';
 ?>
 
 <!-- Leaflet.js Interactive Map Assets -->

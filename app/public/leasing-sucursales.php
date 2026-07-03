@@ -15,6 +15,9 @@ $lsCtaTitle = trim((string) ($leasingData['sucursales_cta_title'] ?? '')) ?: 'Co
 $lsCtaText = trim((string) ($leasingData['sucursales_cta_text'] ?? '')) ?: 'Soluciones de movilidad para empresas con cobertura en todo el país.';
 
 $sucursales = am_list_sucursales_for_unit($contentService, 'leasing', $sucursalesRaw);
+
+$_schemaLocationList = $sucursales;
+require_once __DIR__ . '/../includes/schema-location-itemlist.php';
 ?>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
