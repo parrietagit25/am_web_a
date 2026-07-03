@@ -9,6 +9,21 @@ require_once __DIR__ . '/../includes/unit-content-frontend.php';
 $preContent = new ContentService();
 $unitKey = unit_content_resolve_unit_key($preContent, 'rentacar');
 $activeUnit = $unitKey;
+
+require_once __DIR__ . '/../services/SeoService.php';
+$blogUnitLabels = [
+    'rentacar'   => 'Rent a Car',
+    'seminuevos' => 'Seminuevos',
+    'leasing'    => 'Leasing Operativo',
+    'renting'    => 'Renting',
+    'taller'     => 'Taller',
+];
+$blogLabel = $blogUnitLabels[$unitKey] ?? 'Automarket';
+$seoOverride = [
+    'title'       => 'Blog ' . $blogLabel . ' | Automarket',
+    'description' => 'Noticias y artículos de Automarket ' . $blogLabel . ' en Panamá.',
+];
+
 require_once __DIR__ . '/../includes/header.php';
 
 $unitLabel = unit_content_unit_label($contentService, $unitKey);

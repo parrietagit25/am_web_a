@@ -3,6 +3,10 @@
  * Automarket - Nuestras Sucursales (Rent A Car Locations)
  */
 $activeUnit = 'rentacar';
+$seoOverride = [
+    'title'       => 'Sucursales Rent a Car | Automarket Panamá',
+    'description' => 'Ubicaciones y horarios de las sucursales de Automarket Rent a Car en Panamá.',
+];
 require_once __DIR__ . '/../includes/header.php';
 
 require_once __DIR__ . '/../includes/location-public-helper.php';

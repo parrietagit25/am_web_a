@@ -7,6 +7,27 @@ if (!in_array($activeUnit, ['rentacar', 'seminuevos', 'leasing', 'renting', 'tal
     $activeUnit = 'rentacar';
 }
 
+$contactSeoTitles = [
+    'rentacar'      => 'Contacto Rent a Car | Automarket',
+    'seminuevos'    => 'Contacto Seminuevos | Automarket',
+    'leasing'       => 'Contacto Leasing Operativo | Automarket',
+    'renting'       => 'Contacto Renting | Automarket',
+    'taller'        => 'Contacto Taller | Automarket',
+    'sostenibilidad'=> 'Contacto | Automarket',
+];
+$contactSeoDesc = [
+    'rentacar'      => 'Teléfonos, correo y canales de contacto de Automarket Rent a Car en Panamá.',
+    'seminuevos'    => 'Contacta al equipo de venta de autos seminuevos de Automarket en Panamá.',
+    'leasing'       => 'Contacta al equipo de leasing operativo de Automarket en Panamá.',
+    'renting'       => 'Contacta al equipo de Automarket Renting en Panamá.',
+    'taller'        => 'Contacta a los talleres Automarket en Panamá.',
+    'sostenibilidad'=> 'Contacta a Automarket en Panamá.',
+];
+$seoOverride = [
+    'title'       => $contactSeoTitles[$activeUnit] ?? 'Contactos | Automarket',
+    'description' => $contactSeoDesc[$activeUnit] ?? 'Contáctanos en Automarket Panamá.',
+];
+
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/unit-footer-prepare.php';
 

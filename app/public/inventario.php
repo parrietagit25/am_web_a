@@ -3,6 +3,10 @@
  * Automarket - Vehículos Seminuevos en Inventario
  */
 $activeUnit = 'seminuevos';
+$seoOverride = [
+    'title'       => 'Inventario de autos seminuevos | Automarket Panamá',
+    'description' => 'Explora el inventario de autos seminuevos disponibles en Automarket Panamá.',
+];
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../services/Database.php';
 require_once __DIR__ . '/../services/InventoryHighlightService.php';

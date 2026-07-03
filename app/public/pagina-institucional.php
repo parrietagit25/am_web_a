@@ -2,6 +2,32 @@
 /**
  * Páginas institucionales del pie de página (grupo).
  */
+
+/**
+ * @return list<array{question:string,answer:string}>
+ */
+function am_institutional_faq_from_html(string $html): array
+{
+    $items = [];
+    if (trim($html) === '') {
+        return $items;
+    }
+
+    if (!preg_match_all('/<strong[^>]*>(.*?)<\/strong>(.*?(?=<strong[^>]*>|$))/is', $html, $matches, PREG_SET_ORDER)) {
+        return $items;
+    }
+
+    foreach ($matches as $match) {
+        $question = trim(html_entity_decode(strip_tags($match[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        $answer = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($match[2]), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+        if ($question !== '' && $answer !== '') {
+            $items[] = ['question' => $question, 'answer' => $answer];
+        }
+    }
+
+    return $items;
+}
+
 $activeUnit = 'rentacar';
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/ContentService.php';
@@ -62,6 +88,16 @@ require_once __DIR__ . '/../includes/article-content.php';
         </div>
     </div>
 </section>
+
+<?php
+if ($key === 'faq') {
+    $_sfItems = am_institutional_faq_from_html((string) ($page['content_html'] ?? ''));
+    if ($_sfItems !== []) {
+        require_once __DIR__ . '/../includes/schema-faq.php';
+    }
+    unset($_sfItems);
+}
+?>
 
 <style>
 .institutional-content img { max-width: 100%; height: auto; border-radius: 8px; }

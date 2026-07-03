@@ -2,7 +2,13 @@
 /**
  * Automarket - Sostenibilidad Homepage
  */
-$activeUnit = 'sostenibilidad';
+$activeUnit = 'rentacar';
+$skipUnitBusinessSchema = true;
+$seoOverride = [
+    'title'       => 'Sostenibilidad | Automarket',
+    'description' => 'Programas de sostenibilidad, compensación de carbono y movilidad responsable de Automarket en Panamá.',
+    'robots'      => 'index,follow',
+];
 require_once __DIR__ . '/../includes/header.php';
 ?>
 

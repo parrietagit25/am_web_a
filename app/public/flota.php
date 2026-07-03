@@ -3,6 +3,10 @@
  * Automarket - Fleet Catalog View (Flota de Alquiler)
  */
 $activeUnit = 'rentacar';
+$seoOverride = [
+    'title'       => 'Flota de alquiler | Automarket Rent a Car',
+    'description' => 'Catálogo de vehículos de alquiler Automarket Rent a Car en Panamá.',
+];
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/fleet-categories.php';
 

@@ -132,7 +132,9 @@ $themeRgb = "$r, $g, $b";
     <?php echo $trackingCodes['head_html']; ?>
     <?php endif; ?>
     <?php
-    require __DIR__ . '/schema-unit-business.php';
+    if (empty($skipUnitBusinessSchema)) {
+        require __DIR__ . '/schema-unit-business.php';
+    }
     ?>
     <?php
     // ── SE11: Schema.org BreadcrumbList JSON-LD global ───────────────────────

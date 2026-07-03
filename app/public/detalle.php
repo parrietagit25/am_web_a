@@ -282,7 +282,7 @@ $vehicleHighlightBadge = InventoryHighlightService::resolveBadge($vehicle, $inve
             $highlightVariant = 'detail';
             require __DIR__ . '/../includes/inventory-highlight-badge.php';
             ?>
-            <h2 class="display-6 fw-bold text-navy mb-4 font-montserrat text-uppercase"><?php echo esc($fullName) . " " . esc($vehicle['Year']); ?></h2>
+            <h1 class="display-6 fw-bold text-navy mb-4 font-montserrat text-uppercase"><?php echo esc($fullName) . " " . esc($vehicle['Year']); ?></h1>
             
             <div class="viewer-360-container">
                 <iframe id="iframe360" src="<?php echo $spinUrl; ?>" width="100%" height="550" style="border:none; display:block; width:100%;" frameborder="0" allowfullscreen="" allowtransparency="" scrolling="no" onerror="showViewerFallback()">

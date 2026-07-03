@@ -3,6 +3,10 @@
  * Automarket - Términos y Condiciones
  */
 $activeUnit = 'rentacar';
+$seoOverride = [
+    'title'       => 'Términos y condiciones de alquiler | Automarket',
+    'description' => 'Términos y condiciones del servicio de alquiler de Automarket Rent a Car en Panamá.',
+];
 require_once __DIR__ . '/../includes/header.php';
 
 $terminosHtml = $contentService->get('homepage.terminos_condiciones', '<h3>Términos y Condiciones</h3><p>Contenido en mantenimiento.</p>');

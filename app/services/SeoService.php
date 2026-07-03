@@ -54,7 +54,7 @@ class SeoService {
         $defaultDesc = trim((string)($seoGlobal['default_description'] ?? $fallbackDescription));
         $defaultOgImage = trim((string)($seoGlobal['default_og_image'] ?? ''));
         $defaultRobots = trim((string)($seoGlobal['default_robots'] ?? 'index,follow'));
-        $canonicalBase = rtrim(trim((string)($seoGlobal['canonical_base_url'] ?? '')), '/');
+        $canonicalBase = self::canonicalBaseFromSiteData($siteData);
 
         $title = trim((string)($pageSeo['title'] ?? ''));
         if ($title === '') {
@@ -77,12 +77,22 @@ class SeoService {
         }
 
         $canonical = trim((string)($pageSeo['canonical_url'] ?? ''));
-        if ($canonical === '' && $canonicalBase !== '') {
-            $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
-            $canonical = $canonicalBase . $path;
+        if ($canonical === '') {
+            $uri = $_SERVER['REQUEST_URI'] ?? '/';
+            $path = parse_url($uri, PHP_URL_PATH) ?: '/';
+            $query = [];
+            $rawQuery = parse_url($uri, PHP_URL_QUERY);
+            if (is_string($rawQuery) && $rawQuery !== '') {
+                parse_str($rawQuery, $query);
+                unset($query['lang']);
+            }
+            $canonical = rtrim($canonicalBase, '/') . $path;
+            if ($query !== []) {
+                $canonical .= '?' . http_build_query($query);
+            }
         }
 
-        $hreflangBase = $canonicalBase !== '' ? $canonicalBase : 'https://www.automarket.com.pa';
+        $hreflangBase = $canonicalBase;
 
         $ogTitle = trim((string)($pageSeo['og_title'] ?? ''));
         if ($ogTitle === '') {
@@ -127,6 +137,9 @@ class SeoService {
         if ($base === 'index' || $base === 'rent-a-car') {
             return 'home';
         }
+        if ($base === 'pagina-institucional') {
+            return 'pagina-institucional';
+        }
         return $base;
     }
 
@@ -163,6 +176,9 @@ class SeoService {
             'pago-seguro' => 'Paga tu reserva de alquiler de forma segura con Automarket Rent a Car.',
             'contenido-reciente' => 'Novedades y actualizaciones de Automarket en Panamá.',
             'seminuevos-sucursales' => 'Sucursales de venta de autos seminuevos Automarket en Panamá.',
+            'sostenibilidad' => 'Programas de sostenibilidad y movilidad responsable de Automarket en Panamá.',
+            'pagina-institucional' => 'Información institucional del grupo Automarket en Panamá.',
+            'sucursales-grupo' => 'Sucursales del grupo Automarket en Panamá.',
         ];
 
         return trim($map[$pageKey] ?? $callerFallback);
