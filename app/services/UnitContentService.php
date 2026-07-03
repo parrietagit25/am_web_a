@@ -729,8 +729,24 @@ class UnitContentService
         return $keys;
     }
 
+    /** Títulos demo conocidos (coincidencia exacta, case-insensitive). */
+    private const DEMO_TITLES = [
+        'prueba',
+        'prueba noticias',
+        'prueba contenido mas reciente',
+        'prueba blog',
+    ];
+
+    /** Slugs demo conocidos (coincidencia exacta). */
+    private const DEMO_SLUGS = [
+        'prueba',
+        'prueba-noticias',
+        'prueba-contenido-mas-reciente',
+    ];
+
     /**
      * Contenido de prueba/demo: no indexar ni mostrar en www aunque published=true.
+     * Conservador: no excluye títulos legítimos como «Prueba de manejo».
      *
      * @param array<string, mixed> $item
      */
@@ -741,12 +757,12 @@ class UnitContentService
         }
 
         $title = mb_strtolower(trim((string) ($item['title'] ?? '')), 'UTF-8');
-        if ($title !== '' && preg_match('/^prueba(\b|[\s\-_:])/u', $title) === 1) {
+        if ($title !== '' && in_array($title, self::DEMO_TITLES, true)) {
             return true;
         }
 
         $slug = mb_strtolower(trim((string) ($item['slug'] ?? '')), 'UTF-8');
-        if ($slug !== '' && (str_starts_with($slug, 'prueba') || str_starts_with($slug, 'test-'))) {
+        if ($slug !== '' && in_array($slug, self::DEMO_SLUGS, true)) {
             return true;
         }
 
