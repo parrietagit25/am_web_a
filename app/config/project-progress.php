@@ -8,14 +8,14 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-CONT-4C-B4',
+        'version_tablero'  => 'AM-DASH-0F',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Módulo técnico listo / contenido pendiente Mercadeo, Cerrado por absorción en bloque posterior, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
     ],
 
     'resumen' => [
-        'avance_global'     => 85,
+        'avance_global'     => 86,
         'seo_tecnico'       => 92,
         'cms_editorial'     => 93,
         'ux_conversion'     => 64,
@@ -23,6 +23,10 @@ return [
     ],
 
     'pendientes_funcionales' => [],
+
+    'notas_operativas' => [
+        ['fecha' => '2026-07-03', 'titulo' => 'Search Console post-migración /blog/', 'texto' => 'Monitoreo recomendado: revisar Search Console durante 2–4 semanas tras migración /blog/ para confirmar caída de legacy noticia.php, consolidación de URLs /blog/{unit}/{type}/{slug}, rastreo de 301 y ausencia de 404/cadenas de redirección.'],
+    ],
 
     'modulos_contenido_pendiente' => [
         ['item' => 'Blog / noticias / novedades RAC', 'nota' => 'Infraestructura funcional cerrada (AM-CONT-4C-A): listados /blog.php, /noticias.php, /contenido-reciente.php y detalle noticia.php; schema Article/NewsArticle/BlogPosting; sitemap filtra demo/no publicados. Noticias RAC con contenido real; blog/novedades pendientes de contenido final o reemplazo de demo. Mercadeo publica desde admin; sin inventar contenido ni tocar site_data.json.'],
@@ -120,6 +124,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-4C-B3-C cerrado prod HEAD 6d4ad92 — redirects 301 desde noticia.php?id y noticia.php?unit/type/id hacia /blog/{unit}/{type}/{slug}; 10 URLs legacy validadas; URLs limpias HTTP 200; canonical/sitemap/schema/OG ya alineados desde B3-D; sin nginx, sin Docker, sin sitemap adicional y sin tocar site_data.json.'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-4C-B3-E cerrado prod HEAD df7f7dd — cierre final migración URLs amigables blog/noticia; B3-A/B/C/D cerrados; 10 legacy noticia.php redirigen 301 a /blog/{unit}/{type}/{slug}; 10 URLs limpias HTTP 200; sitemap 10 /blog y 0 noticia.php; canonical/OG/JSON-LD URL limpia; métricas recalibradas 84/93/73/91/64.'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-4C-B4 cerrado prod HEAD 72baae1 — cierre/recalibración epic meta URLs; B0/B1/B3 cerrados; B2 absorbido por B3-D; B3-A/B/C/D/E cerrados; AM-CONT-4C queda como módulo técnico listo/contenido pendiente Mercadeo; métricas recalibradas 85/93/73/92/64.'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0F cerrado prod HEAD f0b010f — dashboard recalibrado post AM-CONT-4C-B4; siguientes acciones obsoletas B0/B1/4C-A/DASH-0E alineadas; AM-CONT-4C-B cerrado técnicamente; AM-CONT-4C sigue abierto por contenido Mercadeo; nota Search Console 2–4 semanas; métricas 86/93/73/92/64.'],
     ],
 
     'bloques' => [
@@ -414,7 +419,7 @@ return [
             'dependencias'        => ['AM-SEO-4A'],
             'ultimo_commit'       => '16bb81e',
             'evidencia'           => 'Prod 16bb81e: blog 0 Prueba + estado vacío; noticia.php?id=1 → 200 NewsArticle; sitemap 10 noticia/0 prueba/144 autos/20 sucursal; EO5144 intacto; filtro demo no bloquea «Prueba de manejo».',
-            'siguiente_accion'    => 'Cerrado. Mercadeo publica desde admin. Futuro opcional: meta por artículo, URLs /blog/{slug}, redirect blog.php?id→noticia.php.',
+            'siguiente_accion'    => 'Meta/URLs del bloque B cerradas; AM-CONT-4C permanece abierto por contenido editorial pendiente de Mercadeo.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -427,8 +432,8 @@ return [
             'descripcion'         => 'Epic: módulo funcional cerrado en AM-CONT-4C-A; epic B meta/URLs cerrado (B0/B1/B3/B4); B2 absorbido por B3-D; contenido editorial Mercadeo pendiente.',
             'dependencias'        => ['AM-CONT-4C-A'],
             'ultimo_commit'       => '72baae1',
-            'evidencia'           => '4C-A cerrado prod; epic B cerrado: B0 diagnóstico, B1 meta SEO, B3 URLs limpias con canonical/sitemap/schema/OG/301, B4 cierre dashboard; B2 absorbido por B3-D; 10 /blog en sitemap; contenido editorial pendiente Mercadeo.',
-            'siguiente_accion'    => 'Mercadeo publica contenido real; continuar próximo bloque priorizado del roadmap; monitorear Search Console tras migración URLs.',
+            'evidencia'           => '4C-A cerrado prod; epic B meta/URLs cerrado técnicamente (B0–B4); B2 absorbido por B3-D; 10 /blog en sitemap; contenido editorial pendiente Mercadeo; pendientes_funcionales vacío.',
+            'siguiente_accion'    => 'Mercadeo publica contenido real; monitorear Search Console 2–4 semanas tras migración /blog/; no iniciar AM-SEO-3G-C ni nuevos 301 sin autorización.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -442,7 +447,7 @@ return [
             'dependencias'        => ['AM-CONT-4C', 'AM-CONT-4C-A', 'AM-DASH-0E'],
             'ultimo_commit'       => '0d5c7a0',
             'evidencia'           => 'Diagnóstico formal validado: noticia.php opera con detalle por id y type/unit opcional; blog.php existe pero en producción no muestra artículos blog publicados; noticias.php sí enlaza detalles noticia.php?id=...; los artículos tienen slug normalizado en datos/CMS pero no se usa en URL pública, canonical ni sitemap; meta title/description se derivan de title/excerpt/description y no existen campos SEO dedicados por artículo; canonical actual apunta a noticia.php?id=...; Open Graph y JSON-LD Article/NewsArticle/BlogPosting existen; cambio a /blog/{slug} requiere autorización explícita por impacto en rutas, canonical, sitemap y redirects 301. Restricciones: no implementar /blog/{slug} todavía; no tocar nginx; no tocar site_data.json; no cambiar canonical público ni sitemap todavía.',
-            'siguiente_accion'    => 'Continuar con AM-CONT-4C-B2 canonical/schema refinado sin cambiar URLs, o AM-CONT-4C-B3 /blog/{slug}+301 solo con autorización explícita.',
+            'siguiente_accion'    => 'B1 y B3 cerrados; B2 quedó absorbido por B3-D. Mantener monitoreo Search Console post migración.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -456,7 +461,7 @@ return [
             'dependencias'        => ['AM-CONT-4C-B0'],
             'ultimo_commit'       => '0d5c7a0',
             'evidencia'           => 'Meta SEO dedicada por artículo implementada sin cambiar URLs: unit-content soporta meta_title/meta_description opcionales; admin permite editar título SEO y descripción SEO para news/blog/latest; noticia.php prioriza meta dedicada con fallback a title/excerpt/description actual; OG/schema conservan compatibilidad; canonical y URL pública noticia.php?id=... se mantienen sin cambios. No se tocó nginx, sitemap, site_data.json ni redirects.',
-            'siguiente_accion'    => 'Continuar con AM-CONT-4C-B2 para canonical/schema refinado sin cambiar URLs, o mantener AM-CONT-4C-B3 pospuesto hasta autorización explícita para /blog/{slug}+301.',
+            'siguiente_accion'    => 'B3-D cubrió canonical/schema; B3-C activó 301. Mantener monitoreo Search Console.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -624,7 +629,21 @@ return [
             'dependencias'        => ['AM-CONT-6F', 'AM-DASH-0D'],
             'ultimo_commit'       => '9f87101',
             'evidencia'           => 'Dashboard alineado tras cierre AM-CONT-6F: se consolidan estados obsoletos/heredados del tablero, se preservan bloqueos de negocio y datos externos, se mantienen pendientes editoriales de Mercadeo sin tocar contenido ni site_data.json. Métricas conservadas por tratarse de ordenamiento administrativo sin cambio funcional.',
-            'siguiente_accion'    => 'Continuar con sprint técnico opcional AM-CONT-4C-B de URLs/meta por artículo solo con autorización explícita; si no, esperar insumos de Mercadeo para pendientes editoriales y datos externos.',
+            'siguiente_accion'    => 'AM-CONT-4C-B cerrado; continuar con monitoreo SEO/Search Console y pendientes Mercadeo/negocio.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-DASH-0F',
+            'nombre'              => 'Recalibración dashboard post AM-CONT-4C-B4',
+            'area'                => 'Infraestructura',
+            'prioridad'           => 'Media',
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
+            'descripcion'         => 'Housekeeping del tablero tras cierre AM-CONT-4C-B4: alineación de siguientes acciones obsoletas y nota Search Console.',
+            'dependencias'        => ['AM-CONT-4C-B4', 'AM-DASH-0E'],
+            'ultimo_commit'       => 'f0b010f',
+            'evidencia'           => 'Dashboard recalibrado tras cierre AM-CONT-4C-B4: se alinean siguientes acciones obsoletas de AM-CONT-4C-A/B0/B1 y AM-DASH-0E, se consolida AM-CONT-4C-B como cerrado técnicamente, se mantiene AM-CONT-4C abierto solo por contenido editorial Mercadeo, y se agrega nota de monitoreo Search Console post migración /blog/. No se cambió código funcional, sitemap, nginx, site_data.json ni contenido editorial.',
+            'siguiente_accion'    => 'Monitorear Search Console/SEO durante 2–4 semanas tras migración /blog/ y avanzar solo con bloques dependientes de Mercadeo/negocio cuando existan insumos; no iniciar AM-SEO-3G-C ni nuevos 301 legacy sin autorización explícita.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
