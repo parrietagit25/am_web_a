@@ -102,6 +102,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-6C: diagnóstico opción C aprobado — Sostenibilidad página propia intacta; Fundación sin publicar; sin site_data/nginx/footer/sitemap; bloque en validación'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-6C cerrado prod HEAD ae1ed99 — deploy ff-only; php -l OK; dashboard test 200+noindex/www 404+noindex; Sostenibilidad intacta; Fundación sin publicar; sin site_data/nginx/footer/sitemap; métricas 75/90/78/62'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-6D: diagnóstico FAQ aprobado — infraestructura global/unidad existente; schema FAQPage condicional; contenido pendiente Mercadeo; sin tocar site_data ni código público'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-6D cerrado prod HEAD 082001d — deploy ff-only; php -l OK; dashboard test 200+noindex/www 404+noindex; FAQ global/unidad diagnosticado; contenido pendiente Mercadeo; sin site_data ni código público'],
     ],
 
     'bloques' => [
@@ -404,13 +405,13 @@ return [
             'nombre'              => 'FAQ institucional por unidad',
             'area'                => 'Contenido/AEO/GEO',
             'prioridad'           => 'Media',
-            'estado'              => 'En validación',
-            'porcentaje_estimado' => 90,
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
             'descripcion'         => 'Diagnóstico y documentación de infraestructura FAQ existente, sin cambios funcionales ni contenido inventado.',
             'dependencias'        => ['AM-CONT-4C-A'],
-            'ultimo_commit'       => '—',
-            'evidencia'           => 'Local diagnóstico aprobado; pagina-institucional FAQ, unit FAQ, schema condicional, sitemap/footer existentes; contenido pendiente Mercadeo.',
-            'siguiente_accion'    => 'Validar dashboard test; luego cierre dashboard si producción queda OK.',
+            'ultimo_commit'       => '082001d',
+            'evidencia'           => 'Prod 082001d: deploy ff-only OK; php -l OK; dashboard test 200+noindex/www 404+noindex; FAQ institucional y FAQ por unidad diagnosticados; FAQPage schema condicional existente; contenido pendiente Mercadeo; sin tocar site_data ni código público.',
+            'siguiente_accion'    => 'Cerrado. Mercadeo debe cargar contenido final FAQ desde admin; futuro ajuste UX/schema solo si negocio lo solicita.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
