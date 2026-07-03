@@ -38,6 +38,26 @@ if (!$article) {
     exit;
 }
 
+require_once __DIR__ . '/../services/SeoService.php';
+require_once __DIR__ . '/../services/SitemapService.php';
+
+$articleSlug = trim((string) ($article['slug'] ?? ''));
+$detailPath = UnitContentService::detailUrl($unitKey, $type, $newsId, $articleSlug);
+$canonicalBase = SitemapService::canonicalBase($preContent);
+$articleCanonical = rtrim($canonicalBase, '/') . $detailPath;
+
+$requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?? '';
+$isCleanBlogRequest = $requestPath !== '' && str_starts_with($requestPath, '/blog/');
+$isLegacyNoticiaScript = basename($_SERVER['SCRIPT_NAME'] ?? '') === 'noticia.php';
+if (
+    $isLegacyNoticiaScript
+    && !$isCleanBlogRequest
+    && str_starts_with($detailPath, '/blog/')
+) {
+    header('Location: ' . $articleCanonical, true, 301);
+    exit;
+}
+
 if ($type === 'blog') {
     $backUrl = '/blog.php' . $unitQuery;
     $backLabel = 'Volver al Blog';
@@ -49,12 +69,6 @@ if ($type === 'blog') {
     $backLabel = 'Volver a Noticias';
 }
 
-require_once __DIR__ . '/../services/SeoService.php';
-require_once __DIR__ . '/../services/SitemapService.php';
-
-$detailPath = UnitContentService::detailUrl($unitKey, $type, $newsId, trim((string) ($article['slug'] ?? '')));
-$canonicalBase = SitemapService::canonicalBase($preContent);
-$articleCanonical = rtrim($canonicalBase, '/') . $detailPath;
 $articleSeoTitle = UnitContentService::articleMetaTitle($article);
 $articleSeoDescription = UnitContentService::articleMetaDescription($article);
 $ogImage = trim((string) ($article['banner'] ?? ($article['thumbnail'] ?? '')));

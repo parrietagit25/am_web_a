@@ -8,18 +8,18 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-CONT-4C-B3-D',
+        'version_tablero'  => 'AM-CONT-4C-B3-C',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
     ],
 
     'resumen' => [
-        'avance_global'     => 82,
-        'seo_tecnico'       => 87,
+        'avance_global'     => 83,
+        'seo_tecnico'       => 90,
         'cms_editorial'     => 93,
         'ux_conversion'     => 64,
-        'contenido_aeo_geo' => 71,
+        'contenido_aeo_geo' => 72,
     ],
 
     'pendientes_funcionales' => [],
@@ -117,6 +117,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-4C-B3-A cerrado prod HEAD 6e20f64 — resolución por slug en PHP implementada sin cambiar URLs públicas; noticia.php acepta slug con unit/type y mantiene prioridad id; canonical/sitemap/detailUrl/enlaces públicos siguen en noticia.php?id; sin nginx, sin 301, sin /blog/{unit}/{type}/{slug} y sin tocar site_data.json.'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-4C-B3-B cerrado prod HEAD 1434146 — ruta limpia /blog/{unit}/{type}/{slug} habilitada vía nginx rewrite interno a noticia.php?unit/type/slug; validada 200 sin 301; canonical/sitemap/detailUrl/enlaces públicos permanecen en noticia.php?id; sin tocar site_data.json ni contenido editorial.'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-4C-B3-D cerrado prod HEAD 888e8a7 — canonical/sitemap/schema/OG/detailUrl actualizados hacia /blog/{unit}/{type}/{slug}; URLs viejas noticia.php?id mantienen HTTP 200 sin 301; sitemap publica URL limpia; sin nginx, sin Docker, sin site_data.json y sin contenido editorial.'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-4C-B3-C cerrado prod HEAD 6d4ad92 — redirects 301 desde noticia.php?id y noticia.php?unit/type/id hacia /blog/{unit}/{type}/{slug}; 10 URLs legacy validadas; URLs limpias HTTP 200; canonical/sitemap/schema/OG ya alineados desde B3-D; sin nginx, sin Docker, sin sitemap adicional y sin tocar site_data.json.'],
     ],
 
     'bloques' => [
@@ -475,13 +476,13 @@ return [
             'nombre'              => 'URLs amigables /blog/{slug} + redirects 301',
             'area'                => 'SEO técnico',
             'prioridad'           => 'Baja',
-            'estado'              => 'En desarrollo controlado por subciclos',
-            'porcentaje_estimado' => 75,
-            'descripcion'         => 'Epic URLs amigables por subciclos B3-A–B3-E; B3-A/B/B/D cerrados; canonical/sitemap/enlaces en URL limpia; 301 pendiente B3-C.',
+            'estado'              => 'En validación final por subciclos',
+            'porcentaje_estimado' => 90,
+            'descripcion'         => 'Epic URLs amigables B3-A–B3-D y B3-C cerrados; 301 legacy→URL limpia activo; pendiente B3-E cierre dashboard.',
             'dependencias'        => ['AM-CONT-4C-B0', 'AM-CONT-4C-B1'],
-            'ultimo_commit'       => '888e8a7',
-            'evidencia'           => 'B3-A slug PHP; B3-B nginx 200; B3-D canonical/sitemap/detailUrl/OG/schema hacia /blog/{unit}/{type}/{slug}; URLs viejas 200 sin 301. Pendiente B3-C redirects.',
-            'siguiente_accion'    => 'Continuar AM-CONT-4C-B3-C redirects 301 desde noticia.php?id tras validar estabilidad canonical/sitemap limpio.',
+            'ultimo_commit'       => '6d4ad92',
+            'evidencia'           => 'B3-A/B/B/D/C cerrados: URL limpia, canonical/sitemap/enlaces, redirects 301 desde noticia.php legacy. Pendiente B3-E cierre epic.',
+            'siguiente_accion'    => 'Continuar AM-CONT-4C-B3-E cierre dashboard/recalibración final migración URLs blog/noticia.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -514,16 +515,16 @@ return [
         ],
         [
             'codigo'              => 'AM-CONT-4C-B3-C',
-            'nombre'              => 'Redirects 301 desde noticia.php?id hacia URL nueva',
+            'nombre'              => 'Redirects 301 desde URLs legacy hacia URL limpia',
             'area'                => 'SEO técnico',
             'prioridad'           => 'Media',
-            'estado'              => 'Pendiente funcional',
-            'porcentaje_estimado' => 0,
-            'descripcion'         => '301 desde URLs legacy noticia.php?... hacia /blog/{unit}/{type}/{slug}.',
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
+            'descripcion'         => '301 desde noticia.php?id y noticia.php?unit/type/id hacia /blog/{unit}/{type}/{slug}; anti-loop /blog/.',
             'dependencias'        => ['AM-CONT-4C-B3-B', 'AM-CONT-4C-B3-D'],
-            'ultimo_commit'       => '—',
-            'evidencia'           => 'Pendiente; canonical/sitemap ya en URL limpia; ~10 artículos publicados.',
-            'siguiente_accion'    => 'Implementar 301 condicional en noticia.php?id solo para artículos con slug válido y publicados.',
+            'ultimo_commit'       => '6d4ad92',
+            'evidencia'           => 'Redirects 301 implementados desde URLs legacy noticia.php?id y noticia.php?unit/type/id hacia /blog/{unit}/{type}/{slug} para artículos publicados con slug válido. Las URLs limpias permanecen HTTP 200, sitemap/canonical/schema/OG ya apuntaban a URL limpia desde B3-D, y se evita redirect loop verificando que la petición original no sea /blog/. No se tocó nginx, Docker, sitemap, site_data.json ni contenido editorial.',
+            'siguiente_accion'    => 'Continuar con AM-CONT-4C-B3-E para cierre dashboard/recalibración final de la migración de URLs blog/noticia.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -537,7 +538,7 @@ return [
             'dependencias'        => ['AM-CONT-4C-B3-B'],
             'ultimo_commit'       => '888e8a7',
             'evidencia'           => 'Canonical, sitemap, schema/OG y enlaces públicos actualizados hacia /blog/{unit}/{type}/{slug} para artículos con slug válido. Las URLs viejas noticia.php?id siguen respondiendo HTTP 200 como fallback sin 301. Sitemap publica URLs limpias, canonical apunta a URL limpia tanto desde URL vieja como desde URL nueva, y JSON-LD/OG heredan canonical limpio. No se tocó nginx, Docker, site_data.json ni contenido editorial.',
-            'siguiente_accion'    => 'Continuar con AM-CONT-4C-B3-C para redirects 301 desde URLs viejas noticia.php?id hacia URLs limpias, después de validar estabilidad de canonical/sitemap limpio.',
+            'siguiente_accion'    => 'Continuar con AM-CONT-4C-B3-E para cierre dashboard/recalibración final migración URLs.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
