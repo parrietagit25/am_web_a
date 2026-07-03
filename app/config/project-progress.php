@@ -98,6 +98,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5C local: opiniones venta-autos; Destacados/Novedades unit-content; leasing-flota cabecera; admin mínimo; fallbacks conservadores'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5C cerrado prod HEAD f3e2143 — deploy ff-only; php-l 11/11; smoke venta-autos/inventario/leasing-flota 200; admin 302 login; fallbacks OK; sitemap 1/147/0/20/0; dashboard test 200/www 404'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0C: limpieza pendientes post-5C — removido Footer builder (5A-B cerrado) y post-5B de pendiente funcional; métricas 75/90/78/62 sin cambio'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0C cerrado prod HEAD df4e40a — deploy ff-only; compose exec app php -l OK; dashboard test 200/www 404; pendientes_funcionales limpiados; métricas 75/90/78/62 sin cambio'],
     ],
 
     'bloques' => [
@@ -330,13 +331,13 @@ return [
             'nombre'              => 'Limpieza de pendientes post 5C',
             'area'                => 'Infraestructura',
             'prioridad'           => 'Baja',
-            'estado'              => 'En validación',
-            'porcentaje_estimado' => 85,
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
             'descripcion'         => 'Depuración dashboard: pendientes_funcionales sin ítems ya cerrados (5A-B, post-5B); módulos contenido y bloqueados alineados.',
             'dependencias'        => ['AM-CMS-5C'],
-            'ultimo_commit'       => '—',
-            'evidencia'           => 'Local: pendientes_funcionales vacío; modulos_contenido_pendiente (blog/FAQ/legacy); bloqueados decisión/dato externos intactos; avance 75% cms 90%.',
-            'siguiente_accion'    => 'Validar dashboard test 200/www 404; deploy ff-only y cierre prod.',
+            'ultimo_commit'       => 'df4e40a',
+            'evidencia'           => 'Prod df4e40a: deploy ff-only; compose exec app php -l OK; dashboard test 200/www 404; pendientes_funcionales vacío; métricas 75/90/78/62.',
+            'siguiente_accion'    => 'Cerrado. Mantener backlog alineado tras epic 5C.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
