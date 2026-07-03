@@ -16,10 +16,10 @@ return [
 
     'resumen' => [
         'avance_global'     => 60,
-        'seo_tecnico'       => 74,
+        'seo_tecnico'       => 78,
         'cms_editorial'     => 88,
         'ux_conversion'     => 64,
-        'contenido_aeo_geo' => 52,
+        'contenido_aeo_geo' => 58,
     ],
 
     'pendientes_funcionales' => [
@@ -89,6 +89,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B5: auditoría cierre epic — H1/intros principales CMS en 12 páginas auditadas; pendientes menores documentados backlog post-5B'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B cerrado prod HEAD 980aed3 — epic 5B0–5B4 completos; helpers rentacar/seminuevos/lrt/contact-locations; dashboard test 200/www 404'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6A local: Organization global JSON-LD + sameAs footer; parentOrganization unidades/sucursales; schema-organization-helper.php'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6A cerrado prod HEAD a857c27 — deploy ff-only; compose exec app php -l 7/7; smoke páginas principales 200; JSON-LD Organization/sameAs/#organization OK; sitemap 147/0/20/0; dashboard test 200/www 404'],
     ],
 
     'bloques' => [
@@ -573,13 +574,13 @@ return [
             'nombre'              => 'Organization schema sameAs / GBP / Wikidata',
             'area'                => 'Contenido/AEO/GEO',
             'prioridad'           => 'Media',
-            'estado'              => 'En validación',
-            'porcentaje_estimado' => 85,
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
             'descripcion'         => 'Organization global JSON-LD en todas las páginas; sameAs desde redes footer CMS; parentOrganization en unidades y sucursales; pendiente GBP/Wikidata sin URL verificada.',
             'dependencias'        => ['AM-SEO-4A'],
-            'ultimo_commit'       => '—',
-            'evidencia'           => 'Local: schema-organization.php + helper; unit-business sin sameAs duplicado; location parentOrganization resuelto; article publisher @id.',
-            'siguiente_accion'    => 'QA JSON-LD páginas principales; commit local; deploy tras aprobación; GBP/Wikidata cuando negocio confirme URLs.',
+            'ultimo_commit'       => 'a857c27',
+            'evidencia'           => 'Prod a857c27: deploy ff-only; compose exec app php -l 7/7; smoke rent-a-car/venta-autos/renting/leasing/taller/sucursales/EO5144 200; JSON-LD Organization 1× + sameAs + #organization; sitemap 147/0/20/0; dashboard test 200/www 404.',
+            'siguiente_accion'    => 'Cerrado producción. GBP/Wikidata cuando negocio confirme URLs.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
