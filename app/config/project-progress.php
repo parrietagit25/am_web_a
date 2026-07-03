@@ -8,7 +8,7 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-CMS-5B4',
+        'version_tablero'  => 'AM-CMS-5B5',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
@@ -17,7 +17,7 @@ return [
     'resumen' => [
         'avance_global'     => 60,
         'seo_tecnico'       => 72,
-        'cms_editorial'     => 85,
+        'cms_editorial'     => 88,
         'ux_conversion'     => 64,
         'contenido_aeo_geo' => 45,
     ],
@@ -25,7 +25,7 @@ return [
     'pendientes_funcionales' => [
         ['item' => 'Vacantes / Trabaja con nosotros (sección base)', 'nota' => 'Falta módulo público de vacantes antes de integrar Konzerta.'],
         ['item' => 'Footer builder columnas (AM-CMS-5A-B)', 'nota' => 'B0–B3 cerrados prod (builder columnas enlaces; also_know/redes/pagos v1 separados).'],
-        ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'B1/B2/B3/B4 cerrados prod (55b557c); pendiente 5B5 cierre epic.'],
+        ['item' => 'Títulos/subtítulos secundarios (post-5B)', 'nota' => 'Epic AM-CMS-5B cerrado prod (980aed3). Backlog menor: opiniones venta-autos, Destacados/Novedades unit-content, leasing-flota cabecera.'],
     ],
 
     'modulos_contenido_pendiente' => [
@@ -86,6 +86,8 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B3 cerrado prod HEAD 6d18635 — deploy ff-only; renting/leasing/taller 200; compose exec app php -l 6/6; sitemap 147/0/20/0; dashboard test 200/www 404'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B4 local: contactos/sucursales títulos CMS; contact-locations-public-copy.php; RAC/renting/semi/grupo; fallbacks conservadores'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B4 cerrado prod HEAD 55b557c — deploy ff-only; compose exec app php -l 11/11; smoke contactos/sucursales 200; regresiones OK; sitemap 147/0/20/0; dashboard test 200/www 404; QA admin guardar/vaciar/fallback/restaurar OK'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B5: auditoría cierre epic — H1/intros principales CMS en 12 páginas auditadas; pendientes menores documentados backlog post-5B'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B cerrado prod HEAD 980aed3 — epic 5B0–5B4 completos; helpers rentacar/seminuevos/lrt/contact-locations; dashboard test 200/www 404'],
     ],
 
     'bloques' => [
@@ -404,11 +406,11 @@ return [
             'prioridad'           => 'Media',
             'estado'              => 'En desarrollo',
             'porcentaje_estimado' => 65,
-            'descripcion'         => 'Epic CMS Seminuevos-Renting: 5A-B footer cerrado prod; 5B1/5B2/5B3 títulos CMS cerrados prod.',
+            'descripcion'         => 'Epic CMS Seminuevos-Renting: 5A-B footer cerrado prod; epic 5B títulos editables cerrado prod (980aed3).',
             'dependencias'        => ['AM-CMS-3B3'],
-            'ultimo_commit'       => '6d18635',
-            'evidencia'           => '5A-B0–B3 cerrados prod; 5B1 bd7e5d7; 5B2 8d14e8b; 5B3 6d18635 LRT CMS.',
-            'siguiente_accion'    => 'AM-CMS-5B epic: 5B5 cierre epic pendiente aprobación.',
+            'ultimo_commit'       => '980aed3',
+            'evidencia'           => '5A-B0–B3 cerrados prod; epic 5B B0–5B5 cerrado; B4 55b557c; cierre dashboard 980aed3.',
+            'siguiente_accion'    => 'Siguiente: AM-AIO-6A schema/GEO o vacantes según prioridad negocio.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -422,7 +424,7 @@ return [
             'dependencias'        => ['AM-CMS-5A-B0'],
             'ultimo_commit'       => '80bb952',
             'evidencia'           => 'Prod 80bb952: pestaña Columnas CRUD; sanitizeFooterUrl; smoke admin sin escritura; footer/sitemap/EO5144 intactos.',
-            'siguiente_accion'    => 'Cerrado. Siguiente epic: AM-CMS-5B.',
+            'siguiente_accion'    => 'Cerrado producción. Epic AM-CMS-5B completado.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -486,13 +488,27 @@ return [
             'nombre'              => 'Control ampliado títulos / subtítulos / textos',
             'area'                => 'CMS/editorial',
             'prioridad'           => 'Media',
-            'estado'              => 'En desarrollo',
-            'porcentaje_estimado' => 90,
-            'descripcion'         => 'Epic títulos editables. B0 diagnóstico aprobado; B1/B2/B3/B4 cerrados prod; pendiente 5B5 cierre epic.',
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
+            'descripcion'         => 'Epic títulos editables cerrado. B0 diagnóstico; B1 RAC/flota; B2 seminuevos; B3 LRT; B4 contactos/sucursales; B5 cierre y auditoría. Helpers: rentacar-public-copy, seminuevos-public-copy, lrt-public-copy, contact-locations-public-copy.',
             'dependencias'        => ['AM-CMS-5A-B'],
-            'ultimo_commit'       => '55b557c',
-            'evidencia'           => 'B0 cerrado docs/; B1 bd7e5d7; B2 8d14e8b; B3 6d18635; B4 prod 55b557c contact-locations-public-copy.php contactos/sucursales.',
-            'siguiente_accion'    => 'Siguiente sub-bloque AM-CMS-5B5 cierre epic tras aprobación.',
+            'ultimo_commit'       => '980aed3',
+            'evidencia'           => 'Prod 980aed3: B1 bd7e5d7; B2 8d14e8b; B3 6d18635; B4 55b557c; B5 auditoría H1/intros principales OK en páginas epic; backlog menor documentado.',
+            'siguiente_accion'    => 'Cerrado producción.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-CMS-5B5',
+            'nombre'              => 'Cierre epic AM-CMS-5B',
+            'area'                => 'CMS/editorial',
+            'prioridad'           => 'Media',
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
+            'descripcion'         => 'Auditoría final ligera epic 5B; confirmación B0–5B4 en dashboard; backlog post-5B documentado sin implementación.',
+            'dependencias'        => ['AM-CMS-5B4'],
+            'ultimo_commit'       => '980aed3',
+            'evidencia'           => 'Auditoría 12 páginas: H1/intros principales CMS o fallback; pendientes menores (opiniones venta-autos, Destacados/Novedades includes, leasing-flota) → backlog futuro.',
+            'siguiente_accion'    => 'Cerrado producción.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
