@@ -8,14 +8,14 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-AIO-6A',
+        'version_tablero'  => 'AM-DASH-0B',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
     ],
 
     'resumen' => [
-        'avance_global'     => 60,
+        'avance_global'     => 72,
         'seo_tecnico'       => 78,
         'cms_editorial'     => 88,
         'ux_conversion'     => 64,
@@ -24,8 +24,8 @@ return [
 
     'pendientes_funcionales' => [
         ['item' => 'Vacantes / Trabaja con nosotros (sección base)', 'nota' => 'Falta módulo público de vacantes antes de integrar Konzerta.'],
-        ['item' => 'Footer builder columnas (AM-CMS-5A-B)', 'nota' => 'B0–B3 cerrados prod (builder columnas enlaces; also_know/redes/pagos v1 separados).'],
-        ['item' => 'Títulos/subtítulos secundarios (post-5B)', 'nota' => 'Epic AM-CMS-5B cerrado prod (980aed3). Backlog menor: opiniones venta-autos, Destacados/Novedades unit-content, leasing-flota cabecera.'],
+        ['item' => 'Footer builder columnas (AM-CMS-5A-B)', 'nota' => 'Cerrado prod (80bb952). Builder columnas enlaces; also_know/redes/pagos v1 separados.'],
+        ['item' => 'Títulos/subtítulos secundarios (post-5B)', 'nota' => 'Epic AM-CMS-5B cerrado prod (555458a). Backlog menor: opiniones venta-autos, Destacados/Novedades unit-content, leasing-flota cabecera.'],
     ],
 
     'modulos_contenido_pendiente' => [
@@ -90,6 +90,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B cerrado prod HEAD 980aed3 — epic 5B0–5B4 completos; helpers rentacar/seminuevos/lrt/contact-locations; dashboard test 200/www 404'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6A local: Organization global JSON-LD + sameAs footer; parentOrganization unidades/sucursales; schema-organization-helper.php'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6A cerrado prod HEAD a857c27 — deploy ff-only; compose exec app php -l 7/7; smoke páginas principales 200; JSON-LD Organization/sameAs/#organization OK; sitemap 147/0/20/0; dashboard test 200/www 404'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0B: recalibración post 5B/6A — avance_global 72%; cms_editorial 88%; seo_tecnico 78%; contenido_aeo_geo 58%; epic 5B y 6A cerrados prod'],
     ],
 
     'bloques' => [
@@ -300,7 +301,21 @@ return [
             'dependencias'        => [],
             'ultimo_commit'       => '1fe318b',
             'evidencia'           => 'test.automarket.com.pa/avance-automarket.php → 200; www → 404; noindex.',
-            'siguiente_accion'    => 'Actualizar project-progress.php al cerrar bloques.',
+            'siguiente_accion'    => 'Recalibración AM-DASH-0B aplicada en project-progress.php.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-DASH-0B',
+            'nombre'              => 'Recalibración general dashboard post 5B y 6A',
+            'area'                => 'Infraestructura',
+            'prioridad'           => 'Media',
+            'estado'              => 'En validación',
+            'porcentaje_estimado' => 95,
+            'descripcion'         => 'Actualización de avance_global y métricas por área tras cierre AM-CMS-5B (5B0–5B5) y AM-AIO-6A. Sin cambios de código público.',
+            'dependencias'        => ['AM-CMS-5B', 'AM-AIO-6A'],
+            'ultimo_commit'       => 'ed06b01',
+            'evidencia'           => 'Resumen: global 72%, cms_editorial 88%, seo_tecnico 78%, contenido_aeo_geo 58%, ux_conversion 64%. Bloques 5B0–5B5 y 6A cerrados prod. Dashboard test 200 / www 404.',
+            'siguiente_accion'    => 'Commit local; deploy ff-only tras aprobación.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -412,7 +427,7 @@ return [
             'dependencias'        => ['AM-CMS-3B3'],
             'ultimo_commit'       => '980aed3',
             'evidencia'           => '5A-B0–B3 cerrados prod; epic 5B B0–5B5 cerrado; B4 55b557c; cierre dashboard 980aed3.',
-            'siguiente_accion'    => 'Siguiente: AM-AIO-6A schema/GEO o vacantes según prioridad negocio.',
+            'siguiente_accion'    => 'Siguiente: vacantes / AM-NEG-7A según prioridad negocio.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
