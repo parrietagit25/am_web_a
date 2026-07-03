@@ -8,7 +8,7 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-DASH-0B',
+        'version_tablero'  => 'AM-AIO-6B',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
@@ -19,7 +19,7 @@ return [
         'seo_tecnico'       => 78,
         'cms_editorial'     => 88,
         'ux_conversion'     => 64,
-        'contenido_aeo_geo' => 58,
+        'contenido_aeo_geo' => 62,
     ],
 
     'pendientes_funcionales' => [
@@ -42,8 +42,10 @@ return [
     ],
 
     'bloqueados_dato_externo' => [
-        ['item' => 'TikTok URL real', 'nota' => 'Pendiente URL oficial validada por marketing. Código filtra entradas TikTok con URL de otra plataforma.'],
-        ['item' => 'Google Business Profile / Wikidata', 'nota' => 'Pendiente URL oficial de negocio para sameAs; Organization global ya cableado con redes footer verificadas.'],
+        ['item' => 'TikTok URL real', 'nota' => 'Pendiente @ oficial en tiktok.com. FooterService excluye label/icon TikTok si la URL no es tiktok.com (AM-BUGS-4D-A).'],
+        ['item' => 'Google Business Profile', 'nota' => 'Sin URL pública confirmada. No en sameAs. Slot documentado AM-AIO-6B; futuro: seo.global.verified_same_as_urls[].'],
+        ['item' => 'Wikidata', 'nota' => 'Sin entidad Q confirmada. No en sameAs hasta URL wikidata.org validada por negocio.'],
+        ['item' => 'Redes por unidad (RAC/Leasing/Renting/Semi/Taller)', 'nota' => 'social_links por unidad en CMS; no se mezclan al Organization global (solo footer grupo). Confirmar con Mercadeo si deben reflejarse.'],
     ],
 
     'bloqueados_negocio' => [],
@@ -91,6 +93,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6A local: Organization global JSON-LD + sameAs footer; parentOrganization unidades/sucursales; schema-organization-helper.php'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6A cerrado prod HEAD a857c27 — deploy ff-only; compose exec app php -l 7/7; smoke páginas principales 200; JSON-LD Organization/sameAs/#organization OK; sitemap 147/0/20/0; dashboard test 200/www 404'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0B: recalibración post 5B/6A — avance_global 72%; cms_editorial 88%; seo_tecnico 78%; contenido_aeo_geo 58%; epic 5B y 6A cerrados prod'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6B: auditoría perfiles oficiales — sameAs footer FB/IG/LinkedIn; excluye #/cruces; slots GBP/Wikidata/TikTok; verified_same_as_urls[] vacío'],
     ],
 
     'bloques' => [
@@ -595,7 +598,21 @@ return [
             'dependencias'        => ['AM-SEO-4A'],
             'ultimo_commit'       => 'a857c27',
             'evidencia'           => 'Prod a857c27: deploy ff-only; compose exec app php -l 7/7; smoke rent-a-car/venta-autos/renting/leasing/taller/sucursales/EO5144 200; JSON-LD Organization 1× + sameAs + #organization; sitemap 147/0/20/0; dashboard test 200/www 404.',
-            'siguiente_accion'    => 'Cerrado producción. GBP/Wikidata cuando negocio confirme URLs.',
+            'siguiente_accion'    => 'Cerrado producción. Seguimiento perfiles en AM-AIO-6B.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-AIO-6B',
+            'nombre'              => 'Perfiles oficiales / sameAs pendientes / entidad GEO',
+            'area'                => 'Contenido/AEO/GEO',
+            'prioridad'           => 'Media',
+            'estado'              => 'En validación',
+            'porcentaje_estimado' => 85,
+            'descripcion'         => 'Auditoría redes footer → sameAs (FB/IG/LinkedIn verificadas); filtros FooterService; slots GBP/Wikidata/TikTok; estructura seo.global.verified_same_as_urls[] sin URLs inventadas.',
+            'dependencias'        => ['AM-AIO-6A'],
+            'ultimo_commit'       => '8015122',
+            'evidencia'           => 'Local: helper am_schema_pending_official_profile_slots + verified_same_as_urls; staging sameAs 3 URLs; sin GBP/Wikidata en JSON-LD; bloqueados_dato_externo ampliados.',
+            'siguiente_accion'    => 'Mercadeo confirma URLs GBP/Wikidata/TikTok; luego cargar verified_same_as_urls y cerrar bloque.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [

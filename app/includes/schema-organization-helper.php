@@ -1,6 +1,10 @@
 <?php
 /**
- * Helpers Schema.org Organization global (AM-AIO-6A).
+ * Helpers Schema.org Organization global (AM-AIO-6A / AM-AIO-6B).
+ *
+ * sameAs: solo redes del footer pasando FooterService::filterRenderableSocial()
+ * (activas, URL http(s), plataforma coherente con label/icon; sin # ni cruces TikTok/otra red).
+ * Perfiles GBP/Wikidata/TikTok oficial: pendientes hasta URL en seo.global.verified_same_as_urls[].
  */
 
 /**
@@ -28,6 +32,61 @@ function am_schema_organization_id(string $siteUrl): string
 function am_schema_logo_url(string $siteUrl): string
 {
     return rtrim($siteUrl, '/') . '/assets/img/logo.png';
+}
+
+/**
+ * Slots de perfiles oficiales pendientes de URL verificada por Mercadeo/negocio (AM-AIO-6B).
+ * No se emiten en sameAs hasta cargarse en seo.global.verified_same_as_urls (manual/CMS futuro).
+ *
+ * @return list<array{key: string, label: string, nota: string}>
+ */
+function am_schema_pending_official_profile_slots(): array
+{
+    return [
+        [
+            'key'   => 'google_business_profile',
+            'label' => 'Google Business Profile',
+            'nota'  => 'URL pública del perfil (maps.app.goo.gl, g.page o business.google). No inventar.',
+        ],
+        [
+            'key'   => 'wikidata',
+            'label' => 'Wikidata',
+            'nota'  => 'Entidad Q… en wikidata.org, solo si existe y negocio la confirma.',
+        ],
+        [
+            'key'   => 'tiktok_official',
+            'label' => 'TikTok oficial',
+            'nota'  => 'tiktok.com/@… validado; excluir si label TikTok apunta a otra plataforma.',
+        ],
+    ];
+}
+
+/**
+ * URLs adicionales ya verificadas por negocio (opcional en site_data, sin admin en 6B).
+ * Clave: seo.global.verified_same_as_urls — lista de strings https. Vacía por defecto.
+ *
+ * @return list<string>
+ */
+function am_schema_extra_verified_same_as(?ContentService $contentService = null): array
+{
+    if (!$contentService instanceof ContentService) {
+        return [];
+    }
+
+    $raw = $contentService->get('seo.global.verified_same_as_urls', []);
+    if (!is_array($raw)) {
+        return [];
+    }
+
+    $urls = [];
+    foreach ($raw as $url) {
+        $url = trim((string) $url);
+        if ($url !== '' && str_starts_with($url, 'http')) {
+            $urls[] = $url;
+        }
+    }
+
+    return array_values(array_unique($urls));
 }
 
 /**
@@ -60,6 +119,10 @@ function am_schema_collect_same_as(array $siteGlobal, ?ContentService $contentSe
         if ($url !== '' && str_starts_with($url, 'http')) {
             $sameAs[] = $url;
         }
+    }
+
+    foreach (am_schema_extra_verified_same_as($contentService) as $extraUrl) {
+        $sameAs[] = $extraUrl;
     }
 
     return array_values(array_unique($sameAs));
