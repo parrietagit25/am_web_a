@@ -8,18 +8,18 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-CONT-4C-B3-A',
+        'version_tablero'  => 'AM-CONT-4C-B3-B',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
     ],
 
     'resumen' => [
-        'avance_global'     => 80,
-        'seo_tecnico'       => 82,
+        'avance_global'     => 81,
+        'seo_tecnico'       => 84,
         'cms_editorial'     => 93,
         'ux_conversion'     => 64,
-        'contenido_aeo_geo' => 68,
+        'contenido_aeo_geo' => 69,
     ],
 
     'pendientes_funcionales' => [],
@@ -115,6 +115,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-4C-B0 cerrado prod HEAD ebe9fb0 — diagnóstico formal meta/URLs blog/noticia; noticia.php?id actual documentado; slug almacenado no usado en URL/canonical/sitemap; meta derivada sin campos SEO dedicados; OG/schema presentes; /blog/{slug}+301 queda como B3 con autorización explícita.'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-4C-B1 cerrado prod HEAD 0d5c7a0 — meta SEO dedicada por artículo implementada sin cambiar URLs; unit-content soporta meta_title/meta_description; admin edita título/descripción SEO; noticia.php usa meta dedicada con fallback; canonical noticia.php?id se mantiene; sin nginx, sin sitemap, sin redirects y sin tocar site_data.json.'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-4C-B3-A cerrado prod HEAD 6e20f64 — resolución por slug en PHP implementada sin cambiar URLs públicas; noticia.php acepta slug con unit/type y mantiene prioridad id; canonical/sitemap/detailUrl/enlaces públicos siguen en noticia.php?id; sin nginx, sin 301, sin /blog/{unit}/{type}/{slug} y sin tocar site_data.json.'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-4C-B3-B cerrado prod HEAD 1434146 — ruta limpia /blog/{unit}/{type}/{slug} habilitada vía nginx rewrite interno a noticia.php?unit/type/slug; validada 200 sin 301; canonical/sitemap/detailUrl/enlaces públicos permanecen en noticia.php?id; sin tocar site_data.json ni contenido editorial.'],
     ],
 
     'bloques' => [
@@ -474,12 +475,12 @@ return [
             'area'                => 'SEO técnico',
             'prioridad'           => 'Baja',
             'estado'              => 'En desarrollo controlado por subciclos',
-            'porcentaje_estimado' => 20,
-            'descripcion'         => 'Epic URLs amigables por subciclos B3-A–B3-E; B3-A resolución slug en PHP cerrado; nginx/301/canonical/sitemap pendientes.',
+            'porcentaje_estimado' => 40,
+            'descripcion'         => 'Epic URLs amigables por subciclos B3-A–B3-E; B3-A slug PHP y B3-B ruta limpia nginx cerrados; 301/canonical/sitemap pendientes B3-C/B3-D.',
             'dependencias'        => ['AM-CONT-4C-B0', 'AM-CONT-4C-B1'],
-            'ultimo_commit'       => '6e20f64',
-            'evidencia'           => 'Preflight B3-PRE: 10 URLs noticia.php indexadas; slugs únicos por unit+type; estructura recomendada /blog/{unit}/{type}/{slug}. B3-A cerrado: resolución slug vía query sin cambiar canonical/sitemap.',
-            'siguiente_accion'    => 'Continuar AM-CONT-4C-B3-B ruta limpia nginx; B3-C 301; B3-D canonical/sitemap/schema.',
+            'ultimo_commit'       => '1434146',
+            'evidencia'           => 'B3-A resolución slug vía query; B3-B /blog/{unit}/{type}/{slug} 200 vía nginx rewrite sin 301 ni canonical nuevo. Pendiente B3-C 301 y B3-D canonical/sitemap/schema.',
+            'siguiente_accion'    => 'Continuar AM-CONT-4C-B3-C 301 o AM-CONT-4C-B3-D canonical/sitemap/schema según estrategia SEO aprobada.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -498,16 +499,16 @@ return [
         ],
         [
             'codigo'              => 'AM-CONT-4C-B3-B',
-            'nombre'              => 'Ruta limpia /blog/{unit}/{type}/{slug}',
+            'nombre'              => 'Ruta limpia /blog/{unit}/{type}/{slug} sin 301 ni canonical nuevo',
             'area'                => 'SEO técnico',
             'prioridad'           => 'Media',
-            'estado'              => 'Pendiente funcional',
-            'porcentaje_estimado' => 0,
-            'descripcion'         => 'Rewrite nginx + URL limpia 200; sin 301 ni canonical/sitemap nuevos.',
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
+            'descripcion'         => 'Rewrite nginx /blog/{unit}/{type}/{slug} → noticia.php?unit&type&slug; HTTP 200; canonical/sitemap/detailUrl sin cambios.',
             'dependencias'        => ['AM-CONT-4C-B3-A'],
-            'ultimo_commit'       => '—',
-            'evidencia'           => 'Definido en B3-PRE; requiere nginx/default.conf.',
-            'siguiente_accion'    => 'Implementar rewrite nginx hacia noticia.php?unit&type&slug.',
+            'ultimo_commit'       => '1434146',
+            'evidencia'           => 'Ruta limpia /blog/{unit}/{type}/{slug} habilitada vía nginx como rewrite interno hacia noticia.php?unit={unit}&type={type}&slug={slug}; validada con artículos RAC/news, leasing/blog y renting/blog. Se conserva canonical antiguo noticia.php?id=..., sitemap sin cambios, detailUrl/listados sin cambios y no se implementan redirects 301. B3-C/B3-D quedan pendientes para 301 y canonical/sitemap/schema/OG.',
+            'siguiente_accion'    => 'Continuar con AM-CONT-4C-B3-C para redirects 301 desde URLs viejas solo cuando B3-B quede estable, o AM-CONT-4C-B3-D para canonical/sitemap/schema/OG hacia URL nueva según estrategia SEO aprobada.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
