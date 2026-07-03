@@ -113,6 +113,267 @@ class FooterService
         return array_values($active);
     }
 
+    /**
+     * Columnas de enlaces activas, ordenadas y con links renderizables (B1).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getActiveColumns(): array
+    {
+        $footer = $this->getFooter();
+
+        return self::filterActiveColumns($footer['columns'] ?? [], $footer['general'] ?? []);
+    }
+
+    /**
+     * @param array<int, mixed> $columns
+     * @param array<string, mixed> $general
+     * @return array<int, array<string, mixed>>
+     */
+    public static function filterActiveColumns(array $columns, array $general = []): array
+    {
+        $normalized = self::normalizeColumns($columns, $general);
+        $active = [];
+
+        foreach ($normalized as $column) {
+            if (($column['active'] ?? true) === false) {
+                continue;
+            }
+
+            $links = self::filterRenderableColumnLinks($column['links'] ?? []);
+            if ($links === []) {
+                continue;
+            }
+
+            $column['links'] = $links;
+            $active[] = $column;
+        }
+
+        usort($active, static fn ($a, $b) => intval($a['sort_order'] ?? 99) <=> intval($b['sort_order'] ?? 99));
+
+        return array_values($active);
+    }
+
+    /**
+     * Seed por defecto cuando site_data no tiene footer.columns (prod).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function defaultFooterColumns(): array
+    {
+        return [
+            [
+                'id'         => 'recursos',
+                'title'      => 'Recursos',
+                'sort_order' => 1,
+                'active'     => true,
+                'links'      => [
+                    ['id' => 'res1', 'label' => 'Sobre nosotros',         'url' => '/pagina-institucional.php?p=sobre-nosotros', 'sort_order' => 1, 'active' => true],
+                    ['id' => 'res2', 'label' => 'Términos y condiciones', 'url' => '/pagina-institucional.php?p=terminos',        'sort_order' => 2, 'active' => true],
+                    ['id' => 'res3', 'label' => 'Preguntas frecuentes',   'url' => '/pagina-institucional.php?p=faq',             'sort_order' => 3, 'active' => true],
+                    ['id' => 'res4', 'label' => 'Sucursales',             'url' => '/sucursales-grupo.php',                       'sort_order' => 4, 'active' => true],
+                    ['id' => 'res5', 'label' => 'Sostenibilidad',         'url' => '/sostenibilidad.php',                         'sort_order' => 5, 'active' => true],
+                    ['id' => 'res6', 'label' => 'Subastas',               'url' => '/pagina-institucional.php?p=subastas',         'sort_order' => 6, 'active' => true],
+                    ['id' => 'res7', 'label' => 'Blog',                   'url' => '/blog-grupo.php',                             'sort_order' => 7, 'active' => true],
+                ],
+            ],
+        ];
+    }
+
+    public static function isExternalFooterLink(string $url): bool
+    {
+        $url = trim($url);
+
+        return $url !== '' && preg_match('/^https?:\/\//i', $url) === 1;
+    }
+
+    /**
+     * @return array{link_type: string, open_in: string}
+     */
+    public static function deriveFooterLinkMeta(string $url, ?string $linkType = null, ?string $openIn = null): array
+    {
+        $isExternal = self::isExternalFooterLink($url);
+        $derivedType = $isExternal ? 'external' : 'internal';
+        $type = in_array($linkType, ['internal', 'external'], true) ? $linkType : $derivedType;
+
+        if ($type === 'external' || $isExternal) {
+            $type = 'external';
+            $open = in_array($openIn, ['same', 'new'], true) ? $openIn : 'new';
+        } else {
+            $type = 'internal';
+            $open = in_array($openIn, ['same', 'new'], true) ? $openIn : 'same';
+        }
+
+        return ['link_type' => $type, 'open_in' => $open];
+    }
+
+    /**
+     * @param array<string, mixed> $link
+     * @return array<string, mixed>
+     */
+    public static function normalizeFooterLink(array $link, int $index = 0, string $columnId = 'col'): array
+    {
+        $label = trim((string) ($link['label'] ?? ''));
+        $url = trim((string) ($link['url'] ?? ''));
+        $id = trim((string) ($link['id'] ?? ''));
+        if ($id === '') {
+            $id = $columnId . '_link_' . $index;
+        }
+
+        $meta = self::deriveFooterLinkMeta(
+            $url,
+            isset($link['link_type']) ? (string) $link['link_type'] : null,
+            isset($link['open_in']) ? (string) $link['open_in'] : null
+        );
+
+        return [
+            'id'         => $id,
+            'label'      => $label,
+            'url'        => $url,
+            'sort_order' => intval($link['sort_order'] ?? 99),
+            'active'     => ($link['active'] ?? true) !== false,
+            'link_type'  => $meta['link_type'],
+            'open_in'    => $meta['open_in'],
+        ];
+    }
+
+    /**
+     * @param array<int, mixed> $links
+     * @return array<int, array<string, mixed>>
+     */
+    public static function normalizeColumnLinks(array $links, string $columnId): array
+    {
+        $normalized = [];
+        $seenUrls = [];
+
+        foreach ($links as $i => $link) {
+            if (!is_array($link)) {
+                continue;
+            }
+
+            $entry = self::normalizeFooterLink($link, (int) $i, $columnId);
+            $urlKey = strtolower(rtrim($entry['url'], '/'));
+            if ($urlKey === '' || $urlKey === '#') {
+                $normalized[] = $entry;
+                continue;
+            }
+            if (isset($seenUrls[$urlKey])) {
+                continue;
+            }
+            $seenUrls[$urlKey] = true;
+            $normalized[] = $entry;
+        }
+
+        usort($normalized, static fn ($a, $b) => intval($a['sort_order'] ?? 99) <=> intval($b['sort_order'] ?? 99));
+
+        return array_values($normalized);
+    }
+
+    /**
+     * @param array<int, mixed> $links
+     * @return array<int, array<string, mixed>>
+     */
+    public static function filterRenderableColumnLinks(array $links): array
+    {
+        $renderable = [];
+
+        foreach ($links as $link) {
+            if (!is_array($link)) {
+                continue;
+            }
+            if (($link['active'] ?? true) === false) {
+                continue;
+            }
+            $label = trim((string) ($link['label'] ?? ''));
+            $url = trim((string) ($link['url'] ?? ''));
+            if ($label === '' || $url === '' || $url === '#') {
+                continue;
+            }
+            $renderable[] = $link;
+        }
+
+        usort($renderable, static fn ($a, $b) => intval($a['sort_order'] ?? 99) <=> intval($b['sort_order'] ?? 99));
+
+        return array_values($renderable);
+    }
+
+    /**
+     * @param array<string, mixed> $column
+     * @param array<string, mixed> $general
+     * @return array<string, mixed>
+     */
+    public static function normalizeFooterColumn(array $column, int $index = 0, array $general = []): array
+    {
+        $id = trim((string) ($column['id'] ?? ''));
+        if ($id === '') {
+            $id = 'col_' . $index;
+        }
+
+        $title = trim((string) ($column['title'] ?? ''));
+        if ($title === '' && $id === 'recursos') {
+            $title = trim((string) ($general['resources_title'] ?? 'Recursos'));
+        }
+        if ($title === '') {
+            $title = 'Columna';
+        }
+
+        $links = self::normalizeColumnLinks(is_array($column['links'] ?? null) ? $column['links'] : [], $id);
+
+        return [
+            'id'         => $id,
+            'title'      => $title,
+            'sort_order' => intval($column['sort_order'] ?? ($id === 'recursos' ? 1 : (($index + 1) * 10))),
+            'active'     => ($column['active'] ?? true) !== false,
+            'links'      => $links,
+        ];
+    }
+
+    /**
+     * Normaliza N columnas; garantiza legacy recursos si falta.
+     *
+     * @param array<int, mixed> $columns
+     * @param array<string, mixed> $general
+     * @return array<int, array<string, mixed>>
+     */
+    public static function normalizeColumns(array $columns, array $general = []): array
+    {
+        if ($columns === []) {
+            $columns = self::defaultFooterColumns();
+        }
+
+        $normalized = [];
+        $seenIds = [];
+
+        foreach ($columns as $i => $column) {
+            if (!is_array($column)) {
+                continue;
+            }
+
+            $entry = self::normalizeFooterColumn($column, (int) $i, $general);
+            $colId = $entry['id'];
+            if (isset($seenIds[$colId])) {
+                continue;
+            }
+            $seenIds[$colId] = true;
+            $normalized[] = $entry;
+        }
+
+        $hasRecursos = false;
+        foreach ($normalized as $col) {
+            if (($col['id'] ?? '') === 'recursos') {
+                $hasRecursos = true;
+                break;
+            }
+        }
+        if (!$hasRecursos) {
+            array_unshift($normalized, self::normalizeFooterColumn(self::defaultFooterColumns()[0], 0, $general));
+        }
+
+        usort($normalized, static fn ($a, $b) => intval($a['sort_order'] ?? 99) <=> intval($b['sort_order'] ?? 99));
+
+        return array_values($normalized);
+    }
+
     private function normalizePost(array $item, string $unitKey, string $unitLabel, string $urlPrefix, string $imageKey, $id = null): array
     {
         $postId = $id ?? ($item['id'] ?? 0);
@@ -198,24 +459,7 @@ class FooterService
 
         $sucursales = $stored['sucursales'] ?? [];
 
-        $columns = $stored['columns'] ?? [];
-        if ($columns === []) {
-            $columns = [
-                [
-                    'id'    => 'recursos',
-                    'title' => 'Recursos',
-                    'links' => [
-                        ['id' => 'res1', 'label' => 'Sobre nosotros',         'url' => '/pagina-institucional.php?p=sobre-nosotros', 'sort_order' => 1, 'active' => true],
-                        ['id' => 'res2', 'label' => 'Términos y condiciones', 'url' => '/pagina-institucional.php?p=terminos',        'sort_order' => 2, 'active' => true],
-                        ['id' => 'res3', 'label' => 'Preguntas frecuentes',   'url' => '/pagina-institucional.php?p=faq',             'sort_order' => 3, 'active' => true],
-                        ['id' => 'res4', 'label' => 'Sucursales',             'url' => '/sucursales-grupo.php',                       'sort_order' => 4, 'active' => true],
-                        ['id' => 'res5', 'label' => 'Sostenibilidad',         'url' => '/sostenibilidad.php',                         'sort_order' => 5, 'active' => true],
-                        ['id' => 'res6', 'label' => 'Subastas',               'url' => '/pagina-institucional.php?p=subastas',         'sort_order' => 6, 'active' => true],
-                        ['id' => 'res7', 'label' => 'Blog',                   'url' => '/blog-grupo.php',                             'sort_order' => 7, 'active' => true],
-                    ],
-                ],
-            ];
-        }
+        $columns = self::normalizeColumns($stored['columns'] ?? [], $general);
 
         return [
             'general'   => $general,
