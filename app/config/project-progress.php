@@ -15,11 +15,11 @@ return [
     ],
 
     'resumen' => [
-        'avance_global'     => 58,
+        'avance_global'     => 59,
         'seo_tecnico'       => 72,
-        'cms_editorial'     => 58,
+        'cms_editorial'     => 60,
         'ux_conversion'     => 64,
-        'contenido_aeo_geo' => 40,
+        'contenido_aeo_geo' => 45,
     ],
 
     'pendientes_funcionales' => [
@@ -29,7 +29,7 @@ return [
     ],
 
     'modulos_contenido_pendiente' => [
-        ['item' => 'Blog / noticias / novedades RAC', 'nota' => 'CMS UnitContent operativo (crear, editar, publicar, imagen, slug). Mercadeo carga artículos finales.'],
+        ['item' => 'Blog / noticias / novedades RAC', 'nota' => 'Módulo funcional cerrado (AM-CONT-4C-A prod). Mercadeo publica artículos finales desde admin.'],
         ['item' => 'FAQ institucional por unidad', 'nota' => 'Admin permite editar preguntas; faltan respuestas definitivas de negocio. FAQPage schema funcional donde aplica.'],
         ['item' => 'Contenido leasing/renting legacy posts', 'nota' => 'Publicaciones migradas a content.blog; mercadeo puede reemplazar ejemplos.'],
     ],
@@ -65,6 +65,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-INV-4B cerrado prod HEAD fd0b5db — restart contenedor web (reload nginx no aplicó MD5); /autos/toyota-hilux-2025/eo5144 → 200, H1 TOYOTA HILUX 2025, canonical amigable'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-INV-4B prod: legacy /detalle.php?placa=EO5144 → 200; sitemap 144 /autos/, 0 detalle.php?placa=; sucursales 20 /sucursal/ intactas'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-4C-A: CMS blog operativo; demo «Prueba» oculto en www; estado vacío blog; Article schema en noticia.php; sitemap solo publicados reales'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-4C-A cerrado prod HEAD 16bb81e — blog 0 Prueba, noticia.php?id=1 NewsArticle, sitemap 10 noticia/0 prueba, AM-INV-4B EO5144 intacto'],
     ],
 
     'bloques' => [
@@ -297,13 +298,13 @@ return [
             'nombre'              => 'Módulo blog/contenido listo para mercadeo',
             'area'                => 'Contenido/AEO/GEO',
             'prioridad'           => 'Media',
-            'estado'              => 'En validación',
-            'porcentaje_estimado' => 85,
-            'descripcion'         => 'CMS blog/noticias/novedades operativo; demo oculto en www; estado vacío profesional; Article/BlogPosting schema; sitemap solo publicados reales.',
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
+            'descripcion'         => 'CMS blog/noticias/novedades operativo; demo oculto en www; estado vacío profesional; Article/BlogPosting schema; sitemap solo publicados reales; isDemoContent conservador.',
             'dependencias'        => ['AM-SEO-4A'],
-            'ultimo_commit'       => '—',
-            'evidencia'           => 'UnitContentService admin CRUD; isDemoContent filtra «Prueba»; noticia.php + schema-article.php; SitemapService collectPublishedContentUrls.',
-            'siguiente_accion'    => 'Validar local; mercadeo publica artículos reales sin desarrollo adicional.',
+            'ultimo_commit'       => '16bb81e',
+            'evidencia'           => 'Prod 16bb81e: blog 0 Prueba + estado vacío; noticia.php?id=1 → 200 NewsArticle; sitemap 10 noticia/0 prueba/144 autos/20 sucursal; EO5144 intacto; filtro demo no bloquea «Prueba de manejo».',
+            'siguiente_accion'    => 'Cerrado. Mercadeo publica desde admin. Futuro opcional: meta por artículo, URLs /blog/{slug}, redirect blog.php?id→noticia.php.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -312,12 +313,12 @@ return [
             'area'                => 'Contenido/AEO/GEO',
             'prioridad'           => 'Media',
             'estado'              => 'Módulo listo / contenido pendiente',
-            'porcentaje_estimado' => 50,
-            'descripcion'         => 'Epic: módulo funcional en AM-CONT-4C-A; pendiente contenido final de mercadeo y URLs amigables futuras.',
+            'porcentaje_estimado' => 55,
+            'descripcion'         => 'Epic: módulo funcional cerrado en AM-CONT-4C-A; pendiente contenido final de mercadeo, meta dedicada por artículo y URLs amigables futuras.',
             'dependencias'        => ['AM-CONT-4C-A'],
-            'ultimo_commit'       => '—',
-            'evidencia'           => '4C-A cierra parte funcional; artículos reales los carga mercadeo.',
-            'siguiente_accion'    => 'Cerrar 4C-A en prod; mercadeo publica contenido.',
+            'ultimo_commit'       => '16bb81e',
+            'evidencia'           => '4C-A cerrado prod; artículos reales los carga mercadeo; 10 noticia.php en sitemap.',
+            'siguiente_accion'    => 'Mercadeo publica contenido real; evaluar meta/URL amigable en sprint futuro.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
