@@ -10,7 +10,10 @@ require_once __DIR__ . '/../services/FooterService.php';
 $contentService = new ContentService();
 $footerService = new FooterService($contentService);
 require_once __DIR__ . '/../includes/location-public-helper.php';
+require_once __DIR__ . '/../includes/contact-locations-public-copy.php';
 $sucursales = am_list_footer_sucursales($contentService, $footerService);
+$globalData = $contentService->get('global', []);
+$grupoPage = sucursales_grupo_page_copy(is_array($globalData) ? $globalData : []);
 
 $byUnit = [];
 foreach ($sucursales as $s) {
@@ -35,8 +38,8 @@ require_once __DIR__ . '/../includes/schema-location-itemlist.php';
                 <li class="breadcrumb-item active" aria-current="page">Sucursales</li>
             </ol>
         </nav>
-        <h1 class="display-5 fw-bold text-navy font-montserrat mb-0">Nuestras sucursales</h1>
-        <p class="text-muted font-poppins mt-2 mb-0">Ubicaciones de Rent A Car, Venta de Autos, Leasing, Renting y Taller a nivel nacional.</p>
+        <h1 class="display-5 fw-bold text-navy font-montserrat mb-0"><?php echo esc($grupoPage['title']); ?></h1>
+        <p class="text-muted font-poppins mt-2 mb-0"><?php echo esc($grupoPage['subtitle']); ?></p>
     </div>
 </section>
 

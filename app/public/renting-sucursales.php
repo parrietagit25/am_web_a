@@ -6,8 +6,11 @@ $activeUnit = 'renting';
 require_once __DIR__ . '/../includes/header.php';
 
 require_once __DIR__ . '/../includes/location-public-helper.php';
+require_once __DIR__ . '/../includes/contact-locations-public-copy.php';
 
 $sucursalesRaw = $contentService->get('renting.sucursales', []);
+$rentingData = $contentService->get('renting', []);
+$rentingSucPage = renting_sucursales_page_copy(is_array($rentingData) ? $rentingData : []);
 $sucursales = am_list_sucursales_for_unit($contentService, 'renting', $sucursalesRaw);
 
 $_schemaLocationList = $sucursales;
@@ -40,8 +43,8 @@ if (empty($sideImage)) {
                 <li class="breadcrumb-item active" aria-current="page">Sucursales</li>
             </ol>
         </nav>
-        <h1 class="display-5 fw-bold text-navy font-montserrat mb-0" style="font-size: 2.30rem; letter-spacing: -0.5px;">Nuestras Sucursales</h1>
-        <p class="text-muted font-poppins mt-2 mb-0">Encuentra las sucursales de Automarket Renting en Panamá.</p>
+        <h1 class="display-5 fw-bold text-navy font-montserrat mb-0" style="font-size: 2.30rem; letter-spacing: -0.5px;"><?php echo esc($rentingSucPage['title']); ?></h1>
+        <p class="text-muted font-poppins mt-2 mb-0"><?php echo esc($rentingSucPage['subtitle']); ?></p>
     </div>
 </section>
 
@@ -219,12 +222,12 @@ if (empty($sideImage)) {
             <div class="sticky-widget">
                 <div class="card border-0 overflow-hidden shadow-sm" style="border-radius: 20px; border: 1px solid #e3e6f0 !important;">
                     <div class="p-5 text-center text-white" style="background-color: var(--theme-primary);">
-                        <h3 class="fw-bold mb-3 font-montserrat text-uppercase" style="font-size: 1.45rem; letter-spacing: -0.3px; line-height: 1.3;">Cotiza tu plan de Renting</h3>
+                        <h3 class="fw-bold mb-3 font-montserrat text-uppercase" style="font-size: 1.45rem; letter-spacing: -0.3px; line-height: 1.3;"><?php echo esc($rentingSucPage['cta_title']); ?></h3>
                         <p class="small mb-4 font-poppins opacity-90" style="line-height: 1.6; font-size: 0.92rem;">
-                            Tu auto nuevo, una cuota mensual con todo incluido. Cobertura en todo el país.
+                            <?php echo esc($rentingSucPage['cta_text']); ?>
                         </p>
                         <a href="/renting.php" class="btn btn-light px-5 py-3 fw-bold text-uppercase rounded-pill shadow-sm" style="color: var(--theme-primary); font-family: 'Montserrat', sans-serif; font-size: 0.95rem; letter-spacing: 0.5px;">
-                            Cotizar plan
+                            <?php echo esc($rentingSucPage['cta_button']); ?>
                         </a>
                     </div>
                     <div class="position-relative">

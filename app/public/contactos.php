@@ -30,6 +30,7 @@ $seoOverride = [
 
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/unit-footer-prepare.php';
+require_once __DIR__ . '/../includes/contact-locations-public-copy.php';
 
 $contactImageUrl = $contentService->get('homepage.contact_image_url', '/assets/img/sucursales-rac.webp');
 $tallerContact = $contentService->get('taller.contact', []);
@@ -69,6 +70,7 @@ $activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
     }
     return true;
 }));
+$semiContactPage = semi_contact_page_copy($semiUnitData);
 ?>
 
 <?php if ($activeUnit === 'seminuevos'): ?>
@@ -134,9 +136,9 @@ $activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
                 <li class="breadcrumb-item active" aria-current="page">Contacto</li>
             </ol>
         </nav>
-        <h1 class="sn-page-title fw-bold text-navy font-montserrat mb-1">Contacto</h1>
+        <h1 class="sn-page-title fw-bold text-navy font-montserrat mb-1"><?php echo esc($semiContactPage['title']); ?></h1>
         <p class="text-muted font-poppins mb-0" style="font-size:.9rem;">
-            Gracias por escribirnos. Por favor llena el formulario y pronto te responderemos.
+            <?php echo esc($semiContactPage['intro']); ?>
         </p>
     </div>
 </section>
@@ -252,9 +254,9 @@ $activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
                 ?>
                 <!-- Top: Dark navy CTA box -->
                 <div class="sn-cta-box">
-                    <h3>&iexcl;Compra tu seminuevo!</h3>
-                    <p>Un seminuevo es la mejor forma de estrenar sin pagar de m&aacute;s</p>
-                    <a href="/inventario.php" class="sn-cta-btn-outline">Cotiza tu Veh&iacute;culo</a>
+                    <h3><?php echo esc($semiContactPage['cta_title']); ?></h3>
+                    <p><?php echo esc($semiContactPage['cta_text']); ?></p>
+                    <a href="/inventario.php" class="sn-cta-btn-outline"><?php echo esc($semiContactPage['cta_button']); ?></a>
                 </div>
                 <!-- Bottom: Image -->
                 <div class="sn-sidebar-img">
@@ -350,7 +352,9 @@ async function handleContactSubmit(event) {
 }
 </script>
 
-<?php else: ?>
+<?php else:
+$genericContactHeader = contact_page_header_copy($activeUnit, $siteData, t('contact.title'), t('contact.intro'));
+?>
 <!-- ============================================================
      GENERIC CONTACT PAGE (rent-a-car, leasing, renting, etc.)
      ============================================================ -->
@@ -361,13 +365,13 @@ async function handleContactSubmit(event) {
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-2 font-poppins">
                 <li class="breadcrumb-item"><a href="<?php echo esc($currentUnitHome['url']); ?>" class="text-danger text-decoration-none fw-semibold"><?php echo esc($currentUnitHome['label']); ?></a></li>
-                <li class="breadcrumb-item active" aria-current="page"><?php echo esc(t('contact.title')); ?></li>
+                <li class="breadcrumb-item active" aria-current="page"><?php echo esc($genericContactHeader['title']); ?></li>
             </ol>
         </nav>
-        <h1 class="display-5 fw-bold text-navy font-montserrat mb-0" style="font-size: 2.30rem; letter-spacing: -0.5px;"><?php echo esc(($activeUnit === 'taller' && !empty($tallerContact['title'] ?? '')) ? $tallerContact['title'] : t('contact.title')); ?></h1>
+        <h1 class="display-5 fw-bold text-navy font-montserrat mb-0" style="font-size: 2.30rem; letter-spacing: -0.5px;"><?php echo esc(($activeUnit === 'taller' && !empty($tallerContact['title'] ?? '')) ? $tallerContact['title'] : $genericContactHeader['title']); ?></h1>
         <p class="text-muted font-poppins mt-2 mb-0">
             <?php
-            echo esc(($activeUnit === 'taller' && !empty($tallerContact['intro'] ?? '')) ? $tallerContact['intro'] : t('contact.intro'));
+            echo esc(($activeUnit === 'taller' && !empty($tallerContact['intro'] ?? '')) ? $tallerContact['intro'] : $genericContactHeader['intro']);
             ?>
         </p>
     </div>

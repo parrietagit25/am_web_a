@@ -869,6 +869,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     // 13. SAVE CONTACT SETTINGS (EMAILS & SIDEBAR IMAGE)
+    elseif ($action === 'save_rac_contact_page') {
+        if (!isset($siteData['homepage'])) {
+            $siteData['homepage'] = [];
+        }
+        $siteData['homepage']['contact_page'] = [
+            'title' => trim($_POST['rac_contact_page_title'] ?? ''),
+            'intro' => trim($_POST['rac_contact_page_intro'] ?? ''),
+        ];
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Textos de la página de contacto (Rent A Car) guardados correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar textos de contacto Rent A Car.';
+        }
+    }
+
     elseif ($action === 'save_contact_settings') {
         $emails = trim($_POST['contact_emails'] ?? '');
         $siteData['global']['contact_emails'] = $emails;
@@ -1333,6 +1348,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } catch (Exception $e) {
                 $errorMsg = 'Error al guardar la etiqueta: ' . $e->getMessage();
             }
+        }
+    }
+
+    elseif ($action === 'save_rac_sucursales_page') {
+        if (!isset($siteData['homepage'])) {
+            $siteData['homepage'] = [];
+        }
+        $siteData['homepage']['sucursales_page'] = [
+            'title'      => trim($_POST['rac_suc_page_title'] ?? ''),
+            'subtitle'   => trim($_POST['rac_suc_page_subtitle'] ?? ''),
+            'cta_title'  => trim($_POST['rac_suc_cta_title'] ?? ''),
+            'cta_text'   => trim($_POST['rac_suc_cta_text'] ?? ''),
+            'cta_button' => trim($_POST['rac_suc_cta_button'] ?? ''),
+        ];
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Textos de la página de sucursales (Rent A Car) guardados correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar textos de sucursales Rent A Car.';
+        }
+    }
+
+    elseif ($action === 'save_semi_contact_page') {
+        if (!isset($siteData['seminuevos'])) {
+            $siteData['seminuevos'] = [];
+        }
+        $siteData['seminuevos']['contact_page'] = [
+            'title'      => trim($_POST['semi_contact_page_title'] ?? ''),
+            'intro'      => trim($_POST['semi_contact_page_intro'] ?? ''),
+            'cta_title'  => trim($_POST['semi_contact_cta_title'] ?? ''),
+            'cta_text'   => trim($_POST['semi_contact_cta_text'] ?? ''),
+            'cta_button' => trim($_POST['semi_contact_cta_button'] ?? ''),
+        ];
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Textos de la página de contacto (Seminuevos) guardados correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar textos de contacto Seminuevos.';
+        }
+    }
+
+    elseif ($action === 'save_sucursales_grupo_page') {
+        if (!isset($siteData['global'])) {
+            $siteData['global'] = [];
+        }
+        $siteData['global']['sucursales_grupo_page'] = [
+            'title'    => trim($_POST['grupo_suc_page_title'] ?? ''),
+            'subtitle' => trim($_POST['grupo_suc_page_subtitle'] ?? ''),
+        ];
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Textos de la página consolidada de sucursales guardados correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar textos de sucursales consolidadas.';
         }
     }
 
@@ -3317,6 +3383,33 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                     
                     <!-- TAB 1: GLOBAL CONFIGURATION -->
                     <div class="tab-pane fade<?php echo $defaultAdminTab === 'global' ? ' show active' : ''; ?>" id="tab-global" role="tabpanel" aria-labelledby="tab-global-nav">
+                        <?php $grupo_suc_page = $global['sucursales_grupo_page'] ?? []; ?>
+                        <div class="admin-card mb-4">
+                            <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-layout-text-window me-2 text-danger"></i>Textos de página — Sucursales consolidadas
+                            </h5>
+                            <p class="text-muted small mb-3">
+                                Cabecera de <code>/sucursales-grupo.php</code> (listado multi-unidad).
+                            </p>
+                            <form method="POST" action="?tab=global">
+                                <input type="hidden" name="action" value="save_sucursales_grupo_page">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Título principal (H1)</label>
+                                        <input type="text" name="grupo_suc_page_title" class="form-control form-control-premium" value="<?php echo esc($grupo_suc_page['title'] ?? 'Nuestras sucursales'); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Subtítulo bajo H1</label>
+                                        <input type="text" name="grupo_suc_page_subtitle" class="form-control form-control-premium" value="<?php echo esc($grupo_suc_page['subtitle'] ?? 'Ubicaciones de Rent A Car, Venta de Autos, Leasing, Renting y Taller a nivel nacional.'); ?>">
+                                    </div>
+                                </div>
+                                <div class="text-end mt-3">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar textos de página
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                         <div class="admin-card">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy"><i class="bi bi-globe2 me-2 text-danger"></i>Configuración de Cabecera, WhatsApp y Pie</h5>
                             
@@ -4007,6 +4100,45 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
 
                     <!-- TAB 6: SUCURSALES CRUD -->
                     <div class="tab-pane fade" id="tab-sucursales" role="tabpanel" aria-labelledby="tab-sucursales-nav">
+                        <?php $rac_suc_page = $homepage['sucursales_page'] ?? []; ?>
+                        <div class="admin-card mb-4">
+                            <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-layout-text-window me-2 text-danger"></i>Textos de página — Sucursales Rent A Car
+                            </h5>
+                            <p class="text-muted small mb-3">
+                                Cabecera y CTA lateral de <code>/sucursales.php</code>. Las sucursales del listado se editan abajo.
+                            </p>
+                            <form method="POST" action="?tab=sucursales">
+                                <input type="hidden" name="action" value="save_rac_sucursales_page">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Título principal (H1)</label>
+                                        <input type="text" name="rac_suc_page_title" class="form-control form-control-premium" value="<?php echo esc($rac_suc_page['title'] ?? 'Nuestras Sucursales'); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Subtítulo bajo H1</label>
+                                        <input type="text" name="rac_suc_page_subtitle" class="form-control form-control-premium" value="<?php echo esc($rac_suc_page['subtitle'] ?? 'Encuentra las sucursales de Automarket Rent a Car en Panamá: ubicaciones convenientes para facilitar tu experiencia.'); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Título CTA lateral</label>
+                                        <input type="text" name="rac_suc_cta_title" class="form-control form-control-premium" value="<?php echo esc($rac_suc_page['cta_title'] ?? '¡Alquila tu vehículo ahora!'); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Texto CTA lateral</label>
+                                        <input type="text" name="rac_suc_cta_text" class="form-control form-control-premium" value="<?php echo esc($rac_suc_page['cta_text'] ?? '¡Aprovecha nuestras ofertas por tiempo limitado y vive experiencias increíbles!'); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Botón CTA lateral</label>
+                                        <input type="text" name="rac_suc_cta_button" class="form-control form-control-premium" value="<?php echo esc($rac_suc_page['cta_button'] ?? 'Reserva Ya'); ?>">
+                                    </div>
+                                </div>
+                                <div class="text-end mt-3">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar textos de página
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                         <?php require __DIR__ . '/../../includes/admin-legacy-locations-notice.php'; ?>
                         <!-- Sucursal Form Card -->
                         <div class="admin-card">
@@ -4154,6 +4286,33 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
 
                     <!-- TAB 7: CONTACT / MESSAGES -->
                     <div class="tab-pane fade" id="tab-contact" role="tabpanel" aria-labelledby="tab-contact-nav">
+                        <?php $rac_contact_page = $homepage['contact_page'] ?? []; ?>
+                        <div class="admin-card mb-4">
+                            <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-layout-text-window me-2 text-danger"></i>Textos de página — Contacto Rent A Car
+                            </h5>
+                            <p class="text-muted small mb-3">
+                                Cabecera de <code>/contactos.php</code> (unidad Rent A Car). Si se deja vacío, se usa el texto por defecto del sitio.
+                            </p>
+                            <form method="POST" action="?tab=contact">
+                                <input type="hidden" name="action" value="save_rac_contact_page">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Título principal (H1)</label>
+                                        <input type="text" name="rac_contact_page_title" class="form-control form-control-premium" value="<?php echo esc($rac_contact_page['title'] ?? 'Contactos'); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Intro bajo H1</label>
+                                        <input type="text" name="rac_contact_page_intro" class="form-control form-control-premium" value="<?php echo esc($rac_contact_page['intro'] ?? 'Gracias por escribirnos, tus comentarios son muy importantes para nosotros, por favor llena el siguiente formulario de contacto, pronto te responderemos, gracias.'); ?>">
+                                    </div>
+                                </div>
+                                <div class="text-end mt-3">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar textos de página
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                         <!-- Configuration Card: Destination Emails -->
                         <div class="admin-card">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
@@ -5454,6 +5613,46 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
 
                     <!-- TAB 15: SEMINUEVOS CONTACTO & SUCURSALES -->
                     <div class="tab-pane fade" id="tab-semi-contact" role="tabpanel" aria-labelledby="tab-semi-contact-nav">
+
+                        <?php $semi_contact_page = $seminuevos['contact_page'] ?? []; ?>
+                        <div class="admin-card mb-4">
+                            <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-layout-text-window me-2 text-danger"></i>Textos de página — Contacto Seminuevos
+                            </h5>
+                            <p class="text-muted small mb-3">
+                                Cabecera y CTA lateral de <code>/contactos.php?unit=seminuevos</code>.
+                            </p>
+                            <form method="POST" action="?tab=semi-contact">
+                                <input type="hidden" name="action" value="save_semi_contact_page">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Título principal (H1)</label>
+                                        <input type="text" name="semi_contact_page_title" class="form-control form-control-premium" value="<?php echo esc($semi_contact_page['title'] ?? 'Contacto'); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Intro bajo H1</label>
+                                        <input type="text" name="semi_contact_page_intro" class="form-control form-control-premium" value="<?php echo esc($semi_contact_page['intro'] ?? 'Gracias por escribirnos. Por favor llena el formulario y pronto te responderemos.'); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Título CTA lateral</label>
+                                        <input type="text" name="semi_contact_cta_title" class="form-control form-control-premium" value="<?php echo esc($semi_contact_page['cta_title'] ?? '¡Compra tu seminuevo!'); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Texto CTA lateral</label>
+                                        <input type="text" name="semi_contact_cta_text" class="form-control form-control-premium" value="<?php echo esc($semi_contact_page['cta_text'] ?? 'Un seminuevo es la mejor forma de estrenar sin pagar de más'); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Botón CTA lateral</label>
+                                        <input type="text" name="semi_contact_cta_button" class="form-control form-control-premium" value="<?php echo esc($semi_contact_page['cta_button'] ?? 'Cotiza tu Vehículo'); ?>">
+                                    </div>
+                                </div>
+                                <div class="text-end mt-3">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar textos de contacto
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
 
                         <?php $semi_suc_page = $seminuevos['sucursales_page'] ?? []; ?>
                         <div class="admin-card mb-4">

@@ -1079,6 +1079,44 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
 
                     <!-- TAB: RENTING SUCURSALES -->
                     <div class="tab-pane fade" id="tab-renting-sucursales" role="tabpanel" aria-labelledby="tab-renting-sucursales-nav">
+                        <div class="admin-card mb-4">
+                            <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-layout-text-window me-2 text-danger"></i>Textos de página — Sucursales Renting
+                            </h5>
+                            <p class="text-muted small mb-3">
+                                Cabecera y CTA lateral de <code>/renting-sucursales.php</code>. Las sucursales del listado se editan abajo.
+                            </p>
+                            <form method="POST" action="?tab=renting-sucursales">
+                                <input type="hidden" name="action" value="save_renting_sucursales_page">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Título principal (H1)</label>
+                                        <input type="text" name="renting_sucursales_title" class="form-control form-control-premium" value="<?php echo esc($renting['sucursales_title'] ?? 'Nuestras Sucursales'); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Subtítulo bajo H1</label>
+                                        <input type="text" name="renting_sucursales_subtitle" class="form-control form-control-premium" value="<?php echo esc($renting['sucursales_subtitle'] ?? 'Encuentra las sucursales de Automarket Renting en Panamá.'); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Título CTA lateral</label>
+                                        <input type="text" name="renting_sucursales_cta_title" class="form-control form-control-premium" value="<?php echo esc($renting['sucursales_cta_title'] ?? 'Cotiza tu plan de Renting'); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Texto CTA lateral</label>
+                                        <input type="text" name="renting_sucursales_cta_text" class="form-control form-control-premium" value="<?php echo esc($renting['sucursales_cta_text'] ?? 'Tu auto nuevo, una cuota mensual con todo incluido. Cobertura en todo el país.'); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Botón CTA lateral</label>
+                                        <input type="text" name="renting_sucursales_cta_button" class="form-control form-control-premium" value="<?php echo esc($renting['sucursales_cta_button'] ?? 'Cotizar plan'); ?>">
+                                    </div>
+                                </div>
+                                <div class="text-end mt-3">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar textos de página
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                         <?php require __DIR__ . '/admin-legacy-locations-notice.php'; ?>
                         <div class="admin-card">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="rentingSucursalFormTitle">

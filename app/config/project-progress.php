@@ -8,7 +8,7 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-CMS-5B3',
+        'version_tablero'  => 'AM-CMS-5B4',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
@@ -17,7 +17,7 @@ return [
     'resumen' => [
         'avance_global'     => 60,
         'seo_tecnico'       => 72,
-        'cms_editorial'     => 78,
+        'cms_editorial'     => 82,
         'ux_conversion'     => 64,
         'contenido_aeo_geo' => 45,
     ],
@@ -25,7 +25,7 @@ return [
     'pendientes_funcionales' => [
         ['item' => 'Vacantes / Trabaja con nosotros (sección base)', 'nota' => 'Falta módulo público de vacantes antes de integrar Konzerta.'],
         ['item' => 'Footer builder columnas (AM-CMS-5A-B)', 'nota' => 'B0–B3 cerrados prod (builder columnas enlaces; also_know/redes/pagos v1 separados).'],
-        ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'B1/B2/B3 cerrados prod (6d18635); pendientes 5B4 contactos/sucursales y 5B5 cierre epic.'],
+        ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'B1/B2/B3 cerrados prod; 5B4 en validación local; pendiente 5B5 cierre epic.'],
     ],
 
     'modulos_contenido_pendiente' => [
@@ -84,6 +84,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B1 cerrado prod HEAD bd7e5d7 — deploy ff-only; php -l 5/5 contenedor app; rent-a-car/flota 200; fallbacks OK; sitemap 147/0/20/0; dashboard test 200/www 404'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B3 local: leasing ventajas corporativas + lead/opiniones; renting/taller hero CTA; lrt-public-copy.php; fallbacks conservadores'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B3 cerrado prod HEAD 6d18635 — deploy ff-only; renting/leasing/taller 200; compose exec app php -l 6/6; sitemap 147/0/20/0; dashboard test 200/www 404'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B4 local: contactos/sucursales títulos CMS; contact-locations-public-copy.php; RAC/renting/semi/grupo; fallbacks conservadores'],
     ],
 
     'bloques' => [
@@ -485,12 +486,26 @@ return [
             'area'                => 'CMS/editorial',
             'prioridad'           => 'Media',
             'estado'              => 'En desarrollo',
-            'porcentaje_estimado' => 75,
-            'descripcion'         => 'Epic títulos editables. B0 diagnóstico aprobado; B1/B2/B3 cerrados prod; 5B4–5B5 incremental sin big-bang.',
+            'porcentaje_estimado' => 80,
+            'descripcion'         => 'Epic títulos editables. B0 diagnóstico aprobado; B1/B2/B3 cerrados prod; 5B4 en validación; 5B5 cierre epic.',
             'dependencias'        => ['AM-CMS-5A-B'],
             'ultimo_commit'       => '6d18635',
-            'evidencia'           => 'B0 cerrado docs/; B1 bd7e5d7; B2 8d14e8b; B3 prod 6d18635 lrt-public-copy.php ventajas corporativas + hero CTAs.',
-            'siguiente_accion'    => 'Siguiente sub-bloque AM-CMS-5B4 contactos/sucursales tras aprobación.',
+            'evidencia'           => 'B0 cerrado docs/; B1 bd7e5d7; B2 8d14e8b; B3 prod 6d18635; B4 local contact-locations-public-copy.php.',
+            'siguiente_accion'    => 'Validar AM-CMS-5B4 contactos/sucursales; luego 5B5 cierre epic.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-CMS-5B4',
+            'nombre'              => 'Contactos / Sucursales títulos y textos visibles editables',
+            'area'                => 'CMS/editorial',
+            'prioridad'           => 'Media',
+            'estado'              => 'En validación',
+            'porcentaje_estimado' => 95,
+            'descripcion'         => 'contactos.php RAC/semi/leasing/renting; sucursales.php RAC; renting-sucursales.php; sucursales-grupo.php; contact-locations-public-copy.php; admin textos visibles.',
+            'dependencias'        => ['AM-CMS-5B0'],
+            'ultimo_commit'       => '—',
+            'evidencia'           => 'Local: helper + admin RAC/semi/renting/grupo; leasing/taller/semi sucursales ya CMS; fallbacks conservadores.',
+            'siguiente_accion'    => 'QA guardar/vaciar/restaurar; commit local; deploy tras aprobación.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [

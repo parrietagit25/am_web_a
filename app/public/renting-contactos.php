@@ -12,8 +12,8 @@ $contact = am_unit_contact_with_footer_fallback($contactRaw, $renting);
 $siteData = $contentService->getAll();
 $rentingContactResolved = am_unit_contact_resolved_for_display($contact, $siteData['global'] ?? []);
 
-$pageTitle = $contactRaw['page_title'] ?? 'Contactos';
-$introText = $contactRaw['intro_text'] ?? 'Gracias por escribirnos. Tus comentarios son muy importantes para nosotros; completa el formulario y pronto te responderemos.';
+$pageTitle = trim((string) ($contactRaw['page_title'] ?? '')) ?: 'Contactos';
+$introText = trim((string) ($contactRaw['intro_text'] ?? '')) ?: 'Gracias por escribirnos. Tus comentarios son muy importantes para nosotros; completa el formulario y pronto te responderemos.';
 $contactImageUrl = $contactRaw['contact_image_url'] ?? '';
 ?>
 

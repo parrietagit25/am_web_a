@@ -686,6 +686,23 @@ elseif ($action === 'save_renting_sobre_nosotros') {
     }
 }
 
+// SAVE RENTING SUCURSALES PAGE TEXTS
+elseif ($action === 'save_renting_sucursales_page') {
+    if (!isset($siteData['renting'])) {
+        $siteData['renting'] = [];
+    }
+    $siteData['renting']['sucursales_title'] = trim($_POST['renting_sucursales_title'] ?? '');
+    $siteData['renting']['sucursales_subtitle'] = trim($_POST['renting_sucursales_subtitle'] ?? '');
+    $siteData['renting']['sucursales_cta_title'] = trim($_POST['renting_sucursales_cta_title'] ?? '');
+    $siteData['renting']['sucursales_cta_text'] = trim($_POST['renting_sucursales_cta_text'] ?? '');
+    $siteData['renting']['sucursales_cta_button'] = trim($_POST['renting_sucursales_cta_button'] ?? '');
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Textos de la página de sucursales (Renting) guardados correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar textos de sucursales Renting.';
+    }
+}
+
 // SAVE RENTING CONTACT SETTINGS
 elseif ($action === 'save_renting_contact_settings') {
     if (!isset($siteData['renting'])) {
