@@ -57,6 +57,52 @@ class SitemapService
             $urls[] = $vehicleEntry;
         }
 
+        foreach (self::collectPublishedContentUrls($base, $lastmod, $contentService) as $contentEntry) {
+            $urls[] = $contentEntry;
+        }
+
+        return $urls;
+    }
+
+    /**
+     * Artículos editoriales publicados (excluye demo/prueba).
+     *
+     * @return list<array{loc:string,changefreq:string,priority:string,lastmod?:string}>
+     */
+    private static function collectPublishedContentUrls(string $base, string $lastmod, ContentService $contentService): array
+    {
+        require_once __DIR__ . '/UnitContentService.php';
+
+        $siteData = $contentService->getAll();
+        $urls = [];
+
+        foreach (UnitContentService::enumerateUnitKeys($siteData) as $unitKey) {
+            if (!UnitContentService::isSupportedUnit($unitKey, $siteData)) {
+                continue;
+            }
+            UnitContentService::ensureMigrated($siteData, $unitKey);
+
+            foreach (UnitContentService::TYPES as $type) {
+                foreach (UnitContentService::getItems($siteData, $unitKey, $type) as $item) {
+                    if (!UnitContentService::isPubliclyVisible($item)) {
+                        continue;
+                    }
+                    $id = intval($item['id'] ?? 0);
+                    if ($id <= 0) {
+                        continue;
+                    }
+                    $path = UnitContentService::detailUrl($unitKey, $type, $id);
+                    $itemLastmod = UnitContentService::articleIsoDate($item);
+                    $urls[] = [
+                        'loc' => rtrim($base, '/') . $path,
+                        'changefreq' => 'monthly',
+                        'priority' => '0.5',
+                        'lastmod' => $itemLastmod !== null ? substr($itemLastmod, 0, 10) : $lastmod,
+                    ];
+                }
+            }
+        }
+
         return $urls;
     }
 

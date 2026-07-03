@@ -68,7 +68,12 @@ if (!is_array($progress)) {
 $meta       = is_array($progress['meta'] ?? null) ? $progress['meta'] : [];
 $resumen    = is_array($progress['resumen'] ?? null) ? $progress['resumen'] : [];
 $bloques    = is_array($progress['bloques'] ?? null) ? $progress['bloques'] : [];
-$bloqueados = is_array($progress['bloqueados_negocio'] ?? null) ? $progress['bloqueados_negocio'] : [];
+$bloqueadosLegacy = is_array($progress['bloqueados_negocio'] ?? null) ? $progress['bloqueados_negocio'] : [];
+$pendientesFuncionales = is_array($progress['pendientes_funcionales'] ?? null) ? $progress['pendientes_funcionales'] : [];
+$modulosContenidoPendiente = is_array($progress['modulos_contenido_pendiente'] ?? null) ? $progress['modulos_contenido_pendiente'] : [];
+$bloqueadosDecision = is_array($progress['bloqueados_decision_negocio'] ?? null) ? $progress['bloqueados_decision_negocio'] : [];
+$bloqueadosDatoExterno = is_array($progress['bloqueados_dato_externo'] ?? null) ? $progress['bloqueados_dato_externo'] : [];
+$metodologiaEstados = (string) ($meta['metodologia_estados'] ?? '');
 $evidencias = is_array($progress['evidencias'] ?? null) ? $progress['evidencias'] : [];
 
 $estados = [];
@@ -98,14 +103,18 @@ ksort($prioridades);
 function dash_estado_class(string $estado): string
 {
     $map = [
-        'Cerrado producción'    => 'estado-cerrado',
-        'Cerrado local'         => 'estado-cerrado',
-        'En validación'         => 'estado-validacion',
-        'En desarrollo'         => 'estado-desarrollo',
-        'Pendiente'             => 'estado-pendiente',
-        'Bloqueado por negocio' => 'estado-bloqueado',
-        'Requiere contenido'    => 'estado-contenido',
-        'Pospuesto'             => 'estado-pospuesto',
+        'Cerrado producción'              => 'estado-cerrado',
+        'Cerrado local'                   => 'estado-cerrado',
+        'En validación'                   => 'estado-validacion',
+        'En desarrollo'                   => 'estado-desarrollo',
+        'Pendiente'                       => 'estado-pendiente',
+        'Pendiente funcional'             => 'estado-pendiente',
+        'Módulo listo / contenido pendiente' => 'estado-contenido',
+        'Bloqueado por negocio'           => 'estado-bloqueado',
+        'Bloqueado por decisión de negocio' => 'estado-bloqueado',
+        'Bloqueado por dato externo'      => 'estado-bloqueado-externo',
+        'Requiere contenido'              => 'estado-contenido',
+        'Pospuesto'                       => 'estado-pospuesto',
     ];
     return $map[$estado] ?? 'estado-default';
 }
@@ -211,6 +220,7 @@ $notaPct   = (string) ($meta['nota_porcentajes'] ?? '');
         .estado-desarrollo { background: #e8f0ff; color: var(--info); }
         .estado-pendiente { background: var(--muted-bg); color: var(--muted); }
         .estado-bloqueado { background: #fdecea; color: #a12622; }
+        .estado-bloqueado-externo { background: #fff0f6; color: #8a1c4a; }
         .estado-contenido { background: #fff3e0; color: var(--warn); }
         .estado-pospuesto { background: #f0f0f0; color: #666; }
         .estado-default { background: var(--muted-bg); color: var(--muted); }
@@ -398,21 +408,37 @@ $notaPct   = (string) ($meta['nota_porcentajes'] ?? '');
         </tbody>
     </table>
 
-    <h2 class="section-title">Pendientes bloqueados por negocio / contenido</h2>
-    <ul class="clean">
-        <?php foreach ($bloqueados as $item):
+    <h2 class="section-title">Metodología de estados</h2>
+    <?php if ($metodologiaEstados !== ''): ?>
+    <div class="note"><?php echo dash_esc($metodologiaEstados); ?></div>
+    <?php endif; ?>
+
+    <?php
+    $dashRenderItemList = static function (string $title, array $items) {
+        if (empty($items)) {
+            return;
+        }
+        echo '<h3 class="section-subtitle">' . dash_esc($title) . '</h3><ul class="clean">';
+        foreach ($items as $item) {
             if (!is_array($item)) {
                 continue;
             }
-        ?>
-        <li>
-            <strong><?php echo dash_esc($item['item'] ?? ''); ?></strong>
-            <?php if (!empty($item['nota'])): ?>
-            — <?php echo dash_esc($item['nota']); ?>
-            <?php endif; ?>
-        </li>
-        <?php endforeach; ?>
-    </ul>
+            echo '<li><strong>' . dash_esc($item['item'] ?? '') . '</strong>';
+            if (!empty($item['nota'])) {
+                echo ' — ' . dash_esc($item['nota']);
+            }
+            echo '</li>';
+        }
+        echo '</ul>';
+    };
+    $dashRenderItemList('Pendiente funcional', $pendientesFuncionales);
+    $dashRenderItemList('Módulo listo / contenido pendiente', $modulosContenidoPendiente);
+    $dashRenderItemList('Bloqueado por decisión de negocio', $bloqueadosDecision);
+    $dashRenderItemList('Bloqueado por dato externo', $bloqueadosDatoExterno);
+    if (!empty($bloqueadosLegacy)) {
+        $dashRenderItemList('Legacy bloqueados_negocio', $bloqueadosLegacy);
+    }
+    ?>
 
     <h2 class="section-title">Últimas evidencias</h2>
     <ul class="evidencia-list">

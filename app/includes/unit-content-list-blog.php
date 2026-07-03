@@ -10,8 +10,8 @@
         <?php if (empty($items)): ?>
             <div class="uc-empty uc-empty--hubspot text-center py-5">
                 <i class="bi bi-journal-richtext display-3 text-muted"></i>
-                <h4 class="mt-3 text-navy">Aún no hay artículos de blog</h4>
-                <p class="text-muted mb-0">Guías, consejos y contenido evergreen aparecerán aquí.</p>
+                <h4 class="mt-3 text-navy">Próximamente</h4>
+                <p class="text-muted mb-0">Próximamente compartiremos novedades, consejos y noticias de Automarket.</p>
             </div>
         <?php else: ?>
             <div class="row g-4 g-xl-5">

@@ -712,6 +712,91 @@ class UnitContentService
         return filter_var($item['show_on_home'], FILTER_VALIDATE_BOOLEAN);
     }
 
+    /** @param array<string, mixed> $siteData @return list<string> */
+    public static function enumerateUnitKeys(array $siteData): array
+    {
+        $keys = ['rentacar', 'leasing', 'renting', 'seminuevos', 'taller'];
+        $custom = $siteData['global']['business_units'] ?? [];
+        if (is_array($custom)) {
+            foreach (array_keys($custom) as $key) {
+                $key = trim((string) $key);
+                if ($key !== '' && !in_array($key, $keys, true)) {
+                    $keys[] = $key;
+                }
+            }
+        }
+
+        return $keys;
+    }
+
+    /**
+     * Contenido de prueba/demo: no indexar ni mostrar en www aunque published=true.
+     *
+     * @param array<string, mixed> $item
+     */
+    public static function isDemoContent(array $item): bool
+    {
+        if (!empty($item['is_demo'])) {
+            return true;
+        }
+
+        $title = mb_strtolower(trim((string) ($item['title'] ?? '')), 'UTF-8');
+        if ($title !== '' && preg_match('/^prueba(\b|[\s\-_:])/u', $title) === 1) {
+            return true;
+        }
+
+        $slug = mb_strtolower(trim((string) ($item['slug'] ?? '')), 'UTF-8');
+        if ($slug !== '' && (str_starts_with($slug, 'prueba') || str_starts_with($slug, 'test-'))) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Visible en frontend público y elegible para sitemap/schema.
+     *
+     * @param array<string, mixed> $item
+     */
+    public static function isPubliclyVisible(array $item): bool
+    {
+        if (empty($item['published']) || !self::isWithinSchedule($item)) {
+            return false;
+        }
+
+        return !self::isDemoContent($item);
+    }
+
+    /** @param array<string, mixed> $item */
+    public static function articleIsoDate(array $item): ?string
+    {
+        foreach (['updated_at', 'created_at', 'date'] as $key) {
+            $raw = trim((string) ($item[$key] ?? ''));
+            if ($raw === '') {
+                continue;
+            }
+            $ts = strtotime($raw);
+            if ($ts !== false) {
+                return date('c', $ts);
+            }
+        }
+
+        return null;
+    }
+
+    /** @param array<string, mixed> $item */
+    public static function articleDescription(array $item): string
+    {
+        foreach (['excerpt', 'description', 'subheading'] as $key) {
+            $text = trim(strip_tags((string) ($item[$key] ?? '')));
+            if ($text !== '') {
+                return $text;
+            }
+        }
+
+        return '';
+    }
+
     /** @param array<string, mixed> $item */
     public static function isWithinSchedule(array $item): bool
     {
@@ -740,7 +825,7 @@ class UnitContentService
     {
         if ($unitKey === 'rentacar') {
             if ($type === 'blog') {
-                return '/blog.php?type=blog&id=' . $id;
+                return '/noticia.php?type=blog&id=' . $id;
             }
             if ($type === 'latest') {
                 return '/noticia.php?type=latest&id=' . $id;
@@ -888,7 +973,7 @@ class UnitContentService
         }
 
         $item = self::findItem($siteData, $unitKey, $type, $id);
-        if (!$item || empty($item['published']) || !self::isWithinSchedule($item)) {
+        if (!$item || !self::isPubliclyVisible($item)) {
             return null;
         }
 

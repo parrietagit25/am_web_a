@@ -72,7 +72,7 @@ function unit_content_get_items(ContentService $contentService, string $unitKey,
 
     $items = [];
     foreach (UnitContentService::getItems($siteData, $unitKey, $type) as $item) {
-        if (empty($item['published']) || !UnitContentService::isWithinSchedule($item)) {
+        if (!UnitContentService::isPubliclyVisible($item)) {
             continue;
         }
         $item['detail_url'] = UnitContentService::detailUrl($unitKey, $type, intval($item['id'] ?? 0));
@@ -87,11 +87,16 @@ function unit_content_find_article(ContentService $contentService, string $unitK
     $siteData = $contentService->getAll();
     UnitContentService::ensureMigrated($siteData, $unitKey);
     $item = UnitContentService::findItem($siteData, $unitKey, $type, $id);
-    if (!$item || empty($item['published']) || !UnitContentService::isWithinSchedule($item)) {
+    if (!$item || !UnitContentService::isPubliclyVisible($item)) {
         if ($unitKey === 'rentacar' && $type === 'news' && $id > 0) {
             foreach (UnitContentService::getLegacyNoticias($siteData, $unitKey) as $legacy) {
                 if (intval($legacy['id'] ?? 0) === $id) {
-                    return unit_content_to_card(UnitContentService::legacyNoticiaToNews($legacy));
+                    $legacyItem = UnitContentService::legacyNoticiaToNews($legacy);
+                    if (!UnitContentService::isPubliclyVisible($legacyItem)) {
+                        return null;
+                    }
+
+                    return unit_content_to_card($legacyItem);
                 }
             }
         }
@@ -134,7 +139,7 @@ function unit_content_get_latest_home(ContentService $contentService, string $un
 
     foreach (UnitContentService::TYPES as $type) {
         foreach (UnitContentService::getItems($siteData, $unitKey, $type) as $item) {
-            if (empty($item['published']) || !UnitContentService::isWithinSchedule($item)) {
+            if (!UnitContentService::isPubliclyVisible($item)) {
                 continue;
             }
             if (!unit_content_item_shows_on_latest_home($item, $type)) {

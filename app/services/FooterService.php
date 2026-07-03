@@ -70,10 +70,16 @@ class FooterService
         UnitContentService::ensureMigrated($site, 'rentacar');
 
         foreach (UnitContentService::getItems($site, 'rentacar', 'news') as $item) {
+            if (!UnitContentService::isPubliclyVisible($item)) {
+                continue;
+            }
             $legacy = UnitContentService::newsToLegacyNoticia($item);
             $posts[] = $this->normalizePost($legacy, 'rentacar', 'Rent A Car', '/noticia.php?id=', 'thumbnail');
         }
         foreach (UnitContentService::getItems($site, 'rentacar', 'blog') as $item) {
+            if (!UnitContentService::isPubliclyVisible($item)) {
+                continue;
+            }
             $legacy = UnitContentService::newsToLegacyNoticia($item);
             $posts[] = $this->normalizePost($legacy, 'rentacar', 'Rent A Car', '/noticia.php?type=blog&id=', 'thumbnail');
         }
