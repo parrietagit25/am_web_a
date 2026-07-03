@@ -16,33 +16,15 @@ $footerData = $footerService->getFooter();
 $fg = $footerData['general'];
 $trackingCodes = $globalSettings['tracking_codes'] ?? [];
 
-$_recursosCol = null;
-foreach ($footerData['columns'] as $_fc) {
-    if (($_fc['id'] ?? '') === 'recursos') { $_recursosCol = $_fc; break; }
-}
-if ($_recursosCol !== null && !empty($_recursosCol['links'])) {
-    $resourceLinks = [];
-    foreach ($_recursosCol['links'] as $_fl) {
-        $_fl_label = trim((string)($_fl['label'] ?? ''));
-        $_fl_url   = trim((string)($_fl['url']   ?? ''));
-        if ($_fl_label === '' || $_fl_url === '' || ($_fl['active'] ?? true) === false) {
-            continue;
-        }
-        $resourceLinks[] = ['label' => $_fl_label, 'url' => $_fl_url, 'sort_order' => intval($_fl['sort_order'] ?? 99)];
-    }
-    usort($resourceLinks, fn($a, $b) => $a['sort_order'] - $b['sort_order']);
+$activeFooterColumns = $footerService->getActiveColumns();
+$footerLinkColCount = count($activeFooterColumns);
+if ($footerLinkColCount <= 1) {
+    $footerLinkColClass = 'col-lg-2 col-md-6 col-6';
+} elseif ($footerLinkColCount === 2) {
+    $footerLinkColClass = 'col-lg-2 col-md-6 col-6';
 } else {
-    $resourceLinks = [
-        ['label' => t('footer.about_us'), 'url' => '/pagina-institucional.php?p=sobre-nosotros'],
-        ['label' => t('footer.terms'), 'url' => '/pagina-institucional.php?p=terminos'],
-        ['label' => t('footer.faq'), 'url' => '/pagina-institucional.php?p=faq'],
-        ['label' => t('footer.branches'), 'url' => '/sucursales-grupo.php'],
-        ['label' => t('footer.sustainability'), 'url' => '/sostenibilidad.php'],
-        ['label' => t('footer.auctions'), 'url' => '/pagina-institucional.php?p=subastas'],
-        ['label' => t('footer.blog'), 'url' => '/blog-grupo.php'],
-    ];
+    $footerLinkColClass = 'col-lg-2 col-md-4 col-6';
 }
-unset($_recursosCol, $_fc, $_fl, $_fl_label, $_fl_url);
 
 $alsoKnow = array_filter($footerData['also_know'], fn($l) => !empty($l['active']));
 usort($alsoKnow, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b['sort_order'] ?? 99));
@@ -75,15 +57,39 @@ $captchaSiteKey = ($isPublicSite && defined('RECAPTCHA_SITE_KEY'))
                     </div>
                 </div>
 
-                <!-- Navigation Links -->
-                <div class="col-lg-2 col-md-6 col-6">
-                    <h5 class="fw-bold mb-3 border-bottom border-secondary pb-2 text-white"><?php echo esc($fg['resources_title'] ?? t('footer.resources')); ?></h5>
+                <!-- Link columns (dynamic, B2) -->
+                <?php foreach ($activeFooterColumns as $footerColumn): ?>
+                <?php
+                $footerColId = (string) ($footerColumn['id'] ?? '');
+                if ($footerColId === 'recursos') {
+                    $footerColHeading = trim((string) ($fg['resources_title'] ?? ''));
+                    if ($footerColHeading === '') {
+                        $footerColHeading = trim((string) ($footerColumn['title'] ?? ''));
+                    }
+                    if ($footerColHeading === '') {
+                        $footerColHeading = t('footer.resources');
+                    }
+                } else {
+                    $footerColHeading = trim((string) ($footerColumn['title'] ?? ''));
+                }
+                if ($footerColHeading === '') {
+                    continue;
+                }
+                ?>
+                <div class="<?php echo esc($footerLinkColClass); ?>">
+                    <h5 class="fw-bold mb-3 border-bottom border-secondary pb-2 text-white"><?php echo esc($footerColHeading); ?></h5>
                     <ul class="list-unstyled footer-links">
-                        <?php foreach ($resourceLinks as $rl): ?>
-                        <li class="mb-2"><a href="<?php echo esc($rl['url']); ?>" class="text-white text-decoration-none opacity-75"><?php echo esc($rl['label']); ?></a></li>
+                        <?php foreach ($footerColumn['links'] as $footerLink): ?>
+                        <?php
+                        $footerOpenNew = (($footerLink['open_in'] ?? 'same') === 'new');
+                        ?>
+                        <li class="mb-2">
+                            <a href="<?php echo esc($footerLink['url'] ?? '#'); ?>" class="text-white text-decoration-none opacity-75"<?php if ($footerOpenNew): ?> target="_blank" rel="noopener noreferrer"<?php endif; ?>><?php echo esc($footerLink['label'] ?? ''); ?></a>
+                        </li>
                         <?php endforeach; ?>
                     </ul>
                 </div>
+                <?php endforeach; ?>
 
                 <!-- Business Units Links -->
                 <div class="col-lg-3 col-md-6 col-6">
