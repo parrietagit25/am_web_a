@@ -71,6 +71,10 @@ function initEditUnitContent(prefix, item) {
     document.getElementById(prefix + '-link-text').value = item.link_text || 'Ver Más';
     document.getElementById(prefix + '-subheading').value = item.subheading || '';
     document.getElementById(prefix + '-description').value = item.description || '';
+    const metaTitle = document.getElementById(prefix + '-meta-title');
+    if (metaTitle) metaTitle.value = item.meta_title || '';
+    const metaDesc = document.getElementById(prefix + '-meta-description');
+    if (metaDesc) metaDesc.value = item.meta_description || '';
     unitContentSetBody(prefix, item.content || '');
     document.getElementById(prefix + '-sort').value = item.sort_order || 0;
     document.getElementById(prefix + '-published').checked = (item.published === true || item.published === 'true' || item.published == 1);

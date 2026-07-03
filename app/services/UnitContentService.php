@@ -426,6 +426,8 @@ class UnitContentService
             'subheading' => trim((string) ($row['subheading'] ?? '')),
             'description' => trim((string) ($row['description'] ?? '')),
             'content' => (string) ($row['content'] ?? ''),
+            'meta_title' => trim((string) ($row['meta_title'] ?? '')),
+            'meta_description' => trim((string) ($row['meta_description'] ?? '')),
             'published' => !isset($row['published']) || filter_var($row['published'], FILTER_VALIDATE_BOOLEAN),
             'show_on_home' => array_key_exists('show_on_home', $row)
                 ? filter_var($row['show_on_home'], FILTER_VALIDATE_BOOLEAN)
@@ -814,6 +816,28 @@ class UnitContentService
         }
 
         return '';
+    }
+
+    /** @param array<string, mixed> $item */
+    public static function articleMetaTitle(array $item): string
+    {
+        $meta = trim((string) ($item['meta_title'] ?? ''));
+        if ($meta !== '') {
+            return $meta;
+        }
+
+        return trim((string) ($item['title'] ?? ''));
+    }
+
+    /** @param array<string, mixed> $item */
+    public static function articleMetaDescription(array $item): string
+    {
+        $meta = trim(strip_tags((string) ($item['meta_description'] ?? '')));
+        if ($meta !== '') {
+            return $meta;
+        }
+
+        return self::articleDescription($item);
     }
 
     /** @param array<string, mixed> $item */

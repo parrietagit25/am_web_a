@@ -42,18 +42,19 @@ require_once __DIR__ . '/../services/SitemapService.php';
 $detailPath = UnitContentService::detailUrl($unitKey, $type, $newsId);
 $canonicalBase = SitemapService::canonicalBase($preContent);
 $articleCanonical = rtrim($canonicalBase, '/') . $detailPath;
-$articleDescription = UnitContentService::articleDescription($article);
+$articleSeoTitle = UnitContentService::articleMetaTitle($article);
+$articleSeoDescription = UnitContentService::articleMetaDescription($article);
 $ogImage = trim((string) ($article['banner'] ?? ($article['thumbnail'] ?? '')));
 if ($ogImage !== '' && str_starts_with($ogImage, '/')) {
     $ogImage = rtrim($canonicalBase, '/') . $ogImage;
 }
 
 $seoOverride = [
-    'title'          => trim((string) ($article['title'] ?? '')) . ' | Automarket',
-    'description'    => $articleDescription !== '' ? $articleDescription : 'Artículo de Automarket Panamá.',
+    'title'          => $articleSeoTitle !== '' ? $articleSeoTitle . ' | Automarket' : 'Artículo | Automarket',
+    'description'    => $articleSeoDescription !== '' ? $articleSeoDescription : 'Artículo de Automarket Panamá.',
     'canonical'      => $articleCanonical,
-    'og_title'       => trim((string) ($article['title'] ?? '')),
-    'og_description' => $articleDescription !== '' ? $articleDescription : 'Artículo de Automarket Panamá.',
+    'og_title'       => $articleSeoTitle !== '' ? $articleSeoTitle : 'Artículo de Automarket Panamá',
+    'og_description' => $articleSeoDescription !== '' ? $articleSeoDescription : 'Artículo de Automarket Panamá.',
 ];
 if ($ogImage !== '') {
     $seoOverride['og_image'] = $ogImage;

@@ -140,6 +140,16 @@ $ucTabActive = ($defaultAdminTab ?? '') === $ucTabSlug;
                 </div>
 
                 <div class="col-md-6">
+                    <label class="form-label">Título SEO <span class="text-muted fw-normal">(opcional)</span></label>
+                    <input type="text" name="content_meta_title" id="<?php echo esc($ucDomPrefix); ?>-meta-title" class="form-control form-control-premium" placeholder="Si se deja vacío, usa el título del artículo">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Descripción SEO <span class="text-muted fw-normal">(opcional)</span></label>
+                    <input type="text" name="content_meta_description" id="<?php echo esc($ucDomPrefix); ?>-meta-description" class="form-control form-control-premium" placeholder="Si se deja vacío, usa resumen/intro actual">
+                    <div class="form-text">Meta description para buscadores y redes. No cambia la URL pública.</div>
+                </div>
+
+                <div class="col-md-6">
                     <label class="form-label">Imagen tarjeta</label>
                     <input type="file" name="content_thumbnail" id="<?php echo esc($ucDomPrefix); ?>-thumbnail" class="form-control form-control-premium" accept="image/*" required>
                     <small class="text-muted d-block mt-1">Recomendado: 800×600 px — JPG o WebP</small>

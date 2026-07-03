@@ -48,6 +48,8 @@ function unit_content_parse_item_from_post(string $type): array
         'link_text' => trim($_POST['content_link_text'] ?? 'Ver Más'),
         'subheading' => trim($_POST['content_subheading'] ?? ''),
         'description' => trim($_POST['content_description'] ?? ''),
+        'meta_title' => trim($_POST['content_meta_title'] ?? ''),
+        'meta_description' => trim($_POST['content_meta_description'] ?? ''),
         'content' => trim($_POST['content_body'] ?? ''),
         'published' => isset($_POST['content_published']),
         'show_on_home' => isset($_POST['content_show_on_home']),

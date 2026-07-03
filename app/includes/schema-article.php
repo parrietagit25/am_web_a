@@ -44,7 +44,7 @@ $_saSchema = [
     ],
 ];
 
-$_saDescription = UnitContentService::articleDescription($_saArticle);
+$_saDescription = UnitContentService::articleMetaDescription($_saArticle);
 if ($_saDescription !== '') {
     $_saSchema['description'] = $_saDescription;
 }
