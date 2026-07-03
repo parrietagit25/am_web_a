@@ -104,6 +104,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-6D: diagnóstico FAQ aprobado — infraestructura global/unidad existente; schema FAQPage condicional; contenido pendiente Mercadeo; sin tocar site_data ni código público'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-6D cerrado prod HEAD 082001d — deploy ff-only; php -l OK; dashboard test 200+noindex/www 404+noindex; FAQ global/unidad diagnosticado; contenido pendiente Mercadeo; sin site_data ni código público'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-6E: diagnóstico blog/noticias/novedades RAC aprobado — infraestructura CMS/listados/detalle/schema/sitemap existente; noticias con contenido real; blog/novedades pendientes Mercadeo; sin tocar site_data ni código público'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-6E cerrado prod HEAD 0066014 — deploy ff-only; php -l OK; dashboard test 200+noindex/www 404+noindex; blog/noticias/novedades RAC diagnosticado; noticias reales; blog/novedades pendientes Mercadeo; sin site_data ni código público'],
     ],
 
     'bloques' => [
@@ -420,13 +421,13 @@ return [
             'nombre'              => 'Blog / noticias / novedades RAC',
             'area'                => 'Contenido/AEO/GEO',
             'prioridad'           => 'Media',
-            'estado'              => 'En validación',
-            'porcentaje_estimado' => 90,
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
             'descripcion'         => 'Diagnóstico e inventario editorial de blog/noticias/novedades RAC; infraestructura existente; sin cambios funcionales ni contenido inventado.',
             'dependencias'        => ['AM-CONT-4C-A', 'AM-CONT-6D'],
-            'ultimo_commit'       => '—',
-            'evidencia'           => 'Local diagnóstico aprobado; blog/noticias/novedades, detalle noticia.php, schema article y sitemap filtrado existentes; contenido pendiente Mercadeo.',
-            'siguiente_accion'    => 'Validar dashboard test; luego cierre dashboard si producción queda OK.',
+            'ultimo_commit'       => '0066014',
+            'evidencia'           => 'Prod 0066014: deploy ff-only OK; php -l OK; dashboard test 200+noindex/www 404+noindex; blog/noticias/novedades diagnosticados; noticias RAC con contenido real; blog/novedades pendientes Mercadeo; sin tocar site_data ni código público.',
+            'siguiente_accion'    => 'Cerrado. Mercadeo debe cargar/reemplazar contenido final de blog y novedades desde admin; futuro ajuste URLs/meta solo si negocio lo solicita.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
