@@ -8,18 +8,18 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-CONT-6E',
+        'version_tablero'  => 'AM-DASH-0D',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
     ],
 
     'resumen' => [
-        'avance_global'     => 75,
+        'avance_global'     => 77,
         'seo_tecnico'       => 78,
-        'cms_editorial'     => 90,
+        'cms_editorial'     => 91,
         'ux_conversion'     => 64,
-        'contenido_aeo_geo' => 62,
+        'contenido_aeo_geo' => 65,
     ],
 
     'pendientes_funcionales' => [],
@@ -105,6 +105,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-6D cerrado prod HEAD 082001d — deploy ff-only; php -l OK; dashboard test 200+noindex/www 404+noindex; FAQ global/unidad diagnosticado; contenido pendiente Mercadeo; sin site_data ni código público'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-6E: diagnóstico blog/noticias/novedades RAC aprobado — infraestructura CMS/listados/detalle/schema/sitemap existente; noticias con contenido real; blog/novedades pendientes Mercadeo; sin tocar site_data ni código público'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-6E cerrado prod HEAD 0066014 — deploy ff-only; php -l OK; dashboard test 200+noindex/www 404+noindex; blog/noticias/novedades RAC diagnosticado; noticias reales; blog/novedades pendientes Mercadeo; sin site_data ni código público'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0D: recalibración post 6C/6D/6E — avance_global 77%; cms_editorial 91%; contenido_aeo_geo 65%; seo_tecnico 78% y ux_conversion 64% sin cambio; módulos editoriales listos pero contenido Mercadeo pendiente.'],
     ],
 
     'bloques' => [
@@ -344,6 +345,20 @@ return [
             'ultimo_commit'       => 'df4e40a',
             'evidencia'           => 'Prod df4e40a: deploy ff-only; compose exec app php -l OK; dashboard test 200/www 404; pendientes_funcionales vacío; métricas 75/90/78/62.',
             'siguiente_accion'    => 'Cerrado. Mantener backlog alineado tras epic 5C.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-DASH-0D',
+            'nombre'              => 'Recalibración dashboard post 6C/6D/6E',
+            'area'                => 'Infraestructura',
+            'prioridad'           => 'Media',
+            'estado'              => 'En validación',
+            'porcentaje_estimado' => 95,
+            'descripcion'         => 'Recalibración de métricas tras cierre de Sostenibilidad/Fundación, FAQ y Blog/Noticias/Novedades RAC.',
+            'dependencias'        => ['AM-CMS-6C', 'AM-CONT-6D', 'AM-CONT-6E'],
+            'ultimo_commit'       => '—',
+            'evidencia'           => 'Local; 6C/6D/6E cerrados end-to-end; métricas recalibradas con contenido editorial aún pendiente de Mercadeo.',
+            'siguiente_accion'    => 'Validar dashboard test; luego cierre dashboard si producción queda OK.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
