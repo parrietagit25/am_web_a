@@ -17,7 +17,7 @@ $vehicle   = null;
 
 if (!empty($placa)) {
     $vehicle = $db->selectOne(
-        "SELECT * FROM Automarket_Invs_web WHERE LicensePlate = :placa LIMIT 1",
+        "SELECT * FROM Automarket_Invs_web WHERE UPPER(LicensePlate) = UPPER(:placa) LIMIT 1",
         [':placa' => $placa]
     );
 }
@@ -103,6 +103,7 @@ if ($vehicle) {
 // Se incluye ANTES de header.php para que el JSON-LD quede dentro de <head>.
 if ($vehicle) {
     $_svVehicle = $vehicle;
+    $_svFriendlyUrl = $_vehicleFriendlyUrl;
     require __DIR__ . '/../includes/schema-vehicle.php';
 }
 // ── fin SE9 ──────────────────────────────────────────────────────────────────

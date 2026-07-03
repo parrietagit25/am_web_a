@@ -193,6 +193,13 @@ class SitemapService
      */
     private static function vehicleDetallePath(array $vehicle): ?string
     {
+        require_once __DIR__ . '/VehicleSlugHelper.php';
+
+        $friendly = VehicleSlugHelper::toDetalleUrl($vehicle);
+        if ($friendly !== null) {
+            return $friendly;
+        }
+
         $placa = trim((string) ($vehicle['LicensePlate'] ?? ''));
         if ($placa !== '') {
             return '/detalle.php?placa=' . rawurlencode($placa);

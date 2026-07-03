@@ -56,8 +56,12 @@ if (!empty($_svVehicle['foto_impel'])) {
     $_svImage = trim((string)$_svVehicle['Photo']);
 }
 
-// URL canónica de la ficha
-$_svUrl = 'https://www.automarket.com.pa' . ($_SERVER['REQUEST_URI'] ?? '/detalle.php');
+// URL canónica de la ficha (amigable si está disponible; legacy si no)
+if (!empty($_svFriendlyUrl)) {
+    $_svUrl = 'https://www.automarket.com.pa' . $_svFriendlyUrl;
+} else {
+    $_svUrl = 'https://www.automarket.com.pa' . ($_SERVER['REQUEST_URI'] ?? '/detalle.php');
+}
 
 // Disponibilidad
 $_svAvailability = (strtolower($_svStatus) === 'sold')
@@ -127,5 +131,5 @@ unset(
     $_svVehicle, $_svMake, $_svModel, $_svYear, $_svTrim,
     $_svTransmission, $_svFuel, $_svColor, $_svKm, $_svPrice,
     $_svStatus, $_svPlate, $_svNameParts, $_svName, $_svImage,
-    $_svUrl, $_svAvailability, $_svSchema, $_svJson
+    $_svUrl, $_svAvailability, $_svSchema, $_svJson, $_svFriendlyUrl
 );

@@ -8,14 +8,14 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-BUGS-4D-A',
+        'version_tablero'  => 'AM-INV-4B',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
     ],
 
     'resumen' => [
         'avance_global'     => 56,
-        'seo_tecnico'       => 68,
+        'seo_tecnico'       => 70,
         'cms_editorial'     => 55,
         'ux_conversion'     => 64,
         'contenido_aeo_geo' => 35,
@@ -45,6 +45,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-BUGS-4D-A: FooterService filtra redes con plataforma/URL inconsistente y deduplica LinkedIn'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-BUGS-4D-A: menú Seminuevos garantiza /seminuevos-sucursales.php si CMS lo omitió'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-BUGS-4D-A cerrado prod HEAD d3f5c53 — menú/sucursales 200, copyright OK, 0 bi-tiktok inválido, venta-autos con Nuestras Sucursales'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-INV-4B local: nginx /autos/{slug}/{placa} → detalle.php; sitemap a URLs /autos/...'],
     ],
 
     'bloques' => [
@@ -263,13 +264,13 @@ return [
             'nombre'              => 'URL amigable vehículo',
             'area'                => 'SEO técnico',
             'prioridad'           => 'Alta',
-            'estado'              => 'Pendiente',
-            'porcentaje_estimado' => 15,
-            'descripcion'         => 'Rutas públicas /autos/{slug}/{placa} con redirección desde detalle.php?placa=.',
+            'estado'              => 'En validación',
+            'porcentaje_estimado' => 85,
+            'descripcion'         => 'Rutas /autos/{slug}/{placa} vía nginx; legacy /detalle.php?placa= viva; sitemap y canonical alineados.',
             'dependencias'        => ['AM-SEO-4A'],
             'ultimo_commit'       => '—',
-            'evidencia'           => 'VehicleSlugHelper y canonical friendly ya preparados en detalle.',
-            'siguiente_accion'    => 'Definir rewrite nginx y 301 desde querystring.',
+            'evidencia'           => 'nginx rewrite + SitemapService::vehicleDetallePath amigable; lookup placa case-insensitive.',
+            'siguiente_accion'    => 'Validar local/staging; en prod verificar MD5 nginx y restart contenedor web si reload no aplica.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
