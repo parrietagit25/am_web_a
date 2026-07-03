@@ -17,7 +17,7 @@ return [
     'resumen' => [
         'avance_global'     => 60,
         'seo_tecnico'       => 72,
-        'cms_editorial'     => 82,
+        'cms_editorial'     => 85,
         'ux_conversion'     => 64,
         'contenido_aeo_geo' => 45,
     ],
@@ -25,7 +25,7 @@ return [
     'pendientes_funcionales' => [
         ['item' => 'Vacantes / Trabaja con nosotros (sección base)', 'nota' => 'Falta módulo público de vacantes antes de integrar Konzerta.'],
         ['item' => 'Footer builder columnas (AM-CMS-5A-B)', 'nota' => 'B0–B3 cerrados prod (builder columnas enlaces; also_know/redes/pagos v1 separados).'],
-        ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'B1/B2/B3 cerrados prod; 5B4 en validación local; pendiente 5B5 cierre epic.'],
+        ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'B1/B2/B3/B4 cerrados prod (55b557c); pendiente 5B5 cierre epic.'],
     ],
 
     'modulos_contenido_pendiente' => [
@@ -85,6 +85,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B3 local: leasing ventajas corporativas + lead/opiniones; renting/taller hero CTA; lrt-public-copy.php; fallbacks conservadores'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B3 cerrado prod HEAD 6d18635 — deploy ff-only; renting/leasing/taller 200; compose exec app php -l 6/6; sitemap 147/0/20/0; dashboard test 200/www 404'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B4 local: contactos/sucursales títulos CMS; contact-locations-public-copy.php; RAC/renting/semi/grupo; fallbacks conservadores'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B4 cerrado prod HEAD 55b557c — deploy ff-only; compose exec app php -l 11/11; smoke contactos/sucursales 200; regresiones OK; sitemap 147/0/20/0; dashboard test 200/www 404; QA admin guardar/vaciar/fallback/restaurar OK'],
     ],
 
     'bloques' => [
@@ -407,7 +408,7 @@ return [
             'dependencias'        => ['AM-CMS-3B3'],
             'ultimo_commit'       => '6d18635',
             'evidencia'           => '5A-B0–B3 cerrados prod; 5B1 bd7e5d7; 5B2 8d14e8b; 5B3 6d18635 LRT CMS.',
-            'siguiente_accion'    => 'AM-CMS-5B epic: 5B4–5B5 pendientes aprobación.',
+            'siguiente_accion'    => 'AM-CMS-5B epic: 5B5 cierre epic pendiente aprobación.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -486,12 +487,12 @@ return [
             'area'                => 'CMS/editorial',
             'prioridad'           => 'Media',
             'estado'              => 'En desarrollo',
-            'porcentaje_estimado' => 80,
-            'descripcion'         => 'Epic títulos editables. B0 diagnóstico aprobado; B1/B2/B3 cerrados prod; 5B4 en validación; 5B5 cierre epic.',
+            'porcentaje_estimado' => 90,
+            'descripcion'         => 'Epic títulos editables. B0 diagnóstico aprobado; B1/B2/B3/B4 cerrados prod; pendiente 5B5 cierre epic.',
             'dependencias'        => ['AM-CMS-5A-B'],
-            'ultimo_commit'       => '6d18635',
-            'evidencia'           => 'B0 cerrado docs/; B1 bd7e5d7; B2 8d14e8b; B3 prod 6d18635; B4 local contact-locations-public-copy.php.',
-            'siguiente_accion'    => 'Validar AM-CMS-5B4 contactos/sucursales; luego 5B5 cierre epic.',
+            'ultimo_commit'       => '55b557c',
+            'evidencia'           => 'B0 cerrado docs/; B1 bd7e5d7; B2 8d14e8b; B3 6d18635; B4 prod 55b557c contact-locations-public-copy.php contactos/sucursales.',
+            'siguiente_accion'    => 'Siguiente sub-bloque AM-CMS-5B5 cierre epic tras aprobación.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -499,13 +500,13 @@ return [
             'nombre'              => 'Contactos / Sucursales títulos y textos visibles editables',
             'area'                => 'CMS/editorial',
             'prioridad'           => 'Media',
-            'estado'              => 'En validación',
-            'porcentaje_estimado' => 95,
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
             'descripcion'         => 'contactos.php RAC/semi/leasing/renting; sucursales.php RAC; renting-sucursales.php; sucursales-grupo.php; contact-locations-public-copy.php; admin textos visibles.',
             'dependencias'        => ['AM-CMS-5B0'],
-            'ultimo_commit'       => '—',
-            'evidencia'           => 'Local: helper + admin RAC/semi/renting/grupo; leasing/taller/semi sucursales ya CMS; fallbacks conservadores.',
-            'siguiente_accion'    => 'QA guardar/vaciar/restaurar; commit local; deploy tras aprobación.',
+            'ultimo_commit'       => '55b557c',
+            'evidencia'           => 'Prod 55b557c: deploy ff-only; compose exec app php -l 11/11; smoke contactos/sucursales 200; regresiones OK; sitemap 147/0/20/0; dashboard test 200/www 404; QA admin guardar/vaciar/fallback/restaurar OK.',
+            'siguiente_accion'    => 'Cerrado producción.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
