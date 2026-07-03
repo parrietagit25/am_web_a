@@ -8,7 +8,7 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-CMS-5C',
+        'version_tablero'  => 'AM-DASH-0C',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
@@ -22,9 +22,7 @@ return [
         'contenido_aeo_geo' => 62,
     ],
 
-    'pendientes_funcionales' => [
-        ['item' => 'Footer builder columnas (AM-CMS-5A-B)', 'nota' => 'Cerrado prod (80bb952). Builder columnas enlaces; also_know/redes/pagos v1 separados.'],
-    ],
+    'pendientes_funcionales' => [],
 
     'modulos_contenido_pendiente' => [
         ['item' => 'Blog / noticias / novedades RAC', 'nota' => 'Módulo funcional cerrado (AM-CONT-4C-A prod). Mercadeo publica artículos finales desde admin.'],
@@ -99,6 +97,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7B cerrado prod HEAD 9dc6856 — deploy ff-only; compose exec app php -l 2/2; trabaja-con-nosotros 200; CTA Konzerta URL exacta target/rel OK; sitemap 1/147/0/20/0; dashboard test 200/www 404'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5C local: opiniones venta-autos; Destacados/Novedades unit-content; leasing-flota cabecera; admin mínimo; fallbacks conservadores'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5C cerrado prod HEAD f3e2143 — deploy ff-only; php-l 11/11; smoke venta-autos/inventario/leasing-flota 200; admin 302 login; fallbacks OK; sitemap 1/147/0/20/0; dashboard test 200/www 404'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0C: limpieza pendientes post-5C — removido Footer builder (5A-B cerrado) y post-5B de pendiente funcional; métricas 75/90/78/62 sin cambio'],
     ],
 
     'bloques' => [
@@ -324,6 +323,20 @@ return [
             'ultimo_commit'       => 'ed06b01',
             'evidencia'           => 'Resumen: global 72%, cms_editorial 88%, seo_tecnico 78%, contenido_aeo_geo 58%, ux_conversion 64%. Bloques 5B0–5B5 y 6A cerrados prod. Dashboard test 200 / www 404.',
             'siguiente_accion'    => 'Commit local; deploy ff-only tras aprobación.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-DASH-0C',
+            'nombre'              => 'Limpieza de pendientes post 5C',
+            'area'                => 'Infraestructura',
+            'prioridad'           => 'Baja',
+            'estado'              => 'En validación',
+            'porcentaje_estimado' => 85,
+            'descripcion'         => 'Depuración dashboard: pendientes_funcionales sin ítems ya cerrados (5A-B, post-5B); módulos contenido y bloqueados alineados.',
+            'dependencias'        => ['AM-CMS-5C'],
+            'ultimo_commit'       => '—',
+            'evidencia'           => 'Local: pendientes_funcionales vacío; modulos_contenido_pendiente (blog/FAQ/legacy); bloqueados decisión/dato externos intactos; avance 75% cms 90%.',
+            'siguiente_accion'    => 'Validar dashboard test 200/www 404; deploy ff-only y cierre prod.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
