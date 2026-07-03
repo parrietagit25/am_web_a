@@ -268,7 +268,7 @@ return [
             'porcentaje_estimado' => 85,
             'descripcion'         => 'Rutas /autos/{slug}/{placa} vía nginx; legacy /detalle.php?placa= viva; sitemap y canonical alineados.',
             'dependencias'        => ['AM-SEO-4A'],
-            'ultimo_commit'       => '—',
+            'ultimo_commit'       => '48c77b3',
             'evidencia'           => 'nginx rewrite + SitemapService::vehicleDetallePath amigable; lookup placa case-insensitive.',
             'siguiente_accion'    => 'Validar local/staging; en prod verificar MD5 nginx y restart contenedor web si reload no aplica.',
             'fecha_actualizacion' => '2026-07-03',
