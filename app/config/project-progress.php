@@ -8,18 +8,18 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-DASH-0D',
+        'version_tablero'  => 'AM-CONT-6F',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
     ],
 
     'resumen' => [
-        'avance_global'     => 77,
+        'avance_global'     => 78,
         'seo_tecnico'       => 78,
-        'cms_editorial'     => 91,
+        'cms_editorial'     => 92,
         'ux_conversion'     => 64,
-        'contenido_aeo_geo' => 65,
+        'contenido_aeo_geo' => 67,
     ],
 
     'pendientes_funcionales' => [],
@@ -27,7 +27,7 @@ return [
     'modulos_contenido_pendiente' => [
         ['item' => 'Blog / noticias / novedades RAC', 'nota' => 'Infraestructura funcional cerrada (AM-CONT-4C-A): listados /blog.php, /noticias.php, /contenido-reciente.php y detalle noticia.php; schema Article/NewsArticle/BlogPosting; sitemap filtra demo/no publicados. Noticias RAC con contenido real; blog/novedades pendientes de contenido final o reemplazo de demo. Mercadeo publica desde admin; sin inventar contenido ni tocar site_data.json.'],
         ['item' => 'FAQ institucional por unidad', 'nota' => 'Infraestructura funcional existente: FAQ institucional en /pagina-institucional.php?p=faq (admin HTML libre; footer y sitemap enlazan); FAQ por unidad estructurado {question,answer} en RAC/Leasing/Renting/Seminuevos/Taller; FAQPage schema condicional. Falta contenido final de Mercadeo; no se inventó contenido ni se tocó site_data.json.'],
-        ['item' => 'Contenido leasing/renting legacy posts', 'nota' => 'Publicaciones migradas a content.blog; mercadeo puede reemplazar ejemplos.'],
+        ['item' => 'Contenido leasing/renting legacy posts', 'nota' => 'Infraestructura diagnosticada (AM-CONT-6F): posts[] legacy fuente pública en leasing.php/renting.php; content.blog[] canal/migración paralela vía UnitContentService::migrateLegacyPostsToBlog() y flag _migrated_from_posts; CRUD admin Leasing/Renting existente. Revisión/reemplazo editorial pendiente Mercadeo; sin inventar contenido ni tocar site_data.json.'],
     ],
 
     'bloqueados_decision_negocio' => [
@@ -107,6 +107,8 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-6E cerrado prod HEAD 0066014 — deploy ff-only; php -l OK; dashboard test 200+noindex/www 404+noindex; blog/noticias/novedades RAC diagnosticado; noticias reales; blog/novedades pendientes Mercadeo; sin site_data ni código público'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0D: recalibración post 6C/6D/6E — avance_global 77%; cms_editorial 91%; contenido_aeo_geo 65%; seo_tecnico 78% y ux_conversion 64% sin cambio; módulos editoriales listos pero contenido Mercadeo pendiente.'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0D cerrado prod HEAD f755edd — deploy ff-only; php -l OK; dashboard test 200+noindex/www 404; métricas recalibradas avance_global 77, cms_editorial 91, contenido_aeo_geo 65, seo_tecnico 78, ux_conversion 64'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-6F: diagnóstico leasing/renting legacy posts aprobado — posts[] público; content.blog[] migración paralela; UnitContentService migrateLegacyPostsToBlog/_migrated_from_posts; smoke leasing/renting y detalles 200; contenido editorial pendiente Mercadeo; sin tocar site_data ni código público'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-6F cerrado prod HEAD 017dbd0 — diagnóstico leasing/renting legacy posts; posts[] público y content.blog migrado/paralelo documentados; UnitContentService migrateLegacyPostsToBlog/_migrated_from_posts identificado; smoke leasing/renting y detalles públicos validado; contenido editorial queda pendiente Mercadeo'],
     ],
 
     'bloques' => [
@@ -444,6 +446,20 @@ return [
             'ultimo_commit'       => '0066014',
             'evidencia'           => 'Prod 0066014: deploy ff-only OK; php -l OK; dashboard test 200+noindex/www 404+noindex; blog/noticias/novedades diagnosticados; noticias RAC con contenido real; blog/novedades pendientes Mercadeo; sin tocar site_data ni código público.',
             'siguiente_accion'    => 'Cerrado. Mercadeo debe cargar/reemplazar contenido final de blog y novedades desde admin; futuro ajuste URLs/meta solo si negocio lo solicita.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-CONT-6F',
+            'nombre'              => 'Contenido leasing/renting legacy posts',
+            'area'                => 'Contenido/AEO/GEO',
+            'prioridad'           => 'Media',
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
+            'descripcion'         => 'Diagnóstico de infraestructura editorial y migración legacy posts.',
+            'dependencias'        => ['AM-CONT-6E', 'AM-DASH-0D'],
+            'ultimo_commit'       => '017dbd0',
+            'evidencia'           => 'Diagnóstico producción validado: Leasing/Renting mantienen publicaciones legacy posts[] como fuente pública; content.blog[] existe como canal/migración paralela mediante UnitContentService::migrateLegacyPostsToBlog() y flag _migrated_from_posts; rutas públicas leasing.php/renting.php y detalles leasing-publicacion.php/renting-publicacion.php validadas sin modificar datos; CRUD/admin existente; riesgo de divergencia editorial documentado. Contenido final/revisión queda pendiente de Mercadeo.',
+            'siguiente_accion'    => 'Continuar con el próximo bloque priorizado del roadmap sin unificar legacy posts y content.blog hasta aprobación explícita.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
