@@ -8,10 +8,10 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-CMS-5A-A',
+        'version_tablero'  => 'AM-CMS-5A-B0',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
-        'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
+        'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
     ],
 
     'resumen' => [
@@ -24,7 +24,7 @@ return [
 
     'pendientes_funcionales' => [
         ['item' => 'Vacantes / Trabaja con nosotros (sección base)', 'nota' => 'Falta módulo público de vacantes antes de integrar Konzerta.'],
-        ['item' => 'Footer builder Seminuevos-Renting (AM-CMS-5A-B)', 'nota' => 'Footer editable por columnas; contactos en páginas cubiertos por AM-CMS-5A-A.'],
+        ['item' => 'Footer builder columnas (AM-CMS-5A-B)', 'nota' => 'Tras diagnóstico B0: N columnas de enlaces; redes/pagos/contactos/copyright como módulos existentes.'],
         ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'Mapear campos faltantes por página.'],
     ],
 
@@ -68,6 +68,8 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-4C-A cerrado prod HEAD 16bb81e — blog 0 Prueba, noticia.php?id=1 NewsArticle, sitemap 10 noticia/0 prueba, AM-INV-4B EO5144 intacto'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5A-A local: unit-contact-cards + footer_contact en renting-contactos y contactos.php Seminuevos'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5A-A cerrado prod HEAD 17601fc — renting-contactos y contactos Seminuevos 200, WhatsApp/teléfono, formularios e imágenes intactos, EO5144 OK'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5A-B0: diagnóstico footer — columns parcial (solo Recursos); also_know/social/pagos/contacto fijos; híbrido recomendado'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5A-B0 cerrado — decisión opción C híbrida: builder solo columnas enlaces; redes/pagos/contactos/copyright/Conoce también módulos v1'],
     ],
 
     'bloques' => [
@@ -362,7 +364,21 @@ return [
             'dependencias'        => ['AM-CMS-3B3'],
             'ultimo_commit'       => '17601fc',
             'evidencia'           => 'Prod 17601fc: renting-contactos y contactos?unit=seminuevos → 200; tel/WhatsApp desde footer_contact; 2 bloques contacto responsive (desktop+móvil); formularios e imágenes OK; sitemap/EO5144 intactos.',
-            'siguiente_accion'    => 'Cerrado. Mercadeo edita contactos en admin unidad. Siguiente: AM-CMS-5A-B footer builder.',
+            'siguiente_accion'    => 'Cerrado prod. Contactos en admin unidad.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-CMS-5A-B0',
+            'nombre'              => 'Diagnóstico footer builder por columnas',
+            'area'                => 'CMS/editorial',
+            'prioridad'           => 'Media',
+            'estado'              => 'Diagnóstico aprobado',
+            'porcentaje_estimado' => 100,
+            'descripcion'         => 'Mapa técnico footer: datos, admin, render, riesgos. Decisión aprobada opción C híbrida conservadora.',
+            'dependencias'        => ['AM-CMS-5A-A'],
+            'ultimo_commit'       => '—',
+            'evidencia'           => 'Aprobado: builder solo columnas enlaces (N cols); v1 mantiene redes, pagos, contactos, copyright y Conoce también como módulos separados. Sub-bloques B1–B5 definidos.',
+            'siguiente_accion'    => 'Cerrado. Siguiente: AM-CMS-5A-B implementación (B1 FooterService) tras aprobación de código.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -371,26 +387,26 @@ return [
             'area'                => 'CMS/editorial',
             'prioridad'           => 'Media',
             'estado'              => 'En desarrollo',
-            'porcentaje_estimado' => 50,
-            'descripcion'         => 'Epic CMS Seminuevos/Renting: contactos en páginas cerrados (5A-A); footer builder pendiente (5A-B).',
+            'porcentaje_estimado' => 58,
+            'descripcion'         => 'Epic CMS Seminuevos/Renting: 5A-A cerrado; 5A-B0 diagnóstico aprobado (híbrido C); 5A-B builder columnas pendiente.',
             'dependencias'        => ['AM-CMS-3B3'],
             'ultimo_commit'       => '17601fc',
-            'evidencia'           => '5A-A cerrado prod; 5A-B footer builder pendiente funcional.',
-            'siguiente_accion'    => 'Iniciar AM-CMS-5A-B footer builder cuando se apruebe.',
+            'evidencia'           => '5A-A cerrado prod; 5A-B0 diagnóstico aprobado; 5A-B pendiente funcional.',
+            'siguiente_accion'    => 'Iniciar AM-CMS-5A-B cuando se apruebe sprint de código.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
             'codigo'              => 'AM-CMS-5A-B',
-            'nombre'              => 'Footer builder Seminuevos-Renting',
+            'nombre'              => 'Footer builder columnas de enlaces',
             'area'                => 'CMS/editorial',
             'prioridad'           => 'Media',
             'estado'              => 'Pendiente funcional',
             'porcentaje_estimado' => 15,
-            'descripcion'         => 'Footer editable por columnas y contactos por unidad Seminuevos/Renting.',
-            'dependencias'        => ['AM-CMS-5A-A'],
+            'descripcion'         => 'Builder N columnas (título, links, orden, activo). Opción C: sin duplicar redes, pagos, contactos, copyright ni Conoce también en v1.',
+            'dependencias'        => ['AM-CMS-5A-B0'],
             'ultimo_commit'       => '—',
-            'evidencia'           => 'FooterService parcialmente implementado.',
-            'siguiente_accion'    => 'Sprint CMS footer builder.',
+            'evidencia'           => 'Plan B0 aprobado; FooterService parcial; implementación por sub-bloques B1–B5.',
+            'siguiente_accion'    => 'Esperar aprobación para AM-CMS-5A-B1 (normalización FooterService).',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
