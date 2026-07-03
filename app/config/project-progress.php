@@ -8,7 +8,7 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-CMS-5B5',
+        'version_tablero'  => 'AM-AIO-6A',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
@@ -16,10 +16,10 @@ return [
 
     'resumen' => [
         'avance_global'     => 60,
-        'seo_tecnico'       => 72,
+        'seo_tecnico'       => 74,
         'cms_editorial'     => 88,
         'ux_conversion'     => 64,
-        'contenido_aeo_geo' => 45,
+        'contenido_aeo_geo' => 52,
     ],
 
     'pendientes_funcionales' => [
@@ -43,7 +43,7 @@ return [
 
     'bloqueados_dato_externo' => [
         ['item' => 'TikTok URL real', 'nota' => 'Pendiente URL oficial validada por marketing. Código filtra entradas TikTok con URL de otra plataforma.'],
-        ['item' => 'Google Business Profile / Wikidata', 'nota' => 'URLs sameAs y perfiles verificados para Organization schema.'],
+        ['item' => 'Google Business Profile / Wikidata', 'nota' => 'Pendiente URL oficial de negocio para sameAs; Organization global ya cableado con redes footer verificadas.'],
     ],
 
     'bloqueados_negocio' => [],
@@ -88,6 +88,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B4 cerrado prod HEAD 55b557c — deploy ff-only; compose exec app php -l 11/11; smoke contactos/sucursales 200; regresiones OK; sitemap 147/0/20/0; dashboard test 200/www 404; QA admin guardar/vaciar/fallback/restaurar OK'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B5: auditoría cierre epic — H1/intros principales CMS en 12 páginas auditadas; pendientes menores documentados backlog post-5B'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B cerrado prod HEAD 980aed3 — epic 5B0–5B4 completos; helpers rentacar/seminuevos/lrt/contact-locations; dashboard test 200/www 404'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6A local: Organization global JSON-LD + sameAs footer; parentOrganization unidades/sucursales; schema-organization-helper.php'],
     ],
 
     'bloques' => [
@@ -492,7 +493,7 @@ return [
             'porcentaje_estimado' => 100,
             'descripcion'         => 'Epic títulos editables cerrado. B0 diagnóstico; B1 RAC/flota; B2 seminuevos; B3 LRT; B4 contactos/sucursales; B5 cierre y auditoría. Helpers: rentacar-public-copy, seminuevos-public-copy, lrt-public-copy, contact-locations-public-copy.',
             'dependencias'        => ['AM-CMS-5A-B'],
-            'ultimo_commit'       => '980aed3',
+            'ultimo_commit'       => '555458a',
             'evidencia'           => 'Prod 980aed3: B1 bd7e5d7; B2 8d14e8b; B3 6d18635; B4 55b557c; B5 auditoría H1/intros principales OK en páginas epic; backlog menor documentado.',
             'siguiente_accion'    => 'Cerrado producción.',
             'fecha_actualizacion' => '2026-07-03',
@@ -506,7 +507,7 @@ return [
             'porcentaje_estimado' => 100,
             'descripcion'         => 'Auditoría final ligera epic 5B; confirmación B0–5B4 en dashboard; backlog post-5B documentado sin implementación.',
             'dependencias'        => ['AM-CMS-5B4'],
-            'ultimo_commit'       => '980aed3',
+            'ultimo_commit'       => '555458a',
             'evidencia'           => 'Auditoría 12 páginas: H1/intros principales CMS o fallback; pendientes menores (opiniones venta-autos, Destacados/Novedades includes, leasing-flota) → backlog futuro.',
             'siguiente_accion'    => 'Cerrado producción.',
             'fecha_actualizacion' => '2026-07-03',
@@ -572,13 +573,13 @@ return [
             'nombre'              => 'Organization schema sameAs / GBP / Wikidata',
             'area'                => 'Contenido/AEO/GEO',
             'prioridad'           => 'Media',
-            'estado'              => 'Bloqueado por dato externo',
-            'porcentaje_estimado' => 5,
-            'descripcion'         => 'Organization schema con sameAs, Wikidata y Google Business Profile.',
+            'estado'              => 'En validación',
+            'porcentaje_estimado' => 85,
+            'descripcion'         => 'Organization global JSON-LD en todas las páginas; sameAs desde redes footer CMS; parentOrganization en unidades y sucursales; pendiente GBP/Wikidata sin URL verificada.',
             'dependencias'        => ['AM-SEO-4A'],
             'ultimo_commit'       => '—',
-            'evidencia'           => 'URLs de perfiles no confirmadas.',
-            'siguiente_accion'    => 'Recopilar URLs oficiales con negocio.',
+            'evidencia'           => 'Local: schema-organization.php + helper; unit-business sin sameAs duplicado; location parentOrganization resuelto; article publisher @id.',
+            'siguiente_accion'    => 'QA JSON-LD páginas principales; commit local; deploy tras aprobación; GBP/Wikidata cuando negocio confirme URLs.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [

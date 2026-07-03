@@ -28,7 +28,11 @@ if ($_slPageUrl === '') {
 }
 $_slEntityId = $_slPageUrl . '#location';
 
-$_slSiteUrl = 'https://www.automarket.com.pa';
+$_slSiteUrl = am_schema_canonical_base(isset($contentService) && is_object($contentService) ? $contentService : null);
+
+if (!function_exists('am_schema_organization_id')) {
+    require_once __DIR__ . '/schema-organization-helper.php';
+}
 
 $_slSchema = [
     '@context' => 'https://schema.org',
@@ -37,7 +41,7 @@ $_slSchema = [
     'name'     => $_slName,
     'url'      => $_slPageUrl,
     'parentOrganization' => [
-        '@id' => $_slSiteUrl . '/#organization',
+        '@id' => am_schema_organization_id($_slSiteUrl),
     ],
 ];
 

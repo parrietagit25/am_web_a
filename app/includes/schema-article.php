@@ -8,6 +8,7 @@
  */
 
 require_once __DIR__ . '/../services/UnitContentService.php';
+require_once __DIR__ . '/schema-organization-helper.php';
 
 $_saArticle   = $_saArticle ?? [];
 $_saType      = trim((string) ($_saType ?? 'news'));
@@ -38,6 +39,7 @@ $_saSchema = [
     'url' => $_saCanonical,
     'publisher' => [
         '@type' => 'Organization',
+        '@id'   => am_schema_organization_id(am_schema_canonical_base()),
         'name'  => $_saPublisher,
     ],
 ];

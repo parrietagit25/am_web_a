@@ -5,6 +5,7 @@
  * Requiere: $activeUnit, $currentUnit, $siteGlobal, $contentService, $seo (opcional).
  */
 require_once __DIR__ . '/unit-footer-prepare.php';
+require_once __DIR__ . '/schema-organization-helper.php';
 
 if (!class_exists('FooterService')) {
     require_once __DIR__ . '/../services/FooterService.php';
@@ -24,10 +25,9 @@ if (!isset($_subUnitMap[$_subUnitKey])) {
 }
 
 $_subSchemaType = $_subUnitMap[$_subUnitKey];
-$_subSeoGlobal = $contentService->get('seo.global', []);
-$_subCanonicalBase = rtrim(trim((string) ($_subSeoGlobal['canonical_base_url'] ?? '')), '/');
-$_subSiteUrl = $_subCanonicalBase !== '' ? $_subCanonicalBase : 'https://www.automarket.com.pa';
-$_subLogoUrl = $_subSiteUrl . '/assets/img/logo.png';
+$_subSiteUrl = am_schema_canonical_base($contentService ?? null);
+$_subLogoUrl = am_schema_logo_url($_subSiteUrl);
+$_subOrgId = am_schema_organization_id($_subSiteUrl);
 
 $_subUnitLabel = trim((string) ($currentUnit['label'] ?? 'Automarket'));
 $_subUnitSlug = trim((string) ($currentUnit['slug'] ?? 'rent-a-car.php'));
@@ -50,24 +50,6 @@ if ($_subEmail === '') {
 
 $_subAddress = trim((string) ($siteGlobal['address'] ?? ''));
 
-$_subSocialRaw = $siteGlobal['footer']['social'] ?? [];
-if (empty($_subSocialRaw) && class_exists('FooterService')) {
-    try {
-        $_subFs = new FooterService();
-        $_subSocialRaw = $_subFs->getFooter()['social'] ?? [];
-    } catch (\Throwable $e) {
-        $_subSocialRaw = [];
-    }
-}
-$_subSameAs = [];
-foreach ($_subSocialRaw as $_subSn) {
-    $_subSnUrl = trim((string) ($_subSn['url'] ?? ''));
-    $_subSnActive = $_subSn['active'] ?? true;
-    if ($_subSnActive && str_starts_with($_subSnUrl, 'http')) {
-        $_subSameAs[] = $_subSnUrl;
-    }
-}
-
 $_subSchema = [
     '@context' => 'https://schema.org',
     '@type'    => $_subSchemaType,
@@ -76,6 +58,9 @@ $_subSchema = [
     'logo'     => [
         '@type' => 'ImageObject',
         'url'   => $_subLogoUrl,
+    ],
+    'parentOrganization' => [
+        '@id' => $_subOrgId,
     ],
 ];
 
@@ -93,18 +78,13 @@ if ($_subAddress !== '') {
         'addressCountry'  => 'PA',
     ];
 }
-if (!empty($_subSameAs)) {
-    $_subSchema['sameAs'] = array_values($_subSameAs);
-}
 
 if ($_subSchemaType === 'LocalBusiness') {
     $_subSchema['description'] = trim((string) ($currentUnit['heroSubtitle'] ?? ''));
 }
 
-$_subJson = json_encode($_subSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-echo '<script type="application/ld+json">' . "\n" . $_subJson . "\n" . '</script>' . "\n";
+am_schema_emit_json_ld($_subSchema);
 
-unset($_subUnitKey, $_subUnitMap, $_subSchemaType, $_subSeoGlobal, $_subCanonicalBase, $_subSiteUrl, $_subLogoUrl);
+unset($_subUnitKey, $_subUnitMap, $_subSchemaType, $_subSiteUrl, $_subLogoUrl, $_subOrgId);
 unset($_subUnitLabel, $_subUnitSlug, $_subUnitPath, $_subUnitUrl, $_subUnitData, $_subContact);
-unset($_subPhoneRaw, $_subPhone, $_subEmail, $_subAddress, $_subSocialRaw, $_subSameAs, $_subSn, $_subSnUrl, $_subSnActive);
-unset($_subSchema, $_subJson, $_subFs);
+unset($_subPhoneRaw, $_subPhone, $_subEmail, $_subAddress, $_subSchema);
