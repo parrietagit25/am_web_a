@@ -8,7 +8,7 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-CMS-5B1',
+        'version_tablero'  => 'AM-CMS-5B3',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
@@ -25,7 +25,7 @@ return [
     'pendientes_funcionales' => [
         ['item' => 'Vacantes / Trabaja con nosotros (sección base)', 'nota' => 'Falta módulo público de vacantes antes de integrar Konzerta.'],
         ['item' => 'Footer builder columnas (AM-CMS-5A-B)', 'nota' => 'B0–B3 cerrados prod (builder columnas enlaces; also_know/redes/pagos v1 separados).'],
-        ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'B1 RAC/flota y B2 Seminuevos cerrados prod; pendientes 5B3 Leasing/Renting/Taller, 5B4 contactos, 5B5 cierre epic.'],
+        ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'B1/B2 cerrados prod; B3 Leasing/Renting/Taller en validación local.'],
     ],
 
     'modulos_contenido_pendiente' => [
@@ -82,6 +82,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B2 cerrado prod HEAD 8d14e8b — QA local guardar/vaciar/restaurar; deploy ff-only; php -l 5/5; venta-autos/inventario fallbacks OK; EO5144 H1+canonical; sitemap 147/0/20/0; admin Textos visibles sin escritura'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B1 local: RAC/flota fleet_section compartido, search_results.title, opiniones_section; admin Principal RAC; fallbacks conservadores'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B1 cerrado prod HEAD bd7e5d7 — deploy ff-only; php -l 5/5 contenedor app; rent-a-car/flota 200; fallbacks OK; sitemap 147/0/20/0; dashboard test 200/www 404'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B3 local: leasing ventajas corporativas + lead/opiniones; renting/taller hero CTA; lrt-public-copy.php; fallbacks conservadores'],
     ],
 
     'bloques' => [
@@ -488,7 +489,21 @@ return [
             'dependencias'        => ['AM-CMS-5A-B'],
             'ultimo_commit'       => 'bd7e5d7',
             'evidencia'           => 'B0 cerrado docs/; B1 prod bd7e5d7 rentacar-public-copy.php; B2 prod 8d14e8b seminuevos-public-copy.php.',
-            'siguiente_accion'    => 'Siguiente sub-bloque AM-CMS-5B3 Leasing/Renting/Taller tras aprobación.',
+            'siguiente_accion'    => 'Validar AM-CMS-5B3 Leasing/Renting/Taller títulos CMS y cerrar en prod.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-CMS-5B3',
+            'nombre'              => 'Leasing / Renting / Taller títulos y secciones editables',
+            'area'                => 'CMS/editorial',
+            'prioridad'           => 'Media',
+            'estado'              => 'En validación',
+            'porcentaje_estimado' => 90,
+            'descripcion'         => 'leasing.php ventajas corporativas + lead/opiniones; renting/taller hero CTA; campos principales ya CMS en renting/taller; lrt-public-copy.php.',
+            'dependencias'        => ['AM-CMS-5B0'],
+            'ultimo_commit'       => '—',
+            'evidencia'           => 'lrt-public-copy.php; save_leasing_home ampliado; Textos visibles — Leasing; renting/taller hero_cta_text.',
+            'siguiente_accion'    => 'Revisión y cierre prod tras QA local.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [

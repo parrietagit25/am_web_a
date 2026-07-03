@@ -38,6 +38,8 @@ usort($brands, function ($a, $b) {
 $opiniones = array_values(array_filter($taller['opiniones'] ?? [], function ($o) {
     return ($o['active'] ?? true) !== false;
 }));
+require_once __DIR__ . '/../includes/lrt-public-copy.php';
+$tallerHeroCta = taller_hero_cta_text($taller);
 ?>
 
 <style>
@@ -78,7 +80,7 @@ $tallerHeroSubtitle = trim($taller['hero_subtitle'] ?? '') ?: 'Servicio de mante
 $hbInnerHtml = '<div class="row align-items-center"><div class="col-lg-8 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">'
     . '<h1 class="display-4 fw-bold mb-3 font-montserrat">' . nl2br(esc($tallerHeroTitle)) . '</h1>'
     . '<p class="fs-5 mb-4 opacity-90 font-poppins">' . esc($tallerHeroSubtitle) . '</p>'
-    . '<a href="#servicios" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg">Ver Servicios</a>'
+    . '<a href="#servicios" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg">' . esc($tallerHeroCta) . '</a>'
     . '</div></div>';
 require __DIR__ . '/../includes/render-header-banner.php';
 ?>

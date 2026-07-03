@@ -101,6 +101,12 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                     </div>
 
                                     <div class="col-md-6">
+                                        <label for="renting_hero_cta_text" class="form-label fw-semibold">CTA del hero</label>
+                                        <input type="text" id="renting_hero_cta_text" name="renting_hero_cta_text" class="form-control form-control-premium" value="<?php echo esc($renting['hero_cta_text'] ?? ''); ?>" placeholder="Cotizar ahora">
+                                        <div class="form-text">Vacío = «Cotizar ahora»</div>
+                                    </div>
+
+                                    <div class="col-md-6">
                                         <label for="renting_intro_title" class="form-label fw-semibold">Título introductorio</label>
                                         <input type="text" id="renting_intro_title" name="renting_intro_title" class="form-control form-control-premium" value="<?php echo esc($renting['intro_title'] ?? 'Renting de Autos en Panamá — Anda Siempre en Auto Nuevo'); ?>" required>
                                     </div>

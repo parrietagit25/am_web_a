@@ -1867,6 +1867,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $siteData['leasing']['hero_subtitle'] = trim($_POST['leasing_hero_subtitle'] ?? '');
         $siteData['leasing']['intro_text'] = trim($_POST['leasing_intro_text'] ?? '');
         $siteData['leasing']['lead_title'] = trim($_POST['leasing_lead_title'] ?? '');
+        $siteData['leasing']['opinions_title'] = trim($_POST['leasing_opinions_title'] ?? '');
+        $siteData['leasing']['hero_cta_text'] = trim($_POST['leasing_hero_cta_text'] ?? '');
+        $siteData['leasing']['lead_badge'] = trim($_POST['leasing_lead_badge'] ?? '');
+        $siteData['leasing']['lead_slogan'] = trim($_POST['leasing_lead_slogan'] ?? '');
+        $siteData['leasing']['lead_side_text'] = trim($_POST['leasing_lead_side_text'] ?? '');
+
+        if (!isset($siteData['leasing']['advantages']) || !is_array($siteData['leasing']['advantages'])) {
+            $siteData['leasing']['advantages'] = [];
+        }
+        $siteData['leasing']['advantages']['eyebrow'] = trim($_POST['leasing_advantages_eyebrow'] ?? '');
+        $siteData['leasing']['advantages']['title'] = trim($_POST['leasing_advantages_title'] ?? '');
+        $siteData['leasing']['advantages']['subtitle'] = trim($_POST['leasing_advantages_subtitle'] ?? '');
+        $siteData['leasing']['advantages']['cards'] = [];
+        for ($i = 1; $i <= 3; $i++) {
+            $siteData['leasing']['advantages']['cards'][] = [
+                'title' => trim($_POST['leasing_advantage_' . $i . '_title'] ?? ''),
+                'text'  => trim($_POST['leasing_advantage_' . $i . '_text'] ?? ''),
+            ];
+        }
 
         if (empty($errorMsg)) {
             require_once __DIR__ . '/../../services/HeaderBannerService.php';
@@ -5802,6 +5821,65 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     <div class="col-12">
                                         <label for="leasing_intro_text" class="form-label fw-semibold">Texto Introductorio</label>
                                         <textarea id="leasing_intro_text" name="leasing_intro_text" class="form-control form-control-premium" rows="3" required><?php echo esc($leasing['intro_text'] ?? 'Soluciones de Movilidad para Empresas para el desarrollo de sus operaciones a lo largo y ancho del país'); ?></textarea>
+                                    </div>
+
+                                    <?php
+                                    require_once __DIR__ . '/../../includes/lrt-public-copy.php';
+                                    $leasingAdvDefaults = leasing_advantages_defaults();
+                                    $leasingAdv = is_array($leasing['advantages'] ?? null) ? $leasing['advantages'] : [];
+                                    $leasingAdvCards = is_array($leasingAdv['cards'] ?? null) ? $leasingAdv['cards'] : [];
+                                    $leasingLeadDefaults = leasing_lead_side_copy([]);
+                                    ?>
+
+                                    <div class="col-12">
+                                        <h5 class="fw-bold mb-3 mt-2 font-montserrat border-bottom pb-2 text-navy">
+                                            <i class="bi bi-type me-2 text-danger"></i>Textos visibles — Leasing Operativo
+                                        </h5>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="leasing_hero_cta_text" class="form-label fw-semibold">CTA del hero</label>
+                                        <input type="text" id="leasing_hero_cta_text" name="leasing_hero_cta_text" class="form-control form-control-premium" value="<?php echo esc($leasing['hero_cta_text'] ?? ''); ?>" placeholder="<?php echo esc(leasing_hero_cta_text([])); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="leasing_advantages_eyebrow" class="form-label fw-semibold">Badge ventajas corporativas</label>
+                                        <input type="text" id="leasing_advantages_eyebrow" name="leasing_advantages_eyebrow" class="form-control form-control-premium" value="<?php echo esc($leasingAdv['eyebrow'] ?? ''); ?>" placeholder="<?php echo esc($leasingAdvDefaults['eyebrow']); ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="leasing_advantages_title" class="form-label fw-semibold">Título ventajas corporativas (H2)</label>
+                                        <input type="text" id="leasing_advantages_title" name="leasing_advantages_title" class="form-control form-control-premium" value="<?php echo esc($leasingAdv['title'] ?? ''); ?>" placeholder="<?php echo esc($leasingAdvDefaults['title']); ?>">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="leasing_advantages_subtitle" class="form-label fw-semibold">Subtítulo ventajas corporativas</label>
+                                        <input type="text" id="leasing_advantages_subtitle" name="leasing_advantages_subtitle" class="form-control form-control-premium" value="<?php echo esc($leasingAdv['subtitle'] ?? ''); ?>" placeholder="<?php echo esc($leasingAdvDefaults['subtitle']); ?>">
+                                    </div>
+                                    <?php foreach ($leasingAdvDefaults['cards'] as $i => $defaultCard):
+                                        $cardIn = is_array($leasingAdvCards[$i] ?? null) ? $leasingAdvCards[$i] : [];
+                                        $n = $i + 1;
+                                    ?>
+                                    <div class="col-md-4">
+                                        <label for="leasing_advantage_<?php echo $n; ?>_title" class="form-label fw-semibold">Tarjeta <?php echo $n; ?> — título</label>
+                                        <input type="text" id="leasing_advantage_<?php echo $n; ?>_title" name="leasing_advantage_<?php echo $n; ?>_title" class="form-control form-control-premium" value="<?php echo esc($cardIn['title'] ?? ''); ?>" placeholder="<?php echo esc($defaultCard['title']); ?>">
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label for="leasing_advantage_<?php echo $n; ?>_text" class="form-label fw-semibold">Tarjeta <?php echo $n; ?> — texto</label>
+                                        <textarea id="leasing_advantage_<?php echo $n; ?>_text" name="leasing_advantage_<?php echo $n; ?>_text" class="form-control form-control-premium" rows="2" placeholder="<?php echo esc($defaultCard['text']); ?>"><?php echo esc($cardIn['text'] ?? ''); ?></textarea>
+                                    </div>
+                                    <?php endforeach; ?>
+                                    <div class="col-md-4">
+                                        <label for="leasing_lead_badge" class="form-label fw-semibold">Badge sección lead</label>
+                                        <input type="text" id="leasing_lead_badge" name="leasing_lead_badge" class="form-control form-control-premium" value="<?php echo esc($leasing['lead_badge'] ?? ''); ?>" placeholder="<?php echo esc($leasingLeadDefaults['badge']); ?>">
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label for="leasing_lead_slogan" class="form-label fw-semibold">Slogan lateral lead</label>
+                                        <input type="text" id="leasing_lead_slogan" name="leasing_lead_slogan" class="form-control form-control-premium" value="<?php echo esc($leasing['lead_slogan'] ?? ''); ?>" placeholder="<?php echo esc($leasingLeadDefaults['slogan']); ?>">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="leasing_lead_side_text" class="form-label fw-semibold">Texto lateral lead</label>
+                                        <textarea id="leasing_lead_side_text" name="leasing_lead_side_text" class="form-control form-control-premium" rows="2" placeholder="<?php echo esc($leasingLeadDefaults['side_text']); ?>"><?php echo esc($leasing['lead_side_text'] ?? ''); ?></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="leasing_opinions_title" class="form-label fw-semibold">Título sección opiniones</label>
+                                        <input type="text" id="leasing_opinions_title" name="leasing_opinions_title" class="form-control form-control-premium" value="<?php echo esc($leasing['opinions_title'] ?? ''); ?>" placeholder="<?php echo esc(leasing_opinions_title([])); ?>">
                                     </div>
                                 </div>
 

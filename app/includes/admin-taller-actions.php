@@ -23,6 +23,7 @@ if ($action === 'save_taller_home') {
     $siteData['taller']['brands_title'] = trim($_POST['taller_brands_title'] ?? 'PERSONAL TÉCNICO Y TALLER CERTIFICADO');
     $siteData['taller']['brands_text'] = trim($_POST['taller_brands_text'] ?? '');
     $siteData['taller']['opinions_title'] = trim($_POST['taller_opinions_title'] ?? 'Lo que opinan nuestros clientes de nosotros...');
+    $siteData['taller']['hero_cta_text'] = trim($_POST['taller_hero_cta_text'] ?? '');
 
     if (empty($errorMsg)) {
         require_once __DIR__ . '/../services/HeaderBannerService.php';

@@ -23,6 +23,7 @@ if ($action === 'save_renting_home') {
     $siteData['renting']['quote_intro'] = trim($_POST['renting_quote_intro'] ?? '');
     $siteData['renting']['brands_title'] = trim($_POST['renting_brands_title'] ?? 'MARCAS ALIADAS');
     $siteData['renting']['opinions_title'] = trim($_POST['renting_opinions_title'] ?? 'Lo que opinan nuestros clientes de nosotros...');
+    $siteData['renting']['hero_cta_text'] = trim($_POST['renting_hero_cta_text'] ?? '');
 
     if (empty($errorMsg)) {
         require_once __DIR__ . '/../services/HeaderBannerService.php';

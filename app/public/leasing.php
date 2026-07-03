@@ -11,6 +11,11 @@ require_once __DIR__ . '/../services/HeaderBannerService.php';
 $hbConfig = HeaderBannerService::normalizeFromNode($leasingData['hero'] ?? []);
 $introText = $leasingData['intro_text'] ?? 'Soluciones de Movilidad para Empresas para el desarrollo de sus operaciones a lo largo y ancho del país';
 $leadTitle = $leasingData['lead_title'] ?? 'Más de 20 años liderando el mercado de alquiler y leasing operativo en Panamá';
+require_once __DIR__ . '/../includes/lrt-public-copy.php';
+$leasingAdvantages = leasing_advantages_copy($leasingData);
+$leasingOpinionsTitle = leasing_opinions_title($leasingData);
+$leasingHeroCta = leasing_hero_cta_text($leasingData);
+$leasingLeadSide = leasing_lead_side_copy($leasingData);
 $leasingPosts = getLeasingPosts($contentService);
 $leasingOpiniones = $leasingData['opiniones'] ?? [];
 ?>
@@ -50,7 +55,7 @@ $leasingHeroSubtitle = trim($leasingData['hero_subtitle'] ?? '') ?: 'Soluciones 
 $hbInnerHtml = '<div class="row align-items-center"><div class="col-lg-7 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">'
     . '<h1 class="display-3 fw-bold mb-3 font-montserrat leading-tight">' . nl2br(esc($leasingHeroTitle)) . '</h1>'
     . '<p class="fs-4 mb-4 opacity-90 font-poppins">' . esc($leasingHeroSubtitle) . '</p>'
-    . '<a href="#soluciones" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg fs-5">Conocer Soluciones <i class="bi bi-chevron-down ms-2"></i></a>'
+    . '<a href="#soluciones" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg fs-5">' . esc($leasingHeroCta) . ' <i class="bi bi-chevron-down ms-2"></i></a>'
     . '</div></div>';
 require __DIR__ . '/../includes/render-header-banner.php';
 ?>
@@ -66,33 +71,24 @@ require __DIR__ . '/../includes/render-header-banner.php';
 <!-- Business Advantages Section -->
 <section class="container py-5" id="soluciones">
     <div class="text-center mb-5">
-        <span class="badge px-3 py-2 bg-danger-subtle text-danger rounded-pill fw-bold text-uppercase tracking-wider mb-2">Leasing Operativo</span>
-        <h2 class="display-5 fw-bold text-navy font-montserrat">Ventajas Corporativas</h2>
-        <p class="text-muted">Ahorra costos y enfoca tus recursos en el núcleo de tu negocio.</p>
+        <span class="badge px-3 py-2 bg-danger-subtle text-danger rounded-pill fw-bold text-uppercase tracking-wider mb-2"><?php echo esc($leasingAdvantages['eyebrow']); ?></span>
+        <h2 class="display-5 fw-bold text-navy font-montserrat"><?php echo esc($leasingAdvantages['title']); ?></h2>
+        <p class="text-muted"><?php echo esc($leasingAdvantages['subtitle']); ?></p>
     </div>
 
     <div class="row g-4 text-center">
+        <?php
+        $advantageIcons = ['bi-cash-coin', 'bi-gear-fill', 'bi-arrow-repeat'];
+        foreach ($leasingAdvantages['cards'] as $i => $card):
+        ?>
         <div class="col-md-4">
             <div class="card border-0 shadow-sm p-4 rounded-4 h-100">
-                <i class="bi bi-cash-coin text-danger fs-1 mb-3"></i>
-                <h4 class="fw-bold text-navy">100% Deducible</h4>
-                <p class="text-muted font-poppins text-sm mb-0">La cuota mensual del leasing operativo es un gasto operativo totalmente deducible del Impuesto sobre la Renta.</p>
+                <i class="bi <?php echo esc($advantageIcons[$i] ?? 'bi-star'); ?> text-danger fs-1 mb-3"></i>
+                <h4 class="fw-bold text-navy"><?php echo esc($card['title']); ?></h4>
+                <p class="text-muted font-poppins text-sm mb-0"><?php echo esc($card['text']); ?></p>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-4 rounded-4 h-100">
-                <i class="bi bi-gear-fill text-danger fs-1 mb-3"></i>
-                <h4 class="fw-bold text-navy">Mantenimiento Incluido</h4>
-                <p class="text-muted font-poppins text-sm mb-0">Nos encargamos del mantenimiento preventivo, correctivo, llantas e inspecciones de tus unidades.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-4 rounded-4 h-100">
-                <i class="bi bi-arrow-repeat text-danger fs-1 mb-3"></i>
-                <h4 class="fw-bold text-navy">Renovación Constante</h4>
-                <p class="text-muted font-poppins text-sm mb-0">Mantén una flota moderna y segura, renovando tus vehículos al finalizar tu contrato de 36 o 48 meses.</p>
-            </div>
-        </div>
+        <?php endforeach; ?>
     </div>
 </section>
 
@@ -102,7 +98,7 @@ require __DIR__ . '/../includes/render-header-banner.php';
         <!-- Main Centered Header -->
         <div class="row mb-5 text-center">
             <div class="col-lg-8 mx-auto">
-                <span class="badge px-3 py-2 bg-danger-subtle text-danger rounded-pill fw-bold text-uppercase tracking-wider mb-2">Leasing Corporativo</span>
+                <span class="badge px-3 py-2 bg-danger-subtle text-danger rounded-pill fw-bold text-uppercase tracking-wider mb-2"><?php echo esc($leasingLeadSide['badge']); ?></span>
                 <h2 class="display-6 fw-bold text-navy font-montserrat leasing-lead-title">
                     <?php echo esc($leadTitle); ?>
                 </h2>
@@ -115,10 +111,10 @@ require __DIR__ . '/../includes/render-header-banner.php';
             <div class="col-lg-5 col-12 d-flex flex-column justify-content-between leasing-lead-visual">
                 <div class="mb-4 text-center text-lg-start">
                     <h3 class="fw-extrabold text-danger tracking-wider mb-3 leasing-lead-slogan" style="font-size: 1.8rem; font-weight: 800; font-family: 'Montserrat', sans-serif;">
-                        MANTÉN A TU EMPRESA SIEMPRE OPERATIVA
+                        <?php echo esc($leasingLeadSide['slogan']); ?>
                     </h3>
                     <p class="text-muted font-poppins">
-                        Maximiza la productividad de tu flota reduciendo tiempos muertos por reparaciones o colisiones. Nos encargamos de toda la gestión técnica y operativa.
+                        <?php echo esc($leasingLeadSide['side_text']); ?>
                     </p>
                 </div>
                 
@@ -281,7 +277,7 @@ require __DIR__ . '/../includes/render-header-banner.php';
 </section>
 
 <section class="container pb-5">
-    <h3 class="fw-semibold text-navy mb-4 font-montserrat">Lo que opinan nuestros clientes de nosotros...</h3>
+    <h3 class="fw-semibold text-navy mb-4 font-montserrat"><?php echo esc($leasingOpinionsTitle); ?></h3>
     <?php if (!empty($leasingOpiniones)): ?>
         <?php $featuredOpinion = $leasingOpiniones[0]; ?>
         <div class="leasing-opinion-featured bg-white shadow-sm p-4 p-md-5 position-relative">

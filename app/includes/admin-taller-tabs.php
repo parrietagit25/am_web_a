@@ -77,6 +77,11 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                     <div class="form-text">Texto descriptivo breve bajo el titulo principal del hero.</div>
                 </div>
                 <div class="col-md-6">
+                    <label for="taller_hero_cta_text" class="form-label fw-semibold">CTA del hero</label>
+                    <input type="text" id="taller_hero_cta_text" name="taller_hero_cta_text" class="form-control form-control-premium" value="<?php echo esc($taller['hero_cta_text'] ?? ''); ?>" placeholder="Ver Servicios">
+                    <div class="form-text">Vacío = «Ver Servicios»</div>
+                </div>
+                <div class="col-md-6">
                     <label for="taller_services_title" class="form-label fw-semibold">Título sección servicios</label>
                     <input type="text" id="taller_services_title" name="taller_services_title" class="form-control form-control-premium" value="<?php echo esc($taller['services_title'] ?? 'Conoce Nuestros Servicios'); ?>">
                 </div>
