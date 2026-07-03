@@ -45,7 +45,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-BUGS-4D-A: FooterService filtra redes con plataforma/URL inconsistente y deduplica LinkedIn'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-BUGS-4D-A: menú Seminuevos garantiza /seminuevos-sucursales.php si CMS lo omitió'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-BUGS-4D-A cerrado prod HEAD d3f5c53 — menú/sucursales 200, copyright OK, 0 bi-tiktok inválido, venta-autos con Nuestras Sucursales'],
-        ['fecha' => '2026-07-03', 'texto' => 'AM-INV-4B local: nginx /autos/{slug}/{placa} → detalle.php; sitemap a URLs /autos/...'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-INV-4B local: nginx /autos/{slug}/{placa} → detalle.php; regla id() prioritaria y exclusión en placa'],
     ],
 
     'bloques' => [
