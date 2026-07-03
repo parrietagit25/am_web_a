@@ -94,6 +94,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6A cerrado prod HEAD a857c27 — deploy ff-only; compose exec app php -l 7/7; smoke páginas principales 200; JSON-LD Organization/sameAs/#organization OK; sitemap 147/0/20/0; dashboard test 200/www 404'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0B: recalibración post 5B/6A — avance_global 72%; cms_editorial 88%; seo_tecnico 78%; contenido_aeo_geo 58%; epic 5B y 6A cerrados prod'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6B: auditoría perfiles oficiales — sameAs footer FB/IG/LinkedIn; excluye #/cruces; slots GBP/Wikidata/TikTok; verified_same_as_urls[] vacío'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-AIO-6B cerrado prod HEAD a7d6393 — deploy ff-only; compose exec app php -l 2/2; smoke páginas principales 200; JSON-LD Organization/sameAs OK; GBP/Wikidata no inventados; sitemap 147/0/20/0; dashboard test 200/www 404'],
     ],
 
     'bloques' => [
@@ -598,7 +599,7 @@ return [
             'dependencias'        => ['AM-SEO-4A'],
             'ultimo_commit'       => 'a857c27',
             'evidencia'           => 'Prod a857c27: deploy ff-only; compose exec app php -l 7/7; smoke rent-a-car/venta-autos/renting/leasing/taller/sucursales/EO5144 200; JSON-LD Organization 1× + sameAs + #organization; sitemap 147/0/20/0; dashboard test 200/www 404.',
-            'siguiente_accion'    => 'Cerrado producción. Seguimiento perfiles en AM-AIO-6B.',
+            'siguiente_accion'    => 'Cerrado producción.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -606,13 +607,13 @@ return [
             'nombre'              => 'Perfiles oficiales / sameAs pendientes / entidad GEO',
             'area'                => 'Contenido/AEO/GEO',
             'prioridad'           => 'Media',
-            'estado'              => 'En validación',
-            'porcentaje_estimado' => 85,
-            'descripcion'         => 'Auditoría redes footer → sameAs (FB/IG/LinkedIn verificadas); filtros FooterService; slots GBP/Wikidata/TikTok; estructura seo.global.verified_same_as_urls[] sin URLs inventadas.',
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
+            'descripcion'         => 'Auditoría redes footer → sameAs (FB/IG/LinkedIn verificadas); filtros FooterService; slots GBP/Wikidata/TikTok documentados; estructura seo.global.verified_same_as_urls[] sin URLs inventadas.',
             'dependencias'        => ['AM-AIO-6A'],
-            'ultimo_commit'       => '8015122',
-            'evidencia'           => 'Local: helper am_schema_pending_official_profile_slots + verified_same_as_urls; staging sameAs 3 URLs; sin GBP/Wikidata en JSON-LD; bloqueados_dato_externo ampliados.',
-            'siguiente_accion'    => 'Mercadeo confirma URLs GBP/Wikidata/TikTok; luego cargar verified_same_as_urls y cerrar bloque.',
+            'ultimo_commit'       => 'a7d6393',
+            'evidencia'           => 'Prod a7d6393: deploy ff-only; compose exec app php -l 2/2; smoke rent-a-car/venta-autos/renting/leasing/taller/sucursales 200; JSON-LD Organization 1× + sameAs; GBP/Wikidata ausentes; sitemap 147/0/20/0; dashboard test 200/www 404.',
+            'siguiente_accion'    => 'Cerrado producción. GBP/Wikidata/TikTok cuando Mercadeo confirme URLs → verified_same_as_urls[].',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
