@@ -294,7 +294,7 @@ return [
             'porcentaje_estimado' => 85,
             'descripcion'         => 'Copyright sin año duplicado, redes sociales coherentes, menú Seminuevos con sucursales, sección sucursales en venta-autos.',
             'dependencias'        => [],
-            'ultimo_commit'       => '—',
+            'ultimo_commit'       => '16d6da6',
             'evidencia'           => 'FooterService::filterRenderableSocial; am_ensure_builtin_menu_essentials; unit-branches-section en venta-autos.',
             'siguiente_accion'    => 'Validar en test/prod y cerrar; TikTok real y CTAs quedan bloqueados.',
             'fecha_actualizacion' => '2026-07-03',
