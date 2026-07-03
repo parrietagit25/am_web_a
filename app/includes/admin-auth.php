@@ -174,9 +174,12 @@ function admin_redirect_after_post(string $action, string $successMsg, string $e
     $_SESSION['admin_last_tab'] = $tab;
 
     $query = ['tab' => $tab];
-    foreach (['q', 'p'] as $key) {
-        if (isset($_GET[$key]) && trim((string) $_GET[$key]) !== '') {
-            $query[$key] = $_GET[$key];
+    foreach (['q', 'p', 'location_id'] as $key) {
+        $fromPost = trim((string) ($_POST[$key] ?? ''));
+        $fromGet = trim((string) ($_GET[$key] ?? ''));
+        $val = $fromPost !== '' ? $fromPost : $fromGet;
+        if ($val !== '') {
+            $query[$key] = $val;
         }
     }
 

@@ -46,7 +46,7 @@ $showChatbot = admin_group_visible('chatbot');
 
 $showGenerales = true;
 
-$generalesTabs = ['user-manual', 'global', 'global-sucursales', 'translations', 'seo', 'landings', 'footer', 'users', 'audit-log', 'telemetry'];
+$generalesTabs = ['user-manual', 'global', 'global-sucursales', 'locations-master', 'translations', 'seo', 'landings', 'footer', 'users', 'audit-log', 'telemetry'];
 $rentacarContentTabs = UnitContentService::contentTabSlugs('rentacar');
 $rentacarTabs = array_merge(['hero'], $rentacarContentTabs, ['opinions', 'vehicles', 'sucursales', 'terms', 'requirements', 'contact', 'payments', 'rac-reservations']);
 $seminuevosContentTabs = UnitContentService::contentTabSlugs('seminuevos');
@@ -83,6 +83,11 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
             <?php if (admin_can('global_sucursales') || admin_can('global')): ?>
             <button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('global-sucursales', $defaultAdminTab); ?>" id="tab-global-sucursales-nav" data-bs-toggle="pill" data-bs-target="#tab-global-sucursales" type="button" role="tab" data-admin-perm="global_sucursales">
                 <i class="bi bi-geo-alt-fill me-2"></i> Sucursales
+            </button>
+            <?php endif; ?>
+            <?php if (admin_can('locations_master')): ?>
+            <button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('locations-master', $defaultAdminTab); ?>" id="tab-locations-master-nav" data-bs-toggle="pill" data-bs-target="#tab-locations-master" type="button" role="tab" data-admin-perm="locations_master">
+                <i class="bi bi-pin-map-fill me-2"></i> Sucursales maestro
             </button>
             <?php endif; ?>
             <?php if (admin_can('translations')): ?>

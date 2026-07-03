@@ -2901,6 +2901,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../../includes/admin-chatbot-actions.php';
     require __DIR__ . '/../../includes/admin-custom-unit-actions.php';
     require __DIR__ . '/../../includes/admin-global-sucursales-actions.php';
+    require __DIR__ . '/../../includes/admin-locations-actions.php';
     require __DIR__ . '/../../includes/admin-unit-content-actions.php';
 
     if (unit_content_handle_post($action, $siteData, $contentService, $successMsg, $errorMsg)) {
@@ -3367,6 +3368,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                     <?php require_once __DIR__ . '/../../includes/admin-chatbot-sessions-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-landings-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-global-sucursales-tab.php'; ?>
+                    <?php if (admin_can('locations_master')) { require_once __DIR__ . '/../../includes/admin-locations-tab.php'; } ?>
                     <?php require_once __DIR__ . '/../../includes/admin-footer-tab.php'; ?>
                     <?php if (admin_can('users')) { require_once __DIR__ . '/../../includes/admin-users-tab.php'; } ?>
                     <?php if (admin_can('audit_log')) { require_once __DIR__ . '/../../includes/admin-audit-tab.php'; } ?>

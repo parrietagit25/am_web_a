@@ -132,6 +132,12 @@ class AdminUserService
         if ($permission === 'global_sucursales' && in_array('global', self::permissions(), true)) {
             return true;
         }
+        if ($permission === 'locations_master' && (
+            in_array('global', self::permissions(), true)
+            || in_array('global_sucursales', self::permissions(), true)
+        )) {
+            return true;
+        }
         return in_array($permission, self::permissions(), true);
     }
 
@@ -187,6 +193,7 @@ class AdminUserService
         return [
             'global' => 'global',
             'global-sucursales' => 'global_sucursales',
+            'locations-master' => 'locations_master',
             'translations' => 'translations',
             'seo' => 'seo',
             'landings' => 'landings',
