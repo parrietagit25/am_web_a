@@ -8,7 +8,7 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-CMS-6C',
+        'version_tablero'  => 'AM-CONT-6D',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
@@ -26,7 +26,7 @@ return [
 
     'modulos_contenido_pendiente' => [
         ['item' => 'Blog / noticias / novedades RAC', 'nota' => 'Módulo funcional cerrado (AM-CONT-4C-A prod). Mercadeo publica artículos finales desde admin.'],
-        ['item' => 'FAQ institucional por unidad', 'nota' => 'Admin permite editar preguntas; faltan respuestas definitivas de negocio. FAQPage schema funcional donde aplica.'],
+        ['item' => 'FAQ institucional por unidad', 'nota' => 'Infraestructura funcional existente: FAQ institucional en /pagina-institucional.php?p=faq (admin HTML libre; footer y sitemap enlazan); FAQ por unidad estructurado {question,answer} en RAC/Leasing/Renting/Seminuevos/Taller; FAQPage schema condicional. Falta contenido final de Mercadeo; no se inventó contenido ni se tocó site_data.json.'],
         ['item' => 'Contenido leasing/renting legacy posts', 'nota' => 'Publicaciones migradas a content.blog; mercadeo puede reemplazar ejemplos.'],
     ],
 
@@ -101,6 +101,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0C cerrado prod HEAD df4e40a — deploy ff-only; compose exec app php -l OK; dashboard test 200/www 404; pendientes_funcionales limpiados; métricas 75/90/78/62 sin cambio'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-6C: diagnóstico opción C aprobado — Sostenibilidad página propia intacta; Fundación sin publicar; sin site_data/nginx/footer/sitemap; bloque en validación'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-6C cerrado prod HEAD ae1ed99 — deploy ff-only; php -l OK; dashboard test 200+noindex/www 404+noindex; Sostenibilidad intacta; Fundación sin publicar; sin site_data/nginx/footer/sitemap; métricas 75/90/78/62'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CONT-6D: diagnóstico FAQ aprobado — infraestructura global/unidad existente; schema FAQPage condicional; contenido pendiente Mercadeo; sin tocar site_data ni código público'],
     ],
 
     'bloques' => [
@@ -396,6 +397,20 @@ return [
             'ultimo_commit'       => '16bb81e',
             'evidencia'           => '4C-A cerrado prod; artículos reales los carga mercadeo; 10 noticia.php en sitemap.',
             'siguiente_accion'    => 'Mercadeo publica contenido real; evaluar meta/URL amigable en sprint futuro.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-CONT-6D',
+            'nombre'              => 'FAQ institucional por unidad',
+            'area'                => 'Contenido/AEO/GEO',
+            'prioridad'           => 'Media',
+            'estado'              => 'En validación',
+            'porcentaje_estimado' => 90,
+            'descripcion'         => 'Diagnóstico y documentación de infraestructura FAQ existente, sin cambios funcionales ni contenido inventado.',
+            'dependencias'        => ['AM-CONT-4C-A'],
+            'ultimo_commit'       => '—',
+            'evidencia'           => 'Local diagnóstico aprobado; pagina-institucional FAQ, unit FAQ, schema condicional, sitemap/footer existentes; contenido pendiente Mercadeo.',
+            'siguiente_accion'    => 'Validar dashboard test; luego cierre dashboard si producción queda OK.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
