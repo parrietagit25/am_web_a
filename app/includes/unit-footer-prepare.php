@@ -73,6 +73,50 @@ function am_unit_contact_with_footer_fallback(array $pageContact, array $unitDat
 }
 
 /**
+ * Contacto listo para mostrar en páginas públicas (con fallback global).
+ *
+ * @param array<string, mixed> $contact
+ * @param array<string, mixed> $siteGlobal
+ * @return array<string, mixed>
+ */
+function am_unit_contact_resolved_for_display(array $contact, array $siteGlobal): array
+{
+    $phone = trim((string) ($contact['phone_display'] ?? ''));
+    if ($phone === '') {
+        $phone = trim((string) ($siteGlobal['phone_display'] ?? '(507) 279-2700'));
+    }
+
+    $phone2 = trim((string) ($contact['phone_2'] ?? ''));
+
+    $waRaw = trim((string) ($contact['whatsapp_number'] ?? ''));
+    $waDigits = preg_replace('/\D/', '', $waRaw);
+    if ($waDigits === '') {
+        $waDigits = preg_replace('/\D/', '', (string) ($siteGlobal['whatsapp_number'] ?? '50767470070'));
+        $waLabel = '(507) 6747-0070';
+    } else {
+        $waLabel = $waRaw !== '' ? $waRaw : $waDigits;
+    }
+
+    $email = trim((string) ($contact['email'] ?? ''));
+    if ($email === '') {
+        $email = trim((string) ($siteGlobal['email'] ?? ''));
+    }
+
+    $schedule = trim((string) ($contact['schedule'] ?? ''));
+
+    return [
+        'phone_display' => $phone,
+        'phone_tel' => preg_replace('/\D/', '', $phone),
+        'phone_2_display' => $phone2,
+        'phone_2_tel' => preg_replace('/\D/', '', $phone2),
+        'whatsapp_digits' => $waDigits,
+        'whatsapp_label' => $waLabel,
+        'email' => $email,
+        'schedule' => $schedule,
+    ];
+}
+
+/**
  * Datos de contacto para el topbar según unidad activa.
  *
  * @param array<string, mixed> $siteGlobal

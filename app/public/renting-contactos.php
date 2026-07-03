@@ -9,6 +9,8 @@ require_once __DIR__ . '/../includes/unit-footer-prepare.php';
 $renting = $contentService->get('renting', []);
 $contactRaw = $renting['contact'] ?? [];
 $contact = am_unit_contact_with_footer_fallback($contactRaw, $renting);
+$siteData = $contentService->getAll();
+$rentingContactResolved = am_unit_contact_resolved_for_display($contact, $siteData['global'] ?? []);
 
 $pageTitle = $contactRaw['page_title'] ?? 'Contactos';
 $introText = $contactRaw['intro_text'] ?? 'Gracias por escribirnos. Tus comentarios son muy importantes para nosotros; completa el formulario y pronto te responderemos.';
@@ -42,9 +44,20 @@ $contactImageUrl = $contactRaw['contact_image_url'] ?? '';
     object-fit: cover;
     display: block;
 }
+.renting-contact-sidebar {
+    position: sticky;
+    top: 100px;
+    z-index: 10;
+}
+.renting-contact-phone-link:hover {
+    color: var(--theme-primary) !important;
+}
 @media (max-width: 991.98px) {
     .renting-contact-side-image {
         min-height: 280px;
+    }
+    .renting-contact-sidebar {
+        position: static;
     }
 }
 </style>
@@ -123,13 +136,20 @@ $contactImageUrl = $contactRaw['contact_image_url'] ?? '';
             </div>
         </div>
 
-        <?php if (!empty($contactImageUrl)): ?>
         <div class="col-lg-5 col-12">
-            <div class="renting-contact-side-image">
-                <img src="<?php echo esc($contactImageUrl); ?>" alt="Contacto Automarket Renting" loading="lazy">
+            <div class="renting-contact-sidebar">
+                <?php
+                $_uccResolved = $rentingContactResolved;
+                $_uccLinkClass = 'renting-contact-phone-link text-navy font-poppins fs-5 text-decoration-none fw-semibold d-flex align-items-center gap-2';
+                require __DIR__ . '/../includes/unit-contact-cards.php';
+                ?>
+                <?php if (!empty($contactImageUrl)): ?>
+                <div class="renting-contact-side-image mt-4">
+                    <img src="<?php echo esc($contactImageUrl); ?>" alt="Contacto Automarket Renting" loading="lazy">
+                </div>
+                <?php endif; ?>
             </div>
         </div>
-        <?php endif; ?>
     </div>
 </section>
 

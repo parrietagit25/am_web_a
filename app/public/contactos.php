@@ -37,6 +37,8 @@ $siteData = $contentService->getAll();
 $semiUnitData = $siteData['seminuevos'] ?? [];
 $racUnitData = $siteData['homepage'] ?? [];
 $semiFooterContact = am_unit_footer_contact_array($semiUnitData);
+$semiContactMerged = am_unit_contact_with_footer_fallback([], $semiUnitData);
+$semiContactResolved = am_unit_contact_resolved_for_display($semiContactMerged, $siteData['global'] ?? []);
 $racFooterContact = am_unit_footer_contact_array($racUnitData);
 $globalPhone = trim((string) ($siteData['global']['phone_display'] ?? '(507) 279-2700'));
 $globalWhatsapp = trim((string) ($siteData['global']['whatsapp_number'] ?? '50767470070'));
@@ -118,6 +120,7 @@ $activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
 .sn-cta-btn-outline:hover { background: #c51f17; border-color: #c51f17; color: #fff; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(197,31,23,.4); }
 .sn-sidebar-img { border-radius: 0 0 16px 16px; overflow: hidden; line-height: 0; }
 .sn-sidebar-img img { width: 100%; display: block; object-fit: cover; max-height: 340px; }
+.sn-contact-mobile { background: #f8f9fc; border: 1px solid #eaecf3; border-radius: 16px; }
 
 @media (max-width: 991px) { .sn-sidebar-sticky { position: static; } }
 </style>
@@ -229,9 +232,24 @@ $activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
             </div>
         </div>
 
+        <div class="col-12 d-lg-none">
+            <div class="sn-contact-mobile p-4">
+                <?php
+                $_uccResolved = $semiContactResolved;
+                $_uccLinkClass = 'text-navy font-poppins text-decoration-none fw-semibold d-flex align-items-center gap-2';
+                require __DIR__ . '/../includes/unit-contact-cards.php';
+                ?>
+            </div>
+        </div>
+
         <!-- RIGHT: CTA box + Image stacked -->
         <div class="col-lg-5 col-12 d-none d-lg-block">
             <div class="sn-sidebar-sticky">
+                <?php
+                $_uccResolved = $semiContactResolved;
+                $_uccLinkClass = 'text-navy font-poppins text-decoration-none fw-semibold d-flex align-items-center gap-2';
+                require __DIR__ . '/../includes/unit-contact-cards.php';
+                ?>
                 <!-- Top: Dark navy CTA box -->
                 <div class="sn-cta-box">
                     <h3>&iexcl;Compra tu seminuevo!</h3>
