@@ -8,7 +8,7 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-CMS-5A-B3',
+        'version_tablero'  => 'AM-CMS-5B0',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
@@ -25,7 +25,7 @@ return [
     'pendientes_funcionales' => [
         ['item' => 'Vacantes / Trabaja con nosotros (sección base)', 'nota' => 'Falta módulo público de vacantes antes de integrar Konzerta.'],
         ['item' => 'Footer builder columnas (AM-CMS-5A-B)', 'nota' => 'B0–B3 cerrados prod (builder columnas enlaces; also_know/redes/pagos v1 separados).'],
-        ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'Mapear campos faltantes por página.'],
+        ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'B0 diagnóstico aprobado; próximo AM-CMS-5B2 Seminuevos (anatomía, hero_title).'],
     ],
 
     'modulos_contenido_pendiente' => [
@@ -76,6 +76,8 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5A-B2 cerrado prod HEAD 46b0968 — footer Recursos 1 col/7 links, EO5144 OK, sitemap 144/20, sin Fatal/Parse'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5A-B3 local: admin CRUD N columnas footer; pestaña Columnas; sanitize URL; recursos protegida'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5A-B3 cerrado prod HEAD 80bb952 — deploy ff-only; smoke admin Columnas sin escritura; 11 rutas 200; EO5144/sitemap 144/20'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B0: diagnóstico títulos hardcodeados — 13 páginas; top CEO (Vehículos Disponibles, Anatomía Seminuevo, Ventajas Corporativas); sub-bloques 5B1–5B5'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B0 cerrado — diagnóstico aprobado; docs/am-cms-5b-diagnostico-titulos.md; próximo AM-CMS-5B2 Seminuevos'],
     ],
 
     'bloques' => [
@@ -458,17 +460,31 @@ return [
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
+            'codigo'              => 'AM-CMS-5B0',
+            'nombre'              => 'Diagnóstico títulos/subtítulos hardcodeados',
+            'area'                => 'CMS/editorial',
+            'prioridad'           => 'Media',
+            'estado'              => 'Diagnóstico aprobado',
+            'porcentaje_estimado' => 100,
+            'descripcion'         => 'Mapeo read-only de h1–h4, intros, CTAs y labels en 13 páginas/familias; clasificación C1–C5; sub-bloques 5B1–5B5 definidos.',
+            'dependencias'        => ['AM-CMS-5A-B'],
+            'ultimo_commit'       => '6695461',
+            'evidencia'           => 'docs/am-cms-5b-diagnostico-titulos.md aprobado; ~100 C2; primer sprint 5B2 Seminuevos (anatomía, hero_title).',
+            'siguiente_accion'    => 'Cerrado diagnóstico. Siguiente: AM-CMS-5B2 implementación Seminuevos.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
             'codigo'              => 'AM-CMS-5B',
             'nombre'              => 'Control ampliado títulos / subtítulos / textos',
             'area'                => 'CMS/editorial',
             'prioridad'           => 'Media',
-            'estado'              => 'Pendiente funcional',
-            'porcentaje_estimado' => 30,
-            'descripcion'         => 'Todos los títulos, subtítulos y bloques de texto editables desde admin.',
+            'estado'              => 'En desarrollo',
+            'porcentaje_estimado' => 35,
+            'descripcion'         => 'Epic títulos editables. B0 diagnóstico aprobado; implementación incremental 5B1–5B5 sin big-bang.',
             'dependencias'        => ['AM-CMS-5A-B'],
-            'ultimo_commit'       => '—',
-            'evidencia'           => 'Parcial en varias unidades.',
-            'siguiente_accion'    => 'Mapear campos faltantes por página.',
+            'ultimo_commit'       => '6695461',
+            'evidencia'           => 'B0 cerrado: matriz 13 páginas en docs/; brechas RAC, seminuevos anatomía, leasing ventajas, contactos semi.',
+            'siguiente_accion'    => 'Iniciar AM-CMS-5B2 — Venta de Autos títulos/secciones visibles.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
