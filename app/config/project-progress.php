@@ -17,7 +17,7 @@ return [
     'resumen' => [
         'avance_global'     => 60,
         'seo_tecnico'       => 72,
-        'cms_editorial'     => 68,
+        'cms_editorial'     => 70,
         'ux_conversion'     => 64,
         'contenido_aeo_geo' => 45,
     ],
@@ -25,7 +25,7 @@ return [
     'pendientes_funcionales' => [
         ['item' => 'Vacantes / Trabaja con nosotros (sección base)', 'nota' => 'Falta módulo público de vacantes antes de integrar Konzerta.'],
         ['item' => 'Footer builder columnas (AM-CMS-5A-B)', 'nota' => 'B0–B3 cerrados prod (builder columnas enlaces; also_know/redes/pagos v1 separados).'],
-        ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'B2 Seminuevos en validación: hero, anatomía, inventario page titles vía CMS.'],
+        ['item' => 'Títulos/subtítulos ampliados (AM-CMS-5B)', 'nota' => 'B2 Seminuevos cerrado prod (8d14e8b); pendientes 5B1 RAC, 5B3 Leasing/Renting/Taller, 5B4 contactos, 5B5 cierre epic.'],
     ],
 
     'modulos_contenido_pendiente' => [
@@ -79,6 +79,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B0: diagnóstico títulos hardcodeados — 13 páginas; top CEO (Vehículos Disponibles, Anatomía Seminuevo, Ventajas Corporativas); sub-bloques 5B1–5B5'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B0 cerrado — diagnóstico aprobado; docs/am-cms-5b-diagnostico-titulos.md; próximo AM-CMS-5B2 Seminuevos'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B2 local: seminuevos hero/anatomía/inventario títulos CMS; admin Principal Venta de Autos; fallbacks conservadores'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5B2 cerrado prod HEAD 8d14e8b — QA local guardar/vaciar/restaurar; deploy ff-only; php -l 5/5; venta-autos/inventario fallbacks OK; EO5144 H1+canonical; sitemap 147/0/20/0; admin Textos visibles sin escritura'],
     ],
 
     'bloques' => [
@@ -397,11 +398,11 @@ return [
             'prioridad'           => 'Media',
             'estado'              => 'En desarrollo',
             'porcentaje_estimado' => 65,
-            'descripcion'         => 'Epic CMS Seminuevos-Renting: 5A-B footer builder columnas cerrado prod (B3 admin CRUD).',
+            'descripcion'         => 'Epic CMS Seminuevos-Renting: 5A-B footer builder cerrado prod; AM-CMS-5B2 Seminuevos títulos cerrado prod.',
             'dependencias'        => ['AM-CMS-3B3'],
-            'ultimo_commit'       => '80bb952',
-            'evidencia'           => '5A-B0–B3 cerrados prod; B3 admin Columnas CRUD + sanitize URL protocol-relative.',
-            'siguiente_accion'    => 'AM-CMS-5B títulos/subtítulos ampliados.',
+            'ultimo_commit'       => '8d14e8b',
+            'evidencia'           => '5A-B0–B3 cerrados prod; 5B2 seminuevos hero/anatomía/inventario títulos CMS cerrado prod 8d14e8b.',
+            'siguiente_accion'    => 'AM-CMS-5B epic: 5B1/5B3–5B5 pendientes aprobación.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -471,7 +472,7 @@ return [
             'dependencias'        => ['AM-CMS-5A-B'],
             'ultimo_commit'       => '6695461',
             'evidencia'           => 'docs/am-cms-5b-diagnostico-titulos.md aprobado; ~100 C2; primer sprint 5B2 Seminuevos (anatomía, hero_title).',
-            'siguiente_accion'    => 'Cerrado diagnóstico. Siguiente: AM-CMS-5B2 implementación Seminuevos.',
+            'siguiente_accion'    => 'Cerrado diagnóstico. B2 Seminuevos cerrado prod.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -480,12 +481,12 @@ return [
             'area'                => 'CMS/editorial',
             'prioridad'           => 'Media',
             'estado'              => 'En desarrollo',
-            'porcentaje_estimado' => 35,
-            'descripcion'         => 'Epic títulos editables. B0 diagnóstico aprobado; implementación incremental 5B1–5B5 sin big-bang.',
+            'porcentaje_estimado' => 42,
+            'descripcion'         => 'Epic títulos editables. B0 diagnóstico aprobado; B2 Seminuevos cerrado prod; 5B1–5B5 incremental sin big-bang.',
             'dependencias'        => ['AM-CMS-5A-B'],
-            'ultimo_commit'       => '6695461',
-            'evidencia'           => 'B0 cerrado: matriz 13 páginas en docs/; brechas RAC, seminuevos anatomía, leasing ventajas, contactos semi.',
-            'siguiente_accion'    => 'Validar AM-CMS-5B2 Seminuevos títulos CMS y cerrar en prod.',
+            'ultimo_commit'       => '8d14e8b',
+            'evidencia'           => 'B0 cerrado docs/; B2 prod 8d14e8b: seminuevos-public-copy.php, admin Textos visibles, fallbacks conservadores.',
+            'siguiente_accion'    => 'Siguiente sub-bloque 5B1 RAC o 5B3 Leasing/Renting/Taller tras aprobación.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
@@ -493,13 +494,13 @@ return [
             'nombre'              => 'Seminuevos títulos y secciones editables',
             'area'                => 'CMS/editorial',
             'prioridad'           => 'Media',
-            'estado'              => 'En validación',
-            'porcentaje_estimado' => 90,
+            'estado'              => 'Cerrado producción',
+            'porcentaje_estimado' => 100,
             'descripcion'         => 'venta-autos.php + inventario.php: hero, anatomía, badge inventario, títulos página inventario; admin semi-home; fallbacks actuales.',
             'dependencias'        => ['AM-CMS-5B0'],
-            'ultimo_commit'       => '—',
-            'evidencia'           => 'seminuevos-public-copy.php; save_seminuevos_home ampliado; hero_title cableado admin; anatomía CMS.',
-            'siguiente_accion'    => 'Revisión y cierre prod tras QA local.',
+            'ultimo_commit'       => '8d14e8b',
+            'evidencia'           => 'Prod 8d14e8b: deploy ff-only; php -l 5/5; QA local guardar/vaciar/restaurar site_data; venta-autos fallbacks Anatomía/Hero OK; inventario 200; EO5144 H1+canonical; sitemap 147/0/20/0; admin Textos visibles — Venta de Autos smoke sin escritura.',
+            'siguiente_accion'    => 'Cerrado producción.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [
