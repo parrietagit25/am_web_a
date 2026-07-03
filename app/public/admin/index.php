@@ -972,6 +972,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $siteData['seminuevos']['anatomy_image_alt'] = trim($_POST['semi_anatomy_image_alt'] ?? '');
         $siteData['seminuevos']['inventory_page_title'] = trim($_POST['semi_inventory_page_title'] ?? '');
         $siteData['seminuevos']['inventory_page_subtitle'] = trim($_POST['semi_inventory_page_subtitle'] ?? '');
+        if (!isset($siteData['seminuevos']['opiniones_section']) || !is_array($siteData['seminuevos']['opiniones_section'])) {
+            $siteData['seminuevos']['opiniones_section'] = [];
+        }
+        $siteData['seminuevos']['opiniones_section']['title'] = trim($_POST['semi_opiniones_title'] ?? '');
+        $siteData['seminuevos']['opiniones_section']['subtitle'] = trim($_POST['semi_opiniones_subtitle'] ?? '');
         
         // Save tooltips
         $points = $_POST['anatomy_points'] ?? [];
@@ -1934,6 +1939,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $siteData['leasing']['intro_text'] = trim($_POST['leasing_intro_text'] ?? '');
         $siteData['leasing']['lead_title'] = trim($_POST['leasing_lead_title'] ?? '');
         $siteData['leasing']['opinions_title'] = trim($_POST['leasing_opinions_title'] ?? '');
+        $siteData['leasing']['fleet_page_title'] = trim($_POST['leasing_fleet_page_title'] ?? '');
+        $siteData['leasing']['fleet_page_subtitle'] = trim($_POST['leasing_fleet_page_subtitle'] ?? '');
         $siteData['leasing']['hero_cta_text'] = trim($_POST['leasing_hero_cta_text'] ?? '');
         $siteData['leasing']['lead_badge'] = trim($_POST['leasing_lead_badge'] ?? '');
         $siteData['leasing']['lead_slogan'] = trim($_POST['leasing_lead_slogan'] ?? '');
@@ -4600,6 +4607,16 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="semi_inventory_page_subtitle" class="form-label fw-semibold">Subtítulo página inventario</label>
                                         <input type="text" id="semi_inventory_page_subtitle" name="semi_inventory_page_subtitle" class="form-control form-control-premium" value="<?php echo esc($seminuevos['inventory_page_subtitle'] ?? ''); ?>" placeholder="Vacío = traducción inventory.subtitle">
                                     </div>
+                                    <?php $semiOpinionesDefaults = seminuevos_opiniones_section_defaults(); ?>
+                                    <?php $semiOpinionesSection = is_array($seminuevos['opiniones_section'] ?? null) ? $seminuevos['opiniones_section'] : []; ?>
+                                    <div class="col-md-6">
+                                        <label for="semi_opiniones_title" class="form-label fw-semibold">Título sección opiniones (Venta de Autos)</label>
+                                        <input type="text" id="semi_opiniones_title" name="semi_opiniones_title" class="form-control form-control-premium" value="<?php echo esc($semiOpinionesSection['title'] ?? ''); ?>" placeholder="<?php echo esc($semiOpinionesDefaults['title']); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="semi_opiniones_subtitle" class="form-label fw-semibold">Subtítulo sección opiniones</label>
+                                        <input type="text" id="semi_opiniones_subtitle" name="semi_opiniones_subtitle" class="form-control form-control-premium" value="<?php echo esc($semiOpinionesSection['subtitle'] ?? ''); ?>" placeholder="<?php echo esc($semiOpinionesDefaults['subtitle']); ?>">
+                                    </div>
                                 </div>
 
                                 <hr class="my-4">
@@ -6079,6 +6096,15 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     <div class="col-12">
                                         <label for="leasing_opinions_title" class="form-label fw-semibold">Título sección opiniones</label>
                                         <input type="text" id="leasing_opinions_title" name="leasing_opinions_title" class="form-control form-control-premium" value="<?php echo esc($leasing['opinions_title'] ?? ''); ?>" placeholder="<?php echo esc(leasing_opinions_title([])); ?>">
+                                    </div>
+                                    <?php $leasingFleetDefaults = leasing_fleet_page_defaults(); ?>
+                                    <div class="col-md-6">
+                                        <label for="leasing_fleet_page_title" class="form-label fw-semibold">Título página flota (/leasing-flota.php)</label>
+                                        <input type="text" id="leasing_fleet_page_title" name="leasing_fleet_page_title" class="form-control form-control-premium" value="<?php echo esc($leasing['fleet_page_title'] ?? ''); ?>" placeholder="<?php echo esc($leasingFleetDefaults['title']); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="leasing_fleet_page_subtitle" class="form-label fw-semibold">Subtítulo página flota</label>
+                                        <input type="text" id="leasing_fleet_page_subtitle" name="leasing_fleet_page_subtitle" class="form-control form-control-premium" value="<?php echo esc($leasing['fleet_page_subtitle'] ?? ''); ?>" placeholder="<?php echo esc($leasingFleetDefaults['subtitle']); ?>">
                                     </div>
                                 </div>
 

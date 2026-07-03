@@ -564,6 +564,9 @@ class UnitContentService
             'home_rotation_interval_ms' => max(3000, intval($settings['home_rotation_interval_ms'] ?? 6000)),
             'latest_show_on_home' => !isset($settings['latest_show_on_home']) || filter_var($settings['latest_show_on_home'], FILTER_VALIDATE_BOOLEAN),
             'latest_home_limit' => max(1, min(12, intval($settings['latest_home_limit'] ?? 4))),
+            'home_spotlight_title' => trim((string) ($settings['home_spotlight_title'] ?? '')),
+            'home_latest_title' => trim((string) ($settings['home_latest_title'] ?? '')),
+            'home_latest_subtitle' => trim((string) ($settings['home_latest_subtitle'] ?? '')),
             'page_headers' => self::normalizePageHeaders($settings['page_headers'] ?? []),
         ];
 

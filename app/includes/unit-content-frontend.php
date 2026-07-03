@@ -192,3 +192,27 @@ function unit_content_home_display_mode(ContentService $contentService, string $
 
     return ($settings['home_display_mode'] ?? 'rotation') === 'single' ? 'single' : 'rotation';
 }
+
+/**
+ * Títulos de bloques Destacados / Novedades en home de unidad (AM-CMS-5C).
+ *
+ * @return array{spotlight_title: string, latest_title: string, latest_subtitle: string}
+ */
+function unit_content_home_section_titles(ContentService $contentService, string $unitKey): array
+{
+    $siteData = $contentService->getAll();
+    UnitContentService::ensureMigrated($siteData, $unitKey);
+    $settings = UnitContentService::normalizeSettings(
+        UnitContentService::getContentNode($siteData, $unitKey)['settings'] ?? []
+    );
+
+    $spotlightTitle = trim((string) ($settings['home_spotlight_title'] ?? ''));
+    $latestTitle = trim((string) ($settings['home_latest_title'] ?? ''));
+    $latestSubtitle = trim((string) ($settings['home_latest_subtitle'] ?? ''));
+
+    return [
+        'spotlight_title'  => $spotlightTitle !== '' ? $spotlightTitle : 'Destacados',
+        'latest_title'     => $latestTitle !== '' ? $latestTitle : 'Novedades',
+        'latest_subtitle'  => $latestSubtitle !== '' ? $latestSubtitle : 'Promociones, eventos e información de interés.',
+    ];
+}

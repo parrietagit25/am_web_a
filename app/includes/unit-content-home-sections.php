@@ -13,12 +13,13 @@ $ucSpotlightItems = $ucSpotlightEnabled ? unit_content_get_spotlight($contentSer
 $ucLatestItems = unit_content_get_latest_home($contentService, $ucUnitKey);
 $ucRotationMs = unit_content_rotation_interval($contentService, $ucUnitKey);
 $ucDisplayMode = unit_content_home_display_mode($contentService, $ucUnitKey);
+$ucHomeTitles = unit_content_home_section_titles($contentService, $ucUnitKey);
 ?>
 
 <?php if ($ucSpotlightEnabled && !empty($ucSpotlightItems)): ?>
 <section class="container py-5 mb-4 border-top" id="destacado-home-<?php echo esc($ucUnitKey); ?>">
     <div class="text-center mb-4">
-        <h2 class="fw-bold text-navy display-6 font-montserrat">Destacados</h2>
+        <h2 class="fw-bold text-navy display-6 font-montserrat"><?php echo esc($ucHomeTitles['spotlight_title']); ?></h2>
     </div>
 
     <?php if ($ucDisplayMode === 'rotation' && count($ucSpotlightItems) > 1): ?>
@@ -67,8 +68,8 @@ $ucDisplayMode = unit_content_home_display_mode($contentService, $ucUnitKey);
 <?php if (!empty($ucLatestItems)): ?>
 <section class="container py-5 mb-5 border-top" id="contenido-reciente-<?php echo esc($ucUnitKey); ?>">
     <div class="text-center mb-5">
-        <h2 class="fw-bold text-navy display-6 font-montserrat">Novedades</h2>
-        <p class="text-muted">Promociones, eventos e información de interés.</p>
+        <h2 class="fw-bold text-navy display-6 font-montserrat"><?php echo esc($ucHomeTitles['latest_title']); ?></h2>
+        <p class="text-muted"><?php echo esc($ucHomeTitles['latest_subtitle']); ?></p>
     </div>
     <div class="row g-4">
         <?php foreach ($ucLatestItems as $item): ?>

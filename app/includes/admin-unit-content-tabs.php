@@ -120,6 +120,19 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
                     <input type="number" name="latest_home_limit" class="form-control form-control-premium" min="1" max="12" value="<?php echo intval($ucSettings['latest_home_limit'] ?? 4); ?>">
                 </div>
 
+                <div class="col-md-4">
+                    <label class="form-label">Título bloque Destacados (home)</label>
+                    <input type="text" name="home_spotlight_title" class="form-control form-control-premium" value="<?php echo esc($ucSettings['home_spotlight_title'] ?? ''); ?>" placeholder="Destacados">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Título bloque Novedades (home)</label>
+                    <input type="text" name="home_latest_title" class="form-control form-control-premium" value="<?php echo esc($ucSettings['home_latest_title'] ?? ''); ?>" placeholder="Novedades">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Subtítulo bloque Novedades (home)</label>
+                    <input type="text" name="home_latest_subtitle" class="form-control form-control-premium" value="<?php echo esc($ucSettings['home_latest_subtitle'] ?? ''); ?>" placeholder="Promociones, eventos e información de interés.">
+                </div>
+
                 <div class="col-12">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="latest_show_on_home" id="uc-<?php echo esc($ucDomUnit); ?>-latest_show_on_home" value="1" <?php echo !empty($ucSettings['latest_show_on_home']) ? 'checked' : ''; ?>>

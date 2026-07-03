@@ -20,6 +20,7 @@ $semiAnatomyEyebrow = seminuevos_public_copy($seminuevosData, 'anatomy_eyebrow',
 $semiAnatomyTitle = seminuevos_public_copy($seminuevosData, 'anatomy_title', $semiCopyDefaults['anatomy_title']);
 $semiAnatomySubtitle = seminuevos_public_copy($seminuevosData, 'anatomy_subtitle', $semiCopyDefaults['anatomy_subtitle']);
 $semiAnatomyImageAlt = seminuevos_public_copy($seminuevosData, 'anatomy_image_alt', $semiCopyDefaults['anatomy_image_alt']);
+$semiOpinionesSection = seminuevos_opiniones_section_copy($seminuevosData);
 $hbConfig = HeaderBannerService::normalizeFromNode($seminuevosData, 'banner_image_url');
 $anatomyImage = $seminuevosData['anatomy_image_url'] ?? 'https://dev.automarket.com.pa/images/anatomia-sn.webp';
 $anatomyPoints = $seminuevosData['anatomy_points'] ?? [];
@@ -419,8 +420,8 @@ require __DIR__ . '/../includes/render-header-banner.php';
 <!-- Testimonials Section -->
 <section class="container py-5 mb-5 border-top" id="testimonios">
     <div class="text-center mb-5">
-        <h2 class="fw-bold text-navy display-6 font-montserrat">Opiniones de Nuestros Clientes</h2>
-        <p class="text-muted">Conoce la experiencia de quienes compraron su auto seminuevo con nosotros.</p>
+        <h2 class="fw-bold text-navy display-6 font-montserrat"><?php echo esc($semiOpinionesSection['title']); ?></h2>
+        <p class="text-muted"><?php echo esc($semiOpinionesSection['subtitle']); ?></p>
     </div>
 
     <?php if (empty($opiniones)): ?>

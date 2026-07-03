@@ -8,7 +8,7 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-NEG-7B',
+        'version_tablero'  => 'AM-CMS-5C',
         'fecha_actualizacion' => '2026-07-03',
         'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
@@ -17,14 +17,13 @@ return [
     'resumen' => [
         'avance_global'     => 74,
         'seo_tecnico'       => 78,
-        'cms_editorial'     => 88,
+        'cms_editorial'     => 90,
         'ux_conversion'     => 64,
         'contenido_aeo_geo' => 62,
     ],
 
     'pendientes_funcionales' => [
         ['item' => 'Footer builder columnas (AM-CMS-5A-B)', 'nota' => 'Cerrado prod (80bb952). Builder columnas enlaces; also_know/redes/pagos v1 separados.'],
-        ['item' => 'Títulos/subtítulos secundarios (post-5B)', 'nota' => 'Epic AM-CMS-5B cerrado prod (555458a). Backlog menor: opiniones venta-autos, Destacados/Novedades unit-content, leasing-flota cabecera.'],
     ],
 
     'modulos_contenido_pendiente' => [
@@ -98,6 +97,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7A cerrado prod HEAD 2fbd0bd — deploy ff-only; compose exec app php -l 6/6; trabaja-con-nosotros 200; H1/canonical/mailto/footer OK; sitemap 1/147/0/20/0; dashboard test 200/www 404'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7B: enlace oficial Konzerta en trabaja-con-nosotros.php; CTA externo seguro; mailto secundario; sin scraping/DB'],
         ['fecha' => '2026-07-03', 'texto' => 'AM-NEG-7B cerrado prod HEAD 9dc6856 — deploy ff-only; compose exec app php -l 2/2; trabaja-con-nosotros 200; CTA Konzerta URL exacta target/rel OK; sitemap 1/147/0/20/0; dashboard test 200/www 404'],
+        ['fecha' => '2026-07-03', 'texto' => 'AM-CMS-5C local: opiniones venta-autos; Destacados/Novedades unit-content; leasing-flota cabecera; admin mínimo; fallbacks conservadores'],
     ],
 
     'bloques' => [
@@ -533,6 +533,20 @@ return [
             'ultimo_commit'       => '555458a',
             'evidencia'           => 'Auditoría 12 páginas: H1/intros principales CMS o fallback; pendientes menores (opiniones venta-autos, Destacados/Novedades includes, leasing-flota) → backlog futuro.',
             'siguiente_accion'    => 'Cerrado producción.',
+            'fecha_actualizacion' => '2026-07-03',
+        ],
+        [
+            'codigo'              => 'AM-CMS-5C',
+            'nombre'              => 'Títulos/subtítulos secundarios post-5B',
+            'area'                => 'CMS/editorial',
+            'prioridad'           => 'Media',
+            'estado'              => 'En validación',
+            'porcentaje_estimado' => 85,
+            'descripcion'         => 'Opiniones venta-autos (seminuevos opiniones_section); Destacados/Novedades home unit-content; leasing-flota cabecera; fallbacks + admin mínimo.',
+            'dependencias'        => ['AM-CMS-5B'],
+            'ultimo_commit'       => '—',
+            'evidencia'           => 'Local: seminuevos-public-copy + lrt-public-copy + unit_content_home_section_titles; venta-autos/leasing-flota/unit-content-home-sections; admin campos mínimos.',
+            'siguiente_accion'    => 'Validar en staging; deploy ff-only y cierre prod.',
             'fecha_actualizacion' => '2026-07-03',
         ],
         [

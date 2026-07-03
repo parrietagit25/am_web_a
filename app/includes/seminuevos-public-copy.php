@@ -34,6 +34,33 @@ function seminuevos_public_copy_defaults(): array
 }
 
 /**
+ * @return array<string, string>
+ */
+function seminuevos_opiniones_section_defaults(): array
+{
+    return [
+        'title'    => 'Opiniones de Nuestros Clientes',
+        'subtitle' => 'Conoce la experiencia de quienes compraron su auto seminuevo con nosotros.',
+    ];
+}
+
+/**
+ * @param array<string, mixed> $seminuevos
+ *
+ * @return array<string, string>
+ */
+function seminuevos_opiniones_section_copy(array $seminuevos): array
+{
+    $defaults = seminuevos_opiniones_section_defaults();
+    $section = is_array($seminuevos['opiniones_section'] ?? null) ? $seminuevos['opiniones_section'] : [];
+
+    return [
+        'title'    => seminuevos_public_copy($section, 'title', $defaults['title']),
+        'subtitle' => seminuevos_public_copy($section, 'subtitle', $defaults['subtitle']),
+    ];
+}
+
+/**
  * @param array<string, mixed> $data
  */
 function seminuevos_inventory_page_title(array $data): string

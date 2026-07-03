@@ -128,3 +128,29 @@ function taller_hero_cta_text(array $taller): string
 {
     return lrt_public_copy($taller, 'hero_cta_text', 'Ver Servicios');
 }
+
+/**
+ * @return array{title: string, subtitle: string}
+ */
+function leasing_fleet_page_defaults(): array
+{
+    return [
+        'title'    => 'Descubre Nuestra Flota',
+        'subtitle' => 'Vehículos disponibles para leasing operativo corporativo en Panamá.',
+    ];
+}
+
+/**
+ * @param array<string, mixed> $leasing
+ *
+ * @return array{title: string, subtitle: string}
+ */
+function leasing_fleet_page_copy(array $leasing): array
+{
+    $defaults = leasing_fleet_page_defaults();
+
+    return [
+        'title'    => lrt_public_copy($leasing, 'fleet_page_title', $defaults['title']),
+        'subtitle' => lrt_public_copy($leasing, 'fleet_page_subtitle', $defaults['subtitle']),
+    ];
+}

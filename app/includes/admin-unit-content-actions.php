@@ -201,6 +201,9 @@ function unit_content_handle_post(
                 'home_rotation_interval_ms' => max(3000, intval($_POST['home_rotation_interval_ms'] ?? 6000)),
                 'latest_show_on_home' => isset($_POST['latest_show_on_home']),
                 'latest_home_limit' => max(1, min(12, intval($_POST['latest_home_limit'] ?? 4))),
+                'home_spotlight_title' => trim($_POST['home_spotlight_title'] ?? ''),
+                'home_latest_title' => trim($_POST['home_latest_title'] ?? ''),
+                'home_latest_subtitle' => trim($_POST['home_latest_subtitle'] ?? ''),
                 'page_headers' => $pageHeaders,
             ]);
 

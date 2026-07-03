@@ -4,8 +4,11 @@
  */
 $activeUnit = 'leasing';
 require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/lrt-public-copy.php';
 
-$vehicles = $contentService->get('leasing.vehicles', []);
+$leasingData = $contentService->get('leasing', []);
+$leasingFleetPage = leasing_fleet_page_copy(is_array($leasingData) ? $leasingData : []);
+$vehicles = $leasingData['vehicles'] ?? [];
 ?>
 
 <section class="py-5" style="background-color: #f8f9fc;">
@@ -16,8 +19,8 @@ $vehicles = $contentService->get('leasing.vehicles', []);
                 <li class="breadcrumb-item active" aria-current="page">Nuestra Flota</li>
             </ol>
         </nav>
-        <h1 class="display-5 fw-bold text-navy font-montserrat mb-2" style="font-size: 2.2rem; letter-spacing: -0.5px;">Descubre Nuestra Flota</h1>
-        <p class="text-muted font-poppins mb-0">Vehículos disponibles para leasing operativo corporativo en Panamá.</p>
+        <h1 class="display-5 fw-bold text-navy font-montserrat mb-2" style="font-size: 2.2rem; letter-spacing: -0.5px;"><?php echo esc($leasingFleetPage['title']); ?></h1>
+        <p class="text-muted font-poppins mb-0"><?php echo esc($leasingFleetPage['subtitle']); ?></p>
     </div>
 </section>
 
