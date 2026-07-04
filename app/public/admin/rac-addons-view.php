@@ -108,7 +108,14 @@ if (!isset($protections, $extras, $addonService)) {
                             <td class="small"><?php echo esc((string) $p['price_type'] . ' ' . $p['price_amount']); ?></td>
                             <td class="small"><?php echo esc(trim(($p['vehicle_code'] ?? '') . ' ' . ($p['vehicle_name'] ?? '')) ?: 'Todos'); ?></td>
                             <td><?php echo esc((string) $p['sort_order']); ?></td>
-                            <td><?php echo !empty($p['enabled']) ? 'Activo' : 'Inactivo'; ?><?php echo !empty($p['is_default']) ? ' · default' : ''; ?></td>
+                            <td><?php
+                                if (empty($p['enabled'])) {
+                                    echo 'Inactivo';
+                                } else {
+                                    echo !empty($p['visible_public']) ? 'Activo · público' : 'Activo · sin público';
+                                }
+                                echo !empty($p['is_default']) ? ' · default' : '';
+                            ?></td>
                             <td class="text-nowrap">
                                 <a href="/admin/rac-addons.php?tab=protections&edit=<?php echo esc((string) $p['id']); ?>" class="btn btn-sm btn-outline-secondary">Editar</a>
                                 <form method="post" class="d-inline"><input type="hidden" name="action" value="toggle_protection"><input type="hidden" name="tab" value="protections"><input type="hidden" name="id" value="<?php echo esc((string) $p['id']); ?>"><input type="hidden" name="enabled" value="<?php echo !empty($p['enabled']) ? '0' : '1'; ?>"><button type="submit" class="btn btn-sm btn-outline-secondary"><?php echo !empty($p['enabled']) ? 'Desactivar' : 'Activar'; ?></button></form>
@@ -173,7 +180,13 @@ if (!isset($protections, $extras, $addonService)) {
                             <td class="small"><?php echo esc((string) $e['price_type'] . ' ' . $e['price_amount']); ?></td>
                             <td><?php echo esc((string) $e['max_quantity']); ?></td>
                             <td class="small"><?php echo esc(trim(($e['vehicle_code'] ?? '') . ' ' . ($e['vehicle_name'] ?? '')) ?: 'Todos'); ?></td>
-                            <td><?php echo !empty($e['enabled']) ? 'Activo' : 'Inactivo'; ?></td>
+                            <td><?php
+                                if (empty($e['enabled'])) {
+                                    echo 'Inactivo';
+                                } else {
+                                    echo !empty($e['visible_public']) ? 'Activo · público' : 'Activo · sin público';
+                                }
+                            ?></td>
                             <td class="text-nowrap">
                                 <a href="/admin/rac-addons.php?tab=extras&edit=<?php echo esc((string) $e['id']); ?>" class="btn btn-sm btn-outline-secondary">Editar</a>
                                 <form method="post" class="d-inline"><input type="hidden" name="action" value="toggle_extra"><input type="hidden" name="tab" value="extras"><input type="hidden" name="id" value="<?php echo esc((string) $e['id']); ?>"><input type="hidden" name="enabled" value="<?php echo !empty($e['enabled']) ? '0' : '1'; ?>"><button type="submit" class="btn btn-sm btn-outline-secondary"><?php echo !empty($e['enabled']) ? 'Desactivar' : 'Activar'; ?></button></form>

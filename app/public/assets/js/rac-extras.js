@@ -47,6 +47,9 @@
     }
 
     function resolveProtectionPackages(vehicle) {
+        if (Array.isArray(vehicle._dbProtections) && vehicle._dbProtections.length) {
+            return filterProtectionPackages(vehicle._dbProtections);
+        }
         const pricing = vehicle.pricing || {};
         const fromPricing = filterProtectionPackages(pricing.coveragePackages);
         if (fromPricing.length) return fromPricing;

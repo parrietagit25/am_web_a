@@ -120,7 +120,23 @@ class RacDatabaseSchema {
         }
 
         self::ensureAddonTables($db, $driver);
+        self::syncEnabledAddonPublicVisibility($db);
         self::$ensured = true;
+    }
+
+    /** AM-RAC-BARS-RAC-3F2: activar vía toggle dejó visible_public=0 en datos legacy. */
+    private static function syncEnabledAddonPublicVisibility(Database $db): void
+    {
+        try {
+            $db->execute(
+                'UPDATE rac_protection_products SET visible_public = 1 WHERE enabled = 1 AND COALESCE(visible_public, 0) = 0'
+            );
+            $db->execute(
+                'UPDATE rac_extra_products SET visible_public = 1 WHERE enabled = 1 AND COALESCE(visible_public, 0) = 0'
+            );
+        } catch (Exception $e) {
+            // Tablas aún no creadas o driver sin soporte COALESCE equivalente
+        }
     }
 
     private static function ensureAddonTables(Database $db, string $driver): void

@@ -202,8 +202,12 @@ class RacAddonService
         $db = Database::getInstance();
 
         return $db->execute(
-            'UPDATE rac_protection_products SET enabled = :enabled WHERE id = :id',
-            [':enabled' => $enabled ? 1 : 0, ':id' => $id]
+            'UPDATE rac_protection_products SET enabled = :enabled, visible_public = :visible_public WHERE id = :id',
+            [
+                ':enabled' => $enabled ? 1 : 0,
+                ':visible_public' => $enabled ? 1 : 0,
+                ':id' => $id,
+            ]
         ) > 0;
     }
 
@@ -212,8 +216,12 @@ class RacAddonService
         $db = Database::getInstance();
 
         return $db->execute(
-            'UPDATE rac_extra_products SET enabled = :enabled WHERE id = :id',
-            [':enabled' => $enabled ? 1 : 0, ':id' => $id]
+            'UPDATE rac_extra_products SET enabled = :enabled, visible_public = :visible_public WHERE id = :id',
+            [
+                ':enabled' => $enabled ? 1 : 0,
+                ':visible_public' => $enabled ? 1 : 0,
+                ':id' => $id,
+            ]
         ) > 0;
     }
 
@@ -527,28 +535,53 @@ class RacAddonService
             return false;
         }
 
-        $pCode = strtoupper(trim((string) ($product['vehicle_code'] ?? '')));
-        if ($pCode !== '' && !in_array($pCode, ['*', 'ALL'], true) && $vehicleCode !== '' && $pCode !== $vehicleCode) {
+        if (!$this->contextValueMatches($product['vehicle_code'] ?? null, $vehicleCode)) {
             return false;
         }
 
-        $pName = trim((string) ($product['vehicle_name'] ?? ''));
-        if ($pName !== '' && !in_array(strtoupper($pName), ['*', 'ALL'], true) && $vehicleName !== ''
-            && strcasecmp($pName, $vehicleName) !== 0) {
+        if (!$this->contextNameMatches($product['vehicle_name'] ?? null, $vehicleName)) {
             return false;
         }
 
-        $pPickup = strtoupper(trim((string) ($product['pickup_location'] ?? '')));
-        if ($pPickup !== '' && !in_array($pPickup, ['*', 'ALL'], true) && $pickup !== '' && $pPickup !== $pickup) {
+        if (!$this->contextLocationMatches($product['pickup_location'] ?? null, $pickup)) {
             return false;
         }
 
-        $pRet = strtoupper(trim((string) ($product['return_location'] ?? '')));
-        if ($pRet !== '' && !in_array($pRet, ['*', 'ALL'], true) && $ret !== '' && $pRet !== $ret) {
+        if (!$this->contextLocationMatches($product['return_location'] ?? null, $ret)) {
             return false;
         }
 
         return true;
+    }
+
+    private function contextValueMatches(?string $rule, string $value): bool
+    {
+        $rule = strtoupper(trim((string) $rule));
+        if ($rule === '' || in_array($rule, ['*', 'ALL', 'TODOS', 'TODAS'], true)) {
+            return true;
+        }
+
+        return $value === '' || $rule === $value;
+    }
+
+    private function contextNameMatches(?string $rule, string $value): bool
+    {
+        $rule = trim((string) $rule);
+        if ($rule === '' || in_array(strtoupper($rule), ['*', 'ALL', 'TODOS', 'TODAS'], true)) {
+            return true;
+        }
+
+        return $value === '' || strcasecmp($rule, $value) === 0;
+    }
+
+    private function contextLocationMatches(?string $rule, string $value): bool
+    {
+        $rule = strtoupper(trim((string) $rule));
+        if ($rule === '' || in_array($rule, ['*', 'ALL', 'TODOS', 'TODAS', 'CUALQUIERA'], true)) {
+            return true;
+        }
+
+        return $value === '' || $rule === $value;
     }
 
     private function findProtectionByCode(string $code): ?array
