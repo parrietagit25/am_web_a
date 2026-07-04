@@ -257,6 +257,7 @@ function submitCheckoutBooking(e) {
         price_itbms: extras.totals?.itbms,
         price_total_estimated: extras.totals?.total,
         rate_type: rateType,
+        rate_quote_token: vehicle?.pricing?.barsQuoteToken || '',
         extras: extras,
         search: criteria,
         vehicle: vehicle

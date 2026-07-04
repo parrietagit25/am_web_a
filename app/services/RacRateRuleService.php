@@ -868,6 +868,10 @@ class RacRateRuleService
         $applied = json_decode((string) ($row['applied_rules_json'] ?? '[]'), true);
 
         return [
+            'id' => (int) ($row['id'] ?? 0),
+            'source_rate_id' => isset($row['source_rate_id']) ? (int) $row['source_rate_id'] : null,
+            'snapshot_id' => isset($row['snapshot_id']) ? (int) $row['snapshot_id'] : null,
+            'cache_key' => (string) ($row['cache_key'] ?? ''),
             'vehicle_code' => (string) ($row['vehicle_code'] ?? ''),
             'vehicle_name' => (string) ($row['vehicle_name'] ?? ''),
             'available' => !empty($row['available']),

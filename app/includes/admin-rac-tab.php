@@ -273,8 +273,32 @@ $statusLabels = [
         html += row('Nombre', esc(res.vehicle_name));
         html += row('Categoría', esc(res.vehicle_category));
         html += row('SIPP', esc(res.sipp_code));
+        html += row('Código BARS', esc(res.vehicle_code || res.sipp_code));
         html += row('Vendor rate ID', esc(res.vendor_rate_id));
-        html += '</div><hr><h6 class="fw-bold text-navy">Fechas y sucursales</h6><div class="row">';
+        html += '</div>';
+
+        if (res.rate_source === 'bars_cache' || res.final_daily_rate != null) {
+            html += '<hr><h6 class="fw-bold text-navy"><i class="bi bi-currency-exchange me-1 text-danger"></i> Tarifa BARS / Automarket</h6><div class="row">';
+            html += row('Fuente tarifa', esc(res.rate_source || '—'));
+            html += row('Días alquiler', esc(res.rental_days != null ? String(res.rental_days) : '—'));
+            html += row('Tarifa BARS diaria', res.base_daily_rate != null ? '$' + parseFloat(res.base_daily_rate).toFixed(2) : '—');
+            html += row('Tarifa final diaria', res.final_daily_rate != null ? '<strong>$' + parseFloat(res.final_daily_rate).toFixed(2) + '</strong>' : '—');
+            html += row('Total final período', res.final_total_rate != null ? '<strong>$' + parseFloat(res.final_total_rate).toFixed(2) + '</strong>' : '—');
+            html += row('Descuento aplicado', res.discount_amount_total != null ? '$' + parseFloat(res.discount_amount_total).toFixed(2) : '—');
+            html += row('Quote token', esc(res.quote_token || '—'));
+            html += row('Snapshot BARS', esc(res.bars_snapshot_id != null ? String(res.bars_snapshot_id) : '—'));
+            let rulesLabel = '—';
+            try {
+                const rules = typeof res.applied_rules_json === 'string' ? JSON.parse(res.applied_rules_json) : res.applied_rules_json;
+                if (Array.isArray(rules) && rules.length) {
+                    rulesLabel = rules.map(r => r.name || r.rule_id || '').filter(Boolean).join(', ');
+                }
+            } catch (e) { /* ignore */ }
+            html += row('Reglas aplicadas', esc(rulesLabel));
+            html += '</div>';
+        }
+
+        html += '<hr><h6 class="fw-bold text-navy">Fechas y sucursales</h6><div class="row">';
         html += row('Retiro', esc((branchNames[res.location_code] || res.location_code) + ' · ' + res.pickup_date + ' ' + res.pickup_time));
         html += row('Devolución', esc((branchNames[res.return_location_code] || res.return_location_code) + ' · ' + res.return_date + ' ' + res.return_time));
         html += row('Edad conductor', esc(res.driver_age));

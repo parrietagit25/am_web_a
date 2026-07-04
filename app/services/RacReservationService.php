@@ -83,7 +83,10 @@ class RacReservationService {
             coverage_code, coverage_name, coverage_amount, coverage_deductible,
             price_rental_base, price_saf, price_itbms,
             equipment_json, vehicle_snapshot_json, search_snapshot_json,
-            bars_confirmation_code, extras_snapshot_json
+            bars_confirmation_code, extras_snapshot_json,
+            bars_cache_key, bars_snapshot_id, calculated_rate_id, vehicle_code, rental_days, currency,
+            base_daily_rate, base_total_rate, final_daily_rate, final_total_rate,
+            discount_amount_total, applied_rules_json, rate_source, rate_locked_at
         ) VALUES (
             :reservation_code, :status, :customer_name, :customer_email, :customer_phone, :customer_comments,
             :location_code, :return_location_code, :pickup_date, :pickup_time, :return_date, :return_time,
@@ -93,7 +96,10 @@ class RacReservationService {
             :coverage_code, :coverage_name, :coverage_amount, :coverage_deductible,
             :price_rental_base, :price_saf, :price_itbms,
             :equipment_json, :vehicle_snapshot_json, :search_snapshot_json,
-            :bars_confirmation_code, :extras_snapshot_json
+            :bars_confirmation_code, :extras_snapshot_json,
+            :bars_cache_key, :bars_snapshot_id, :calculated_rate_id, :vehicle_code, :rental_days, :currency,
+            :base_daily_rate, :base_total_rate, :final_daily_rate, :final_total_rate,
+            :discount_amount_total, :applied_rules_json, :rate_source, :rate_locked_at
         )";
 
         $db->execute($sql, [
@@ -133,6 +139,20 @@ class RacReservationService {
             ':search_snapshot_json' => json_encode($data['search_snapshot'] ?? [], JSON_UNESCAPED_UNICODE),
             ':bars_confirmation_code' => $barsCode !== '' ? $barsCode : null,
             ':extras_snapshot_json' => json_encode($data['extras_snapshot'] ?? [], JSON_UNESCAPED_UNICODE),
+            ':bars_cache_key' => trim((string) ($data['bars_cache_key'] ?? '')) ?: null,
+            ':bars_snapshot_id' => isset($data['bars_snapshot_id']) ? (int) $data['bars_snapshot_id'] : null,
+            ':calculated_rate_id' => isset($data['calculated_rate_id']) ? (int) $data['calculated_rate_id'] : null,
+            ':vehicle_code' => trim((string) ($data['vehicle_code'] ?? '')) ?: null,
+            ':rental_days' => isset($data['rental_days']) ? (int) $data['rental_days'] : null,
+            ':currency' => trim((string) ($data['currency'] ?? 'USD')) ?: null,
+            ':base_daily_rate' => $this->decimal($data['base_daily_rate'] ?? null),
+            ':base_total_rate' => $this->decimal($data['base_total_rate'] ?? null),
+            ':final_daily_rate' => $this->decimal($data['final_daily_rate'] ?? null),
+            ':final_total_rate' => $this->decimal($data['final_total_rate'] ?? null),
+            ':discount_amount_total' => $this->decimal($data['discount_amount_total'] ?? null),
+            ':applied_rules_json' => json_encode($data['applied_rules_json'] ?? [], JSON_UNESCAPED_UNICODE),
+            ':rate_source' => trim((string) ($data['rate_source'] ?? '')) ?: null,
+            ':rate_locked_at' => trim((string) ($data['rate_locked_at'] ?? '')) ?: null,
         ]);
 
         $id = (int) $db->lastInsertId();

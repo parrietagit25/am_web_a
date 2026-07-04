@@ -120,7 +120,9 @@
 
         const badge = isFallback
             ? `<span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">Precio aproximado</span>`
-            : '';
+            : (vehicle.promotionLabel
+                ? `<span class="badge bg-success position-absolute top-0 end-0 m-2">${vehicle.promotionLabel}</span>`
+                : '');
 
         return `
         <div class="col-lg-4 col-md-6 col-12 d-flex rac-vehicle-col" data-category="${(vehicle.category || '').toLowerCase()}">
@@ -193,7 +195,13 @@
         return (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     }
 
-    function bindSelectButtons(vehicles) {
+    function usesBarsPricing(results) {
+        if (!results) return false;
+        const src = String(results.source || '');
+        return results.pricingEngine === 'bars_calculated' || src.indexOf('BARS_CACHE') === 0;
+    }
+
+    function bindSelectButtons(vehicles, criteria, results) {
         document.querySelectorAll('.rac-select-btn').forEach(btn => {
             const idx = parseInt(btn.getAttribute('data-vehicle-index'), 10);
             const vehicle = vehicles[idx];
@@ -203,14 +211,66 @@
                 const vendorRateId = window.RAC_FLOW?.resolveVendorRateId
                     ? window.RAC_FLOW.resolveVendorRateId(vehicle, rate)
                     : (vehicle.vendorRateId || '');
-                const enriched = Object.assign({}, vehicle, {
-                    _selectedRateType: rate,
-                    vendorRateId: vendorRateId
-                });
-                sessionStorage.setItem('selectedVehicle', JSON.stringify(enriched));
-                sessionStorage.setItem('selectedRateType', rate);
-                sessionStorage.removeItem('extrasSelection');
-                window.location.href = '/extras.php';
+
+                const goExtras = (enriched) => {
+                    sessionStorage.setItem('selectedVehicle', JSON.stringify(enriched));
+                    sessionStorage.setItem('selectedRateType', rate);
+                    sessionStorage.removeItem('extrasSelection');
+                    window.location.href = '/extras.php';
+                };
+
+                if (!usesBarsPricing(results)) {
+                    goExtras(Object.assign({}, vehicle, {
+                        _selectedRateType: rate,
+                        vendorRateId: vendorRateId
+                    }));
+                    return;
+                }
+
+                btn.disabled = true;
+                const originalText = btn.textContent;
+                btn.textContent = 'Reservando tarifa…';
+
+                fetch('/api/rac-rate-quote.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        vehicle_code: vehicle.sippCode,
+                        sippCode: vehicle.sippCode,
+                        locationCode: criteria.locationCode,
+                        returnLocationCode: criteria.returnLocationCode || criteria.locationCode,
+                        pickupDate: criteria.pickupDate,
+                        pickupTime: criteria.pickupTime || '10:00',
+                        returnDate: criteria.returnDate,
+                        returnTime: criteria.returnTime || '10:00',
+                        age: criteria.age || '25',
+                        promoCode: criteria.promoCode || '',
+                        rate_type: rate
+                    })
+                })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (!data.success) {
+                            alert(data.message || 'No se pudo bloquear la tarifa. Vuelva a consultar.');
+                            btn.disabled = false;
+                            btn.textContent = originalText;
+                            return;
+                        }
+                        const mergedPricing = Object.assign({}, vehicle.pricing || {}, data.pricing || {}, {
+                            barsQuoteToken: data.quote_token
+                        });
+                        const mergedVehicle = Object.assign({}, vehicle, data.vehicle || {}, {
+                            _selectedRateType: rate,
+                            vendorRateId: vendorRateId,
+                            pricing: mergedPricing
+                        });
+                        goExtras(mergedVehicle);
+                    })
+                    .catch(() => {
+                        alert('Error de conexión al bloquear tarifa.');
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                    });
             });
         });
     }
@@ -331,7 +391,7 @@
 
         vehicles.forEach((v, i) => { html += renderCard(v, calendarDays, i); });
         grid.innerHTML = html;
-        bindSelectButtons(vehicles);
+        bindSelectButtons(vehicles, criteria, results);
 
         try {
             sessionStorage.setItem('searchResultsVehicles', JSON.stringify(vehicles));

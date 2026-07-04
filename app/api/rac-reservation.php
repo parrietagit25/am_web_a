@@ -12,6 +12,7 @@ require_once __DIR__ . '/../services/AutomarketReservationApiService.php';
 require_once __DIR__ . '/../services/RacReservationService.php';
 require_once __DIR__ . '/../services/RacAlertEmailService.php';
 require_once __DIR__ . '/../services/CaptchaService.php';
+require_once __DIR__ . '/../services/RacPublicRateService.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -67,6 +68,32 @@ if (empty($vehicle['name']) && empty($vehicle['sippCode'])) {
 
 $pricing = $vehicle['pricing'] ?? [];
 $rateType = ($input['rate_type'] ?? 'web') === 'counter' ? 'counter' : 'web';
+$quoteToken = trim((string) ($input['rate_quote_token'] ?? $pricing['barsQuoteToken'] ?? $input['quote_token'] ?? ''));
+$barsQuote = null;
+$rateSource = 'legacy';
+$publicRateService = null;
+
+if (($pricing['rateSource'] ?? '') === 'bars_cache' && $quoteToken === '') {
+    http_response_code(422);
+    echo json_encode(['success' => false, 'message' => 'Tarifa no bloqueada. Vuelva a seleccionar el vehículo.']);
+    exit;
+}
+
+if ($quoteToken !== '' && RacPublicRateService::isBarsPricingEnabled()) {
+    $publicRateService = new RacPublicRateService();
+    $quoteValidation = $publicRateService->validateQuote($quoteToken, array_merge($search, [
+        'vehicle_code' => $vehicle['sippCode'] ?? '',
+        'sippCode' => $vehicle['sippCode'] ?? '',
+    ]));
+    if (!($quoteValidation['ok'] ?? false)) {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => $quoteValidation['message'] ?? 'Tarifa inválida.']);
+        exit;
+    }
+    $barsQuote = $quoteValidation['quote'];
+    $rateSource = 'bars_cache';
+}
+
 $coverageCode = trim($input['coverage_code'] ?? ($extras['protection'] ?? ''));
 if (strtoupper($coverageCode) === 'NONE') {
     $coverageCode = '';
@@ -78,6 +105,25 @@ $estimatedTotal = $input['price_total_estimated'] ?? ($extras['totals']['total']
 $rentalBase = $input['price_rental_base'] ?? ($extras['totals']['base'] ?? ($pricing['rateBase'] ?? null));
 $saf = $input['price_saf'] ?? ($extras['totals']['saf'] ?? ($pricing['saf'] ?? null));
 $itbms = $input['price_itbms'] ?? ($extras['totals']['itbms'] ?? null);
+
+if (is_array($barsQuote)) {
+    $quoteToken = (string) ($barsQuote['quote_token'] ?? $quoteToken);
+    $finalDaily = (float) ($barsQuote['final_daily_rate'] ?? 0);
+    $finalTotal = (float) ($barsQuote['final_total_rate'] ?? 0);
+    if ($rateType === 'counter') {
+        $finalDaily = round($finalDaily * 1.07, 2);
+        $finalTotal = round($finalTotal * 1.07, 2);
+    }
+    $rentalBase = $finalTotal;
+    $vehicle['priceWeb'] = $finalDaily;
+    $vehicle['priceTotal'] = $finalTotal;
+    $vehicle['priceCounter'] = $finalDaily;
+    $vehicle['priceCounterTotal'] = $finalTotal;
+    $pricing['rateBase'] = $finalTotal;
+    $pricing['finalDailyRate'] = $finalDaily;
+    $pricing['finalTotalRate'] = $finalTotal;
+    $vehicle['pricing'] = $pricing;
+}
 
 $fullPhone = $phone;
 if ($phone !== '' && strpos($phone, '+') !== 0 && $phonePrefix !== '') {
@@ -142,7 +188,7 @@ try {
         'vehicle_name' => $vehicle['name'] ?? 'Vehículo',
         'vehicle_category' => $vehicle['category'] ?? '',
         'vendor_rate_id' => $vehicle['vendorRateId'] ?? '',
-        'quote_token' => $pricing['quoteToken'] ?? $vehicle['vendorRateId'] ?? '',
+        'quote_token' => $quoteToken !== '' ? $quoteToken : ($pricing['quoteToken'] ?? $vehicle['vendorRateId'] ?? ''),
         'rate_type' => $rateType,
         'price_web' => $vehicle['priceWeb'] ?? null,
         'price_counter' => $vehicle['priceCounter'] ?? null,
@@ -159,7 +205,28 @@ try {
         'extras_snapshot' => is_array($extras) ? $extras : [],
         'vehicle_snapshot' => $vehicle,
         'search_snapshot' => $search,
+        'bars_cache_key' => is_array($barsQuote) ? ($barsQuote['cache_key'] ?? null) : null,
+        'bars_snapshot_id' => is_array($barsQuote) ? ($barsQuote['snapshot_id'] ?? null) : null,
+        'calculated_rate_id' => is_array($barsQuote) ? ($barsQuote['calculated_rate_id'] ?? null) : null,
+        'vehicle_code' => is_array($barsQuote) ? ($barsQuote['vehicle_code'] ?? null) : ($vehicle['sippCode'] ?? null),
+        'rental_days' => is_array($barsQuote) ? ($barsQuote['rental_days'] ?? null) : ($vehicle['rentalDays'] ?? null),
+        'currency' => is_array($barsQuote) ? ($barsQuote['currency'] ?? 'USD') : ($vehicle['currency'] ?? 'USD'),
+        'base_daily_rate' => is_array($barsQuote) ? ($barsQuote['base_daily_rate'] ?? null) : null,
+        'base_total_rate' => is_array($barsQuote) ? ($barsQuote['base_total_rate'] ?? null) : null,
+        'final_daily_rate' => is_array($barsQuote) ? ($barsQuote['final_daily_rate'] ?? null) : null,
+        'final_total_rate' => is_array($barsQuote) ? ($barsQuote['final_total_rate'] ?? null) : null,
+        'discount_amount_total' => is_array($barsQuote) ? ($barsQuote['discount_amount_total'] ?? null) : null,
+        'applied_rules_json' => is_array($barsQuote) ? ($barsQuote['applied_rules_json'] ?? []) : null,
+        'rate_source' => $rateSource,
+        'rate_locked_at' => is_array($barsQuote) ? date('Y-m-d H:i:s') : null,
     ]);
+
+    if (is_array($barsQuote) && $quoteToken !== '') {
+        if ($publicRateService === null) {
+            $publicRateService = new RacPublicRateService();
+        }
+        $publicRateService->markQuoteUsed($quoteToken, (int) ($row['id'] ?? 0));
+    }
 
     $alert = new RacAlertEmailService();
     $mailAdmin = $alert->notifyNewReservation($row);

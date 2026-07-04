@@ -212,6 +212,40 @@ class RacBarsDatabaseSchema
             KEY idx_rule_id (rule_id),
             KEY idx_created_at (created_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        $db->execute("CREATE TABLE IF NOT EXISTS rac_rate_quotes (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            quote_token VARCHAR(64) NOT NULL,
+            cache_key VARCHAR(64) NOT NULL,
+            calculated_rate_id INT UNSIGNED NULL,
+            source_rate_id INT UNSIGNED NULL,
+            snapshot_id INT UNSIGNED NULL,
+            vehicle_code VARCHAR(16) NOT NULL,
+            vehicle_name VARCHAR(200) NOT NULL,
+            pickup_location VARCHAR(20) NOT NULL,
+            return_location VARCHAR(20) NOT NULL,
+            pickup_datetime VARCHAR(32) NOT NULL,
+            return_datetime VARCHAR(32) NOT NULL,
+            rental_days INT NOT NULL DEFAULT 1,
+            currency VARCHAR(8) NOT NULL DEFAULT 'USD',
+            base_daily_rate DECIMAL(12,2) NULL,
+            base_total_rate DECIMAL(12,2) NULL,
+            final_daily_rate DECIMAL(12,2) NULL,
+            final_total_rate DECIMAL(12,2) NULL,
+            discount_amount_daily DECIMAL(12,2) NULL,
+            discount_amount_total DECIMAL(12,2) NULL,
+            applied_rules_json LONGTEXT NULL,
+            status VARCHAR(16) NOT NULL DEFAULT 'active',
+            expires_at DATETIME NOT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            used_at DATETIME NULL,
+            reservation_id INT UNSIGNED NULL,
+            client_ip_hash VARCHAR(64) NULL,
+            user_agent_hash VARCHAR(64) NULL,
+            UNIQUE KEY uq_quote_token (quote_token),
+            KEY idx_status_expires (status, expires_at),
+            KEY idx_cache_vehicle (cache_key, vehicle_code)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     }
 
     private static function ensureSqlite(Database $db): void
@@ -389,5 +423,37 @@ class RacBarsDatabaseSchema
             admin_user_id INTEGER,
             created_at TEXT NOT NULL DEFAULT (datetime('now'))
         )");
+
+        $db->execute("CREATE TABLE IF NOT EXISTS rac_rate_quotes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            quote_token TEXT NOT NULL UNIQUE,
+            cache_key TEXT NOT NULL,
+            calculated_rate_id INTEGER,
+            source_rate_id INTEGER,
+            snapshot_id INTEGER,
+            vehicle_code TEXT NOT NULL,
+            vehicle_name TEXT NOT NULL,
+            pickup_location TEXT NOT NULL,
+            return_location TEXT NOT NULL,
+            pickup_datetime TEXT NOT NULL,
+            return_datetime TEXT NOT NULL,
+            rental_days INTEGER NOT NULL DEFAULT 1,
+            currency TEXT NOT NULL DEFAULT 'USD',
+            base_daily_rate REAL,
+            base_total_rate REAL,
+            final_daily_rate REAL,
+            final_total_rate REAL,
+            discount_amount_daily REAL,
+            discount_amount_total REAL,
+            applied_rules_json TEXT,
+            status TEXT NOT NULL DEFAULT 'active',
+            expires_at TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            used_at TEXT,
+            reservation_id INTEGER,
+            client_ip_hash TEXT,
+            user_agent_hash TEXT
+        )");
+        $db->execute("CREATE INDEX IF NOT EXISTS idx_rac_rate_quotes_status ON rac_rate_quotes (status, expires_at)");
     }
 }

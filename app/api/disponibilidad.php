@@ -1,6 +1,7 @@
 <?php
 /**
- * API Endpoint: Vehicle Availability (partner handoff).
+ * API Endpoint: Vehicle Availability (BARS cache + partner fallback).
+ * AM-RAC-BARS-RAC-3A
  */
 
 header('Content-Type: application/json; charset=UTF-8');
@@ -8,6 +9,7 @@ header('Content-Type: application/json; charset=UTF-8');
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/BranchDataService.php';
 require_once __DIR__ . '/../services/AutomarketApiService.php';
+require_once __DIR__ . '/../services/RacPublicRateService.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -86,17 +88,39 @@ if (!preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $returnTime)) {
     exit;
 }
 
-$apiService = new AutomarketApiService();
-$result = $apiService->getAvailability([
-    'locationCode' => $pickupLocation,
-    'returnLocationCode' => $returnLocation,
-    'pickupDate' => $pickupDate,
-    'pickupTime' => $pickupTime,
-    'returnDate' => $returnDate,
-    'returnTime' => $returnTime,
-    'age' => $age,
-    'promoCode' => $promoCode,
-]);
+$result = null;
+
+if (RacPublicRateService::isBarsPricingEnabled()) {
+    $publicRateService = new RacPublicRateService();
+    $result = $publicRateService->getPublicRates($input);
+}
+
+if ($result === null || !($result['success'] ?? false)) {
+    $apiService = new AutomarketApiService();
+    if ($apiService->isConfigured()) {
+        $partnerResult = $apiService->getAvailability([
+            'locationCode' => $pickupLocation,
+            'returnLocationCode' => $returnLocation,
+            'pickupDate' => $pickupDate,
+            'pickupTime' => $pickupTime,
+            'returnDate' => $returnDate,
+            'returnTime' => $returnTime,
+            'age' => $age,
+            'promoCode' => $promoCode,
+        ]);
+        if ($partnerResult['success'] ?? false) {
+            $result = $partnerResult;
+        } elseif ($result === null) {
+            $result = $partnerResult;
+        }
+    } elseif ($result === null) {
+        $result = [
+            'success' => false,
+            'message' => 'No pudimos consultar disponibilidad para esos datos. Intenta con otra fecha o comunícate con nosotros.',
+            'vehicles' => [],
+        ];
+    }
+}
 
 $branch = BranchDataService::findByCode($returnLocation);
 if ($branch && !empty($branch['note']) && empty($result['vehicles']) && empty($result['miss'])) {
