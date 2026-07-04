@@ -30,6 +30,13 @@
 
     function filterProtectionPackages(list) {
         if (!Array.isArray(list)) return [];
+        const fromDb = list.some(function (p) { return p.source === 'db'; });
+        if (fromDb) {
+            return list.filter(function (pkg) {
+                const code = protectionCode(pkg);
+                return code !== '' && code !== 'NONE';
+            });
+        }
         const byCode = {};
         list.forEach(function (pkg) {
             const code = protectionCode(pkg);
@@ -47,6 +54,9 @@
     }
 
     function resolveEquipmentList(vehicle) {
+        if (Array.isArray(vehicle._dbExtras) && vehicle._dbExtras.length) {
+            return vehicle._dbExtras.slice();
+        }
         const allowed = ALLOWED_EQUIPMENT_CODES;
         const merged = [];
         const seen = new Set();
@@ -68,6 +78,12 @@
     }
 
     function findCondadicCharge(vehicle) {
+        if (Array.isArray(vehicle._dbExtras)) {
+            const dbDriver = vehicle._dbExtras.find(function (e) {
+                return (e.code || '').toUpperCase() === 'CONDADIC';
+            });
+            if (dbDriver) return dbDriver;
+        }
         const lists = [
             vehicle.mandatoryCharges || [],
             vehicle.optionalCharges || [],
@@ -84,6 +100,13 @@
         const count = parseInt(drivers, 10) || 0;
         if (count <= 0) return 0;
         if (!charge) return DRIVER_FALLBACK_PER_UNIT * count;
+        if (charge.source === 'db') {
+            const total = parseFloat(charge.amountTotal ?? 0) || 0;
+            if (charge.unitName === 'day' || charge.pricePerDay) {
+                return (parseFloat(charge.pricePerDay ?? 0) || 0) * days * count;
+            }
+            return total * count;
+        }
         const amountTotal = parseFloat(charge.amountTotal ?? 0) || 0;
         if (amountTotal > 0) {
             return (amountTotal / Math.max(days, 1)) * days * count;
@@ -95,6 +118,14 @@
 
     function driverPriceLabel(charge, days) {
         if (!charge) return `$${DRIVER_FALLBACK_PER_UNIT.toFixed(2)} c/u`;
+        if (charge.source === 'db') {
+            const total = parseFloat(charge.amountTotal ?? 0) || 0;
+            if (charge.unitName === 'day' || charge.pricePerDay) {
+                const perDay = parseFloat(charge.pricePerDay ?? 0) || 0;
+                return `$${perDay.toFixed(2)}/día · Total $${(perDay * days).toFixed(2)} c/u`;
+            }
+            return `$${total.toFixed(2)} c/u`;
+        }
         const amountTotal = parseFloat(charge.amountTotal ?? 0) || 0;
         if (amountTotal > 0) {
             const perDriver = (amountTotal / Math.max(days, 1)) * days;
@@ -108,23 +139,82 @@
     }
 
     function refreshVehicleFromApi(criteria, vehicle) {
-        if (!window.RAC_FLOW?.fetchAvailability || !vehicle?.sippCode) {
+        if (window.RAC_FLOW?.refreshVehicleForExtras) {
+            return window.RAC_FLOW.refreshVehicleForExtras(criteria, vehicle);
+        }
+        return Promise.resolve(vehicle);
+    }
+
+    function createQuoteForVehicle(criteria, vehicle, rateType) {
+        if (!window.RAC_FLOW?.ensureBarsQuote) {
             return Promise.resolve(vehicle);
         }
-        return window.RAC_FLOW.fetchAvailability(criteria)
-            .then(function (data) {
-                sessionStorage.setItem('searchResults', JSON.stringify(data));
-                const fresh = window.RAC_FLOW.findVehicleInResults(data, vehicle.sippCode);
-                if (!fresh) return vehicle;
-                const rate = sessionStorage.getItem('selectedRateType') || vehicle._selectedRateType || 'web';
-                const enriched = Object.assign({}, fresh, {
-                    _selectedRateType: rate,
-                    vendorRateId: window.RAC_FLOW.resolveVendorRateId(fresh, rate)
-                });
-                sessionStorage.setItem('selectedVehicle', JSON.stringify(enriched));
-                return enriched;
+        return window.RAC_FLOW.ensureBarsQuote(criteria, vehicle, rateType);
+    }
+
+    function resolveVehicleCode(vehicle) {
+        return String(
+            vehicle.sippCode
+            || vehicle.vehicleCode
+            || vehicle.pricing?.vehicleCode
+            || vehicle.pricing?.vehicle_code
+            || ''
+        ).toUpperCase().trim();
+    }
+
+    function resolveVehicleCategory(vehicle) {
+        return String(vehicle.category || vehicle.vehicleCategory || vehicle.name || '').trim();
+    }
+
+    function fetchDbAddons(criteria, vehicle, billedDays, rentalBase) {
+        const params = new URLSearchParams({
+            vehicle_code: resolveVehicleCode(vehicle),
+            vehicle_name: resolveVehicleCategory(vehicle),
+            pickup_location: criteria.locationCode || '',
+            return_location: criteria.returnLocationCode || criteria.locationCode || '',
+            rental_days: String(billedDays),
+            rental_base: String(rentalBase || 0),
+        });
+        return fetch('/api/rac-addons.php?' + params.toString())
+            .then(function (r) {
+                if (!r.ok) {
+                    return null;
+                }
+                return r.json();
             })
-            .catch(function () { return vehicle; });
+            .then(function (data) {
+                if (!data || (!data.success && !data.ok)) {
+                    return null;
+                }
+                if ((!data.protections || !data.protections.length) && (!data.extras || !data.extras.length)) {
+                    return null;
+                }
+                return data;
+            })
+            .catch(function () { return null; });
+    }
+
+    function mergeDbAddonsIntoVehicle(vehicle, dbData) {
+        if (!dbData) return vehicle;
+        const v = Object.assign({}, vehicle);
+        const protections = Array.isArray(dbData.protections) ? dbData.protections : [];
+        const extras = Array.isArray(dbData.extras) ? dbData.extras : [];
+
+        if (protections.length) {
+            v._dbProtections = protections;
+            const paid = protections.filter(function (p) {
+                return protectionCode(p) !== 'NONE';
+            });
+            v.pricing = Object.assign({}, v.pricing || {}, { coveragePackages: paid });
+            v.availableCoverages = paid;
+            v._addonsSource = 'db';
+        }
+        if (extras.length) {
+            v.availableEquipment = extras;
+            v._dbExtras = extras;
+            v._addonsSource = 'db';
+        }
+        return v;
     }
 
     function initExtrasPage(vehicle, criteria) {
@@ -150,10 +240,21 @@
             packagesByCode[code] = pkg;
         });
 
-        const defaultPkg = packages.find(function (p) { return p.isDefault; })
+        const dbNone = (vehicle._dbProtections || []).find(function (p) {
+            return protectionCode(p) === 'NONE';
+        });
+        if (dbNone) {
+            packagesByCode.NONE = Object.assign({}, packagesByCode.NONE, dbNone, { code: 'NONE' });
+        }
+
+        const defaultPkg = (vehicle._dbProtections || []).find(function (p) { return p.isDefault; })
+            || packages.find(function (p) { return p.isDefault; })
             || packages.find(function (p) { return protectionCode(p) === 'BASIC'; })
             || packages[0];
         let selectedProtection = defaultPkg ? protectionCode(defaultPkg) : 'NONE';
+        if (defaultPkg && protectionCode(defaultPkg) === 'NONE') {
+            selectedProtection = 'NONE';
+        }
 
         const saved = window.RAC_FLOW.getExtras();
         if (saved && saved.protection) {
@@ -291,51 +392,53 @@
 
         document.getElementById('btnContinueExtras')?.addEventListener('click', function () {
             const btn = document.getElementById('btnContinueExtras');
-            if (btn) btn.disabled = true;
+            if (btn) {
+                btn.disabled = true;
+                btn.dataset.originalText = btn.textContent;
+                btn.textContent = 'Preparando tarifa…';
+            }
 
-            refreshVehicleFromApi(state.criteria, state.vehicle).then(function (freshVehicle) {
-                state.vehicle = freshVehicle;
-                state.rentalBase = window.RAC_FLOW.resolveRentalBase(
-                    freshVehicle, state.rateType, state.billedDays
-                );
-                state.mandatoryTotal = window.RAC_FLOW.resolveMandatoryTotal(
-                    freshVehicle, state.criteria, state.billedDays
-                );
-                state.saf = window.RAC_FLOW.resolveSafAmount(freshVehicle);
-                state.nonSafMandatory = window.RAC_FLOW.resolveMandatoryLines(
-                    freshVehicle, state.criteria, state.billedDays
-                ).filter(function (l) { return l.code !== 'SAF'; });
-                recalc();
+            createQuoteForVehicle(state.criteria, state.vehicle, state.rateType)
+                .then(function (quotedVehicle) {
+                    state.vehicle = quotedVehicle;
+                    sessionStorage.setItem('selectedVehicle', JSON.stringify(quotedVehicle));
 
-                const items = [];
-                state.selectedItems.forEach(code => {
-                    const eq = state.equipment.find(x => x.code === code);
-                    if (eq) items.push({ code: eq.code, description: eq.description || eq.code });
-                });
-                if (state.additionalDrivers > 0) {
-                    items.push({
-                        code: 'CONDADIC',
-                        description: 'Conductor Adicional',
-                        quantity: state.additionalDrivers
+                    const items = [];
+                    state.selectedItems.forEach(code => {
+                        const eq = state.equipment.find(x => x.code === code);
+                        if (eq) items.push({ code: eq.code, description: eq.description || eq.code });
                     });
-                }
+                    if (state.additionalDrivers > 0) {
+                        items.push({
+                            code: 'CONDADIC',
+                            description: 'Conductor Adicional',
+                            quantity: state.additionalDrivers
+                        });
+                    }
 
-                const extrasSelection = {
-                    protection: state.selectedProtection,
-                    items,
-                    additionalDrivers: state.additionalDrivers,
-                    mandatoryCharges: state.nonSafMandatory,
-                    mandatoryTotal: state.mandatoryTotal,
-                    totals: state.totals,
-                    pricingSnapshot: freshVehicle.pricing || {},
-                    coverage_name: state.coverageName,
-                    coverage_deductible: state.coverageDeductible,
-                    rate_type: state.rateType
-                };
+                    const extrasSelection = {
+                        protection: state.selectedProtection,
+                        items,
+                        additionalDrivers: state.additionalDrivers,
+                        mandatoryCharges: state.nonSafMandatory,
+                        mandatoryTotal: state.mandatoryTotal,
+                        totals: state.totals,
+                        pricingSnapshot: quotedVehicle.pricing || {},
+                        coverage_name: state.coverageName,
+                        coverage_deductible: state.coverageDeductible,
+                        rate_type: state.rateType
+                    };
 
-                sessionStorage.setItem('extrasSelection', JSON.stringify(extrasSelection));
-                window.location.href = '/reservar.php';
-            });
+                    sessionStorage.setItem('extrasSelection', JSON.stringify(extrasSelection));
+                    window.location.href = '/reservar.php';
+                })
+                .catch(function (err) {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = btn.dataset.originalText || 'Continuar';
+                    }
+                    alert(err.message || 'No se pudo bloquear la tarifa. Vuelva a seleccionar el vehículo.');
+                });
         });
 
         recalc();
@@ -395,7 +498,10 @@
             </label>`;
 
         if (!packages.length) {
-            wrap.innerHTML = html + '<p class="text-muted small mt-2">No hay paquetes de protección en línea para este vehículo.</p>';
+            const noneOnly = vehicle._addonsSource === 'db';
+            wrap.innerHTML = html + (noneOnly
+                ? ''
+                : '<p class="text-muted small mt-2">No hay paquetes de protección en línea para este vehículo.</p>');
             return;
         }
 
@@ -449,14 +555,15 @@
 
         others.forEach(eq => {
             const code = eq.code || '';
-            const label = EQUIP_LABELS[code] || eq.description || code;
+            const label = EQUIP_LABELS[code] || eq.name || eq.description || code;
             const checked = selectedItems.has(code) ? 'checked' : '';
             let priceLabel = '';
+            const amountTotal = parseFloat(eq.amountTotal ?? 0);
             if (eq.unitName === 'day' || eq.pricePerDay) {
                 const total = (parseFloat(eq.pricePerDay || 0)) * billedDays;
                 priceLabel = `$${parseFloat(eq.pricePerDay || 0).toFixed(2)}/día · Total $${total.toFixed(2)}`;
             } else {
-                priceLabel = `$${parseFloat(eq.amountTotal || 0).toFixed(2)}`;
+                priceLabel = amountTotal > 0 ? `$${amountTotal.toFixed(2)}` : 'Sin cargo';
             }
             html += `
             <label class="border rounded-3 p-3 d-flex gap-3 align-items-center cursor-pointer">
@@ -506,17 +613,25 @@
         }).join('');
 
         wrap.querySelectorAll('.rac-alt-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', function () {
                 const sipp = btn.getAttribute('data-sipp');
                 const v = list.find(x => x.sippCode === sipp);
                 if (!v) return;
                 const rate = sessionStorage.getItem('selectedRateType') || 'web';
-                sessionStorage.setItem('selectedVehicle', JSON.stringify(Object.assign({}, v, {
+                btn.disabled = true;
+                btn.textContent = 'Actualizando…';
+                createQuoteForVehicle(criteria, Object.assign({}, v, {
                     _selectedRateType: rate,
                     vendorRateId: window.RAC_FLOW.resolveVendorRateId(v, rate)
-                })));
-                sessionStorage.removeItem('extrasSelection');
-                window.location.reload();
+                }), rate).then(function (quoted) {
+                    sessionStorage.setItem('selectedVehicle', JSON.stringify(quoted));
+                    sessionStorage.removeItem('extrasSelection');
+                    window.location.reload();
+                }).catch(function (err) {
+                    btn.disabled = false;
+                    btn.textContent = 'Cambiar a este';
+                    alert(err.message || 'No se pudo bloquear tarifa para este vehículo.');
+                });
             });
         });
     }
@@ -529,6 +644,16 @@
         if (loader) loader.classList.remove('d-none');
 
         refreshVehicleFromApi(ctx.criteria, ctx.vehicle)
+            .then(function (vehicle) {
+                const calendarDays = window.RAC_FLOW.calcDays(ctx.criteria.pickupDate, ctx.criteria.returnDate);
+                const billedDays = window.RAC_FLOW.vehicleBilledDays(vehicle, calendarDays);
+                const rateType = sessionStorage.getItem('selectedRateType') || vehicle._selectedRateType || 'web';
+                const rentalBase = window.RAC_FLOW.resolveRentalBase(vehicle, rateType, billedDays);
+                return fetchDbAddons(ctx.criteria, vehicle, billedDays, rentalBase)
+                    .then(function (dbData) {
+                        return mergeDbAddonsIntoVehicle(vehicle, dbData);
+                    });
+            })
             .then(function (vehicle) {
                 if (loader) loader.classList.add('d-none');
                 initExtrasPage(vehicle, ctx.criteria);

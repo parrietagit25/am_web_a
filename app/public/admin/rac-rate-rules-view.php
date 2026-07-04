@@ -1,3 +1,9 @@
+<?php
+if (!isset($rules, $formDefaults, $ruleService)) {
+    header('Location: /admin/rac-rate-rules.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -87,13 +93,25 @@
                 </div>
                 <div class="col-md-2"><label class="form-label">RateQualifier</label><input name="rate_qualifier" class="form-control" value="WEB" readonly></div>
                 <div class="col-md-3"><label class="form-label">Target type</label>
-                    <select name="target_type" class="form-select">
+                    <select name="target_type" id="target_type" class="form-select">
                         <option value="all"<?php echo $targetType === 'all' ? ' selected' : ''; ?>>Todas</option>
                         <option value="vehicle_code"<?php echo $targetType === 'vehicle_code' ? ' selected' : ''; ?>>Código BARS</option>
                         <option value="vehicle_name"<?php echo $targetType === 'vehicle_name' ? ' selected' : ''; ?>>Nombre/categoría</option>
                     </select>
                 </div>
-                <div class="col-md-3"><label class="form-label">Target value</label><input name="target_value" class="form-control" value="<?php echo esc($targetValue); ?>" placeholder="* o MVMR o CCAR"></div>
+                <div class="col-md-3" id="target_value_wrap">
+                    <label class="form-label">Target value</label>
+                    <select name="target_value" id="target_value_select" class="form-select d-none">
+                        <option value="*">—</option>
+                        <?php foreach ($barsVehicleCatalog as $v): ?>
+                            <option value="<?php echo esc($v['vehicle_code']); ?>" data-for="vehicle_code"<?php echo ($targetType === 'vehicle_code' && $targetValue === $v['vehicle_code']) ? ' selected' : ''; ?>><?php echo esc($v['label']); ?></option>
+                        <?php endforeach; ?>
+                        <?php foreach ($barsVehicleNames as $vn): ?>
+                            <option value="<?php echo esc($vn); ?>" data-for="vehicle_name"<?php echo ($targetType === 'vehicle_name' && $targetValue === $vn) ? ' selected' : ''; ?>><?php echo esc($vn); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <input type="text" id="target_value_all" class="form-control" value="*" readonly>
+                </div>
                 <div class="col-md-2 form-check mt-4"><input class="form-check-input" type="checkbox" name="enabled" id="enabled" value="1"<?php echo !empty($formDefaults['enabled']) ? ' checked' : ''; ?>><label class="form-check-label" for="enabled">Activa</label></div>
                 <div class="col-md-2 form-check mt-4"><input class="form-check-input" type="checkbox" name="stackable" id="stackable" value="1"<?php echo !empty($formDefaults['stackable']) ? ' checked' : ''; ?>><label class="form-check-label" for="stackable">Stackable</label></div>
                 <div class="col-md-2 form-check mt-4"><input class="form-check-input" type="checkbox" name="stop_processing" id="stop_processing" value="1"<?php echo !empty($formDefaults['stop_processing']) ? ' checked' : ''; ?>><label class="form-check-label" for="stop_processing">Stop processing</label></div>
@@ -171,5 +189,40 @@
     </div>
 </div>
 </div></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+    const typeEl = document.getElementById('target_type');
+    const selectEl = document.getElementById('target_value_select');
+    const allEl = document.getElementById('target_value_all');
+    if (!typeEl || !selectEl || !allEl) return;
+
+    function syncTargetField() {
+        const t = typeEl.value;
+        if (t === 'all') {
+            selectEl.classList.add('d-none');
+            selectEl.removeAttribute('name');
+            allEl.classList.remove('d-none');
+            allEl.setAttribute('name', 'target_value');
+            return;
+        }
+        allEl.classList.add('d-none');
+        allEl.removeAttribute('name');
+        selectEl.classList.remove('d-none');
+        selectEl.setAttribute('name', 'target_value');
+        Array.from(selectEl.options).forEach(function (opt) {
+            const show = opt.getAttribute('data-for') === t;
+            opt.hidden = !show && opt.value !== '*';
+            if (show && opt.selected) opt.selected = true;
+        });
+        const visible = Array.from(selectEl.options).filter(function (o) { return !o.hidden && o.getAttribute('data-for') === t; });
+        if (visible.length && !visible.some(function (o) { return o.selected; })) {
+            visible[0].selected = true;
+        }
+    }
+    typeEl.addEventListener('change', syncTargetField);
+    syncTargetField();
+})();
+</script>
 </body>
 </html>

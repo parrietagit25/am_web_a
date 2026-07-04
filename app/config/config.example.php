@@ -43,6 +43,10 @@ define('RECAPTCHA_SITE_KEY', '');
 define('RECAPTCHA_SECRET_KEY', '');
 define('RECAPTCHA_MIN_SCORE', 0.5);
 
+// Bypass captcha solo reserva RAC en localhost (desarrollo local sin SSL).
+// Activar únicamente en app/config/config.php local — NO commitear config.php.
+// define('RAC_LOCAL_CAPTCHA_BYPASS', true);
+
 // DB_REQUIRE_MYSQL: si es true, Database.php lanza RuntimeException en vez de
 // caer a SQLite cuando falta configuración o falla la conexión a MySQL.
 // define('DB_REQUIRE_MYSQL', false);

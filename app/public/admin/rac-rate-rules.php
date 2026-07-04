@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin — Reglas comerciales de tarifas RAC.
- * AM-RAC-BARS-PRICING-2A
+ * AM-RAC-BARS-PRICING-2A / AM-RAC-BARS-RAC-3C
  */
 declare(strict_types=1);
 
@@ -9,6 +9,7 @@ require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../services/AdminUserService.php';
 require_once __DIR__ . '/../../services/BarsRateCacheService.php';
 require_once __DIR__ . '/../../services/BranchDataService.php';
+require_once __DIR__ . '/../../services/RacPublicRateService.php';
 require_once __DIR__ . '/../../services/RacRateRuleService.php';
 require_once __DIR__ . '/../../includes/admin-auth.php';
 
@@ -26,6 +27,17 @@ $successMsg = '';
 $errorMsg = '';
 $previewRows = [];
 $editRule = null;
+
+if (!empty($_GET['saved'])) {
+    $successMsg = 'Cambios guardados correctamente.';
+}
+if (!empty($_GET['recalculated'])) {
+    $successMsg = 'Tarifas finales recalculadas.';
+}
+if (!empty($_SESSION['rac_rules_preview_rows']) && !empty($_GET['preview'])) {
+    $previewRows = $_SESSION['rac_rules_preview_rows'];
+    unset($_SESSION['rac_rules_preview_rows']);
+}
 
 function rac_rules_branches(): array
 {
@@ -45,16 +57,28 @@ function rac_rules_parse_targets(string $targetType, string $targetValue): array
     if ($targetType === 'all') {
         return [['target_type' => 'all', 'target_value' => '*']];
     }
-    $values = preg_split('/[\s,;]+/', strtoupper(trim($targetValue))) ?: [];
-    $targets = [];
-    foreach ($values as $value) {
-        $value = trim($value);
-        if ($value !== '') {
-            $targets[] = ['target_type' => $targetType, 'target_value' => $value];
-        }
+    $targetValue = trim($targetValue);
+    if ($targetValue === '') {
+        throw new InvalidArgumentException('Debe seleccionar un target.');
+    }
+    if ($targetType === 'vehicle_code') {
+        return [['target_type' => 'vehicle_code', 'target_value' => strtoupper($targetValue)]];
+    }
+    if ($targetType === 'vehicle_name') {
+        return [['target_type' => 'vehicle_name', 'target_value' => $targetValue]];
     }
 
-    return $targets !== [] ? $targets : [['target_type' => $targetType, 'target_value' => trim($targetValue)]];
+    return [['target_type' => $targetType, 'target_value' => $targetValue]];
+}
+
+function rac_rules_validate_target(string $targetType, string $targetValue): void
+{
+    if ($targetType === 'vehicle_code') {
+        $codes = array_column(RacPublicRateService::listBarsVehicleCatalog(), 'vehicle_code');
+        if ($codes !== [] && !in_array(strtoupper(trim($targetValue)), $codes, true)) {
+            throw new InvalidArgumentException('Código BARS no válido o no registrado en caché local.');
+        }
+    }
 }
 
 function rac_rules_form_from_post(): array
@@ -87,47 +111,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if ($action === 'save_rule') {
             $data = rac_rules_form_from_post();
-            $targets = rac_rules_parse_targets(
-                (string) ($_POST['target_type'] ?? 'all'),
-                (string) ($_POST['target_value'] ?? '*')
-            );
+            $targetType = (string) ($_POST['target_type'] ?? 'all');
+            $targetValue = (string) ($_POST['target_value'] ?? '*');
+            rac_rules_validate_target($targetType, $targetValue);
+            $targets = rac_rules_parse_targets($targetType, $targetValue);
             if ((int) ($data['id'] ?? 0) > 0) {
                 $ruleService->updateRule((int) $data['id'], $data, $targets);
-                $successMsg = 'Regla actualizada correctamente.';
+                header('Location: /admin/rac-rate-rules.php?saved=1&edit=' . (int) $data['id']);
             } else {
-                $id = $ruleService->createRule($data, $targets);
-                $successMsg = 'Regla creada correctamente (ID ' . $id . ').';
+                $newId = $ruleService->createRule($data, $targets);
+                header('Location: /admin/rac-rate-rules.php?saved=1&edit=' . $newId);
             }
-        } elseif ($action === 'toggle_rule') {
+            exit;
+        }
+        if ($action === 'toggle_rule') {
             $id = (int) ($_POST['rule_id'] ?? 0);
             $enabled = (string) ($_POST['enabled'] ?? '') === '1';
             if ($enabled) {
                 $ruleService->enableRule($id);
-                $successMsg = 'Regla activada.';
             } else {
                 $ruleService->disableRule($id);
-                $successMsg = 'Regla desactivada.';
             }
-        } elseif ($action === 'recalculate_all') {
+            header('Location: /admin/rac-rate-rules.php?saved=1');
+            exit;
+        }
+        if ($action === 'recalculate_all') {
             $result = $ruleService->recalculateAllActive();
-            $successMsg = 'Tarifas finales recalculadas: ' . (int) ($result['calculated'] ?? 0) . ' registros.';
-        } elseif ($action === 'preview_rule') {
+            $_SESSION['rac_rules_recalc_msg'] = 'Tarifas finales recalculadas: ' . (int) ($result['calculated'] ?? 0) . ' registros.';
+            header('Location: /admin/rac-rate-rules.php?recalculated=1');
+            exit;
+        }
+        if ($action === 'preview_rule') {
             $data = rac_rules_form_from_post();
             $targets = rac_rules_parse_targets(
                 (string) ($_POST['target_type'] ?? 'all'),
                 (string) ($_POST['target_value'] ?? '*')
             );
-            $previewRows = $ruleService->previewRule($data, $targets, [
+            $_SESSION['rac_rules_preview_rows'] = $ruleService->previewRule($data, $targets, [
                 'pickup_location' => strtoupper(trim((string) ($_POST['preview_pickup_location'] ?? 'PTY'))),
                 'return_location' => strtoupper(trim((string) ($_POST['preview_return_location'] ?? 'PTY'))),
                 'pickup_datetime' => BarsRateCacheService::normalizeOtaDatetime(str_replace(' ', 'T', trim((string) ($_POST['preview_pickup_datetime'] ?? '2026-07-15T10:00:00')))),
                 'return_datetime' => BarsRateCacheService::normalizeOtaDatetime(str_replace(' ', 'T', trim((string) ($_POST['preview_return_datetime'] ?? '2026-07-18T10:00:00')))),
                 'rate_qualifier' => 'WEB',
             ]);
+            header('Location: /admin/rac-rate-rules.php?preview=1');
+            exit;
         }
     } catch (Throwable $e) {
         $errorMsg = $e->getMessage();
     }
+}
+
+if (!empty($_SESSION['rac_rules_recalc_msg'])) {
+    $successMsg = (string) $_SESSION['rac_rules_recalc_msg'];
+    unset($_SESSION['rac_rules_recalc_msg']);
 }
 
 if (!empty($_GET['edit'])) {
@@ -136,6 +173,8 @@ if (!empty($_GET['edit'])) {
 
 $rules = $ruleService->listRules(true);
 $branches = rac_rules_branches();
+$barsVehicleCatalog = RacPublicRateService::listBarsVehicleCatalog();
+$barsVehicleNames = RacPublicRateService::listBarsVehicleNames();
 $formDefaults = $editRule ?? [
     'id' => 0,
     'name' => '',
@@ -147,8 +186,8 @@ $formDefaults = $editRule ?? [
     'rule_type' => 'seasonal',
     'adjustment_type' => 'percent_discount',
     'adjustment_value' => 15,
-    'valid_from' => '2026-07-01',
-    'valid_to' => '2026-08-31',
+    'valid_from' => '',
+    'valid_to' => '',
     'min_rental_days' => null,
     'max_rental_days' => null,
     'pickup_location' => '',
@@ -161,7 +200,7 @@ $targetValue = (string) (($formDefaults['targets'][0]['target_value'] ?? '*'));
 if ($targetType === 'all') {
     $targetValue = '*';
 } elseif (count($formDefaults['targets'] ?? []) > 1) {
-    $targetValue = implode(', ', array_map(static fn($t) => (string) ($t['target_value'] ?? ''), $formDefaults['targets']));
+    $targetValue = (string) ($formDefaults['targets'][0]['target_value'] ?? '');
 }
 
 $defaultAdminTab = 'rac-rate-rules';

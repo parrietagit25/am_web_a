@@ -302,6 +302,101 @@
         return base + resolveMandatoryTotal(vehicle, criteria, billed);
     }
 
+    function isBarsCacheVehicle(vehicle) {
+        return !!(vehicle && vehicle.pricing && vehicle.pricing.rateSource === 'bars_cache');
+    }
+
+    function mergeVehiclePreservingQuote(previous, next) {
+        if (!previous || !next) {
+            return next || previous;
+        }
+        const prevPricing = previous.pricing || {};
+        const nextPricing = next.pricing || {};
+        const merged = Object.assign({}, next);
+        const token = prevPricing.barsQuoteToken || '';
+        if (token || prevPricing.rateSource === 'bars_cache') {
+            merged.pricing = Object.assign({}, nextPricing, {
+                rateSource: prevPricing.rateSource || nextPricing.rateSource || 'bars_cache',
+                barsQuoteToken: token || nextPricing.barsQuoteToken || '',
+                quoteExpiresAt: prevPricing.quoteExpiresAt || nextPricing.quoteExpiresAt || '',
+                baseDailyRate: nextPricing.baseDailyRate != null ? nextPricing.baseDailyRate : prevPricing.baseDailyRate,
+                finalDailyRate: nextPricing.finalDailyRate != null ? nextPricing.finalDailyRate : prevPricing.finalDailyRate,
+                finalTotalRate: nextPricing.finalTotalRate != null ? nextPricing.finalTotalRate : prevPricing.finalTotalRate,
+            });
+        }
+        return merged;
+    }
+
+    function buildQuotePayload(criteria, vehicle, rateType) {
+        return {
+            vehicle_code: vehicle.sippCode,
+            sippCode: vehicle.sippCode,
+            locationCode: criteria.locationCode,
+            returnLocationCode: criteria.returnLocationCode || criteria.locationCode,
+            pickupDate: criteria.pickupDate,
+            pickupTime: criteria.pickupTime || '10:00',
+            returnDate: criteria.returnDate,
+            returnTime: criteria.returnTime || '10:00',
+            age: criteria.age || '25',
+            rate_type: rateType || 'web',
+        };
+    }
+
+    function ensureBarsQuote(criteria, vehicle, rateType) {
+        if (!criteria || !vehicle || !vehicle.sippCode) {
+            return Promise.reject(new Error('Datos de reserva incompletos.'));
+        }
+        const pricing = vehicle.pricing || {};
+        if (pricing.barsQuoteToken) {
+            return Promise.resolve(vehicle);
+        }
+        if (!isBarsCacheVehicle(vehicle) && pricing.rateSource !== 'bars_cache') {
+            return Promise.resolve(vehicle);
+        }
+        return fetch('/api/rac-rate-quote.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(buildQuotePayload(criteria, vehicle, rateType)),
+        }).then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data.success) {
+                    throw new Error(data.message || 'No se pudo bloquear la tarifa.');
+                }
+                const merged = mergeVehiclePreservingQuote(vehicle, Object.assign({}, vehicle, data.vehicle || {}));
+                merged.pricing = Object.assign({}, merged.pricing || {}, data.pricing || {}, {
+                    barsQuoteToken: data.quote_token,
+                    rateSource: 'bars_cache',
+                });
+                sessionStorage.setItem('selectedVehicle', JSON.stringify(merged));
+                return merged;
+            });
+    }
+
+    function refreshVehicleForExtras(criteria, vehicle) {
+        if (isBarsCacheVehicle(vehicle)) {
+            return ensureBarsQuote(criteria, vehicle, sessionStorage.getItem('selectedRateType') || vehicle._selectedRateType || 'web');
+        }
+        if (!window.RAC_FLOW?.fetchAvailability || !vehicle?.sippCode) {
+            return Promise.resolve(vehicle);
+        }
+        return fetchAvailability(criteria)
+            .then(function (data) {
+                sessionStorage.setItem('searchResults', JSON.stringify(data));
+                const fresh = findVehicleInResults(data, vehicle.sippCode);
+                if (!fresh) {
+                    return vehicle;
+                }
+                const rate = sessionStorage.getItem('selectedRateType') || vehicle._selectedRateType || 'web';
+                const enriched = mergeVehiclePreservingQuote(vehicle, Object.assign({}, fresh, {
+                    _selectedRateType: rate,
+                    vendorRateId: resolveVendorRateId(fresh, rate),
+                }));
+                sessionStorage.setItem('selectedVehicle', JSON.stringify(enriched));
+                return enriched;
+            })
+            .catch(function () { return vehicle; });
+    }
+
     global.RAC_FLOW = {
         calcDays,
         vehicleBilledDays,
@@ -328,6 +423,11 @@
         buildAvailabilityPayload,
         fetchAvailability,
         findVehicleInResults,
+        isBarsCacheVehicle,
+        mergeVehiclePreservingQuote,
+        ensureBarsQuote,
+        refreshVehicleForExtras,
+        buildQuotePayload,
         UNDERAGE_PER_DAY,
         IMG_BASE
     };

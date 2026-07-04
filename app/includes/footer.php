@@ -36,6 +36,13 @@ $isPublicSite = strpos($reqPath, '/admin') !== 0;
 $captchaSiteKey = ($isPublicSite && defined('RECAPTCHA_SITE_KEY'))
     ? trim((string) RECAPTCHA_SITE_KEY)
     : '';
+$racCaptchaBypassLocal = false;
+if ($isPublicSite) {
+    if (!class_exists('CaptchaService')) {
+        require_once __DIR__ . '/../services/CaptchaService.php';
+    }
+    $racCaptchaBypassLocal = CaptchaService::isLocalCaptchaBypassAllowed();
+}
 ?>
     <!-- Footer Section -->
     <footer class="footer bg-navy text-white pt-5 pb-4 mt-auto">
@@ -166,11 +173,11 @@ $captchaSiteKey = ($isPublicSite && defined('RECAPTCHA_SITE_KEY'))
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <?php if ($isPublicSite): ?>
-    <script>window.AM_RECAPTCHA = { siteKey: <?php echo json_encode($captchaSiteKey, JSON_UNESCAPED_UNICODE); ?> };</script>
+    <script>window.AM_RECAPTCHA = { siteKey: <?php echo json_encode($captchaSiteKey, JSON_UNESCAPED_UNICODE); ?>, racBypassLocal: <?php echo $racCaptchaBypassLocal ? 'true' : 'false'; ?> };</script>
     <?php if ($captchaSiteKey !== ''): ?>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <?php endif; ?>
-    <script src="/assets/js/captcha.js?v=2"></script>
+    <script src="/assets/js/captcha.js?v=3"></script>
     <?php endif; ?>
     
     <!-- Custom Web Controller JavaScript -->

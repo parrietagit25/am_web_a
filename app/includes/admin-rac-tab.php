@@ -4,9 +4,15 @@
  */
 require_once __DIR__ . '/../services/RacReservationService.php';
 require_once __DIR__ . '/../services/RacAlertEmailService.php';
+require_once __DIR__ . '/../services/RacAddonService.php';
 require_once __DIR__ . '/../services/BranchDataService.php';
 
-$racReservations = (new RacReservationService())->listAll(150);
+$racResService = new RacReservationService();
+$racReservations = $racResService->listAll(150);
+$racAddonService = new RacAddonService();
+foreach ($racReservations as $i => $res) {
+    $racReservations[$i]['reservation_items'] = $racAddonService->getReservationItems((int) ($res['id'] ?? 0));
+}
 $racAlertEmails = (new RacAlertEmailService())->listAll();
 
 function rac_branch_name(string $code): string {
@@ -269,6 +275,20 @@ $statusLabels = [
         html += row('Monto protección', covAmt != null && !isNaN(covAmt) ? '<strong class="text-danger">$' + covAmt.toFixed(2) + ' USD</strong>' : '—');
         html += row('Deducible', covDed != null && !isNaN(covDed) ? '$' + covDed.toFixed(2) + ' USD' : '—');
         html += '</div>';
+
+        const resItems = Array.isArray(res.reservation_items) ? res.reservation_items : [];
+        if (resItems.length) {
+            html += '<hr><h6 class="fw-bold text-navy"><i class="bi bi-basket me-1 text-danger"></i> Protecciones y extras (BD)</h6>';
+            html += '<table class="table table-sm table-bordered mb-0"><thead><tr><th>Tipo</th><th>Código</th><th>Descripción</th><th>Cant.</th><th>Unit.</th><th>Total</th></tr></thead><tbody>';
+            resItems.forEach(function (it) {
+                html += '<tr><td>' + esc(it.item_type || '—') + '</td><td>' + esc(it.item_code || '—') + '</td><td>' + esc(it.item_name || '—') + '</td>';
+                html += '<td class="text-end">' + esc(String(it.quantity ?? 1)) + '</td>';
+                html += '<td class="text-end">$' + parseFloat(it.unit_price || 0).toFixed(2) + '</td>';
+                html += '<td class="text-end fw-semibold">$' + parseFloat(it.total_price || 0).toFixed(2) + '</td></tr>';
+            });
+            html += '</tbody></table>';
+        }
+
         html += '<hr><h6 class="fw-bold text-navy">Vehículo</h6><div class="row">';
         html += row('Nombre', esc(res.vehicle_name));
         html += row('Categoría', esc(res.vehicle_category));

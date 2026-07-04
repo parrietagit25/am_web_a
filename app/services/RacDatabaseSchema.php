@@ -119,7 +119,139 @@ class RacDatabaseSchema {
             self::migrateReservationColumns($db, 'sqlite');
         }
 
+        self::ensureAddonTables($db, $driver);
         self::$ensured = true;
+    }
+
+    private static function ensureAddonTables(Database $db, string $driver): void
+    {
+        if ($driver === 'mysql') {
+            $db->execute("CREATE TABLE IF NOT EXISTS rac_protection_products (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                code VARCHAR(32) NOT NULL,
+                name VARCHAR(200) NOT NULL,
+                description TEXT NULL,
+                enabled TINYINT(1) NOT NULL DEFAULT 1,
+                price_type VARCHAR(32) NOT NULL DEFAULT 'fixed_daily',
+                price_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+                currency VARCHAR(8) NOT NULL DEFAULT 'USD',
+                applies_per VARCHAR(16) NOT NULL DEFAULT 'day',
+                vehicle_code VARCHAR(16) NULL,
+                vehicle_name VARCHAR(200) NULL,
+                min_rental_days INT NULL,
+                max_rental_days INT NULL,
+                pickup_location VARCHAR(20) NULL,
+                return_location VARCHAR(20) NULL,
+                sort_order INT NOT NULL DEFAULT 100,
+                visible_public TINYINT(1) NOT NULL DEFAULT 1,
+                is_default TINYINT(1) NOT NULL DEFAULT 0,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NULL,
+                UNIQUE KEY uq_rac_protection_code (code),
+                KEY idx_rac_protection_enabled (enabled, visible_public, sort_order)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            $db->execute("CREATE TABLE IF NOT EXISTS rac_extra_products (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                code VARCHAR(32) NOT NULL,
+                name VARCHAR(200) NOT NULL,
+                description TEXT NULL,
+                enabled TINYINT(1) NOT NULL DEFAULT 1,
+                price_type VARCHAR(32) NOT NULL DEFAULT 'fixed_total',
+                price_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+                currency VARCHAR(8) NOT NULL DEFAULT 'USD',
+                applies_per VARCHAR(16) NOT NULL DEFAULT 'rental',
+                max_quantity INT NOT NULL DEFAULT 1,
+                vehicle_code VARCHAR(16) NULL,
+                vehicle_name VARCHAR(200) NULL,
+                min_rental_days INT NULL,
+                max_rental_days INT NULL,
+                pickup_location VARCHAR(20) NULL,
+                return_location VARCHAR(20) NULL,
+                sort_order INT NOT NULL DEFAULT 100,
+                visible_public TINYINT(1) NOT NULL DEFAULT 1,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NULL,
+                UNIQUE KEY uq_rac_extra_code (code),
+                KEY idx_rac_extra_enabled (enabled, visible_public, sort_order)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            $db->execute("CREATE TABLE IF NOT EXISTS rac_reservation_items (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                reservation_id INT UNSIGNED NOT NULL,
+                item_type VARCHAR(16) NOT NULL,
+                item_code VARCHAR(32) NOT NULL,
+                item_name VARCHAR(200) NOT NULL,
+                quantity INT NOT NULL DEFAULT 1,
+                unit_price DECIMAL(12,2) NOT NULL DEFAULT 0,
+                total_price DECIMAL(12,2) NOT NULL DEFAULT 0,
+                currency VARCHAR(8) NOT NULL DEFAULT 'USD',
+                pricing_json LONGTEXT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                KEY idx_reservation_items_res (reservation_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        } else {
+            $db->execute("CREATE TABLE IF NOT EXISTS rac_protection_products (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                code TEXT NOT NULL UNIQUE,
+                name TEXT NOT NULL,
+                description TEXT,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                price_type TEXT NOT NULL DEFAULT 'fixed_daily',
+                price_amount REAL NOT NULL DEFAULT 0,
+                currency TEXT NOT NULL DEFAULT 'USD',
+                applies_per TEXT NOT NULL DEFAULT 'day',
+                vehicle_code TEXT,
+                vehicle_name TEXT,
+                min_rental_days INTEGER,
+                max_rental_days INTEGER,
+                pickup_location TEXT,
+                return_location TEXT,
+                sort_order INTEGER NOT NULL DEFAULT 100,
+                visible_public INTEGER NOT NULL DEFAULT 1,
+                is_default INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at TEXT
+            )");
+
+            $db->execute("CREATE TABLE IF NOT EXISTS rac_extra_products (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                code TEXT NOT NULL UNIQUE,
+                name TEXT NOT NULL,
+                description TEXT,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                price_type TEXT NOT NULL DEFAULT 'fixed_total',
+                price_amount REAL NOT NULL DEFAULT 0,
+                currency TEXT NOT NULL DEFAULT 'USD',
+                applies_per TEXT NOT NULL DEFAULT 'rental',
+                max_quantity INTEGER NOT NULL DEFAULT 1,
+                vehicle_code TEXT,
+                vehicle_name TEXT,
+                min_rental_days INTEGER,
+                max_rental_days INTEGER,
+                pickup_location TEXT,
+                return_location TEXT,
+                sort_order INTEGER NOT NULL DEFAULT 100,
+                visible_public INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at TEXT
+            )");
+
+            $db->execute("CREATE TABLE IF NOT EXISTS rac_reservation_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                reservation_id INTEGER NOT NULL,
+                item_type TEXT NOT NULL,
+                item_code TEXT NOT NULL,
+                item_name TEXT NOT NULL,
+                quantity INTEGER NOT NULL DEFAULT 1,
+                unit_price REAL NOT NULL DEFAULT 0,
+                total_price REAL NOT NULL DEFAULT 0,
+                currency TEXT NOT NULL DEFAULT 'USD',
+                pricing_json TEXT,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+            )");
+            $db->execute("CREATE INDEX IF NOT EXISTS idx_rac_res_items_res ON rac_reservation_items (reservation_id)");
+        }
     }
 
     private static function migrateReservationColumns(Database $db, string $driver): void {

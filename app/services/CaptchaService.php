@@ -20,6 +20,73 @@ class CaptchaService
     }
 
     /**
+     * Bypass de captcha solo para reserva RAC en entorno local de desarrollo.
+     * Requiere RAC_LOCAL_CAPTCHA_BYPASS=true en config.php local (no commitear).
+     * Nunca aplica en dominios públicos aunque la constante esté activa por error.
+     */
+    public static function isLocalCaptchaBypassAllowed(): bool
+    {
+        if (!defined('RAC_LOCAL_CAPTCHA_BYPASS') || RAC_LOCAL_CAPTCHA_BYPASS !== true) {
+            return false;
+        }
+
+        $host = self::requestHost();
+        if ($host === '') {
+            return false;
+        }
+
+        $blockedPublicHosts = [
+            'test.automarket.com.pa',
+            'www.automarket.com.pa',
+            'automarket.com.pa',
+        ];
+        if (in_array($host, $blockedPublicHosts, true)) {
+            return false;
+        }
+
+        $localHosts = ['localhost', '127.0.0.1', '::1'];
+
+        return in_array($host, $localHosts, true);
+    }
+
+    /**
+     * Captcha para POST /api/rac-reservation.php — respeta bypass local seguro.
+     *
+     * @param array<string, mixed>|null $input
+     */
+    public static function enforceRacReservation(?array $input): void
+    {
+        if (self::isLocalCaptchaBypassAllowed()) {
+            am_log(
+                'RAC reservation: captcha bypass local activo (host=' . self::requestHost() . ')',
+                'INFO'
+            );
+
+            return;
+        }
+
+        self::enforce($input, 'success');
+    }
+
+    private static function requestHost(): string
+    {
+        $host = strtolower(trim((string) ($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? '')));
+        if ($host === '') {
+            return '';
+        }
+
+        if (preg_match('/^\[([^\]]+)\](?::\d+)?$/', $host, $m)) {
+            return strtolower($m[1]);
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            return $host;
+        }
+
+        return (string) preg_replace('/:\d+$/', '', $host);
+    }
+
+    /**
      * @param array<string, mixed>|null $input
      */
     public static function enforce(?array $input, string $format = 'status'): void

@@ -7,6 +7,8 @@
     var cfg = global.AM_RECAPTCHA || {};
     var SITE_KEY = cfg.siteKey || '';
     var ENABLED = SITE_KEY.length > 0;
+    var RAC_BYPASS = cfg.racBypassLocal === true;
+    var RAC_RESERVATION_PATH = '/api/rac-reservation.php';
 
     var PROTECTED_PATHS = [
         '/api/contacto.php',
@@ -40,6 +42,17 @@
         return PROTECTED_PATHS.some(function (p) {
             return path === p || path.endsWith(p);
         });
+    }
+
+    function isRacReservationBypass(path) {
+        return RAC_BYPASS && (path === RAC_RESERVATION_PATH || path.endsWith(RAC_RESERVATION_PATH));
+    }
+
+    function getTokenForPath(path) {
+        if (isRacReservationBypass(path)) {
+            return Promise.resolve('');
+        }
+        return getToken();
     }
 
     function collectToken() {
@@ -96,6 +109,7 @@
 
     global.AmCaptcha = {
         enabled: ENABLED,
+        racBypassLocal: RAC_BYPASS,
         getToken: getToken,
         reset: resetWidgets,
         withPayload: function (payload) {
@@ -123,7 +137,7 @@
             return nativeFetch(url, options);
         }
 
-        return getToken().then(function (token) {
+        return getTokenForPath(path).then(function (token) {
             try {
                 var data = JSON.parse(options.body);
                 data.captcha_token = token;

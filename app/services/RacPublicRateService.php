@@ -655,4 +655,55 @@ class RacPublicRateService
             'pricingEngine' => 'bars_calculated',
         ];
     }
+
+    /**
+     * Catálogo BARS local para selects admin (vehicle_code + vehicle_name).
+     *
+     * @return list<array{vehicle_code: string, vehicle_name: string, label: string}>
+     */
+    public static function listBarsVehicleCatalog(): array
+    {
+        RacBarsDatabaseSchema::ensure();
+        $db = Database::getInstance();
+        $rows = $db->select(
+            'SELECT vehicle_code, MAX(vehicle_name) AS vehicle_name FROM rac_calculated_rates GROUP BY vehicle_code ORDER BY vehicle_code ASC'
+        );
+        if ($rows === []) {
+            $rows = $db->select(
+                'SELECT vehicle_code, MAX(vehicle_name) AS vehicle_name FROM rac_bars_rates GROUP BY vehicle_code ORDER BY vehicle_code ASC'
+            );
+        }
+        $catalog = [];
+        foreach ($rows as $row) {
+            $code = strtoupper(trim((string) ($row['vehicle_code'] ?? '')));
+            if ($code === '') {
+                continue;
+            }
+            $name = trim((string) ($row['vehicle_name'] ?? $code));
+            $catalog[] = [
+                'vehicle_code' => $code,
+                'vehicle_name' => $name,
+                'label' => $code . ' — ' . $name,
+            ];
+        }
+
+        return $catalog;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function listBarsVehicleNames(): array
+    {
+        $names = [];
+        foreach (self::listBarsVehicleCatalog() as $row) {
+            $name = trim((string) ($row['vehicle_name'] ?? ''));
+            if ($name !== '' && !in_array($name, $names, true)) {
+                $names[] = $name;
+            }
+        }
+        sort($names);
+
+        return $names;
+    }
 }

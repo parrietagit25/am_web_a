@@ -6,6 +6,8 @@ $activeUnit = 'rentacar';
 $racStep = 4;
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/rac-stepper.php';
+require_once __DIR__ . '/../services/CaptchaService.php';
+$racLocalCaptchaBypass = CaptchaService::isLocalCaptchaBypassAllowed();
 ?>
 
 <section class="container mb-5" id="reserveNoData">
@@ -127,7 +129,11 @@ require_once __DIR__ . '/../includes/rac-stepper.php';
                     <div class="invalid-feedback">Debe aceptar los términos.</div>
                 </div>
 
+                <?php if (!$racLocalCaptchaBypass): ?>
                 <?php require __DIR__ . '/../includes/captcha-widget.php'; ?>
+                <?php else: ?>
+                <p class="small text-muted mb-3"><i class="bi bi-info-circle me-1"></i>Verificación captcha omitida en entorno local de desarrollo.</p>
+                <?php endif; ?>
 
                 <button type="submit" class="btn btn-theme w-100 py-3 rounded-pill fw-bold text-white fs-5">
                     Confirmar y reservar <i class="bi bi-arrow-right ms-1"></i>
@@ -141,7 +147,7 @@ require_once __DIR__ . '/../includes/rac-stepper.php';
     </div>
 </section>
 
-<script src="/assets/js/rac-flow.js?v=3"></script>
+<script src="/assets/js/rac-flow.js?v=4"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = window.RAC_FLOW.requireVehicle('/rent-a-car.php');
@@ -152,10 +158,27 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    document.getElementById('reserveNoData').classList.add('d-none');
-    document.getElementById('reserveMain').classList.remove('d-none');
+    const rateType = sessionStorage.getItem('selectedRateType') || ctx.vehicle._selectedRateType || 'web';
+    const startReserve = function(vehicle, criteria) {
+        document.getElementById('reserveNoData').classList.add('d-none');
+        document.getElementById('reserveMain').classList.remove('d-none');
+        renderReservePage(vehicle, criteria, extras);
+    };
 
-    const { vehicle, criteria } = ctx;
+    if (window.RAC_FLOW.isBarsCacheVehicle && window.RAC_FLOW.isBarsCacheVehicle(ctx.vehicle)) {
+        window.RAC_FLOW.ensureBarsQuote(ctx.criteria, ctx.vehicle, rateType)
+            .then(function (vehicle) { startReserve(vehicle, ctx.criteria); })
+            .catch(function (err) {
+                alert(err.message || 'La tarifa expiró. Vuelve a consultar disponibilidad.');
+                window.location.href = window.RAC_FLOW.buildResultsUrl(ctx.criteria);
+            });
+        return;
+    }
+
+    startReserve(ctx.vehicle, ctx.criteria);
+});
+
+function renderReservePage(vehicle, criteria, extras) {
     const calendarDays = window.RAC_FLOW.calcDays(criteria.pickupDate, criteria.returnDate);
     const days = window.RAC_FLOW.vehicleBilledDays(vehicle, calendarDays);
     const totals = extras.totals || {};
@@ -208,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('checkoutBookingForm').addEventListener('submit', submitCheckoutBooking);
-});
+}
 
 function submitCheckoutBooking(e) {
     e.preventDefault();
@@ -292,6 +315,10 @@ function submitCheckoutBooking(e) {
     .catch(() => {
         loader.remove();
         alert('Error de conexión. Intente nuevamente.');
+    })
+    .finally(function () {
+        const existing = document.querySelector('[style*="z-index:99999"]');
+        if (existing) existing.remove();
     });
 }
 </script>

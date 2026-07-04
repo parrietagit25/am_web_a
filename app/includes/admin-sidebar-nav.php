@@ -48,7 +48,7 @@ $showGenerales = true;
 
 $generalesTabs = ['user-manual', 'global', 'global-sucursales', 'locations-master', 'translations', 'seo', 'landings', 'footer', 'users', 'audit-log', 'telemetry'];
 $rentacarContentTabs = UnitContentService::contentTabSlugs('rentacar');
-$rentacarTabs = array_merge(['hero'], $rentacarContentTabs, ['opinions', 'vehicles', 'sucursales', 'terms', 'requirements', 'contact', 'payments', 'rac-reservations', 'rac-bars-rates', 'rac-rate-rules']);
+$rentacarTabs = array_merge(['hero'], $rentacarContentTabs, ['opinions', 'vehicles', 'sucursales', 'terms', 'requirements', 'contact', 'payments', 'rac-reservations', 'rac-bars-rates', 'rac-rate-rules', 'rac-addons']);
 $seminuevosContentTabs = UnitContentService::contentTabSlugs('seminuevos');
 $seminuevosTabs = array_merge(['semi-home'], $seminuevosContentTabs, ['semi-inventory', 'semi-opinions', 'semi-financing', 'semi-team', 'semi-contact']);
 $leasingContentTabs = UnitContentService::contentTabSlugs('leasing');
@@ -151,6 +151,7 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
             <?php if (admin_can('rac_reservations')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('rac-reservations', $defaultAdminTab); ?>" id="tab-rac-reservations-nav" data-bs-toggle="pill" data-bs-target="#tab-rac-reservations" type="button" role="tab" data-admin-perm="rac_reservations"><i class="bi bi-calendar2-check-fill me-2"></i> Reservas RAC</button><?php endif; ?>
             <?php if (admin_can('rac_reservations') || admin_can('vehicles')): ?><a class="nav-link text-start w-100 border-0 bg-transparent text-decoration-none admin-sidebar-page-link" href="/admin/rac-bars-rates.php" data-admin-perm="rac_reservations"><i class="bi bi-currency-exchange me-2"></i> Tarifas BARS</a><?php endif; ?>
             <?php if (admin_can('rac_reservations') || admin_can('vehicles')): ?><a class="nav-link text-start w-100 border-0 bg-transparent text-decoration-none admin-sidebar-page-link" href="/admin/rac-rate-rules.php" data-admin-perm="rac_reservations"><i class="bi bi-percent me-2"></i> Reglas de Tarifas</a><?php endif; ?>
+            <?php if (admin_can('rac_reservations') || admin_can('vehicles')): ?><a class="nav-link text-start w-100 border-0 bg-transparent text-decoration-none admin-sidebar-page-link" href="/admin/rac-addons.php" data-admin-perm="rac_reservations"><i class="bi bi-shield-plus me-2"></i> Protecciones y Extras</a><?php endif; ?>
         </div>
     <?php endif; ?>
 
