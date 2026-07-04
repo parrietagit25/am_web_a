@@ -13,9 +13,22 @@
  */
 declare(strict_types=1);
 
-$root = dirname(__DIR__, 2);
-require_once $root . '/app/config/config.php';
-require_once $root . '/app/services/BarsRateCacheService.php';
+if (PHP_SAPI !== 'cli') {
+    fwrite(STDERR, "Este script solo puede ejecutarse por CLI.\n");
+    exit(1);
+}
+
+$appDir = dirname(__DIR__);
+$configFile = $appDir . '/config/config.php';
+if (!is_file($configFile)) {
+    $configFile = dirname($appDir) . '/app/config/config.php';
+}
+if (!is_file($configFile)) {
+    fwrite(STDERR, "No se encontró config.php.\n");
+    exit(1);
+}
+require_once $configFile;
+require_once $appDir . '/services/BarsRateCacheService.php';
 
 $options = getopt('', ['due', 'all', 'force', 'schedule-id::']);
 $force = array_key_exists('force', $options);
