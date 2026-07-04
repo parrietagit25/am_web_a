@@ -152,6 +152,7 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
             <?php if (admin_can('rac_reservations') || admin_can('vehicles')): ?><a class="nav-link text-start w-100 border-0 bg-transparent text-decoration-none admin-sidebar-page-link" href="/admin/rac-bars-rates.php" data-admin-perm="rac_reservations"><i class="bi bi-currency-exchange me-2"></i> Tarifas BARS</a><?php endif; ?>
             <?php if (admin_can('rac_reservations') || admin_can('vehicles')): ?><a class="nav-link text-start w-100 border-0 bg-transparent text-decoration-none admin-sidebar-page-link" href="/admin/rac-rate-rules.php" data-admin-perm="rac_reservations"><i class="bi bi-percent me-2"></i> Reglas de Tarifas</a><?php endif; ?>
             <?php if (admin_can('rac_reservations') || admin_can('vehicles')): ?><a class="nav-link text-start w-100 border-0 bg-transparent text-decoration-none admin-sidebar-page-link" href="/admin/rac-addons.php" data-admin-perm="rac_reservations"><i class="bi bi-shield-plus me-2"></i> Protecciones y Extras</a><?php endif; ?>
+            <?php if (AdminUserService::isSuperAdmin()): ?><a class="nav-link text-start w-100 border-0 bg-transparent text-decoration-none admin-sidebar-page-link" href="/admin/powertranz-test.php"><i class="bi bi-credit-card-2-front me-2"></i> Powertranz Test</a><?php endif; ?>
         </div>
     <?php endif; ?>
 

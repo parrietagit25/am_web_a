@@ -101,3 +101,19 @@ define('N8N_RENTING_JWT_SECRET', 'TU_JWT_SECRET_N8N');
 // define('BARS_RW_MESSAGE_PASSWORD', 'TU_MESSAGE_PASSWORD_BARS');
 // define('BARS_RW_REQUESTOR_ID', 'website');
 // define('BARS_RW_RATE_QUALIFIER', 'WEB');
+
+// Powertranz / First Atlantic Commerce — pagos HPP/3DS (AM-RAC-PAY-POWERTRANZ-0A/0B)
+// define('POWERTRANZ_ENABLED', true);
+// define('POWERTRANZ_ENV', 'staging');
+// define('POWERTRANZ_BASE_URL', 'https://staging.ptranz.com');
+// define('POWERTRANZ_ID', '');
+// define('POWERTRANZ_PASSWORD', '');
+// define('POWERTRANZ_MERCHANT_ID', '');
+// define('POWERTRANZ_CURRENCY', '840');
+// define('POWERTRANZ_CURRENCY_CODE', '840');
+// define('POWERTRANZ_MODE', 'sale');
+// define('POWERTRANZ_HPP_PAGE_SET', '');
+// define('POWERTRANZ_HPP_PAGE_NAME', '');
+// define('POWERTRANZ_TIMEOUT_SECONDS', 45);
+// define('POWERTRANZ_MERCHANT_RESPONSE_URL', 'https://test.automarket.com.pa/api/powertranz-return.php');
+// define('POWERTRANZ_MERCHANT_REDIRECT_URL', '');
