@@ -85,5 +85,8 @@ echo json_encode([
     'response_message' => $api['response_message'] ?? ($payment['response_message'] ?? null),
     'has_redirect_data' => (bool) ($api['has_redirect_data'] ?? ($payment['has_redirect_data'] ?? false)),
     'has_spi_token' => (bool) ($api['has_spi_token'] ?? ($payment['has_spi_token'] ?? false)),
-    'frame_url' => $payment['frame_url'] ?? null,
+    'frame_url' => (!empty($payment['has_redirect_data']) && !empty($payment['payment_id']))
+        ? '/admin/powertranz-payment-frame.php?payment_id=' . (int) $payment['payment_id']
+        : ($payment['frame_url'] ?? null),
+    'updated_at' => $payment['updated_at'] ?? null,
 ], JSON_UNESCAPED_UNICODE);

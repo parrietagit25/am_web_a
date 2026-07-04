@@ -172,7 +172,7 @@ class PowertranzPaymentService
         $db = Database::getInstance();
         $row = $db->selectOne('SELECT * FROM rac_powertranz_payments ORDER BY id DESC LIMIT 1');
 
-        return is_array($row) ? $this->toPublicRow($row, false) : null;
+        return is_array($row) ? $this->toPublicRow($row, true) : null;
     }
 
     /**
@@ -185,7 +185,7 @@ class PowertranzPaymentService
             return null;
         }
 
-        return $this->toPublicRow($row, false);
+        return $this->toPublicRow($row, true);
     }
 
     /**
@@ -198,7 +198,7 @@ class PowertranzPaymentService
             return null;
         }
 
-        return $this->toPublicRow($row, false);
+        return $this->toPublicRow($row, true);
     }
 
     /**
