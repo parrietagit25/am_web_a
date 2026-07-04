@@ -331,9 +331,9 @@ class PowertranzPaymentService
         $spiToken = is_array($data) ? $this->client->extractSpiToken($data) : '';
 
         $status = 'error';
-        if ($api['ok'] && $redirect !== '' && in_array($iso, ['SP4', 'SP1', '00', '3D0'], true)) {
+        if ($redirect !== '' && in_array($iso, ['SP4', 'SP1', '00', '3D0'], true)) {
             $status = 'redirect_ready';
-        } elseif ($api['ok']) {
+        } elseif ($api['ok'] && $redirect !== '' && $spiToken !== '') {
             $status = 'redirect_ready';
         }
 
