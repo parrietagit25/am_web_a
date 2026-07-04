@@ -77,8 +77,8 @@ require_once __DIR__ . '/../includes/rac-stepper.php';
     </div>
 </section>
 
-<script src="/assets/js/rac-flow.js?v=5"></script>
-<script src="/assets/js/rac-extras.js?v=12"></script>
+<script src="/assets/js/rac-flow.js?v=6"></script>
+<script src="/assets/js/rac-extras.js?v=14"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const c = window.RAC_FLOW && window.RAC_FLOW.getCriteria();

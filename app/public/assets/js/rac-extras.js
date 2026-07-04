@@ -167,31 +167,46 @@
     }
 
     function fetchDbAddons(criteria, vehicle, billedDays, rentalBase) {
+        const norm = window.RAC_FLOW?.normalizeSelectedVehicleForExtras
+            ? window.RAC_FLOW.normalizeSelectedVehicleForExtras(vehicle, criteria, billedDays)
+            : null;
+        const pickupDt = (criteria.pickupDate || '') + 'T' + (criteria.pickupTime || '10:00') + ':00';
+        const returnDt = (criteria.returnDate || '') + 'T' + (criteria.returnTime || '10:00') + ':00';
         const params = new URLSearchParams({
-            vehicle_code: resolveVehicleCode(vehicle),
-            vehicle_name: resolveVehicleCategory(vehicle),
+            vehicle_code: norm?.vehicleCode || resolveVehicleCode(vehicle),
+            vehicle_name: norm?.vehicleName || resolveVehicleCategory(vehicle),
             pickup_location: criteria.locationCode || '',
             return_location: criteria.returnLocationCode || criteria.locationCode || '',
             rental_days: String(billedDays),
             rental_base: String(rentalBase || 0),
+            pickup_datetime: pickupDt,
+            return_datetime: returnDt,
         });
         return fetch('/api/rac-addons.php?' + params.toString())
             .then(function (r) {
                 if (!r.ok) {
+                    console.warn('[rac-extras] rac-addons HTTP', r.status);
                     return null;
                 }
                 return r.json();
             })
             .then(function (data) {
                 if (!data || (!data.success && !data.ok)) {
+                    console.warn('[rac-extras] rac-addons respuesta inválida', data);
                     return null;
                 }
-                if ((!data.protections || !data.protections.length) && (!data.extras || !data.extras.length)) {
+                const hasProtections = Array.isArray(data.protections) && data.protections.length > 0;
+                const hasExtras = Array.isArray(data.extras) && data.extras.length > 0;
+                if (!hasProtections && !hasExtras) {
+                    console.warn('[rac-extras] rac-addons sin productos para el contexto');
                     return null;
                 }
                 return data;
             })
-            .catch(function () { return null; });
+            .catch(function (err) {
+                console.warn('[rac-extras] rac-addons fetch error', err);
+                return null;
+            });
     }
 
     function mergeDbAddonsIntoVehicle(vehicle, dbData) {
@@ -217,15 +232,48 @@
         return v;
     }
 
+    function buildVehicleContext(vehicle, criteria, billedDays) {
+        const ctx = window.RAC_FLOW?.normalizeSelectedVehicleForExtras
+            ? window.RAC_FLOW.normalizeSelectedVehicleForExtras(vehicle, criteria, billedDays)
+            : {
+                vehicleCode: resolveVehicleCode(vehicle),
+                vehicleName: resolveVehicleCategory(vehicle),
+                dailyRate: 0,
+                totalRate: 0,
+                rentalDays: billedDays,
+                currency: 'USD',
+                rateSource: String(vehicle?.pricing?.rateSource || ''),
+                quoteToken: String(vehicle?.pricing?.barsQuoteToken || ''),
+            };
+        return Object.assign({}, ctx, {
+            addonsSource: vehicle?._addonsSource || '',
+            vehicle: vehicle || {},
+        });
+    }
+
+    function resolveUiRentalBase(vehicle, vehicleContext, rateType, billedDays) {
+        let base = window.RAC_FLOW.resolveRentalBase(vehicle, rateType, billedDays);
+        if (base > 0) return base;
+        if (vehicleContext.totalRate > 0) return vehicleContext.totalRate;
+        if (vehicleContext.dailyRate > 0) {
+            return Math.round(vehicleContext.dailyRate * billedDays * 100) / 100;
+        }
+        return 0;
+    }
+
     function initExtrasPage(vehicle, criteria) {
         const calendarDays = window.RAC_FLOW.calcDays(criteria.pickupDate, criteria.returnDate);
         const billedDays = window.RAC_FLOW.vehicleBilledDays(vehicle, calendarDays);
+        if (window.RAC_FLOW.applyNormalizedPricing) {
+            vehicle = window.RAC_FLOW.applyNormalizedPricing(vehicle, billedDays);
+        }
+        const vehicleContext = buildVehicleContext(vehicle, criteria, billedDays);
         const rateType = sessionStorage.getItem('selectedRateType') || vehicle._selectedRateType || 'web';
 
         document.getElementById('extrasNoVehicle')?.classList.add('d-none');
         document.getElementById('extrasMain')?.classList.remove('d-none');
 
-        const rentalBase = window.RAC_FLOW.resolveRentalBase(vehicle, rateType, billedDays);
+        const rentalBase = resolveUiRentalBase(vehicle, vehicleContext, rateType, billedDays);
         const mandatoryTotal = window.RAC_FLOW.resolveMandatoryTotal(vehicle, criteria, billedDays);
         const mandatoryLines = window.RAC_FLOW.resolveMandatoryLines(vehicle, criteria, billedDays);
         const saf = window.RAC_FLOW.resolveSafAmount(vehicle);
@@ -266,13 +314,37 @@
         let additionalDrivers = (saved && saved.additionalDrivers) ? parseInt(saved.additionalDrivers, 10) : 0;
         const driverCharge = findCondadicCharge(vehicle);
 
-        renderVehicleHeader(vehicle, criteria, billedDays, rateType, rentalBase);
-        renderSummarySidebar(vehicle, criteria, billedDays);
-        renderProtection(packages, selectedProtection, billedDays);
-        renderEquipment(equipment, selectedItems, additionalDrivers, driverCharge, billedDays);
+        try {
+            renderVehicleHeader(vehicle, criteria, billedDays, rateType, rentalBase);
+        } catch (err) {
+            console.error('[rac-extras] renderVehicleHeader error', err);
+        }
+        try {
+            renderSummarySidebar(vehicle, criteria, billedDays);
+        } catch (err) {
+            console.error('[rac-extras] renderSummarySidebar error', err);
+        }
+        try {
+            renderProtection(packages, selectedProtection, billedDays, vehicleContext);
+        } catch (err) {
+            console.error('[rac-extras] renderProtection error', err);
+            const wrap = document.getElementById('protectionOptions');
+            if (wrap) {
+                wrap.innerHTML = '<p class="text-muted small">No hay paquetes de protección disponibles para este vehículo.</p>';
+            }
+        }
+        try {
+            renderEquipment(equipment, selectedItems, additionalDrivers, driverCharge, billedDays);
+        } catch (err) {
+            console.error('[rac-extras] renderEquipment error', err);
+            const wrap = document.getElementById('equipmentOptions');
+            if (wrap) {
+                wrap.innerHTML = '<p class="text-muted small">No se pudieron cargar extras opcionales.</p>';
+            }
+        }
 
         const state = {
-            vehicle, criteria, rentalBase, saf, mandatoryTotal, nonSafMandatory, billedDays, rateType,
+            vehicle, criteria, vehicleContext, rentalBase, saf, mandatoryTotal, nonSafMandatory, billedDays, rateType,
             packagesByCode, selectedProtection, selectedItems, additionalDrivers, equipment, driverCharge
         };
 
@@ -441,8 +513,16 @@
                 });
         });
 
-        recalc();
-        renderAlternatives(criteria, vehicle, billedDays, rateType);
+        try {
+            recalc();
+        } catch (err) {
+            console.error('[rac-extras] recalc error', err);
+        }
+        try {
+            renderAlternatives(criteria, vehicle, billedDays, rateType);
+        } catch (err) {
+            console.error('[rac-extras] renderAlternatives error', err);
+        }
     }
 
     function renderVehicleHeader(vehicle, criteria, billedDays, rateType, rentalBase) {
@@ -481,13 +561,18 @@
             </div>`;
     }
 
-    function renderProtection(packages, selected, billedDays) {
+    function renderProtection(packages, selected, billedDays, vehicleContext) {
+        const ctx = vehicleContext && typeof vehicleContext === 'object' ? vehicleContext : {};
         const wrap = document.getElementById('protectionOptions');
         if (!wrap) return;
 
+        const safePackages = Array.isArray(packages) ? packages : [];
+        const selectedCode = String(selected || 'NONE').toUpperCase();
+        const days = Math.max(parseInt(billedDays, 10) || 1, 1);
+
         let html = `
-            <label class="border rounded-3 p-3 d-flex gap-3 align-items-center cursor-pointer ${selected === 'NONE' ? 'border-danger border-2' : ''}">
-                <input type="radio" name="protection_code" class="form-check-input flex-shrink-0" value="NONE" ${selected === 'NONE' ? 'checked' : ''}>
+            <label class="border rounded-3 p-3 d-flex gap-3 align-items-center cursor-pointer ${selectedCode === 'NONE' ? 'border-danger border-2' : ''}">
+                <input type="radio" name="protection_code" class="form-check-input flex-shrink-0" value="NONE" ${selectedCode === 'NONE' ? 'checked' : ''}>
                 <div class="flex-grow-1 min-w-0">
                     <div class="fw-bold text-navy">Sin protección adicional</div>
                     <small class="text-muted d-block">Continúa bajo su propio riesgo. La cobertura puede adquirirse en mostrador.</small>
@@ -497,20 +582,20 @@
                 </div>
             </label>`;
 
-        if (!packages.length) {
-            const noneOnly = vehicle._addonsSource === 'db';
-            wrap.innerHTML = html + (noneOnly
+        if (!safePackages.length) {
+            const fromDb = ctx.addonsSource === 'db';
+            wrap.innerHTML = html + (fromDb
                 ? ''
-                : '<p class="text-muted small mt-2">No hay paquetes de protección en línea para este vehículo.</p>');
+                : '<p class="text-muted small mt-2">No hay paquetes de protección disponibles para este vehículo.</p>');
             return;
         }
 
-        html += packages.map(function (pkg, i) {
+        html += safePackages.map(function (pkg, i) {
             const code = protectionCode(pkg) || ('cov_' + i);
-            const checked = code === String(selected || '').toUpperCase() ? 'checked' : '';
+            const checked = code === selectedCode ? 'checked' : '';
             const border = checked ? 'border-danger border-2' : '';
-            const amt = parseFloat(pkg.amountTotal || 0) || (parseFloat(pkg.pricePerDay || 0) * billedDays);
-            const perDay = parseFloat(pkg.pricePerDay || 0) || (billedDays > 0 ? amt / billedDays : 0);
+            const amt = parseFloat(pkg.amountTotal || 0) || (parseFloat(pkg.pricePerDay || 0) * days);
+            const perDay = parseFloat(pkg.pricePerDay || 0) || (days > 0 ? amt / days : 0);
             const title = PROTECTION_LABELS[code] || pkg.name || pkg.description || code;
             const desc = pkg.description || title;
             let badge = '';
@@ -643,8 +728,22 @@
         const loader = document.getElementById('extrasRefreshLoader');
         if (loader) loader.classList.remove('d-none');
 
-        refreshVehicleFromApi(ctx.criteria, ctx.vehicle)
+        function finishInit(vehicle) {
+            if (loader) loader.classList.add('d-none');
+            try {
+                initExtrasPage(vehicle, ctx.criteria);
+            } catch (err) {
+                console.error('[rac-extras] initExtrasPage error', err);
+                if (loader) loader.classList.add('d-none');
+                alert('No se pudo cargar extras. Vuelva a seleccionar el vehículo.');
+            }
+        }
+
+        let workingVehicle = ctx.vehicle;
+
+        refreshVehicleFromApi(ctx.criteria, workingVehicle)
             .then(function (vehicle) {
+                workingVehicle = vehicle;
                 const calendarDays = window.RAC_FLOW.calcDays(ctx.criteria.pickupDate, ctx.criteria.returnDate);
                 const billedDays = window.RAC_FLOW.vehicleBilledDays(vehicle, calendarDays);
                 const rateType = sessionStorage.getItem('selectedRateType') || vehicle._selectedRateType || 'web';
@@ -654,13 +753,10 @@
                         return mergeDbAddonsIntoVehicle(vehicle, dbData);
                     });
             })
-            .then(function (vehicle) {
-                if (loader) loader.classList.add('d-none');
-                initExtrasPage(vehicle, ctx.criteria);
-            })
-            .catch(function () {
-                if (loader) loader.classList.add('d-none');
-                initExtrasPage(ctx.vehicle, ctx.criteria);
+            .then(finishInit)
+            .catch(function (err) {
+                console.warn('[rac-extras] refresh/addons falló, usando vehículo en sesión', err);
+                finishInit(workingVehicle);
             });
     });
 })();

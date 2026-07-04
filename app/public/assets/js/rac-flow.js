@@ -131,16 +131,74 @@
     /** Tarifa del período según WebExclusivo o mostrador (sin mandatory ni cobertura). */
     function resolveRentalBase(vehicle, rateType, billedDays) {
         const days = Math.max(billedDays || 1, 1);
-        if (rateType === 'counter') {
-            if (vehicle?.priceCounterTotal != null) return parseFloat(vehicle.priceCounterTotal) || 0;
-            const p = vehicle?.pricing || {};
-            if (p.rateBaseCounter != null) return parseFloat(p.rateBaseCounter) || 0;
-            return (parseFloat(vehicle?.priceCounter || 0) || 0) * days;
-        }
-        if (vehicle?.priceTotal != null) return parseFloat(vehicle.priceTotal) || 0;
         const p = vehicle?.pricing || {};
-        if (p.rateBase != null) return parseFloat(p.rateBase) || 0;
-        return (parseFloat(vehicle?.priceWeb || 0) || 0) * days;
+        const norm = normalizeSelectedVehicleForExtras(vehicle, null, days);
+
+        if (rateType === 'counter') {
+            const counterTotal = parseFloat(vehicle?.priceCounterTotal ?? p.rateBaseCounter ?? NaN);
+            if (!isNaN(counterTotal) && counterTotal > 0) return counterTotal;
+            const daily = parseFloat(vehicle?.priceCounter ?? p.finalDailyRate ?? norm.dailyRate ?? 0) || 0;
+            return daily * days;
+        }
+
+        if (norm.totalRate > 0) return norm.totalRate;
+        if (norm.dailyRate > 0) return norm.dailyRate * days;
+        return 0;
+    }
+
+    /**
+     * Normaliza precios del vehículo seleccionado para UI de extras/reserva.
+     * No es fuente de verdad para cobro — el servidor usa quote server-side.
+     */
+    function normalizeSelectedVehicleForExtras(vehicle, criteria, billedDays) {
+        const days = Math.max(billedDays || 1, parseInt(vehicle?.rentalDays, 10) || 1);
+        const p = vehicle?.pricing || {};
+        let dailyRate = parseFloat(
+            p.finalDailyRate ?? p.priceWeb ?? vehicle?.priceWeb ?? vehicle?.dailyRate ?? NaN
+        );
+        if (isNaN(dailyRate) || dailyRate <= 0) dailyRate = 0;
+
+        let totalRate = parseFloat(p.finalTotalRate ?? p.rateBase ?? NaN);
+        if (isNaN(totalRate) || totalRate <= 0) {
+            totalRate = parseFloat(vehicle?.priceTotal ?? vehicle?.totalRate ?? NaN);
+        }
+        if (isNaN(totalRate) || totalRate <= 0) totalRate = 0;
+
+        if (totalRate <= 0 && dailyRate > 0) {
+            totalRate = Math.round(dailyRate * days * 100) / 100;
+        }
+        if (dailyRate <= 0 && totalRate > 0 && days > 0) {
+            dailyRate = Math.round((totalRate / days) * 100) / 100;
+        }
+
+        return {
+            vehicleCode: String(
+                vehicle?.sippCode || vehicle?.vehicleCode || p.vehicle_code || p.vehicleCode || ''
+            ).toUpperCase().trim(),
+            vehicleName: String(vehicle?.category || vehicle?.vehicleCategory || vehicle?.name || '').trim(),
+            dailyRate,
+            totalRate,
+            rentalDays: days,
+            currency: String(p.currency || vehicle?.currency || 'USD'),
+            rateSource: String(p.rateSource || ''),
+            quoteToken: String(p.barsQuoteToken || ''),
+        };
+    }
+
+    function applyNormalizedPricing(vehicle, billedDays) {
+        if (!vehicle) return vehicle;
+        const norm = normalizeSelectedVehicleForExtras(vehicle, null, billedDays);
+        const merged = Object.assign({}, vehicle);
+        merged.priceWeb = norm.dailyRate;
+        if (norm.totalRate > 0) {
+            merged.priceTotal = norm.totalRate;
+        }
+        merged.pricing = Object.assign({}, vehicle.pricing || {}, {
+            finalDailyRate: norm.dailyRate,
+            finalTotalRate: norm.totalRate,
+            rateBase: norm.totalRate > 0 ? norm.totalRate : (vehicle.pricing || {}).rateBase,
+        });
+        return merged;
     }
 
     function buildAvailabilityPayload(criteria) {
@@ -374,7 +432,8 @@
 
     function refreshVehicleForExtras(criteria, vehicle) {
         if (isBarsCacheVehicle(vehicle)) {
-            return ensureBarsQuote(criteria, vehicle, sessionStorage.getItem('selectedRateType') || vehicle._selectedRateType || 'web');
+            // No bloquear UI esperando quote — se crea al continuar/reservar.
+            return Promise.resolve(vehicle);
         }
         if (!window.RAC_FLOW?.fetchAvailability || !vehicle?.sippCode) {
             return Promise.resolve(vehicle);
@@ -416,6 +475,8 @@
         sumBillableMandatory,
         resolveSafAmount,
         resolveRentalBase,
+        normalizeSelectedVehicleForExtras,
+        applyNormalizedPricing,
         resolveMandatoryTotal,
         resolveMandatoryLines,
         resolveVendorRateId,
