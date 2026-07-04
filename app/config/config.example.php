@@ -89,3 +89,11 @@ define('N8N_AMCORP_JWT_SECRET', 'TU_JWT_SECRET_N8N');
 define('N8N_RENTING_WEBHOOK_URL', 'https://n8n.grupopcr.com.pa/webhook/renting');
 define('N8N_RENTING_JWT_SECRET', 'TU_JWT_SECRET_N8N');
 // define('N8N_RENTING_JWT_TOKEN', '');
+
+// BARS/RW Web — consulta SOAP directa de tarifas (prueba aislada AM-RAC-BARS-TEST-0A)
+// define('BARS_RW_ENDPOINT', 'https://rwwebe.barscloud.com:8716/dolpanama/soap');
+// define('BARS_RW_USER', 'TU_USUARIO_BARS');
+// define('BARS_RW_PASSWORD', 'TU_PASSWORD_BARS');
+// define('BARS_RW_MESSAGE_PASSWORD', 'TU_MESSAGE_PASSWORD_BARS');
+// define('BARS_RW_REQUESTOR_ID', 'website');
+// define('BARS_RW_RATE_QUALIFIER', 'WEB');
