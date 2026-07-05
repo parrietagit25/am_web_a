@@ -337,7 +337,7 @@ $notaTablero = (string) ($meta['nota_tablero'] ?? '');
             <span class="pill estado-default <?php echo dash_esc($prioClass); ?>"><?php echo dash_esc($prioridad); ?></span>
             <div class="block-meta">
                 <div><strong><?php echo (int) ($bloque['porcentaje_estimado'] ?? 0); ?>%</strong> avance registrado</div>
-                <div>Commit: <strong><?php echo dash_esc($bloque['ultimo_commit'] ?? '—'); ?></strong></div>
+                <div>Actualizado: <?php echo dash_esc($bloque['fecha_actualizacion'] ?? '—'); ?></div>
                 <div>Próxima acción: <?php echo dash_esc($bloque['siguiente_accion'] ?? '—'); ?></div>
             </div>
         </article>
@@ -380,7 +380,7 @@ $notaTablero = (string) ($meta['nota_tablero'] ?? '');
                 <th>Estado</th>
                 <th>Prioridad</th>
                 <th>%</th>
-                <th>Commit</th>
+                <th>Actualizado</th>
                 <th>Siguiente acción</th>
             </tr>
         </thead>
@@ -401,7 +401,7 @@ $notaTablero = (string) ($meta['nota_tablero'] ?? '');
                 <td><?php echo dash_esc($bloque['estado'] ?? ''); ?></td>
                 <td><?php echo dash_esc($bloque['prioridad'] ?? ''); ?></td>
                 <td><?php echo (int) ($bloque['porcentaje_estimado'] ?? 0); ?></td>
-                <td><?php echo dash_esc($bloque['ultimo_commit'] ?? '—'); ?></td>
+                <td><?php echo dash_esc($bloque['fecha_actualizacion'] ?? '—'); ?></td>
                 <td><?php echo dash_esc($bloque['siguiente_accion'] ?? '—'); ?></td>
             </tr>
             <?php endforeach; ?>

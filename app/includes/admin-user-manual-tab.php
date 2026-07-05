@@ -21,7 +21,7 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
     <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4 border-bottom pb-3">
         <div>
             <h5 class="fw-bold mb-1 font-montserrat text-navy"><i class="bi bi-book me-2 text-danger"></i>Manual de uso del panel administrativo</h5>
-            <p class="text-muted mb-0 small">Guía institucional para administradores, Mercadeo, Gerencia y operación. Actualizado Julio 2026 (AM-ADMIN-MANUAL-1A).</p>
+            <p class="text-muted mb-0 small">Guía institucional para administradores, Mercadeo, Gerencia y operación. Actualizado 5 de julio de 2026 (AM-ADMIN-MANUAL-1B).</p>
         </div>
         <span class="badge bg-light text-navy border">Usuario final</span>
     </div>
@@ -32,6 +32,8 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                 <div class="fw-bold text-navy small text-uppercase mb-2">Índice</div>
                 <a href="#manual-intro">1. Introducción y navegación</a>
                 <a href="#manual-generales">2. Generales</a>
+                <a href="#manual-sucursales-maestro" class="ps-3 small">2.3 Sucursales maestro</a>
+                <a href="#manual-sostenibilidad" class="ps-3 small">2.13 Sostenibilidad</a>
                 <a href="#manual-dashboard">3. Dashboard de avances</a>
                 <a href="#manual-rentacar">4. Rent A Car</a>
                 <a href="#manual-rac-bars" class="ps-3 small">4.1 Tarifas BARS/RW Web</a>
@@ -44,6 +46,8 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                 <a href="#manual-renting">7. Renting</a>
                 <a href="#manual-taller">8. Taller</a>
                 <a href="#manual-contenido">9. CMS / contenido editorial</a>
+                <a href="#manual-summernote" class="ps-3 small">9.6 Editor Summernote</a>
+                <a href="#manual-sucursales-publicas" class="ps-3 small">9.7 Sucursales y páginas públicas</a>
                 <a href="#manual-unidades">10. Unidades personalizadas</a>
                 <a href="#manual-seo">11. SEO técnico</a>
                 <a href="#manual-telemetria">12. Telemetría y seguimiento</a>
@@ -130,18 +134,34 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                             </ul>
                             <div class="manual-step">Complete los campos → pulse <strong>Guardar Cambios Globales</strong>.</div>
 
-                            <h6>2.2 Sucursales (global)</h6>
+                            <h6>2.2 Sucursales (global — legacy)</h6>
                             <p><span class="badge badge-menu">Generales → Sucursales</span></p>
-                            <p>Catálogo maestro de sucursales reutilizable en varios módulos (equipo de ventas, filtros, etc.).</p>
-                            <ol>
-                                <li><strong>Agregar:</strong> nombre, dirección, teléfono, horario, enlace de mapa y foto opcional.</li>
-                                <li><strong>Editar:</strong> icono de lápiz en la fila correspondiente.</li>
-                                <li><strong>Eliminar:</strong> icono de papelera (confirme solo si la sucursal ya no se usa).</li>
-                            </ol>
+                            <p>Catálogo histórico de sucursales usado en algunos contextos legacy (por ejemplo, importación al footer o referencias antiguas). <strong>No es el lugar principal para crear sucursales nuevas.</strong></p>
+                            <div class="manual-warn">
+                                <i class="bi bi-exclamation-triangle me-1"></i> Para alta, edición o baja oficial de sucursales use siempre <strong>Generales → Sucursales maestro</strong> (sección 2.3). Los módulos por unidad de negocio solo <em>seleccionan</em> sucursales ya existentes en el maestro.
+                            </div>
 
-                            <h6>2.3 Sucursales maestro (locations)</h6>
+                            <h6 id="manual-sucursales-maestro">2.3 Sucursales maestro (locations)</h6>
                             <p><span class="badge badge-menu">Generales → Sucursales maestro</span> <em>(según permiso)</em></p>
-                            <p>Maestro técnico de ubicaciones usado en SEO, schema LocalBusiness y páginas públicas <code>/sucursal/{slug}</code>. Los cambios impactan sitemap y datos estructurados. Coordinar con el equipo técnico antes de modificar slugs o códigos.</p>
+                            <p>Maestro único de ubicaciones usado en SEO, schema LocalBusiness, páginas públicas <code>/sucursal/{slug}</code> y selects de todos los módulos del admin. <strong>Toda sucursal nueva se crea aquí primero.</strong></p>
+                            <p><strong>Campos básicos:</strong></p>
+                            <ul>
+                                <li><strong>Nombre:</strong> nombre visible de la sucursal.</li>
+                                <li><strong>Slug:</strong> identificador en URL (<code>/sucursal/{slug}</code>). No cambiar sin coordinar con el equipo técnico.</li>
+                                <li><strong>Dirección, teléfono y horario:</strong> datos de contacto mostrados al público.</li>
+                                <li><strong>Provincia / ciudad:</strong> si el formulario lo incluye, complete para filtros y presentación.</li>
+                                <li><strong>Activo / inactivo:</strong> desactive sin borrar si la sucursal ya no opera.</li>
+                                <li><strong>Orden:</strong> controla el orden en listados cuando aplica.</li>
+                                <li><strong>Coordenadas / mapa:</strong> enlace o coordenadas para el mapa en páginas de sucursales (ver sección 9.7).</li>
+                            </ul>
+                            <div class="manual-step">
+                                <strong>Flujo correcto:</strong>
+                                <ol class="mb-0">
+                                    <li>Cree o edite la sucursal en <span class="badge badge-menu">Generales → Sucursales maestro</span>.</li>
+                                    <li>Vaya al módulo de la unidad (Rent A Car, Seminuevos, etc.) → pestaña <strong>Sucursales</strong> y asóciela desde el selector.</li>
+                                    <li>No cree sucursales manualmente desde módulos secundarios ni duplique nombres.</li>
+                                </ol>
+                            </div>
 
                             <h6>2.4 Traducciones (ES / EN)</h6>
                             <p><span class="badge badge-menu">Generales → Traducciones</span></p>
@@ -188,6 +208,17 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                             <p><span class="badge badge-menu">Generales → Dashboard de avances</span> — enlace directo: <a href="/admin/project-progress-dashboard.php">/admin/project-progress-dashboard.php</a></p>
                             <p>Tablero interno oficial de seguimiento de implementación. Detalle completo en la <a href="#manual-dashboard">sección 3</a>.</p>
 
+                            <h6 id="manual-sostenibilidad">2.13 Sostenibilidad</h6>
+                            <p><span class="badge badge-menu">Generales → Sostenibilidad</span></p>
+                            <p>Página institucional global editable desde el admin. URL pública: <code>/sostenibilidad.php</code>.</p>
+                            <ul>
+                                <li><strong>Alcance:</strong> contenido institucional del grupo (no pertenece a una sola unidad de negocio).</li>
+                                <li><strong>Primer guardado:</strong> si aún no se ha guardado desde admin, la página pública muestra contenido por defecto (fallback). El primer guardado creará la estructura CMS correspondiente en el sistema.</li>
+                                <li><strong>Campos disponibles:</strong> según pantalla — SEO, hero, bloques de impacto, contenido principal y estado activo/inactivo si están visibles.</li>
+                                <li><strong>Antes de cambios grandes:</strong> solicite backup del JSON al equipo técnico si aplica.</li>
+                            </ul>
+                            <div class="manual-step">Edite los campos → pulse <strong>Guardar cambios</strong> → revise <code>/sostenibilidad.php</code> en el sitio público.</div>
+
                             <h6>2.12 Manual de uso</h6>
                             <p><span class="badge badge-menu">Generales → Manual de uso</span> — esta guía.</p>
                         </div>
@@ -227,7 +258,7 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                             </div>
 
                             <div class="manual-tip">
-                                <i class="bi bi-info-circle me-1"></i> Los porcentajes del dashboard representan <strong>avance registrado por entregable</strong>, basado en cierre funcional y validación en test/producción. Para dudas sobre un bloque específico, abra su modal y revise evidencia y siguiente acción.
+                                <i class="bi bi-info-circle me-1"></i> Los porcentajes del dashboard representan <strong>avance registrado por entregable</strong>, basado en cierre funcional y validación en test/producción. Para dudas sobre un bloque específico, abra su modal y revise evidencia funcional, fecha de actualización y siguiente acción. El tablero no muestra referencias al repositorio de código.
                             </div>
                         </div>
                     </div>
@@ -271,10 +302,15 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
 
                             <h6>4.5 Sucursales RAC</h6>
                             <p><span class="badge badge-menu">Rent A Car → Sucursales</span></p>
-                            <p>Listado de puntos de retiro/devolución con dirección, teléfono y mapa. Puede reutilizar nombres del catálogo global o mantener listado propio según configuración actual.</p>
+                            <p>Asocia sucursales del maestro a la unidad Rent A Car. <strong>No cree sucursales nuevas aquí</strong> — selección desde el catálogo definido en <span class="badge badge-menu">Generales → Sucursales maestro</span>.</p>
+                            <p>Página pública de sucursales RAC: <code>/sucursales.php</code> (acordeones con mapas; ver sección 9.7).</p>
 
                             <h6>4.6 Términos y condiciones / Requisitos de alquiler</h6>
-                            <p>Editores de texto enriquecido para las páginas legales y de requisitos (licencia, edad mínima, depósito, etc.). Use listas y negritas para facilitar la lectura.</p>
+                            <p><span class="badge badge-menu">Generales → Términos y condiciones</span> y campos de requisitos en Rent A Car.</p>
+                            <p>Editores visuales <strong>Summernote</strong> para contenido HTML de páginas legales y requisitos (licencia, edad mínima, depósito, etc.). Puede editar con formato visual o abrir la <strong>vista código</strong> para HTML. El contenido anterior se conserva al activar el editor.</p>
+                            <div class="manual-warn">
+                                <i class="bi bi-shield-exclamation me-1"></i> No pegue scripts ni código JavaScript. Use encabezados, listas, tablas y enlaces desde la barra del editor. Guarde y revise el frontend después de cambios importantes.
+                            </div>
 
                             <h6>4.7 Contacto / Mensajes</h6>
                             <p>Bandeja de mensajes enviados desde formularios de contacto de Rent A Car. Abra cada fila para ver detalle completo.</p>
@@ -431,9 +467,14 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                             <ul>
                                 <li><strong>Opiniones:</strong> testimonios de compradores (igual que RAC).</li>
                                 <li><strong>Requisitos y aliados bancarios:</strong> logos de bancos, textos de financiamiento y requisitos de crédito.</li>
-                                <li><strong>Equipo de ventas:</strong> nombre, cargo, foto, teléfono, WhatsApp y <strong>sucursal</strong> (desplegable alimentado desde sucursales globales). En el sitio público el equipo se agrupa por sucursal.</li>
+                                <li><strong>Equipo de ventas (vendedores):</strong> nombre, cargo, foto, teléfono, WhatsApp y <strong>sucursal asignada</strong> (desplegable alimentado desde el maestro). En el sitio público el equipo se agrupa por sucursal del vendedor.</li>
                                 <li><strong>Contacto:</strong> mensajes del formulario de contacto de seminuevos y leads capturados desde la página de contacto dedicada.</li>
                             </ul>
+
+                            <h6>5.4 Sucursales de la unidad (Seminuevos)</h6>
+                            <p><span class="badge badge-menu">Venta de Autos → Sucursales</span></p>
+                            <p>Listado oficial de sucursales asociadas a la unidad Seminuevos. Se seleccionan desde el maestro; no confundir con la sucursal asignada a cada vendedor en <strong>Equipo</strong> (sección 5.3).</p>
+                            <p>Página pública: <code>/seminuevos-sucursales.php</code>.</p>
 
                             <div class="manual-tip">
                                 <i class="bi bi-info-circle me-1"></i> El formulario <strong>«Solicitar cotización»</strong> en la ficha del vehículo envía el lead a <strong>Pipedrive (CRM)</strong>, no a esta bandeja de Contacto. Los formularios de la página Contacto sí pueden aparecer aquí según el flujo configurado.
@@ -456,7 +497,7 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
 
                             <h6>6.2 Sucursales, flota, equipo y contacto</h6>
                             <ul>
-                                <li><strong>Sucursales:</strong> puntos de atención Leasing.</li>
+                                <li><strong>Sucursales:</strong> <span class="badge badge-menu">Leasing Operativo → Sucursales</span> — asocie sucursales del maestro. Página pública: <code>/leasing-sucursales.php</code>.</li>
                                 <li><strong>Nuestra flota:</strong> vehículos ejemplo o categorías disponibles para leasing con foto y descripción.</li>
                                 <li><strong>Nuestro equipo:</strong> asesores con foto y datos de contacto.</li>
                                 <li><strong>Contacto:</strong> mensajes recibidos desde formularios de Leasing.</li>
@@ -478,9 +519,10 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                             <p>Página pública principal: <code>/renting.php</code>. Pestañas del admin:</p>
                             <ul>
                                 <li><strong>Principal:</strong> home con hero y bloques destacados.</li>
-                                <li><strong>Nuestros servicios:</strong> tarjetas de servicios con icono, título y descripción.</li>
-                                <li><strong>Sobre nosotros:</strong> historia, misión, valores con imágenes.</li>
-                                <li><strong>Publicaciones:</strong> listado editorial (además del submenú Contenido).</li>
+                                <li><strong>Nuestros servicios:</strong> tarjetas de servicios con icono, título y descripción (editor Summernote — ver sección 9.6).</li>
+                                <li><strong>Sobre nosotros:</strong> historia, misión, valores con imágenes (editor Summernote).</li>
+                                <li><strong>Publicaciones:</strong> listado editorial con contenido HTML en Summernote (además del submenú Contenido).</li>
+                                <li><strong>Sucursales:</strong> <span class="badge badge-menu">Renting → Sucursales</span> — selección desde maestro. Página pública: <code>/renting-sucursales.php</code>. Si no hay sucursales asociadas, la página puede mostrar un mensaje controlado hasta que Mercadeo complete la asociación.</li>
                                 <li><strong>Contactos:</strong> mensajes de visitantes.</li>
                                 <li><strong>Cotizaciones:</strong> solicitudes de cotización con datos del solicitante y vehículo de interés.</li>
                                 <li><strong>Marcas aliadas:</strong> logos de marcas asociadas.</li>
@@ -503,8 +545,8 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                             <ul>
                                 <li><strong>Principal:</strong> banner y servicios destacados del taller.</li>
                                 <li><strong>Contacto:</strong> formularios y solicitudes de cita o información.</li>
-                                <li><strong>Sobre nosotros:</strong> presentación del taller y equipo técnico.</li>
-                                <li><strong>Sucursales:</strong> ubicaciones del taller con imagen de sección opcional y datos por sucursal.</li>
+                                <li><strong>Sobre nosotros:</strong> presentación del taller y equipo técnico (editor Summernote para contenido principal).</li>
+                                <li><strong>Sucursales:</strong> <span class="badge badge-menu">Taller → Sucursales</span> — ubicaciones asociadas desde el maestro, con imagen de sección opcional. Página pública: <code>/taller-sucursales.php</code>.</li>
                             </ul>
                         </div>
                     </div>
@@ -542,15 +584,20 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                             <h6>9.3 Pie de página, redes y métodos de pago</h6>
                             <p><span class="badge badge-menu">Generales → Pie de página</span></p>
                             <ul>
-                                <li>Columnas de enlaces del footer (CRUD por columna).</li>
+                                <li>Columnas de enlaces del footer (CRUD por columna). En la columna <strong>Recursos</strong>, el enlace «Sucursales» apunta a la página general agrupada <code>/sucursales-grupo.php</code> (todas las unidades).</li>
                                 <li>Redes sociales del grupo (Facebook, Instagram, LinkedIn, etc.).</li>
                                 <li>Textos legales, copyright y bloques «Conoce también».</li>
                                 <li>Iconos o referencias de métodos de pago visibles en el sitio.</li>
                             </ul>
-                            <p>Dónde se ve: footer de todas las páginas públicas que usan el pie estándar.</p>
+                            <p>Dónde se ve: footer de todas las páginas públicas que usan el pie estándar. El footer <strong>no debe listar todas las sucursales</strong>; use la página general o las páginas por unidad.</p>
 
                             <h6>9.4 Páginas institucionales</h6>
-                            <p>FAQ institucional, Sobre Nosotros y páginas similares se administran vía CMS institucional o HTML configurado. Ejemplo público: <code>/pagina-institucional.php?p=faq</code>, <code>/sostenibilidad.php</code>, <code>/trabaja-con-nosotros.php</code>.</p>
+                            <p>FAQ institucional, Sobre Nosotros y páginas similares se administran vía CMS institucional o HTML configurado.</p>
+                            <ul>
+                                <li><strong>Sostenibilidad:</strong> <span class="badge badge-menu">Generales → Sostenibilidad</span> → <code>/sostenibilidad.php</code> (ver sección 2.13).</li>
+                                <li><strong>FAQ:</strong> <code>/pagina-institucional.php?p=faq</code> — contenido pendiente de Mercadeo.</li>
+                                <li><strong>Trabaja con nosotros:</strong> <code>/trabaja-con-nosotros.php</code>.</li>
+                            </ul>
 
                             <h6>9.5 Qué debe revisar Mercadeo antes de publicar</h6>
                             <ol>
@@ -572,6 +619,49 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                                     <li>Verifique en el sitio público y, si aplica, en Search Console tras cambios de URLs.</li>
                                 </ol>
                             </div>
+
+                            <h6 id="manual-summernote">9.6 Editor visual Summernote (HTML)</h6>
+                            <p>Varios campos de contenido HTML del admin usan el editor <strong>Summernote</strong> para edición visual sin programar.</p>
+                            <p><strong>Pestañas y campos con Summernote:</strong></p>
+                            <ul>
+                                <li><span class="badge badge-menu">Generales → Términos y condiciones</span></li>
+                                <li><span class="badge badge-menu">Generales → Requisitos</span> / requisitos de alquiler (Rent A Car)</li>
+                                <li><span class="badge badge-menu">Renting → Servicios</span></li>
+                                <li><span class="badge badge-menu">Renting → Sobre nosotros</span></li>
+                                <li><span class="badge badge-menu">Renting → Publicaciones</span></li>
+                                <li><span class="badge badge-menu">Taller → Sobre nosotros</span> / contenido principal</li>
+                            </ul>
+                            <p><strong>Uso recomendado:</strong></p>
+                            <ol>
+                                <li>Edite visualmente con la barra de herramientas (negritas, listas, tablas, enlaces, encabezados).</li>
+                                <li>Para HTML avanzado, abra la <strong>vista código</strong> del editor.</li>
+                                <li>El contenido anterior se conserva al migrar al editor.</li>
+                                <li><strong>No pegue scripts</strong> ni etiquetas peligrosas.</li>
+                                <li>Guarde y revise la página pública correspondiente después de cambios.</li>
+                            </ol>
+
+                            <h6 id="manual-sucursales-publicas">9.7 Sucursales — maestro, unidades y páginas públicas</h6>
+                            <p><strong>Administración por unidad</strong> — cada unidad tiene pestaña Sucursales que solo selecciona del maestro:</p>
+                            <ul>
+                                <li>Rent A Car → Sucursales</li>
+                                <li>Venta de Autos / Seminuevos → Sucursales</li>
+                                <li>Leasing Operativo → Sucursales</li>
+                                <li>Renting → Sucursales</li>
+                                <li>Taller → Sucursales</li>
+                            </ul>
+                            <p><strong>Página general del grupo:</strong> en el footer (Recursos) el enlace «Sucursales» lleva a <code>/sucursales-grupo.php</code>, que agrupa sucursales por unidad de negocio.</p>
+                            <p><strong>Páginas específicas por unidad</strong> (siguen existiendo):</p>
+                            <ul>
+                                <li><code>/sucursales.php</code> — Rent A Car</li>
+                                <li><code>/seminuevos-sucursales.php</code> — Venta de Autos</li>
+                                <li><code>/leasing-sucursales.php</code> — Leasing</li>
+                                <li><code>/renting-sucursales.php</code> — Renting</li>
+                                <li><code>/taller-sucursales.php</code> — Taller</li>
+                            </ul>
+                            <div class="manual-tip">
+                                <i class="bi bi-info-circle me-1"></i> Las páginas principales de cada unidad (home, landing) <strong>no deben listar todas las sucursales</strong>. Use las páginas dedicadas o la general agrupada. Mantenga el footer limpio.
+                            </div>
+                            <p><strong>Mapas en acordeones:</strong> las páginas de sucursales muestran cada ubicación en un acordeón con mapa embebido. El primer acordeón puede abrirse por defecto. Si una sucursal no tiene coordenadas configuradas, se muestra un placeholder controlado en lugar de un mapa roto.</p>
                         </div>
                     </div>
                 </div>

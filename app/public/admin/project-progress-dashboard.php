@@ -332,10 +332,6 @@ $totalBloques = count($bloques);
     $testLinks = ppb_link_list($bloque['test_links'] ?? null);
     $validationItems = ppb_string_list($bloque['validation_items'] ?? null);
     $evidenceItems = ppb_string_list($bloque['evidence_items'] ?? null);
-    $commits = ppb_string_list($bloque['commits'] ?? null);
-    if (empty($commits) && !empty($bloque['ultimo_commit']) && (string) $bloque['ultimo_commit'] !== '—') {
-        $commits = [(string) $bloque['ultimo_commit']];
-    }
     $blockers = ppb_string_list($bloque['blockers'] ?? null);
     $publicNote = trim((string) ($bloque['public_locations_note'] ?? ''));
     $publicText = trim((string) ($bloque['public_web_text'] ?? ''));
@@ -433,10 +429,6 @@ $totalBloques = count($bloques);
                 </ul>
                 <?php endif; ?>
 
-                <?php if (!empty($commits)): ?>
-                <div class="modal-section-title">Commits de referencia</div>
-                <p class="modal-section-body font-monospace small mb-0"><?php echo ppd_esc(implode(' · ', $commits)); ?></p>
-                <?php endif; ?>
             </div>
             <div class="modal-footer flex-wrap border-top">
                 <?php foreach ($adminLocs as $link): ?>
