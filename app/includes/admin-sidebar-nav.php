@@ -46,7 +46,7 @@ $showChatbot = admin_group_visible('chatbot');
 
 $showGenerales = true;
 
-$generalesTabs = ['user-manual', 'global', 'global-sucursales', 'locations-master', 'translations', 'seo', 'landings', 'footer', 'users', 'audit-log', 'telemetry'];
+$generalesTabs = ['user-manual', 'project-progress-dashboard', 'global', 'global-sucursales', 'locations-master', 'translations', 'seo', 'landings', 'footer', 'users', 'audit-log', 'telemetry'];
 $rentacarContentTabs = UnitContentService::contentTabSlugs('rentacar');
 $rentacarTabs = array_merge(['hero'], $rentacarContentTabs, ['opinions', 'vehicles', 'sucursales', 'terms', 'requirements', 'contact', 'payments', 'rac-reservations', 'rac-bars-rates', 'rac-rate-rules', 'rac-addons']);
 $seminuevosContentTabs = UnitContentService::contentTabSlugs('seminuevos');
@@ -75,6 +75,9 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
             <button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('user-manual', $defaultAdminTab); ?>" id="tab-user-manual-nav" data-bs-toggle="pill" data-bs-target="#tab-user-manual" type="button" role="tab" aria-controls="tab-user-manual" aria-selected="<?php echo admin_nav_selected('user-manual', $defaultAdminTab); ?>">
                 <i class="bi bi-book me-2"></i> Manual de uso
             </button>
+            <a class="nav-link text-start w-100 border-0 bg-transparent text-decoration-none admin-sidebar-page-link<?php echo ($defaultAdminTab ?? '') === 'project-progress-dashboard' ? ' active' : ''; ?>" href="/admin/project-progress-dashboard.php">
+                <i class="bi bi-kanban me-2"></i> Dashboard de avances
+            </a>
             <?php if (admin_can('global')): ?>
             <button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('global', $defaultAdminTab); ?>" id="tab-global-nav" data-bs-toggle="pill" data-bs-target="#tab-global" type="button" role="tab" aria-controls="tab-global" aria-selected="<?php echo admin_nav_selected('global', $defaultAdminTab); ?>" data-admin-perm="global">
                 <i class="bi bi-gear-fill me-2"></i> Configuración Global
