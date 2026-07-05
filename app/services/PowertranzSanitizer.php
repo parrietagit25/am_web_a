@@ -125,6 +125,7 @@ class PowertranzSanitizer
         $preview = preg_replace('/"SpiToken"\s*:\s*"[^"]+"/i', '"SpiToken":"[REDACTED]"', $preview) ?? $preview;
         $preview = preg_replace('/Powertranz-PowertranzPassword\s*:\s*[^\r\n]+/i', 'Powertranz-PowertranzPassword: [REDACTED]', $preview) ?? $preview;
         $preview = preg_replace('/Powertranz-PowertranzId\s*:\s*[^\r\n]+/i', 'Powertranz-PowertranzId: [REDACTED]', $preview) ?? $preview;
+        $preview = preg_replace('/SpiToken\s+\S+/i', 'SpiToken [REDACTED]', $preview) ?? $preview;
 
         return self::text($preview, $maxLen);
     }
@@ -189,5 +190,58 @@ class PowertranzSanitizer
         }
 
         return self::sanitizePayload($decoded);
+    }
+
+    /**
+     * Analiza RedirectData HTML sin exponer valores de inputs sensibles.
+     *
+     * @return array<string, mixed>
+     */
+    public static function analyzeRedirectData(string $html): array
+    {
+        $html = trim($html);
+        $analysis = [
+            'redirect_data_length' => strlen($html),
+            'redirect_data_hash' => $html !== '' ? hash('sha256', $html) : '',
+            'form_present' => false,
+            'form_method' => '',
+            'form_action_host' => '',
+            'form_action_path' => '',
+            'hidden_input_names' => [],
+            'auto_submit_script' => false,
+        ];
+
+        if ($html === '') {
+            return $analysis;
+        }
+
+        if (preg_match('/<form\b[^>]*method=["\']?([^"\'>\s]+)/i', $html, $m) === 1) {
+            $analysis['form_present'] = true;
+            $analysis['form_method'] = strtoupper(trim($m[1]));
+        } elseif (stripos($html, '<form') !== false) {
+            $analysis['form_present'] = true;
+            $analysis['form_method'] = 'POST';
+        }
+
+        if (preg_match('/<form\b[^>]*action=["\']([^"\']+)/i', $html, $m) === 1) {
+            $analysis['form_present'] = true;
+            $action = html_entity_decode(trim($m[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $parts = parse_url($action);
+            $analysis['form_action_host'] = (string) ($parts['host'] ?? '');
+            $analysis['form_action_path'] = (string) ($parts['path'] ?? $action);
+        }
+
+        if (preg_match_all('/<input\b[^>]*type=["\']hidden["\'][^>]*name=["\']([^"\']+)/i', $html, $inputs) > 0) {
+            foreach ($inputs[1] as $name) {
+                $name = trim((string) $name);
+                if ($name !== '' && !in_array($name, $analysis['hidden_input_names'], true)) {
+                    $analysis['hidden_input_names'][] = $name;
+                }
+            }
+        }
+
+        $analysis['auto_submit_script'] = preg_match('/\.submit\s*\(|document\.forms|onload\s*=/i', $html) === 1;
+
+        return $analysis;
     }
 }

@@ -56,6 +56,14 @@ if ($approved || $status === 'approved') {
     $title = 'Retorno inválido';
     $message = (string) ($payment['error_message'] ?? 'MerchantResponseUrl recibido sin payload válido.');
     $alertClass = 'warning';
+} elseif ($status === 'hpp_error') {
+    $title = 'Error HPP';
+    $message = (string) ($payment['error_message'] ?? 'Error HPP antes de completar tarjeta.');
+    $alertClass = 'danger';
+} elseif ($status === 'return_received_diagnostic' || $status === 'return_empty_diagnostic') {
+    $title = 'Retorno registrado (diagnóstico)';
+    $message = 'Callback guardado. completePayment bloqueado en modo diagnóstico.';
+    $alertClass = 'info';
 } elseif ($status === 'complete_error') {
     $title = 'Error al completar pago';
     $message = (string) ($payment['error_message'] ?? 'Error en completePayment.');

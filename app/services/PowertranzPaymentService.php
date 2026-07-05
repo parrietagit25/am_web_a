@@ -43,6 +43,34 @@ class PowertranzPaymentService
         return $scheme . '://' . $host . '/api/powertranz-return.php';
     }
 
+    public static function isAutoCompleteEnabled(): bool
+    {
+        return defined('POWERTRANZ_AUTO_COMPLETE_ENABLED') && POWERTRANZ_AUTO_COMPLETE_ENABLED === true;
+    }
+
+    public static function isDiagnosticMode(): bool
+    {
+        return !self::isAutoCompleteEnabled();
+    }
+
+    public static function hppRawFrameUrl(int $paymentId): string
+    {
+        return '/admin/powertranz-hpp-raw.php?payment_id=' . $paymentId;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function analyzeRedirectDataForPayment(int $paymentId): ?array
+    {
+        $row = $this->getPayment($paymentId);
+        if ($row === null || empty($row['redirect_data_vault'])) {
+            return null;
+        }
+
+        return PowertranzSanitizer::analyzeRedirectData((string) $row['redirect_data_vault']);
+    }
+
     /**
      * @return array{ok: bool, message?: string, payment?: array<string, mixed>, api?: array<string, mixed>}
      */
@@ -102,20 +130,26 @@ class PowertranzPaymentService
             $callback = is_array($decoded) ? $this->normalizeCallback($decoded) : null;
         }
 
-        $returnEnvelope = $this->buildReturnEnvelope($rawBody, $callback, $requestMeta);
-
         if ($callback === null || $callback === []) {
             return [
                 'ok' => false,
                 'message' => 'MerchantResponseUrl recibido sin payload válido.',
+                'diagnostic_mode' => self::isDiagnosticMode(),
             ];
         }
+
+        $callback = $this->expandCallbackResponse($callback);
+        $returnEnvelope = $this->buildReturnEnvelope($rawBody, $callback, $requestMeta);
+        $returnEnvelope['callback_indicates_hpp_completed'] = $this->callbackIndicatesHppCompleted($callback);
+        $returnEnvelope['callback_indicates_hpp_failure'] = $this->callbackIndicatesHppFailure($callback);
+        $returnEnvelope['auto_complete_enabled'] = self::isAutoCompleteEnabled();
 
         $payment = $this->findPaymentFromCallback($callback);
         if ($payment === null) {
             return [
                 'ok' => false,
                 'message' => 'No se encontró el pago asociado al callback.',
+                'diagnostic_mode' => self::isDiagnosticMode(),
             ];
         }
 
@@ -135,14 +169,30 @@ class PowertranzPaymentService
         $returnEnvelope['order_identifier'] = (string) ($payment['order_identifier'] ?? '');
         $returnJson = json_encode(PowertranzSanitizer::sanitizePayload($returnEnvelope), JSON_UNESCAPED_UNICODE);
 
+        if ($this->callbackIndicatesHppFailure($callback)) {
+            $failureMsg = $this->hppFailureMessage($callback);
+            $this->updatePayment($paymentId, [
+                'status' => 'hpp_error',
+                'merchant_response_json_sanitized' => $returnJson,
+                'error_message' => $failureMsg,
+            ]);
+
+            return [
+                'ok' => false,
+                'message' => $failureMsg,
+                'payment' => $this->getPublicPayment($paymentId),
+                'diagnostic_mode' => self::isDiagnosticMode(),
+            ];
+        }
+
         $this->updatePayment($paymentId, [
-            'status' => 'return_received',
+            'status' => self::isDiagnosticMode() ? 'return_received_diagnostic' : 'return_received',
             'merchant_response_json_sanitized' => $returnJson,
         ]);
 
         if (!$this->callbackHasValidReturn($callback)) {
             $this->updatePayment($paymentId, [
-                'status' => 'return_error',
+                'status' => self::isDiagnosticMode() ? 'return_empty_diagnostic' : 'return_error',
                 'error_message' => 'MerchantResponseUrl recibido sin payload válido',
             ]);
 
@@ -150,12 +200,13 @@ class PowertranzPaymentService
                 'ok' => false,
                 'message' => 'MerchantResponseUrl recibido sin payload válido.',
                 'payment' => $this->getPublicPayment($paymentId),
+                'diagnostic_mode' => self::isDiagnosticMode(),
             ];
         }
 
         if (!$this->callbackIndicatesHppCompleted($callback)) {
             $this->updatePayment($paymentId, [
-                'status' => 'return_error',
+                'status' => self::isDiagnosticMode() ? 'return_received_diagnostic' : 'return_error',
                 'error_message' => 'Retorno recibido antes de completar HPP/3DS',
             ]);
 
@@ -163,6 +214,16 @@ class PowertranzPaymentService
                 'ok' => false,
                 'message' => 'Retorno recibido antes de completar HPP/3DS. Complete el pago en el iframe embebido.',
                 'payment' => $this->getPublicPayment($paymentId),
+                'diagnostic_mode' => self::isDiagnosticMode(),
+            ];
+        }
+
+        if (self::isDiagnosticMode()) {
+            return [
+                'ok' => false,
+                'message' => 'Modo diagnóstico: completePayment bloqueado. Revise callback guardado.',
+                'payment' => $this->getPublicPayment($paymentId),
+                'diagnostic_mode' => true,
             ];
         }
 
@@ -348,8 +409,12 @@ class PowertranzPaymentService
             'created_at' => (string) ($row['created_at'] ?? ''),
         ];
         if ($includeFrameUrl && !empty($row['redirect_data_present'])) {
-            $public['frame_url'] = '/admin/powertranz-payment-frame.php?payment_id=' . (int) $row['id'];
+            $public['frame_url'] = self::hppRawFrameUrl((int) $row['id']);
+            $public['redirect_analysis'] = PowertranzSanitizer::analyzeRedirectData((string) ($row['redirect_data_vault'] ?? ''));
         }
+
+        $public['diagnostic_mode'] = self::isDiagnosticMode();
+        $public['auto_complete_enabled'] = self::isAutoCompleteEnabled();
 
         $initDiagnostic = PowertranzSanitizer::extractDiagnostic((string) ($row['response_payload_json'] ?? ''));
         $completeDiagnostic = PowertranzSanitizer::extractDiagnostic((string) ($row['complete_response_json'] ?? ''));
@@ -760,9 +825,26 @@ class PowertranzPaymentService
             'raw_body_preview' => PowertranzSanitizer::sanitizeRawBodyPreview($rawBody, 500),
             'get_keys' => array_values(array_map('strval', $getKeys)),
             'post_keys' => array_values(array_map('strval', $postKeys)),
-            'has_spi_token' => $hasSpi,
+            'spi_token_present' => $hasSpi,
             'callback' => $this->client->sanitizeResponse($callback),
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $callback
+     * @return array<string, mixed>
+     */
+    private function expandCallbackResponse(array $callback): array
+    {
+        $response = $callback['Response'] ?? $callback['response'] ?? '';
+        if (is_string($response) && trim($response) !== '') {
+            $decoded = json_decode($response, true);
+            if (is_array($decoded)) {
+                return array_merge($callback, $decoded);
+            }
+        }
+
+        return $callback;
     }
 
     /**
@@ -774,20 +856,24 @@ class PowertranzPaymentService
             return false;
         }
 
-        return $this->callbackIndicatesHppCompleted($callback)
+        return trim((string) ($callback['TransactionIdentifier'] ?? $callback['transactionIdentifier'] ?? '')) !== ''
+            || trim((string) ($callback['OrderIdentifier'] ?? $callback['orderIdentifier'] ?? '')) !== ''
             || $this->client->extractSpiToken($callback) !== ''
-            || trim((string) ($callback['TransactionIdentifier'] ?? $callback['transactionIdentifier'] ?? '')) !== ''
-            || trim((string) ($callback['OrderIdentifier'] ?? $callback['orderIdentifier'] ?? '')) !== '';
+            || trim((string) ($callback['Response'] ?? $callback['response'] ?? '')) !== '';
     }
 
     /**
-     * Evita completePayment si el retorno no indica que el usuario terminó HPP/3DS.
-     *
      * @param array<string, mixed> $callback
      */
     private function callbackIndicatesHppCompleted(array $callback): bool
     {
-        if ($this->client->extractSpiToken($callback) !== '') {
+        $callback = $this->expandCallbackResponse($callback);
+
+        if ($this->callbackIndicatesHppFailure($callback)) {
+            return false;
+        }
+
+        if ($this->client->isApproved($callback)) {
             return true;
         }
 
@@ -802,21 +888,67 @@ class PowertranzPaymentService
             }
         }
 
-        if (array_key_exists('Approved', $callback) || array_key_exists('approved', $callback)) {
+        $iso = strtoupper(trim((string) ($callback['IsoResponseCode'] ?? $callback['isoResponseCode'] ?? '')));
+
+        return in_array($iso, ['00', '3D0'], true);
+    }
+
+    /**
+     * @param array<string, mixed> $callback
+     */
+    private function callbackIndicatesHppFailure(array $callback): bool
+    {
+        $callback = $this->expandCallbackResponse($callback);
+        $iso = strtoupper(trim((string) ($callback['IsoResponseCode'] ?? $callback['isoResponseCode'] ?? '')));
+
+        if (in_array($iso, ['12', '57', '05', '14', '51', '54', '55', '61', '62', '65', '75', '91', '96'], true)) {
             return true;
         }
 
-        $iso = strtoupper(trim((string) ($callback['IsoResponseCode'] ?? $callback['isoResponseCode'] ?? '')));
-        if ($iso !== '' && !in_array($iso, ['SP4', 'SP1', '97'], true)) {
+        $errors = $callback['Errors'] ?? $callback['errors'] ?? null;
+        if (is_array($errors) && $errors !== []) {
             return true;
         }
 
         $msg = strtolower(trim((string) ($callback['ResponseMessage'] ?? $callback['responseMessage'] ?? '')));
-        if ($msg !== '' && !str_contains($msg, 'preprocessing complete')) {
+        if ($msg !== '' && (
+            str_contains($msg, 'invalid')
+            || str_contains($msg, 'not found')
+            || str_contains($msg, 'declined')
+            || str_contains($msg, 'error')
+            || str_contains($msg, 'failed')
+        )) {
+            return true;
+        }
+
+        if (($callback['Approved'] ?? $callback['approved'] ?? null) === false && $iso !== '' && !in_array($iso, ['SP4', 'SP1', '97'], true)) {
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * @param array<string, mixed> $callback
+     */
+    private function hppFailureMessage(array $callback): string
+    {
+        $callback = $this->expandCallbackResponse($callback);
+        $errors = $callback['Errors'] ?? $callback['errors'] ?? [];
+        if (is_array($errors) && isset($errors[0]) && is_array($errors[0])) {
+            $code = trim((string) ($errors[0]['Code'] ?? $errors[0]['code'] ?? ''));
+            $message = trim((string) ($errors[0]['Message'] ?? $errors[0]['message'] ?? ''));
+            if ($code !== '' || $message !== '') {
+                return 'HPP error' . ($code !== '' ? ' ' . $code : '') . ($message !== '' ? ': ' . PowertranzSanitizer::text($message, 120) : '');
+            }
+        }
+
+        $msg = trim((string) ($callback['ResponseMessage'] ?? $callback['responseMessage'] ?? ''));
+        if ($msg !== '') {
+            return PowertranzSanitizer::text($msg, 180);
+        }
+
+        return 'Error HPP antes de completar tarjeta.';
     }
 
     /**

@@ -98,7 +98,8 @@ echo json_encode([
     'non_json_phase' => $payment['non_json_phase'] ?? null,
     'diagnostic' => $diagnostic,
     'frame_url' => (!empty($payment['has_redirect_data']) && !empty($payment['payment_id']))
-        ? '/admin/powertranz-payment-frame.php?payment_id=' . (int) $payment['payment_id']
+        ? PowertranzPaymentService::hppRawFrameUrl((int) $payment['payment_id'])
         : ($payment['frame_url'] ?? null),
+    'diagnostic_mode' => PowertranzPaymentService::isDiagnosticMode(),
     'updated_at' => $payment['updated_at'] ?? null,
 ], JSON_UNESCAPED_UNICODE);

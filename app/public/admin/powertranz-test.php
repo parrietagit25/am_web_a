@@ -36,7 +36,7 @@ if (is_array($lastPayment)) {
         && !empty($lastPayment['has_redirect_data'])
         && in_array($lastIso, ['SP4', 'SP1', '3D0', '00'], true);
     if ($lastPaymentHppReady && !empty($lastPayment['payment_id'])) {
-        $lastPaymentFrameUrl = '/admin/powertranz-payment-frame.php?payment_id=' . (int) $lastPayment['payment_id'];
+        $lastPaymentFrameUrl = PowertranzPaymentService::hppRawFrameUrl((int) $lastPayment['payment_id']);
         $updatedAt = strtotime((string) ($lastPayment['updated_at'] ?? $lastPayment['created_at'] ?? ''));
         if ($updatedAt !== false && (time() - $updatedAt) > 300) {
             $lastPaymentExpired = true;
@@ -45,6 +45,7 @@ if (is_array($lastPayment)) {
 }
 
 $defaultAdminTab = 'powertranz-test';
+$diagnosticMode = PowertranzPaymentService::isDiagnosticMode();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -107,6 +108,12 @@ $defaultAdminTab = 'powertranz-test';
             <div id="ptz-alive-result" class="mt-3 p-3 bg-light rounded d-none"></div>
             <?php if (!$configured): ?>
                 <div class="alert alert-warning mt-3 mb-0">Complete POWERTRANZ_ID y POWERTRANZ_PASSWORD en <code>app/config/config.php</code> (archivo privado, no commitear).</div>
+            <?php endif; ?>
+            <?php if ($diagnosticMode): ?>
+                <div class="alert alert-info mt-3 mb-0">
+                    <strong>Modo diagnóstico activo.</strong> completePayment automático bloqueado.
+                    Defina <code>POWERTRANZ_AUTO_COMPLETE_ENABLED = true</code> en config.php solo cuando HPP y retorno estén validados.
+                </div>
             <?php endif; ?>
         </div>
 
@@ -267,7 +274,7 @@ $defaultAdminTab = 'powertranz-test';
     }
 
     function frameUrlForPaymentId(id) {
-        return id ? '/admin/powertranz-payment-frame.php?payment_id=' + encodeURIComponent(id) : '';
+        return id ? '/admin/powertranz-hpp-raw.php?payment_id=' + encodeURIComponent(id) : '';
     }
 
     function updateStatusBadge(data) {
@@ -305,6 +312,14 @@ $defaultAdminTab = 'powertranz-test';
         showDiagnostic(data);
         if (data.status === 'complete_error') {
             showAlert('warning', data.error_message || 'Error al completar pago en Powertranz.');
+            return;
+        }
+        if (data.status === 'hpp_error') {
+            showAlert('danger', data.error_message || 'Error HPP antes de tarjeta. Revise RedirectData/HPP config.');
+            return;
+        }
+        if (data.status === 'return_received_diagnostic' || data.status === 'return_empty_diagnostic') {
+            showAlert('info', 'Modo diagnóstico: callback guardado. completePayment bloqueado.');
             return;
         }
         if (data.status === 'return_error') {

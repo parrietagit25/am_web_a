@@ -117,3 +117,4 @@ define('N8N_RENTING_JWT_SECRET', 'TU_JWT_SECRET_N8N');
 // define('POWERTRANZ_TIMEOUT_SECONDS', 45);
 // define('POWERTRANZ_MERCHANT_RESPONSE_URL', 'https://test.automarket.com.pa/api/powertranz-return.php');
 // define('POWERTRANZ_MERCHANT_REDIRECT_URL', '');
+// define('POWERTRANZ_AUTO_COMPLETE_ENABLED', false); // true solo cuando HPP/retorno estén validados
