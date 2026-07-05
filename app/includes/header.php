@@ -136,6 +136,9 @@ $themeRgb = "$r, $g, $b";
     if (empty($skipUnitBusinessSchema)) {
         require __DIR__ . '/schema-unit-business.php';
     }
+    if (!empty($_svVehicle) && is_array($_svVehicle)) {
+        require __DIR__ . '/schema-vehicle.php';
+    }
     ?>
     <?php
     // ── SE11: Schema.org BreadcrumbList JSON-LD global ───────────────────────

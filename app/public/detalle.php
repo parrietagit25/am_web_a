@@ -4,10 +4,7 @@
  */
 $activeUnit = 'seminuevos';
 
-// ── SE5: SEO dinámico de ficha de vehículo ───────────────────────────────────
-// Database debe cargarse ANTES de header.php para poder construir $seoOverride
-// con datos reales del vehículo. La clase no tiene efectos colaterales en el
-// bootstrap global; config.php (cargado por header.php) define las constantes DB_*.
+require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/Database.php';
 require_once __DIR__ . '/../services/VehicleSlugHelper.php';
 
@@ -99,14 +96,11 @@ if ($vehicle) {
 // ── fin SE5 ──────────────────────────────────────────────────────────────────
 
 // ── SE9: Schema.org Car/Vehicle + Offer JSON-LD ──────────────────────────────
-// El partial verifica internamente que Make y Model tengan valor antes de emitir.
-// Se incluye ANTES de header.php para que el JSON-LD quede dentro de <head>.
+// Variables para schema-vehicle.php; se emite dentro de <head> vía header.php.
 if ($vehicle) {
     $_svVehicle = $vehicle;
     $_svFriendlyUrl = $_vehicleFriendlyUrl;
-    require __DIR__ . '/../includes/schema-vehicle.php';
 }
-// ── fin SE9 ──────────────────────────────────────────────────────────────────
 
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../services/InventoryHighlightService.php';
