@@ -336,15 +336,6 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                         $ufUnitData = $renting;
                         require __DIR__ . '/admin-unit-footer-settings.php';
                         ?>
-
-                        <!-- BRANCHES RENTING — asociaciones maestro -->
-                        <?php
-                        $ulrUnitKey = 'renting';
-                        $ulrTabSlug = 'renting-home';
-                        $ulrTitle = 'Sucursales asociadas (Renting)';
-                        $ulrSiteData = $siteData;
-                        require __DIR__ . '/admin-unit-location-refs-panel.php';
-                        ?>
                     </div>
 
                     <!-- TAB: RENTING NUESTROS SERVICIOS -->
@@ -1051,7 +1042,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                 <i class="bi bi-layout-text-window me-2 text-danger"></i>Textos de página — Sucursales Renting
                             </h5>
                             <p class="text-muted small mb-3">
-                                Cabecera y CTA lateral de <code>/renting-sucursales.php</code>. Las sucursales del listado se editan abajo.
+                                Cabecera y CTA lateral de <code>/renting-sucursales.php</code>. Asocie sucursales desde el maestro abajo.
                             </p>
                             <form method="POST" action="?tab=renting-sucursales">
                                 <input type="hidden" name="action" value="save_renting_sucursales_page">
@@ -1085,6 +1076,15 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                             </form>
                         </div>
                         <?php require __DIR__ . '/admin-legacy-locations-notice.php'; ?>
+                        <?php
+                        $ulrUnitKey = 'renting';
+                        $ulrTabSlug = 'renting-sucursales';
+                        $ulrTitle = 'Sucursales asociadas (Renting)';
+                        $ulrSiteData = $siteData;
+                        require __DIR__ . '/admin-unit-location-refs-panel.php';
+                        ?>
+                        <p class="form-text mb-3">Vista pública: <a href="/renting-sucursales.php" target="_blank" rel="noopener">/renting-sucursales.php</a>. Si no hay asociaciones, la página muestra: «No hay sucursales asociadas a Renting por el momento.»</p>
+                        <div class="d-none">
                         <div class="admin-card">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="rentingSucursalFormTitle">
                                 <i class="bi bi-geo-alt-fill me-2 text-danger"></i>Agregar sucursal (Renting)
@@ -1221,6 +1221,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
                         </div>
                         <script>
                         function initEditRentingSucursal(suc) {

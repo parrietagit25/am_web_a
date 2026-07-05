@@ -15,6 +15,8 @@ $semiSectionTitle = trim((string) ($semiPage['section_title'] ?? '')) ?: 'Sucurs
 $semiSectionHighlight = trim((string) ($semiPage['section_title_highlight'] ?? '')) ?: 'Automarket';
 $semiSectionSubtitleTpl = trim((string) ($semiPage['section_subtitle'] ?? '')) ?: 'Visítanos en cualquiera de nuestras {count} sucursales a nivel nacional';
 require_once __DIR__ . '/../includes/location-public-helper.php';
+require_once __DIR__ . '/../includes/location-accordion-map.php';
+am_location_map_reset();
 
 $semiSucursales = $semiData['sucursales'] ?? [];
 $activeSucursales = am_list_sucursales_for_unit($contentService, 'seminuevos', $semiSucursales);
@@ -22,9 +24,6 @@ $activeSucursales = am_list_sucursales_for_unit($contentService, 'seminuevos', $
 $_schemaLocationList = $activeSucursales;
 require_once __DIR__ . '/../includes/schema-location-itemlist.php';
 ?>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <style>
 .sn-breadcrumb-strip { background: #f8f9fc; border-bottom: 1px solid #eaecf3; }
@@ -82,10 +81,15 @@ require_once __DIR__ . '/../includes/schema-location-itemlist.php';
                 $id = intval($suc['id']);
                 $isFirst = ($index === 0);
                 $collapseId = 'sn_suc_' . $id;
-                $lat = floatval($suc['lat'] ?? 8.9866);
-                $lng = floatval($suc['lng'] ?? -79.5190);
-                $sucName = addslashes(esc($suc['name']));
-                $sucAddr = addslashes(esc($suc['address'] ?? ''));
+                am_location_map_register([
+                    'mapId' => 'snmap_' . $id,
+                    'collapseId' => $collapseId,
+                    'lat' => $suc['lat'] ?? null,
+                    'lng' => $suc['lng'] ?? null,
+                    'title' => (string) ($suc['name'] ?? ''),
+                    'subtitle' => (string) ($suc['address'] ?? ''),
+                    'autoInit' => $isFirst,
+                ]);
             ?>
             <div class="accordion-item sn-accordion-item<?php echo $isFirst ? ' sn-accordion-item--principal' : ''; ?>">
                 <h2 class="accordion-header mb-0">
@@ -133,51 +137,27 @@ require_once __DIR__ . '/../includes/schema-location-itemlist.php';
                                     <?php endif; ?>
                                 </div>
                                 <div class="mt-4 pt-3 border-top">
-                                    <a href="https://maps.google.com?saddr=Current+Location&daddr=<?php echo $lat; ?>,<?php echo $lng; ?>" target="_blank" rel="noopener" class="sn-howto-btn">
+                                    <?php if (am_location_map_has_coords($suc['lat'] ?? '', $suc['lng'] ?? '')): ?>
+                                    <a href="https://maps.google.com?saddr=Current+Location&daddr=<?php echo esc($suc['lat']); ?>,<?php echo esc($suc['lng']); ?>" target="_blank" rel="noopener" class="sn-howto-btn">
                                         <i class="bi bi-arrow-up-right-circle"></i>&iquest;C&oacute;mo llegar? (Google Maps)
                                     </a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <div class="col-md-6 col-12 position-relative d-flex">
-                                <div id="snmap_<?php echo $id; ?>" class="rounded-3 shadow-sm border w-100 flex-grow-1" style="min-height:280px;background:#f1f3f7;z-index:1;"></div>
+                                <?php am_location_map_render_container('snmap_' . $id, $suc['lat'] ?? '', $suc['lng'] ?? '', trim((string) ($suc['map_url'] ?? ''))); ?>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <script>
-            (function() {
-                var map = null, marker = null;
-                var lat = <?php echo $lat; ?>;
-                var lng = <?php echo $lng; ?>;
-                var name = '<?php echo $sucName; ?>';
-                var addr = '<?php echo $sucAddr; ?>';
-                var collapse = document.getElementById('<?php echo $collapseId; ?>');
-                function initMap() {
-                    if (map) {
-                        setTimeout(function() { map.invalidateSize(); marker.openPopup(); }, 50);
-                        return;
-                    }
-                    map = L.map('snmap_<?php echo $id; ?>').setView([lat, lng], 16);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    }).addTo(map);
-                    marker = L.marker([lat, lng]).addTo(map)
-                        .bindPopup('<span class="fw-bold text-navy">' + name + '</span><br><small class="text-muted">' + addr + '</small>');
-                    marker.openPopup();
-                    setTimeout(function() { map.invalidateSize(); }, 100);
-                }
-                collapse.addEventListener('shown.bs.collapse', initMap);
-                <?php if ($isFirst): ?>
-                document.addEventListener('DOMContentLoaded', function() {
-                    setTimeout(initMap, 400);
-                });
-                <?php endif; ?>
-            })();
-            </script>
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
 </section>
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php
+am_location_map_render_assets();
+am_location_map_render_boot();
+require_once __DIR__ . '/../includes/footer.php';
+?>

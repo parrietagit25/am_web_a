@@ -566,6 +566,16 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
     </div>
 
     <?php require __DIR__ . '/admin-legacy-locations-notice.php'; ?>
+    <?php
+    $ulrUnitKey = 'taller';
+    $ulrTabSlug = 'taller-sucursales';
+    $ulrTitle = 'Sucursales asociadas (Taller)';
+    $ulrSiteData = $siteData;
+    require __DIR__ . '/admin-unit-location-refs-panel.php';
+    ?>
+    <p class="form-text mb-3">Vista pública: <a href="/taller-sucursales.php" target="_blank" rel="noopener">/taller-sucursales.php</a></p>
+
+    <div class="d-none">
     <div class="admin-card">
         <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="tallerSucursalFormTitle">
             <i class="bi bi-building-add me-2 text-danger"></i>Agregar sucursal (Taller)
@@ -624,15 +634,6 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 </tbody>
             </table>
         </div>
-        <p class="form-text mb-0 mt-2">Vista pública: <a href="/taller-sucursales.php" target="_blank" rel="noopener">/taller-sucursales.php</a></p>
     </div>
-
-    <!-- BRANCHES TALLER — asociaciones maestro -->
-    <?php
-    $ulrUnitKey = 'taller';
-    $ulrTabSlug = 'taller-sucursales';
-    $ulrTitle = 'Sucursales asociadas (Taller)';
-    $ulrSiteData = $siteData;
-    require __DIR__ . '/admin-unit-location-refs-panel.php';
-    ?>
+    </div>
 </div>

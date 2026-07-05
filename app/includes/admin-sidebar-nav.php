@@ -50,7 +50,7 @@ $generalesTabs = ['user-manual', 'project-progress-dashboard', 'global', 'global
 $rentacarContentTabs = UnitContentService::contentTabSlugs('rentacar');
 $rentacarTabs = array_merge(['hero'], $rentacarContentTabs, ['opinions', 'vehicles', 'sucursales', 'terms', 'requirements', 'contact', 'payments', 'rac-reservations', 'rac-bars-rates', 'rac-rate-rules', 'rac-addons']);
 $seminuevosContentTabs = UnitContentService::contentTabSlugs('seminuevos');
-$seminuevosTabs = array_merge(['semi-home'], $seminuevosContentTabs, ['semi-inventory', 'semi-opinions', 'semi-financing', 'semi-team', 'semi-contact']);
+$seminuevosTabs = array_merge(['semi-home'], $seminuevosContentTabs, ['semi-inventory', 'semi-opinions', 'semi-financing', 'semi-team', 'semi-sucursales', 'semi-contact']);
 $leasingContentTabs = UnitContentService::contentTabSlugs('leasing');
 $leasingTabs = array_merge(['leasing-home'], $leasingContentTabs, ['leasing-sucursales', 'leasing-flota', 'leasing-equipo', 'leasing-contacto']);
 $rentingContentTabs = UnitContentService::contentTabSlugs('renting');
@@ -176,6 +176,7 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
             <?php if (admin_can('semi_opinions')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('semi-opinions', $defaultAdminTab); ?>" id="tab-semi-opinions-nav" data-bs-toggle="pill" data-bs-target="#tab-semi-opinions" type="button" role="tab" data-admin-perm="semi_opinions"><i class="bi bi-chat-right-quote-fill me-2"></i> Opiniones de Clientes</button><?php endif; ?>
             <?php if (admin_can('semi_financing')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('semi-financing', $defaultAdminTab); ?>" id="tab-semi-financing-nav" data-bs-toggle="pill" data-bs-target="#tab-semi-financing" type="button" role="tab" data-admin-perm="semi_financing"><i class="bi bi-bank2 me-2"></i> Requisitos y Aliados Bancarios</button><?php endif; ?>
             <?php if (admin_can('semi_team')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('semi-team', $defaultAdminTab); ?>" id="tab-semi-team-nav" data-bs-toggle="pill" data-bs-target="#tab-semi-team" type="button" role="tab" data-admin-perm="semi_team"><i class="bi bi-people-fill me-2"></i> Equipo de Ventas</button><?php endif; ?>
+            <?php if (admin_can('semi_contact')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('semi-sucursales', $defaultAdminTab); ?>" id="tab-semi-sucursales-nav" data-bs-toggle="pill" data-bs-target="#tab-semi-sucursales" type="button" role="tab" data-admin-perm="semi_contact"><i class="bi bi-geo-alt-fill me-2"></i> Sucursales</button><?php endif; ?>
             <?php if (admin_can('semi_contact')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('semi-contact', $defaultAdminTab); ?>" id="tab-semi-contact-nav" data-bs-toggle="pill" data-bs-target="#tab-semi-contact" type="button" role="tab" data-admin-perm="semi_contact"><i class="bi bi-envelope-heart-fill me-2"></i> Contacto</button><?php endif; ?>
         </div>
     <?php endif; ?>

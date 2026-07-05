@@ -5538,7 +5538,9 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                         
                     </div>
 
-                    <!-- TAB 15: SEMINUEVOS CONTACTO & SUCURSALES -->
+                    <?php require __DIR__ . '/../../includes/admin-seminuevos-sucursales-tab.php'; ?>
+
+                    <!-- TAB 15: SEMINUEVOS CONTACTO -->
                     <div class="tab-pane fade" id="tab-semi-contact" role="tabpanel" aria-labelledby="tab-semi-contact-nav">
 
                         <?php $semi_contact_page = $seminuevos['contact_page'] ?? []; ?>
@@ -5581,51 +5583,6 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                             </form>
                         </div>
 
-                        <?php $semi_suc_page = $seminuevos['sucursales_page'] ?? []; ?>
-                        <div class="admin-card mb-4">
-                            <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
-                                <i class="bi bi-layout-text-window me-2 text-danger"></i>Textos de página — Sucursales Seminuevos
-                            </h5>
-                            <p class="text-muted small mb-3">
-                                Edita cabeceras de <code>/seminuevos-sucursales.php</code>. El listado de sucursales se administra abajo (CRUD).
-                            </p>
-                            <form method="POST" action="?tab=semi-contact">
-                                <input type="hidden" name="action" value="save_seminuevos_sucursales_page">
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-semibold">Título principal (H1)</label>
-                                        <input type="text" name="semi_suc_page_title" class="form-control form-control-premium" value="<?php echo esc($semi_suc_page['title'] ?? 'Sucursales'); ?>">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-semibold">Subtítulo bajo H1</label>
-                                        <input type="text" name="semi_suc_page_subtitle" class="form-control form-control-premium" value="<?php echo esc($semi_suc_page['subtitle'] ?? 'Encuentra la sucursal de seminuevos más cercana y cómo llegar.'); ?>">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-semibold">Etiqueta superior (sección)</label>
-                                        <input type="text" name="semi_suc_section_eyebrow" class="form-control form-control-premium" value="<?php echo esc($semi_suc_page['section_eyebrow'] ?? 'Nuestras Ubicaciones'); ?>">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-semibold">Título sección (H2)</label>
-                                        <input type="text" name="semi_suc_section_title" class="form-control form-control-premium" value="<?php echo esc($semi_suc_page['section_title'] ?? 'Sucursales'); ?>">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-semibold">Texto destacado en H2</label>
-                                        <input type="text" name="semi_suc_section_highlight" class="form-control form-control-premium" value="<?php echo esc($semi_suc_page['section_title_highlight'] ?? 'Automarket'); ?>">
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label fw-semibold">Subtítulo sección</label>
-                                        <input type="text" name="semi_suc_section_subtitle" class="form-control form-control-premium" value="<?php echo esc($semi_suc_page['section_subtitle'] ?? 'Visítanos en cualquiera de nuestras {count} sucursales a nivel nacional'); ?>">
-                                        <div class="form-text">Use <code>{count}</code> para el número de sucursales activas.</div>
-                                    </div>
-                                </div>
-                                <div class="text-end mt-3">
-                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
-                                        <i class="bi bi-save"></i> Guardar textos de página
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-
                         <!-- CONTACT IMAGE CARD -->
                         <div class="admin-card mb-4">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
@@ -5654,133 +5611,6 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     </div>
                                 </div>
                             </form>
-                        </div>
-
-                        <?php require __DIR__ . '/../../includes/admin-legacy-locations-notice.php'; ?>
-                        <div class="row g-4">
-
-                            <!-- LEFT: SUCURSAL FORM -->
-                            <div class="col-lg-5">
-                                <div class="admin-card">
-                                    <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="semiSucFormTitle">
-                                        <i class="bi bi-building-fill-add me-2 text-danger"></i>Agregar Sucursal
-                                    </h5>
-                                    <form method="POST" action="?tab=semi-contact" id="semiSucursalForm">
-                                        <input type="hidden" name="action" value="add_semi_sucursal" id="semiSucAction">
-                                        <input type="hidden" name="suc_id" id="semiSucId" value="">
-
-                                        <div class="mb-3">
-                                            <label for="suc_name" class="form-label">Nombre de Sucursal <span class="text-danger">*</span></label>
-                                            <input type="text" id="suc_name" name="suc_name" class="form-control form-control-premium" placeholder="Ej: Tumba Muerto" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="suc_address" class="form-label">Dirección</label>
-                                            <input type="text" id="suc_address" name="suc_address" class="form-control form-control-premium" placeholder="Av. Ricardo J. Alfaro, Panamá">
-                                        </div>
-                                        <div class="row g-3 mb-3">
-                                            <div class="col-md-6">
-                                                <label for="suc_phone" class="form-label">Teléfono</label>
-                                                <input type="text" id="suc_phone" name="suc_phone" class="form-control form-control-premium" placeholder="(507) 279-2700">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label for="suc_whatsapp" class="form-label">WhatsApp (solo número)</label>
-                                                <input type="text" id="suc_whatsapp" name="suc_whatsapp" class="form-control form-control-premium" placeholder="50767470070">
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="suc_email" class="form-label">Correo Electrónico</label>
-                                            <input type="email" id="suc_email" name="suc_email" class="form-control form-control-premium" placeholder="sucursal@automarket.com.pa">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="suc_schedule" class="form-label">Horario</label>
-                                            <input type="text" id="suc_schedule" name="suc_schedule" class="form-control form-control-premium" placeholder="Lun-Sáb: 8:00am - 6:00pm">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="suc_sort_order" class="form-label">Orden de Visualización</label>
-                                            <input type="number" id="suc_sort_order" name="suc_sort_order" class="form-control form-control-premium" value="99" min="1" max="999">
-                                            <div class="form-text">Número menor = aparece primero. Ej: 1 = primera sucursal.</div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="suc_map_url" class="form-label">URL de Mapa (Google Maps Embed)</label>
-                                            <textarea id="suc_map_url" name="suc_map_url" class="form-control form-control-premium" rows="3" placeholder="https://www.google.com/maps/embed?pb=..."></textarea>
-                                            <div class="form-text">Ir a Google Maps → Compartir → Incorporar un mapa → Copiar el src del iframe.</div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" role="switch" id="suc_active" name="suc_active" value="1" checked>
-                                                <label class="form-check-label fw-semibold" for="suc_active">Sucursal activa</label>
-                                            </div>
-                                        </div>
-
-                                        <div class="text-end d-flex justify-content-end gap-2 mt-4">
-                                            <button type="button" class="btn btn-outline-secondary d-none" id="semiSucCancelBtn" onclick="resetSemiSucursalForm()">Cancelar</button>
-                                            <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2" id="semiSucSubmitBtn">
-                                                <i class="bi bi-plus-lg"></i> <span id="semiSucSubmitText">Agregar Sucursal</span>
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-
-                            <!-- RIGHT: SUCURSALES LIST -->
-                            <div class="col-lg-7">
-                                <div class="admin-card">
-                                    <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
-                                        <i class="bi bi-building me-2 text-danger"></i>Sucursales Registradas
-                                    </h5>
-                                    <div class="table-responsive">
-                                        <table class="table table-hover align-middle">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th style="width:50px;">#</th>
-                                                    <th>Sucursal</th>
-                                                    <th>Contacto</th>
-                                                    <th>Horario</th>
-                                                    <th class="text-center">Activa</th>
-                                                    <th style="width:110px;" class="text-center">Acciones</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php if (empty($semi_sucursales)): ?>
-                                                    <tr>
-                                                        <td colspan="6" class="text-center py-4 text-muted">No hay sucursales registradas.</td>
-                                                    </tr>
-                                                <?php else: ?>
-                                                    <?php foreach ($semi_sucursales as $suc): ?>
-                                                        <tr>
-                                                            <td>
-                                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-bold"><?php echo intval($suc['sort_order'] ?? 99); ?></span>
-                                                            </td>
-                                                            <td>
-                                                                <strong class="text-navy d-block"><?php echo esc($suc['name']); ?></strong>
-                                                                <small class="text-muted"><?php echo esc($suc['address'] ?? ''); ?></small>
-                                                            </td>
-                                                            <td>
-                                                                <small class="d-block text-muted"><i class="bi bi-telephone-fill me-1"></i><?php echo esc($suc['phone'] ?? ''); ?></small>
-                                                                <small class="d-block text-muted"><i class="bi bi-envelope-fill me-1"></i><?php echo esc($suc['email'] ?? ''); ?></small>
-                                                            </td>
-                                                            <td>
-                                                                <small class="text-muted"><?php echo esc($suc['schedule'] ?? ''); ?></small>
-                                                            </td>
-                                                            <td class="text-center"><?php if (!isset($suc['active']) || $suc['active']): ?><span class="badge bg-success-subtle text-success border border-success-subtle">Sí</span><?php else: ?><span class="badge bg-secondary-subtle text-secondary border">No</span><?php endif; ?></td>
-                                                            <td class="text-center">
-                                                                <div class="d-flex justify-content-center gap-1">
-                                                                    <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditSemiSucursal(<?php echo json_encode($suc, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)' title="Editar"><i class="bi bi-pencil-fill"></i></button>
-                                                                    <form method="POST" action="?tab=semi-contact" onsubmit="return confirm('¿Eliminar esta sucursal?');" style="display:inline;">
-                                                                        <input type="hidden" name="action" value="delete_semi_sucursal">
-                                                                        <input type="hidden" name="suc_id" value="<?php echo intval($suc['id']); ?>">
-                                                                        <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="Eliminar"><i class="bi bi-trash3-fill"></i></button>
-                                                                    </form>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    <?php endforeach; ?>
-                                                <?php endif; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         <!-- MESSAGES INBOX CARD -->
@@ -5858,15 +5688,6 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 </table>
                             </div>
                         </div>
-
-                        <!-- Sucursales asociadas — maestro -->
-                        <?php
-                        $ulrUnitKey = 'seminuevos';
-                        $ulrTabSlug = 'semi-contact';
-                        $ulrTitle = 'Sucursales asociadas (Venta de Autos)';
-                        $ulrSiteData = $siteData;
-                        require __DIR__ . '/../../includes/admin-unit-location-refs-panel.php';
-                        ?>
 
                     </div>
 
@@ -6295,7 +6116,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 <i class="bi bi-layout-text-window me-2 text-danger"></i>Textos de página — Sucursales Leasing
                             </h5>
                             <p class="text-muted small mb-3">
-                                Cabecera y CTA lateral de <code>/leasing-sucursales.php</code>. Las sucursales del listado se editan abajo.
+                                Cabecera y CTA lateral de <code>/leasing-sucursales.php</code>. Asocie sucursales desde el maestro abajo.
                             </p>
                             <form method="POST" action="?tab=leasing-sucursales">
                                 <input type="hidden" name="action" value="save_leasing_sucursales_page">
@@ -6324,8 +6145,16 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 </div>
                             </form>
                         </div>
+                        <?php require __DIR__ . '/../../includes/admin-legacy-locations-notice.php'; ?>
+                        <?php
+                        $ulrUnitKey = 'leasing';
+                        $ulrTabSlug = 'leasing-sucursales';
+                        $ulrTitle = 'Sucursales asociadas (Leasing)';
+                        $ulrSiteData = $siteData;
+                        require __DIR__ . '/../../includes/admin-unit-location-refs-panel.php';
+                        ?>
+                        <div class="d-none">
                         <div class="admin-card">
-                            <?php require __DIR__ . '/../../includes/admin-legacy-locations-notice.php'; ?>
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="leasingSucursalFormTitle">
                                 <i class="bi bi-geo-alt-fill me-2 text-danger"></i>Agregar Sucursal (Leasing Operativo)
                             </h5>
@@ -6453,15 +6282,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 </table>
                             </div>
                         </div>
-
-                        <!-- Sucursales asociadas — maestro -->
-                        <?php
-                        $ulrUnitKey = 'leasing';
-                        $ulrTabSlug = 'leasing-sucursales';
-                        $ulrTitle = 'Sucursales asociadas (Leasing)';
-                        $ulrSiteData = $siteData;
-                        require __DIR__ . '/../../includes/admin-unit-location-refs-panel.php';
-                        ?>
+                        </div>
                     </div>
 
                     <!-- TAB 18: LEASING FLOTA CRUD -->

@@ -131,6 +131,14 @@ class AdminPermissionRegistry
             return 'global';
         }
 
+        if ($tabSlug === 'semi-sucursales') {
+            return 'semi_contact';
+        }
+
+        if ($tabSlug === 'renting-sucursales') {
+            return 'renting_sucursales';
+        }
+
         $perm = self::tabSlugToPermission($tabSlug);
         return in_array($perm, self::allPermissionKeys(), true) ? $perm : null;
     }

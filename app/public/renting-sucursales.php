@@ -7,6 +7,8 @@ require_once __DIR__ . '/../includes/header.php';
 
 require_once __DIR__ . '/../includes/location-public-helper.php';
 require_once __DIR__ . '/../includes/contact-locations-public-copy.php';
+require_once __DIR__ . '/../includes/location-accordion-map.php';
+am_location_map_reset();
 
 $sucursalesRaw = $contentService->get('renting.sucursales', []);
 $rentingData = $contentService->get('renting', []);
@@ -16,24 +18,11 @@ $sucursales = am_list_sucursales_for_unit($contentService, 'renting', $sucursale
 $_schemaLocationList = $sucursales;
 require_once __DIR__ . '/../includes/schema-location-itemlist.php';
 
-$hasMap = false;
-foreach ($sucursales as $s) {
-    if (trim((string)($s['lat'] ?? '')) !== '' && trim((string)($s['lng'] ?? '')) !== '') {
-        $hasMap = true;
-        break;
-    }
-}
-
 $sideImage = $contentService->get('renting.contact.contact_image_url', '');
 if (empty($sideImage)) {
     $sideImage = '/assets/img/sucursales-rac.webp';
 }
 ?>
-
-<?php if ($hasMap): ?>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<?php endif; ?>
 
 <section class="py-5" style="background-color: #f8f9fc;">
     <div class="container">
@@ -54,7 +43,7 @@ if (empty($sideImage)) {
             <?php if (empty($sucursales)): ?>
                 <div class="text-center py-5">
                     <i class="bi bi-geo-alt text-muted display-1 opacity-25"></i>
-                    <h4 class="mt-3 text-muted">No hay sucursales registradas en este momento.</h4>
+                    <h4 class="mt-3 text-muted">No hay sucursales asociadas a Renting por el momento.</h4>
                 </div>
             <?php else: ?>
                 <div class="accordion sucursales-accordion d-flex flex-column gap-3" id="rentingSucursalesAccordion">
@@ -64,8 +53,19 @@ if (empty($sideImage)) {
                         $collapseId = 'renting_sucursal_collapse_' . $sucId;
                         $sucLat     = trim((string)($suc['lat'] ?? ''));
                         $sucLng     = trim((string)($suc['lng'] ?? ''));
-                        $hasCoords  = $sucLat !== '' && $sucLng !== '';
+                        $hasCoords  = am_location_map_has_coords($sucLat, $sucLng);
                         $sucMapUrl  = trim((string)($suc['map_url'] ?? ''));
+                        if ($hasCoords) {
+                            am_location_map_register([
+                                'mapId' => 'renting_map_' . $sucId,
+                                'collapseId' => $collapseId,
+                                'lat' => $sucLat,
+                                'lng' => $sucLng,
+                                'title' => (string) ($suc['name'] ?? ''),
+                                'subtitle' => (string) ($suc['location'] ?? ''),
+                                'autoInit' => $isFirst && $hasCoords,
+                            ]);
+                        }
                     ?>
                         <div class="accordion-item border rounded-3 overflow-hidden shadow-sm" style="background-color: #ffffff;">
                             <h2 class="accordion-header mb-0">
@@ -168,51 +168,12 @@ if (empty($sideImage)) {
                                         </div>
 
                                         <div class="col-md-6 col-12 position-relative d-flex">
-                                            <?php if ($hasCoords): ?>
-                                                <div id="renting_map_<?php echo $sucId; ?>" class="rounded-3 shadow-sm border w-100 flex-grow-1" style="min-height: 280px; background-color: #f1f3f7; z-index: 1;"></div>
-                                            <?php else: ?>
-                                                <div class="rounded-3 border w-100 d-flex align-items-center justify-content-center bg-light" style="min-height: 180px;">
-                                                    <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i>Sin coordenadas registradas</span>
-                                                </div>
-                                            <?php endif; ?>
+                                            <?php am_location_map_render_container('renting_map_' . $sucId, $sucLat, $sucLng, $sucMapUrl); ?>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <?php if ($hasCoords):
-                            $mapLat = floatval($sucLat ?: 8.986518);
-                            $mapLng = floatval($sucLng ?: -79.528439);
-                        ?>
-                        <script>
-                        (function() {
-                            let map_<?php echo $sucId; ?> = null;
-                            let marker_<?php echo $sucId; ?> = null;
-                            const collapseEl_<?php echo $sucId; ?> = document.getElementById('<?php echo $collapseId; ?>');
-                            collapseEl_<?php echo $sucId; ?>.addEventListener('shown.bs.collapse', function() {
-                                if (!map_<?php echo $sucId; ?>) {
-                                    map_<?php echo $sucId; ?> = L.map('renting_map_<?php echo $sucId; ?>').setView([<?php echo $mapLat; ?>, <?php echo $mapLng; ?>], 16);
-                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                    }).addTo(map_<?php echo $sucId; ?>);
-                                    let customIcon = L.icon({
-                                        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-                                        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-                                        iconSize: [25, 41], iconAnchor: [12, 41],
-                                        popupAnchor: [1, -34], shadowSize: [41, 41]
-                                    });
-                                    marker_<?php echo $sucId; ?> = L.marker([<?php echo $mapLat; ?>, <?php echo $mapLng; ?>], { icon: customIcon })
-                                        .addTo(map_<?php echo $sucId; ?>)
-                                        .bindPopup('<span class="fw-bold"><?php echo addslashes(esc($suc['name'])); ?></span>');
-                                } else {
-                                    map_<?php echo $sucId; ?>.invalidateSize();
-                                }
-                                marker_<?php echo $sucId; ?>.openPopup();
-                            });
-                        })();
-                        </script>
-                        <?php endif; ?>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
@@ -284,4 +245,8 @@ if (empty($sideImage)) {
     }
 </style>
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php
+am_location_map_render_assets();
+am_location_map_render_boot();
+require_once __DIR__ . '/../includes/footer.php';
+?>

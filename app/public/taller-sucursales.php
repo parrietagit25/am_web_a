@@ -6,6 +6,8 @@ $activeUnit = 'taller';
 require_once __DIR__ . '/../includes/header.php';
 
 require_once __DIR__ . '/../includes/location-public-helper.php';
+require_once __DIR__ . '/../includes/location-accordion-map.php';
+am_location_map_reset();
 
 $sucursalesRaw = $contentService->get('taller.sucursales', []);
 $sucursales = am_list_sucursales_for_unit($contentService, 'taller', $sucursalesRaw);
@@ -20,9 +22,6 @@ if (empty($sideImage)) {
     $sideImage = '/assets/img/sucursales-rac.webp';
 }
 ?>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
 <section class="py-5" style="background-color: #f8f9fc;">
     <div class="container">
@@ -51,6 +50,15 @@ if (empty($sideImage)) {
                         $id = intval($suc['id']);
                         $isFirst = ($index === 0);
                         $collapseId = 'taller_sucursal_collapse_' . $id;
+                        am_location_map_register([
+                            'mapId' => 'taller_map_' . $id,
+                            'collapseId' => $collapseId,
+                            'lat' => $suc['lat'] ?? null,
+                            'lng' => $suc['lng'] ?? null,
+                            'title' => (string) ($suc['name'] ?? ''),
+                            'subtitle' => (string) ($suc['address'] ?? ''),
+                            'autoInit' => $isFirst,
+                        ]);
                     ?>
                         <div class="accordion-item border rounded-3 overflow-hidden shadow-sm bg-white">
                             <h2 class="accordion-header mb-0">
@@ -69,35 +77,12 @@ if (empty($sideImage)) {
                                             </div>
                                         </div>
                                         <div class="col-md-6 col-12 d-flex">
-                                            <div id="taller_map_<?php echo $id; ?>" class="rounded-3 shadow-sm border w-100 flex-grow-1" style="min-height: 230px; background-color: #f1f3f7;"></div>
+                                            <?php am_location_map_render_container('taller_map_' . $id, $suc['lat'] ?? '', $suc['lng'] ?? '', trim((string) ($suc['map_url'] ?? '')), 'rounded-3 shadow-sm border w-100 flex-grow-1', 230); ?>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <?php
-                        $lat = floatval($suc['lat'] ?: 8.986518);
-                        $lng = floatval($suc['lng'] ?: -79.528439);
-                        ?>
-                        <script>
-                        (function() {
-                            let mapEl = null;
-                            let marker = null;
-                            const collapseElement = document.getElementById('<?php echo $collapseId; ?>');
-                            collapseElement.addEventListener('shown.bs.collapse', function() {
-                                if (!mapEl) {
-                                    mapEl = L.map("taller_map_<?php echo $id; ?>").setView([<?php echo $lat; ?>, <?php echo $lng; ?>], 16);
-                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                    }).addTo(mapEl);
-                                    marker = L.marker([<?php echo $lat; ?>, <?php echo $lng; ?>]).addTo(mapEl);
-                                } else {
-                                    mapEl.invalidateSize();
-                                }
-                                marker.openPopup();
-                            });
-                        })();
-                        </script>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
@@ -135,4 +120,8 @@ if (empty($sideImage)) {
 @media (min-width: 992px) { .sticky-widget { position: sticky; top: 100px; z-index: 10; } }
 </style>
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php
+am_location_map_render_assets();
+am_location_map_render_boot();
+require_once __DIR__ . '/../includes/footer.php';
+?>

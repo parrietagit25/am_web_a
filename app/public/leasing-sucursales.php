@@ -6,6 +6,8 @@ $activeUnit = 'leasing';
 require_once __DIR__ . '/../includes/header.php';
 
 require_once __DIR__ . '/../includes/location-public-helper.php';
+require_once __DIR__ . '/../includes/location-accordion-map.php';
+am_location_map_reset();
 
 $sucursalesRaw = $contentService->get('leasing.sucursales', []);
 $leasingData = $contentService->get('leasing', []);
@@ -19,9 +21,6 @@ $sucursales = am_list_sucursales_for_unit($contentService, 'leasing', $sucursale
 $_schemaLocationList = $sucursales;
 require_once __DIR__ . '/../includes/schema-location-itemlist.php';
 ?>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <section class="py-5" style="background-color: #f8f9fc;">
     <div class="container">
@@ -50,6 +49,15 @@ require_once __DIR__ . '/../includes/schema-location-itemlist.php';
                         $id = intval($suc['id']);
                         $isFirst = ($index === 0);
                         $collapseId = 'leasing_sucursal_collapse_' . $id;
+                        am_location_map_register([
+                            'mapId' => 'leasing_map_' . $id,
+                            'collapseId' => $collapseId,
+                            'lat' => $suc['lat'] ?? null,
+                            'lng' => $suc['lng'] ?? null,
+                            'title' => (string) ($suc['name'] ?? ''),
+                            'subtitle' => (string) ($suc['location'] ?? ''),
+                            'autoInit' => $isFirst,
+                        ]);
                     ?>
                         <div class="accordion-item border rounded-3 overflow-hidden shadow-sm" style="background-color: #ffffff;">
                             <h2 class="accordion-header mb-0">
@@ -120,50 +128,12 @@ require_once __DIR__ . '/../includes/schema-location-itemlist.php';
                                         </div>
 
                                         <div class="col-md-6 col-12 position-relative d-flex">
-                                            <div id="leasing_map_<?php echo $id; ?>" class="rounded-3 shadow-sm border w-100 flex-grow-1" style="min-height: 280px; background-color: #f1f3f7; z-index: 1;"></div>
+                                            <?php am_location_map_render_container('leasing_map_' . $id, $suc['lat'] ?? '', $suc['lng'] ?? '', trim((string) ($suc['map_url'] ?? ''))); ?>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <?php
-                        $lat = floatval($suc['lat'] ?: 8.986518);
-                        $lng = floatval($suc['lng'] ?: -79.528439);
-                        ?>
-                        <script>
-                        (function() {
-                            let map_<?php echo $id; ?> = null;
-                            let marker_<?php echo $id; ?> = null;
-                            let collapseElement = document.getElementById('<?php echo $collapseId; ?>');
-
-                            collapseElement.addEventListener('shown.bs.collapse', function() {
-                                if (!map_<?php echo $id; ?>) {
-                                    map_<?php echo $id; ?> = L.map("leasing_map_<?php echo $id; ?>").setView([<?php echo $lat; ?>, <?php echo $lng; ?>], 16);
-
-                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                    }).addTo(map_<?php echo $id; ?>);
-
-                                    let customIcon = L.icon({
-                                        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-                                        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-                                        iconSize: [25, 41],
-                                        iconAnchor: [12, 41],
-                                        popupAnchor: [1, -34],
-                                        shadowSize: [41, 41]
-                                    });
-
-                                    marker_<?php echo $id; ?> = L.marker([<?php echo $lat; ?>, <?php echo $lng; ?>], { icon: customIcon })
-                                        .addTo(map_<?php echo $id; ?>)
-                                        .bindPopup('<span class="fw-bold text-navy"><?php echo esc($suc['name']); ?></span><br><small class="text-muted"><?php echo esc($suc['location']); ?></small>');
-                                } else {
-                                    map_<?php echo $id; ?>.invalidateSize();
-                                }
-                                marker_<?php echo $id; ?>.openPopup();
-                            });
-                        })();
-                        </script>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
@@ -235,4 +205,8 @@ require_once __DIR__ . '/../includes/schema-location-itemlist.php';
     }
 </style>
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php
+am_location_map_render_assets();
+am_location_map_render_boot();
+require_once __DIR__ . '/../includes/footer.php';
+?>
