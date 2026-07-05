@@ -142,6 +142,10 @@ class AdminPermissionRegistry
             return null;
         }
 
+        if ($action === 'save_unit_location_refs') {
+            return self::permissionForUnitLocationRefKey(trim((string) ($_POST['ulr_unit_key'] ?? '')));
+        }
+
         static $exact = null;
         if ($exact === null) {
             $exact = self::buildActionPermissionMap();
@@ -163,7 +167,9 @@ class AdminPermissionRegistry
             'edit_global_sucursal' => 'global_sucursales',
             'delete_global_sucursal' => 'global_sucursales',
             'sync_global_sucursales' => 'global_sucursales',
+            'sync_global_from_master' => 'global_sucursales',
             'save_location' => 'locations_master',
+            'create_location' => 'locations_master',
             'save_translations' => 'translations',
             'save_chatbot' => 'chatbot',
             'save_seo_global' => 'seo',
@@ -415,5 +421,20 @@ class AdminPermissionRegistry
         }
 
         return null;
+    }
+
+    /** Permiso según ulr_unit_key del panel de asociaciones location_refs. */
+    public static function permissionForUnitLocationRefKey(string $unitKey): ?string
+    {
+        static $map = [
+            'rentacar'   => 'sucursales',
+            'seminuevos' => 'semi_contact',
+            'leasing'    => 'leasing_sucursales',
+            'renting'    => 'renting_sucursales',
+            'taller'     => 'taller_sucursales',
+            'footer'     => 'footer',
+        ];
+
+        return $map[$unitKey] ?? null;
     }
 }

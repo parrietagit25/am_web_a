@@ -89,6 +89,7 @@ function am_map_master_to_sucursales_card(array $row, int $index): array
 
     return [
         'id'         => $numericId,
+        'location_id'=> trim((string) ($row['id'] ?? '')),
         'slug'       => trim((string) ($row['slug'] ?? '')),
         'name'       => trim((string) ($row['name'] ?? '')),
         'location'   => trim((string) ($row['location_label'] ?? ($row['location'] ?? ''))),

@@ -265,6 +265,64 @@ class LocationAdminService
     }
 
     /**
+     * Alta controlada en el maestro locations[] — solo desde Generales → Sucursales maestro.
+     *
+     * @param array<string, mixed> $siteData
+     * @return array{ok: bool, error: string, backup: string, location_id: string}
+     */
+    public static function createFromPost(array &$siteData, array $post): array
+    {
+        $name = trim((string) ($post['name'] ?? ''));
+        if ($name === '') {
+            return ['ok' => false, 'error' => 'El nombre es obligatorio.', 'backup' => '', 'location_id' => ''];
+        }
+
+        $newId = self::generateNextLocationId($siteData);
+
+        if (!isset($siteData['locations']) || !is_array($siteData['locations'])) {
+            $siteData['locations'] = [];
+        }
+
+        $siteData['locations'][] = [
+            'id'         => $newId,
+            'slug'       => '',
+            'name'       => $name,
+            'active'     => true,
+            'sort_order' => (int) ($post['sort_order'] ?? 99),
+            'country'    => 'PA',
+            'city'       => 'Ciudad de Panamá',
+            'phones'     => [],
+            'hours'      => ['display' => ''],
+            'units'      => [],
+            'meta'       => [
+                'created_at' => date('c'),
+                'sources'    => ['admin.create'],
+            ],
+        ];
+
+        $post['location_id'] = $newId;
+
+        return self::saveFromPost($siteData, $post);
+    }
+
+    /** Genera el siguiente id loc_XXX disponible en locations[]. */
+    private static function generateNextLocationId(array $siteData): string
+    {
+        $max = 0;
+        foreach ($siteData['locations'] ?? [] as $loc) {
+            if (!is_array($loc)) {
+                continue;
+            }
+            $id = trim((string) ($loc['id'] ?? ''));
+            if (preg_match('/^loc_(\d+)$/', $id, $m)) {
+                $max = max($max, (int) $m[1]);
+            }
+        }
+
+        return 'loc_' . str_pad((string) ($max + 1), 3, '0', STR_PAD_LEFT);
+    }
+
+    /**
      * @param array<string, mixed> $siteData
      */
     private static function syncUnitRef(

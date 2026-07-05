@@ -54,22 +54,42 @@ $unitHomeLinks = [
 ];
 $currentUnitHome = $unitHomeLinks[$activeUnit] ?? ['url' => '/rent-a-car.php', 'label' => 'Rent A Car'];
 
-// Load Seminuevos sucursales
-$semiSucursales = $siteData['seminuevos']['sucursales'] ?? [];
-usort($semiSucursales, function($a, $b) {
-    return intval($a['sort_order'] ?? 99) - intval($b['sort_order'] ?? 99);
-});
-$activeSucursales = array_values(array_filter($semiSucursales, function ($s) {
+require_once __DIR__ . '/../includes/location-public-helper.php';
+
+// Load Seminuevos sucursales — dual-read maestro + legacy
+$legacySemiSucursales = $siteData['seminuevos']['sucursales'] ?? [];
+$activeSucursales = am_list_sucursales_for_unit($contentService, 'seminuevos', $legacySemiSucursales);
+$activeSucursales = array_values(array_filter($activeSucursales, function ($s) {
     if (($s['active'] ?? true) === false) {
         return false;
     }
     $name = mb_strtolower(trim($s['name'] ?? ''), 'UTF-8');
-    // No ofrecer Penonomé en el formulario de contacto Seminuevos
     if (preg_match('/penonom/u', $name)) {
         return false;
     }
-    return true;
+    return trim((string) ($s['name'] ?? '')) !== '';
 }));
+// Enriquecer location_id desde maestro cuando el listado viene de legacy
+$locationService = new LocationService($siteData);
+foreach ($activeSucursales as $i => $suc) {
+    if (!empty($suc['location_id'])) {
+        continue;
+    }
+    $slug = trim((string) ($suc['slug'] ?? ''));
+    if ($slug !== '') {
+        $bySlug = $locationService->getBySlug($slug);
+        if ($bySlug !== null) {
+            $activeSucursales[$i]['location_id'] = (string) ($bySlug['id'] ?? '');
+            continue;
+        }
+    }
+    require_once __DIR__ . '/../includes/admin-location-helper.php';
+    $matched = admin_match_location_by_legacy_name($siteData, (string) ($suc['name'] ?? ''));
+    if ($matched !== null) {
+        $activeSucursales[$i]['location_id'] = (string) ($matched['id'] ?? '');
+    }
+}
+unset($suc);
 $semiContactPage = semi_contact_page_copy($semiUnitData);
 ?>
 
@@ -199,7 +219,11 @@ $semiContactPage = semi_contact_page_copy($semiUnitData);
                             <select id="contact_branch" name="branch" class="form-control form-select py-3 bg-white">
                                 <option value="">&mdash; Seleccione una sucursal &mdash;</option>
                                 <?php foreach ($activeSucursales as $suc): ?>
-                                    <option value="<?php echo esc($suc['name']); ?>"><?php echo esc($suc['name']); ?></option>
+                                    <?php
+                                    $locId = trim((string) ($suc['location_id'] ?? ''));
+                                    $optVal = $locId !== '' ? $locId : (string) ($suc['name'] ?? '');
+                                    ?>
+                                    <option value="<?php echo esc($optVal); ?>" data-branch-label="<?php echo esc($suc['name'] ?? ''); ?>"><?php echo esc($suc['name'] ?? ''); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -295,6 +319,11 @@ async function handleContactSubmit(event) {
     var consent     = document.getElementById('consent').checked;
     var branchEl    = document.getElementById('contact_branch');
     var branch      = branchEl ? branchEl.value : '';
+    var branchLabel = '';
+    if (branchEl && branchEl.selectedIndex >= 0) {
+        var selOpt = branchEl.options[branchEl.selectedIndex];
+        branchLabel = selOpt.getAttribute('data-branch-label') || selOpt.text || branch;
+    }
 
     if (!firstName || !lastName || !email || !phone || !autoInteres) {
         errorMessage.innerText = 'Por favor, llene todos los campos obligatorios.';
@@ -323,7 +352,9 @@ async function handleContactSubmit(event) {
                 phone: phone,
                 auto_interes: autoInteres,
                 provincia: provincia,
-                branch: branch,
+                location_id: branch,
+                branch: branchLabel,
+                branch_label: branchLabel,
                 consent: consent
             })
         });

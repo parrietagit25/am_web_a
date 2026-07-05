@@ -37,6 +37,34 @@ $phone = trim((string) ($input['phone'] ?? ''));
 $autoInteres = trim((string) ($input['auto_interes'] ?? ''));
 $provincia = trim((string) ($input['provincia'] ?? ''));
 $branch = trim((string) ($input['branch'] ?? ''));
+$branchLabel = trim((string) ($input['branch_label'] ?? $branch));
+$locationId = trim((string) ($input['location_id'] ?? ''));
+$legacyBranchWarning = false;
+
+require_once __DIR__ . '/../includes/admin-location-helper.php';
+$contentService = new ContentService();
+$siteData = $contentService->getAll();
+
+if ($locationId !== '') {
+    $locResolved = admin_resolve_agent_location_post($siteData, $locationId, $branchLabel);
+    if (!$locResolved['ok']) {
+        http_response_code(422);
+        echo json_encode(['status' => 'error', 'message' => $locResolved['error']]);
+        exit;
+    }
+    $branch = $locResolved['branch_label'];
+    $locationId = $locResolved['location_id'];
+    $legacyBranchWarning = $locResolved['legacy_warning'];
+} elseif ($branch !== '') {
+    $locResolved = admin_resolve_agent_location_post($siteData, '', $branch);
+    $branch = $locResolved['branch_label'] !== '' ? $locResolved['branch_label'] : $branch;
+    $locationId = $locResolved['location_id'];
+    $legacyBranchWarning = $locResolved['legacy_warning'] || !$locResolved['ok'];
+    if ($legacyBranchWarning && function_exists('error_log')) {
+        error_log('[seminuevos-lead] branch legacy sin mapeo maestro: ' . $branch);
+    }
+}
+
 $consent = !empty($input['consent']);
 
 if ($name === '' || strlen($name) < 3) {
@@ -82,9 +110,6 @@ $n8nResult = $n8nService->submitLead([
     'provincia' => $provincia,
 ]);
 
-$contentService = new ContentService();
-$siteData = $contentService->getAll();
-
 $newMessage = [
     'id' => time() . '_' . rand(1000, 9999),
     'date' => date('Y-m-d H:i:s'),
@@ -96,8 +121,12 @@ $newMessage = [
     'provincia' => $provincia,
     'unit' => 'Seminuevos',
     'branch' => $branch,
+    'location_id' => $locationId,
     'crm' => $n8nResult['data'] ?? null,
 ];
+if ($legacyBranchWarning) {
+    $newMessage['branch_legacy_warning'] = true;
+}
 
 $saved = $contentService->appendSeminuevosContactMessage($newMessage);
 if ($saved) {

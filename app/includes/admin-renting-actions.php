@@ -824,77 +824,25 @@ elseif ($action === 'save_renting_social_links') {
     }
 }
 elseif ($action === 'save_renting_branches') {
-    if (!isset($siteData['renting'])) {
-        $siteData['renting'] = [];
-    }
-    $branchNames     = $_POST['branch_name']      ?? [];
-    $branchAddresses = $_POST['branch_address']   ?? [];
-    $branchPhones    = $_POST['branch_phone']     ?? [];
-    $branchWhatsapps = $_POST['branch_whatsapp']  ?? [];
-    $branchEmails    = $_POST['branch_email']     ?? [];
-    $branchSchedules = $_POST['branch_schedule']  ?? [];
-    $branchMapUrls   = $_POST['branch_map_url']   ?? [];
-    $branchImageUrls = $_POST['branch_image_url'] ?? [];
-    $rentingBranches = [];
-    foreach ($branchNames as $i => $n) {
-        $n = trim((string)$n);
-        if ($n === '') {
-            continue;
-        }
-        $rentingBranches[] = [
-            'name'      => $n,
-            'address'   => trim((string)($branchAddresses[$i]  ?? '')),
-            'phone'     => trim((string)($branchPhones[$i]     ?? '')),
-            'whatsapp'  => trim((string)($branchWhatsapps[$i]  ?? '')),
-            'email'     => trim((string)($branchEmails[$i]     ?? '')),
-            'schedule'  => trim((string)($branchSchedules[$i]  ?? '')),
-            'map_url'   => trim((string)($branchMapUrls[$i]    ?? '')),
-            'image_url' => trim((string)($branchImageUrls[$i]  ?? '')),
-        ];
-    }
-    $siteData['renting']['branches'] = $rentingBranches;
-    if ($contentService->saveAll($siteData)) {
-        $successMsg = 'Sucursales de Renting guardadas correctamente.';
+    if (!isset($_POST['ulr_location_id'])) {
+        $errorMsg = 'El formulario legacy de sucursales por texto libre está deshabilitado. Use el panel «Asociar sucursales del maestro».';
     } else {
-        $errorMsg = 'Error al guardar las sucursales de Renting.';
+        require_once __DIR__ . '/admin-location-helper.php';
+        $_POST['ulr_unit_key'] = 'renting';
+        $applyError = admin_apply_unit_location_refs_post($siteData, $_POST);
+        if ($applyError !== null) {
+            $errorMsg = $applyError;
+        } elseif ($contentService->saveAll($siteData)) {
+            $successMsg = 'Asociaciones de sucursales guardadas correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar las asociaciones de sucursales.';
+        }
     }
 }
 
-// ADD RENTING SUCURSAL
+// ADD RENTING SUCURSAL — bloqueado
 elseif ($action === 'add_renting_sucursal') {
-    if (!isset($siteData['renting']['sucursales'])) {
-        $siteData['renting']['sucursales'] = [];
-    }
-    $name    = trim($_POST['renting_sucursal_name']    ?? '');
-    $address = trim($_POST['renting_sucursal_address'] ?? '');
-    $lat     = trim($_POST['renting_sucursal_lat']     ?? '');
-    $lng     = trim($_POST['renting_sucursal_lng']     ?? '');
-    if (!empty($name) && !empty($address) && $lat !== '' && $lng !== '') {
-        $existingIds = array_map('intval', array_column($siteData['renting']['sucursales'], 'id'));
-        $newId = !empty($existingIds) ? (max($existingIds) + 1) : 1;
-        $siteData['renting']['sucursales'][] = [
-            'id'         => $newId,
-            'name'       => $name,
-            'location'   => trim($_POST['renting_sucursal_location']       ?? ''),
-            'address'    => $address,
-            'schedule'   => trim($_POST['renting_sucursal_schedule']       ?? ''),
-            'phone'      => trim($_POST['renting_sucursal_phone']          ?? ''),
-            'email'      => trim($_POST['renting_sucursal_email']          ?? ''),
-            'whatsapp'   => trim($_POST['renting_sucursal_whatsapp']       ?? ''),
-            'map_url'    => trim($_POST['renting_sucursal_map_url']        ?? ''),
-            'lat'        => $lat,
-            'lng'        => $lng,
-            'sort_order' => intval($_POST['renting_sucursal_sort_order']   ?? 0),
-            'active'     => isset($_POST['renting_sucursal_active']) && $_POST['renting_sucursal_active'] == '1',
-        ];
-        if ($contentService->saveAll($siteData)) {
-            $successMsg = 'Sucursal de Renting agregada correctamente.';
-        } else {
-            $errorMsg = 'Error al guardar la sucursal.';
-        }
-    } else {
-        $errorMsg = 'Nombre, dirección, latitud y longitud son obligatorios.';
-    }
+    $errorMsg = 'La creación manual de sucursales está deshabilitada. Use Sucursales maestro y el panel de asociaciones.';
 }
 
 // EDIT RENTING SUCURSAL

@@ -3,9 +3,17 @@ require_once __DIR__ . '/../services/LocationAdminService.php';
 
 $locationsMasterList = LocationAdminService::sortedLocations($siteData);
 $editLocationId = trim((string) ($_GET['location_id'] ?? ''));
+$createMode = ($editLocationId === 'new');
 $editLocation = null;
 
-if ($editLocationId !== '') {
+if ($createMode) {
+    $editLocation = [
+        'active'     => true,
+        'sort_order' => 99,
+        'country'    => 'PA',
+        'city'       => 'Ciudad de Panamá',
+    ];
+} elseif ($editLocationId !== '') {
     foreach ($locationsMasterList as $loc) {
         if (($loc['id'] ?? '') === $editLocationId) {
             $editLocation = $loc;
@@ -44,7 +52,13 @@ if ($editLocation !== null) {
     <div class="row g-4">
         <div class="col-lg-5">
             <div class="admin-card h-100">
-                <h6 class="fw-bold text-navy mb-3"><i class="bi bi-list-ul me-2"></i>Ubicaciones (<?php echo count($locationsMasterList); ?>)</h6>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-navy mb-0"><i class="bi bi-list-ul me-2"></i>Ubicaciones (<?php echo count($locationsMasterList); ?>)</h6>
+                    <a href="?tab=locations-master&amp;location_id=new"
+                       class="btn btn-sm btn-premium rounded-pill">
+                        <i class="bi bi-plus-lg me-1"></i>Nueva ubicación
+                    </a>
+                </div>
                 <?php if (empty($locationsMasterList)): ?>
                     <p class="text-muted mb-0">No hay ubicaciones en el maestro. Ejecute la migración 3C-A1 en producción.</p>
                 <?php else: ?>
@@ -68,7 +82,7 @@ if ($editLocation !== null) {
                                         }
                                     }
                                 ?>
-                                <tr class="<?php echo $editLocationId === $lid ? 'table-primary' : ''; ?>">
+                                <tr class="<?php echo (!$createMode && $editLocationId === $lid) ? 'table-primary' : ''; ?>">
                                     <td>
                                         <div class="fw-semibold"><?php echo esc($loc['name'] ?? ''); ?></div>
                                         <small class="text-muted"><?php echo esc($loc['slug'] ?? ''); ?></small>
@@ -105,17 +119,25 @@ if ($editLocation !== null) {
         <div class="col-lg-7">
             <div class="admin-card">
                 <?php if ($editLocation === null): ?>
-                    <p class="text-muted mb-0">Seleccione una ubicación de la lista para editarla.</p>
+                    <p class="text-muted mb-3">Seleccione una ubicación de la lista para editarla, o cree una nueva.</p>
+                    <a href="?tab=locations-master&amp;location_id=new" class="btn btn-premium btn-sm">
+                        <i class="bi bi-plus-lg me-1"></i>Nueva ubicación
+                    </a>
                 <?php else: ?>
                     <h6 class="fw-bold text-navy mb-3">
-                        <i class="bi bi-pencil-square me-2"></i>Editar: <?php echo esc($editLocation['name'] ?? ''); ?>
+                        <i class="bi bi-<?php echo $createMode ? 'plus-circle' : 'pencil-square'; ?> me-2"></i>
+                        <?php echo $createMode ? 'Nueva ubicación' : 'Editar: ' . esc($editLocation['name'] ?? ''); ?>
+                        <?php if (!$createMode): ?>
                         <span class="text-muted fw-normal small">(<?php echo esc($editLocation['id'] ?? ''); ?>)</span>
+                        <?php endif; ?>
                     </h6>
 
-                    <form method="POST" action="?tab=locations-master&amp;location_id=<?php echo urlencode($editLocationId); ?>">
-                        <input type="hidden" name="action" value="save_location">
+                    <form method="POST" action="?tab=locations-master<?php echo $createMode ? '&amp;location_id=new' : '&amp;location_id=' . urlencode($editLocationId); ?>">
+                        <input type="hidden" name="action" value="<?php echo $createMode ? 'create_location' : 'save_location'; ?>">
                         <input type="hidden" name="admin_tab" value="locations-master">
+                        <?php if (!$createMode): ?>
                         <input type="hidden" name="location_id" value="<?php echo esc($editLocationId); ?>">
+                        <?php endif; ?>
 
                         <div class="row g-3">
                             <div class="col-md-8">
@@ -217,8 +239,11 @@ if ($editLocation !== null) {
 
                         <?php foreach (LocationAdminService::UNIT_KEYS as $unitKey):
                             $unitLabel = LocationAdminService::UNIT_LABELS[$unitKey] ?? $unitKey;
-                            $associated = LocationAdminService::isUnitAssociated($siteData, $editLocationId, $unitKey);
-                            $unitRef = LocationAdminService::getUnitRef($siteData, $editLocationId, $unitKey) ?? [];
+                            $formLocationId = $createMode ? '' : $editLocationId;
+                            $associated = $formLocationId !== '' && LocationAdminService::isUnitAssociated($siteData, $formLocationId, $unitKey);
+                            $unitRef = $formLocationId !== ''
+                                ? (LocationAdminService::getUnitRef($siteData, $formLocationId, $unitKey) ?? [])
+                                : [];
                             $unitOverride = is_array($editLocation['units'][$unitKey] ?? null)
                                 ? $editLocation['units'][$unitKey]
                                 : [];
@@ -291,7 +316,7 @@ if ($editLocation !== null) {
 
                         <div class="text-end">
                             <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
-                                <i class="bi bi-save2"></i> Guardar ubicación
+                                <i class="bi bi-save2"></i> <?php echo $createMode ? 'Crear ubicación' : 'Guardar ubicación'; ?>
                             </button>
                         </div>
                     </form>

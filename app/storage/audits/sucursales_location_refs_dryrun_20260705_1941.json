@@ -1,0 +1,917 @@
+{
+    "generated_at": "2026-07-05T19:41:19+02:00",
+    "mode": "dry-run",
+    "site_data_path": "C:\\Users\\pedro.arrieta\\Desktop\\pagina_nueva\\web_am_a\\scripts\/..\/app\/storage\/site_data.json",
+    "locations_count": 20,
+    "stats": {
+        "exact_id": 0,
+        "exact_slug": 0,
+        "name_match": 73,
+        "not_found": 17,
+        "duplicate_names": 0
+    },
+    "duplicate_name_keys": [],
+    "results": [
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 0,
+            "legacy_name": "Aeropuerto Internacional de Tocumen T1",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_001",
+            "matched_name": "Aeropuerto Internacional de Tocumen T1"
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 1,
+            "legacy_name": "Boquete",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_002",
+            "matched_name": "Boquete"
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 2,
+            "legacy_name": "Hotel Torres de Alba",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_003",
+            "matched_name": "Hotel Torres de Alba"
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 3,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 4,
+            "legacy_name": "Aeropuerto Enrique Malek",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": ""
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 5,
+            "legacy_name": "Vía Israel",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_006",
+            "matched_name": "Vía Israel"
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 6,
+            "legacy_name": "Aeropuerto de Albrook",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_007",
+            "matched_name": "Aeropuerto de Albrook"
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 7,
+            "legacy_name": "Tocumen Commercial Park",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_008",
+            "matched_name": "Tocumen Commercial Park"
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 8,
+            "legacy_name": "Chorrera",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": ""
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 9,
+            "legacy_name": "Penonomé",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_010",
+            "matched_name": "Penonomé"
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 10,
+            "legacy_name": "Santiago",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_011",
+            "matched_name": "Santiago"
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 11,
+            "legacy_name": "Atriomall",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": ""
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 12,
+            "legacy_name": "Chitré",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_013",
+            "matched_name": "Chitré"
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 13,
+            "legacy_name": "David",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": ""
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 14,
+            "legacy_name": "Río Hato",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_015",
+            "matched_name": "Río Hato"
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 15,
+            "legacy_name": "Playa Venao",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_016",
+            "matched_name": "Playa Venao"
+        },
+        {
+            "module": "RAC sucursales",
+            "path": "homepage.sucursales",
+            "index": 16,
+            "legacy_name": "Panamá Pacífico",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_017",
+            "matched_name": "Panamá Pacífico"
+        },
+        {
+            "module": "Seminuevos sucursales",
+            "path": "seminuevos.sucursales",
+            "index": 0,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "Seminuevos sucursales",
+            "path": "seminuevos.sucursales",
+            "index": 1,
+            "legacy_name": "Vía Israel",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_006",
+            "matched_name": "Vía Israel"
+        },
+        {
+            "module": "Seminuevos sucursales",
+            "path": "seminuevos.sucursales",
+            "index": 2,
+            "legacy_name": "Costa Verde",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_019",
+            "matched_name": "Costa Verde"
+        },
+        {
+            "module": "Seminuevos sucursales",
+            "path": "seminuevos.sucursales",
+            "index": 3,
+            "legacy_name": "David, Chiriquí",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_005",
+            "matched_name": "Aeropuerto Enrique Malek (David)"
+        },
+        {
+            "module": "Seminuevos sucursales",
+            "path": "seminuevos.sucursales",
+            "index": 4,
+            "legacy_name": "Penonomé, Coclé",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_010",
+            "matched_name": "Penonomé"
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 0,
+            "legacy_name": "Aeropuerto Internacional de Tocumen T1",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_001",
+            "matched_name": "Aeropuerto Internacional de Tocumen T1"
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 1,
+            "legacy_name": "Boquete",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_002",
+            "matched_name": "Boquete"
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 2,
+            "legacy_name": "Hotel Torres de Alba",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_003",
+            "matched_name": "Hotel Torres de Alba"
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 3,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 4,
+            "legacy_name": "Aeropuerto Enrique Malek",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": ""
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 5,
+            "legacy_name": "Vía Israel",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_006",
+            "matched_name": "Vía Israel"
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 6,
+            "legacy_name": "Aeropuerto de Albrook",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_007",
+            "matched_name": "Aeropuerto de Albrook"
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 7,
+            "legacy_name": "Tocumen Commercial Park",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_008",
+            "matched_name": "Tocumen Commercial Park"
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 8,
+            "legacy_name": "Chorrera",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": ""
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 9,
+            "legacy_name": "Penonomé",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_010",
+            "matched_name": "Penonomé"
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 10,
+            "legacy_name": "Santiago",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_011",
+            "matched_name": "Santiago"
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 11,
+            "legacy_name": "Atriomall",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": ""
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 12,
+            "legacy_name": "Chitré",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_013",
+            "matched_name": "Chitré"
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 13,
+            "legacy_name": "David",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": ""
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 14,
+            "legacy_name": "Río Hato",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_015",
+            "matched_name": "Río Hato"
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 15,
+            "legacy_name": "Playa Venao",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_016",
+            "matched_name": "Playa Venao"
+        },
+        {
+            "module": "Leasing sucursales",
+            "path": "leasing.sucursales",
+            "index": 16,
+            "legacy_name": "Panamá Pacífico",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_017",
+            "matched_name": "Panamá Pacífico"
+        },
+        {
+            "module": "Taller sucursales",
+            "path": "taller.sucursales",
+            "index": 0,
+            "legacy_name": "Tocumen Commercial Park",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_008",
+            "matched_name": "Tocumen Commercial Park"
+        },
+        {
+            "module": "Taller sucursales",
+            "path": "taller.sucursales",
+            "index": 1,
+            "legacy_name": "Costa Verde",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_019",
+            "matched_name": "Costa Verde"
+        },
+        {
+            "module": "Taller sucursales",
+            "path": "taller.sucursales",
+            "index": 2,
+            "legacy_name": "Penonome",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_010",
+            "matched_name": "Penonomé"
+        },
+        {
+            "module": "Footer sucursales",
+            "path": "footer.sucursales",
+            "index": 0,
+            "legacy_name": "Tocumen Commercial Park",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_008",
+            "matched_name": "Tocumen Commercial Park"
+        },
+        {
+            "module": "Footer sucursales",
+            "path": "footer.sucursales",
+            "index": 1,
+            "legacy_name": "Aeropuerto Internacional de Tocumen T1",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_001",
+            "matched_name": "Aeropuerto Internacional de Tocumen T1"
+        },
+        {
+            "module": "Footer sucursales",
+            "path": "footer.sucursales",
+            "index": 2,
+            "legacy_name": "Torres de Alba",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": ""
+        },
+        {
+            "module": "Footer sucursales",
+            "path": "footer.sucursales",
+            "index": 3,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "Footer sucursales",
+            "path": "footer.sucursales",
+            "index": 4,
+            "legacy_name": "Vía Israel",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_006",
+            "matched_name": "Vía Israel"
+        },
+        {
+            "module": "Footer sucursales",
+            "path": "footer.sucursales",
+            "index": 5,
+            "legacy_name": "Atrio Costa del Este",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": ""
+        },
+        {
+            "module": "Footer sucursales",
+            "path": "footer.sucursales",
+            "index": 6,
+            "legacy_name": "Casco Antiguo",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_018",
+            "matched_name": "Casco Antiguo"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 0,
+            "legacy_name": "Aeropuerto Internacional de Tocumen T1",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_001",
+            "matched_name": "Aeropuerto Internacional de Tocumen T1"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 1,
+            "legacy_name": "Boquete",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_002",
+            "matched_name": "Boquete"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 2,
+            "legacy_name": "Hotel Torres de Alba",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_003",
+            "matched_name": "Hotel Torres de Alba"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 3,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 4,
+            "legacy_name": "Aeropuerto Enrique Malek",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": ""
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 5,
+            "legacy_name": "Vía Israel",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_006",
+            "matched_name": "Vía Israel"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 6,
+            "legacy_name": "Aeropuerto de Albrook",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_007",
+            "matched_name": "Aeropuerto de Albrook"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 7,
+            "legacy_name": "Tocumen Commercial Park",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_008",
+            "matched_name": "Tocumen Commercial Park"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 8,
+            "legacy_name": "Chorrera",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": ""
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 9,
+            "legacy_name": "Penonomé",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_010",
+            "matched_name": "Penonomé"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 10,
+            "legacy_name": "Santiago",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_011",
+            "matched_name": "Santiago"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 11,
+            "legacy_name": "Atriomall",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": ""
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 12,
+            "legacy_name": "Chitré",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_013",
+            "matched_name": "Chitré"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 13,
+            "legacy_name": "David",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": ""
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 14,
+            "legacy_name": "Río Hato",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_015",
+            "matched_name": "Río Hato"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 15,
+            "legacy_name": "Playa Venao",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_016",
+            "matched_name": "Playa Venao"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 16,
+            "legacy_name": "Panamá Pacífico",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_017",
+            "matched_name": "Panamá Pacífico"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 17,
+            "legacy_name": "Costa Verde",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_019",
+            "matched_name": "Costa Verde"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 18,
+            "legacy_name": "David, Chiriquí",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_005",
+            "matched_name": "Aeropuerto Enrique Malek (David)"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 19,
+            "legacy_name": "Penonomé, Coclé",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_010",
+            "matched_name": "Penonomé"
+        },
+        {
+            "module": "Global sucursales",
+            "path": "global.sucursales",
+            "index": 20,
+            "legacy_name": "Prueba",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": ""
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 0,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 1,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 2,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 3,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 4,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 5,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 6,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 7,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 8,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 9,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 10,
+            "legacy_name": "Tumba Muerto",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_004",
+            "matched_name": "Tumba Muerto"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 11,
+            "legacy_name": "Vía Israel",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_006",
+            "matched_name": "Vía Israel"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 12,
+            "legacy_name": "Vía Israel",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_006",
+            "matched_name": "Vía Israel"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 13,
+            "legacy_name": "Vía Israel",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_006",
+            "matched_name": "Vía Israel"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 14,
+            "legacy_name": "Vía Israel",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_006",
+            "matched_name": "Vía Israel"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 15,
+            "legacy_name": "Vía Israel",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_006",
+            "matched_name": "Vía Israel"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 16,
+            "legacy_name": "Costa Verde",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_019",
+            "matched_name": "Costa Verde"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 17,
+            "legacy_name": "Costa Verde",
+            "legacy_location_id": "",
+            "match_type": "name_match",
+            "matched_location_id": "loc_019",
+            "matched_name": "Costa Verde"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 18,
+            "legacy_name": "Chiriquí",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": "Chiriquí"
+        },
+        {
+            "module": "Equipo seminuevos",
+            "path": "seminuevos.team.agents",
+            "index": 19,
+            "legacy_name": "Chiriquí",
+            "legacy_location_id": "",
+            "match_type": "not_found",
+            "matched_location_id": "",
+            "matched_name": "Chiriquí"
+        }
+    ],
+    "apply_summary": null
+}

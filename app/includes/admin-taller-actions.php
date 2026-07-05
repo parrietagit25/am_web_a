@@ -158,37 +158,7 @@ elseif ($action === 'delete_taller_contact_message') {
     }
 }
 elseif ($action === 'add_taller_sucursal') {
-    if (!isset($siteData['taller']['sucursales'])) {
-        $siteData['taller']['sucursales'] = [];
-    }
-    $name = trim($_POST['taller_sucursal_name'] ?? '');
-    $location = trim($_POST['taller_sucursal_location'] ?? '');
-    $address = trim($_POST['taller_sucursal_address'] ?? '');
-    $schedule = trim($_POST['taller_sucursal_schedule'] ?? '');
-    $phone = trim($_POST['taller_sucursal_phone'] ?? '');
-    $lat = trim($_POST['taller_sucursal_lat'] ?? '');
-    $lng = trim($_POST['taller_sucursal_lng'] ?? '');
-    if (!empty($name) && !empty($address) && $lat !== '' && $lng !== '') {
-        $siteData['taller']['sucursales'][] = [
-            'id'         => time(),
-            'name'       => $name,
-            'location'   => $location,
-            'address'    => $address,
-            'schedule'   => $schedule,
-            'phone'      => $phone,
-            'lat'        => $lat,
-            'lng'        => $lng,
-            'sort_order' => intval($_POST['taller_sucursal_sort_order'] ?? 0),
-            'active'     => isset($_POST['taller_sucursal_active']) && $_POST['taller_sucursal_active'] == '1',
-        ];
-        if ($contentService->saveAll($siteData)) {
-            $successMsg = 'Sucursal de Taller agregada correctamente.';
-        } else {
-            $errorMsg = 'Error al guardar la sucursal.';
-        }
-    } else {
-        $errorMsg = 'Nombre, dirección, latitud y longitud son obligatorios.';
-    }
+    $errorMsg = 'La creación manual de sucursales está deshabilitada. Use Sucursales maestro y el panel de asociaciones.';
 }
 elseif ($action === 'edit_taller_sucursal') {
     $id = intval($_POST['taller_sucursal_id'] ?? 0);
@@ -610,38 +580,18 @@ elseif ($action === 'save_taller_social_links') {
     }
 }
 elseif ($action === 'save_taller_branches') {
-    if (!isset($siteData['taller'])) {
-        $siteData['taller'] = [];
-    }
-    $branchNames     = $_POST['branch_name']      ?? [];
-    $branchAddresses = $_POST['branch_address']   ?? [];
-    $branchPhones    = $_POST['branch_phone']     ?? [];
-    $branchWhatsapps = $_POST['branch_whatsapp']  ?? [];
-    $branchEmails    = $_POST['branch_email']     ?? [];
-    $branchSchedules = $_POST['branch_schedule']  ?? [];
-    $branchMapUrls   = $_POST['branch_map_url']   ?? [];
-    $branchImageUrls = $_POST['branch_image_url'] ?? [];
-    $tallerBranches = [];
-    foreach ($branchNames as $i => $n) {
-        $n = trim((string)$n);
-        if ($n === '') {
-            continue;
-        }
-        $tallerBranches[] = [
-            'name'      => $n,
-            'address'   => trim((string)($branchAddresses[$i]  ?? '')),
-            'phone'     => trim((string)($branchPhones[$i]     ?? '')),
-            'whatsapp'  => trim((string)($branchWhatsapps[$i]  ?? '')),
-            'email'     => trim((string)($branchEmails[$i]     ?? '')),
-            'schedule'  => trim((string)($branchSchedules[$i]  ?? '')),
-            'map_url'   => trim((string)($branchMapUrls[$i]    ?? '')),
-            'image_url' => trim((string)($branchImageUrls[$i]  ?? '')),
-        ];
-    }
-    $siteData['taller']['branches'] = $tallerBranches;
-    if ($contentService->saveAll($siteData)) {
-        $successMsg = 'Sucursales de Taller guardadas correctamente.';
+    if (!isset($_POST['ulr_location_id'])) {
+        $errorMsg = 'El formulario legacy de sucursales por texto libre está deshabilitado. Use el panel «Asociar sucursales del maestro».';
     } else {
-        $errorMsg = 'Error al guardar las sucursales de Taller.';
+        require_once __DIR__ . '/admin-location-helper.php';
+        $_POST['ulr_unit_key'] = 'taller';
+        $applyError = admin_apply_unit_location_refs_post($siteData, $_POST);
+        if ($applyError !== null) {
+            $errorMsg = $applyError;
+        } elseif ($contentService->saveAll($siteData)) {
+            $successMsg = 'Asociaciones de sucursales guardadas correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar las asociaciones de sucursales.';
+        }
     }
 }

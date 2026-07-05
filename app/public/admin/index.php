@@ -771,42 +771,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // 10. ADD SUCURSAL
+    // 10. ADD SUCURSAL — bloqueado: usar maestro locations[]
     elseif ($action === 'add_sucursal') {
-        $name = trim($_POST['sucursal_name'] ?? '');
-        $location = trim($_POST['sucursal_location'] ?? '');
-        $address = trim($_POST['sucursal_address'] ?? '');
-        $schedule = trim($_POST['sucursal_schedule'] ?? '');
-        $phone = trim($_POST['sucursal_phone'] ?? '');
-        $lat = trim($_POST['sucursal_lat'] ?? '');
-        $lng = trim($_POST['sucursal_lng'] ?? '');
-
-        if (!empty($name)) {
-            $newId = time();
-            if (!isset($siteData['homepage']['sucursales'])) {
-                $siteData['homepage']['sucursales'] = [];
-            }
-            $siteData['homepage']['sucursales'][] = [
-                'id' => $newId,
-                'name' => $name,
-                'location' => $location,
-                'address' => $address,
-                'schedule' => $schedule,
-                'phone' => $phone,
-                'lat' => $lat,
-                'lng' => $lng,
-                'sort_order' => intval($_POST['sucursal_sort_order'] ?? 0),
-                'active'     => isset($_POST['sucursal_active']) && $_POST['sucursal_active'] == '1',
-            ];
-
-            if ($contentService->saveAll($siteData)) {
-                $successMsg = 'Sucursal agregada correctamente.';
-            } else {
-                $errorMsg = 'Error al guardar la sucursal.';
-            }
-        } else {
-            $errorMsg = 'El nombre de la sucursal es obligatorio.';
-        }
+        $errorMsg = 'La creación manual de sucursales está deshabilitada. Cree la ubicación en Generales → Sucursales maestro y asínciela en el panel de asociaciones.';
     }
 
     // 11. DELETE SUCURSAL
@@ -1663,10 +1630,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!empty($name)) {
-            $branch = trim($_POST['agent_branch'] ?? '');
-            require_once __DIR__ . '/../../services/GlobalSucursalesService.php';
-            if ($branch === '' || !GlobalSucursalesService::isValidBranch($siteData, $branch)) {
-                $errorMsg = 'Seleccione una sucursal del listado general (Generales → Sucursales).';
+            require_once __DIR__ . '/../../includes/admin-location-helper.php';
+            $locResolved = admin_resolve_agent_location_post(
+                $siteData,
+                trim((string) ($_POST['agent_location_id'] ?? '')),
+                trim((string) ($_POST['agent_branch'] ?? ''))
+            );
+            if (!$locResolved['ok']) {
+                $errorMsg = $locResolved['error'];
+            } else {
+                $branch = $locResolved['branch_label'];
+                $agentLocationId = $locResolved['location_id'];
             }
         }
 
@@ -1675,16 +1649,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $siteData['seminuevos']['team']['agents'] = [];
             }
             $newId = time();
-            $siteData['seminuevos']['team']['agents'][] = [
+            $agentRow = [
                 'id' => $newId,
                 'name' => $name,
                 'role' => $role,
                 'email' => $email,
                 'phone' => $phone,
-                'branch' => $branch,
+                'branch' => $branch ?? '',
                 'image_url' => $image_url,
                 'active' => $active
             ];
+            if (!empty($agentLocationId)) {
+                $agentRow['location_id'] = $agentLocationId;
+            }
+            $siteData['seminuevos']['team']['agents'][] = $agentRow;
 
             if ($contentService->saveAll($siteData)) {
                 $successMsg = 'Asesor de ventas agregado correctamente.';
@@ -1729,24 +1707,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if (!empty($name)) {
-                $branch = trim($_POST['agent_branch'] ?? '');
-                require_once __DIR__ . '/../../services/GlobalSucursalesService.php';
-                if ($branch === '' || !GlobalSucursalesService::isValidBranch($siteData, $branch)) {
-                    $errorMsg = 'Seleccione una sucursal del listado general (Generales → Sucursales).';
+                require_once __DIR__ . '/../../includes/admin-location-helper.php';
+                $locResolved = admin_resolve_agent_location_post(
+                    $siteData,
+                    trim((string) ($_POST['agent_location_id'] ?? '')),
+                    trim((string) ($_POST['agent_branch'] ?? ''))
+                );
+                if (!$locResolved['ok']) {
+                    $errorMsg = $locResolved['error'];
+                } else {
+                    $branch = $locResolved['branch_label'];
+                    $agentLocationId = $locResolved['location_id'];
                 }
             }
 
             if (empty($errorMsg) && !empty($name)) {
-                $siteData['seminuevos']['team']['agents'][$foundIdx] = [
+                $agentRow = [
                     'id' => $id,
                     'name' => $name,
                     'role' => $role,
                     'email' => $email,
                     'phone' => $phone,
-                    'branch' => $branch,
+                    'branch' => $branch ?? ($existing['branch'] ?? ''),
                     'image_url' => $image_url,
                     'active' => $active
                 ];
+                if (!empty($agentLocationId)) {
+                    $agentRow['location_id'] = $agentLocationId;
+                } elseif (!empty($existing['location_id'])) {
+                    $agentRow['location_id'] = $existing['location_id'];
+                }
+                $siteData['seminuevos']['team']['agents'][$foundIdx] = $agentRow;
 
                 if ($contentService->saveAll($siteData)) {
                     $successMsg = 'Asesor de ventas actualizado correctamente.';
@@ -1813,28 +1804,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 33. ADD SEMINUEVOS SUCURSAL
     elseif ($action === 'add_semi_sucursal') {
-        if (!isset($siteData['seminuevos']['sucursales'])) {
-            $siteData['seminuevos']['sucursales'] = [];
-        }
-        $existingIds = array_column($siteData['seminuevos']['sucursales'], 'id');
-        $newId = !empty($existingIds) ? max($existingIds) + 1 : 1;
-        $siteData['seminuevos']['sucursales'][] = [
-            'id'         => $newId,
-            'name'       => trim($_POST['suc_name'] ?? ''),
-            'address'    => trim($_POST['suc_address'] ?? ''),
-            'phone'      => trim($_POST['suc_phone'] ?? ''),
-            'email'      => trim($_POST['suc_email'] ?? ''),
-            'whatsapp'   => trim($_POST['suc_whatsapp'] ?? ''),
-            'schedule'   => trim($_POST['suc_schedule'] ?? ''),
-            'map_url'    => trim($_POST['suc_map_url'] ?? ''),
-            'sort_order' => intval($_POST['suc_sort_order'] ?? 99),
-            'active'     => isset($_POST['suc_active']) && $_POST['suc_active'] == '1',
-        ];
-        if ($contentService->saveAll($siteData)) {
-            $successMsg = 'Sucursal de Seminuevos agregada correctamente.';
-        } else {
-            $errorMsg = 'Error al agregar la sucursal.';
-        }
+        $errorMsg = 'La creación manual de sucursales está deshabilitada. Use Sucursales maestro y el panel de asociaciones en esta pestaña.';
     }
 
     // 34. EDIT SEMINUEVOS SUCURSAL
@@ -2246,43 +2216,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // 44. ADD LEASING SUCURSAL
+    // 44. ADD LEASING SUCURSAL — bloqueado
     elseif ($action === 'add_leasing_sucursal') {
-        if (!isset($siteData['leasing']['sucursales'])) {
-            $siteData['leasing']['sucursales'] = [];
-        }
-
-        $name = trim($_POST['leasing_sucursal_name'] ?? '');
-        $location = trim($_POST['leasing_sucursal_location'] ?? '');
-        $address = trim($_POST['leasing_sucursal_address'] ?? '');
-        $schedule = trim($_POST['leasing_sucursal_schedule'] ?? '');
-        $phone = trim($_POST['leasing_sucursal_phone'] ?? '');
-        $lat = trim($_POST['leasing_sucursal_lat'] ?? '');
-        $lng = trim($_POST['leasing_sucursal_lng'] ?? '');
-
-        if (!empty($name)) {
-            $newId = time();
-            $siteData['leasing']['sucursales'][] = [
-                'id'         => $newId,
-                'name'       => $name,
-                'location'   => $location,
-                'address'    => $address,
-                'schedule'   => $schedule,
-                'phone'      => $phone,
-                'lat'        => $lat,
-                'lng'        => $lng,
-                'sort_order' => intval($_POST['leasing_sucursal_sort_order'] ?? 0),
-                'active'     => isset($_POST['leasing_sucursal_active']) && $_POST['leasing_sucursal_active'] == '1',
-            ];
-
-            if ($contentService->saveAll($siteData)) {
-                $successMsg = 'Sucursal de Leasing agregada correctamente.';
-            } else {
-                $errorMsg = 'Error al guardar la sucursal de Leasing.';
-            }
-        } else {
-            $errorMsg = 'El nombre de la sucursal es obligatorio.';
-        }
+        $errorMsg = 'La creación manual de sucursales está deshabilitada. Use Sucursales maestro y el panel de asociaciones.';
     }
 
     // 45. EDIT LEASING SUCURSAL
@@ -2785,77 +2721,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 61. SAVE LEASING BRANCHES
     elseif ($action === 'save_leasing_branches') {
-        if (!isset($siteData['leasing'])) {
-            $siteData['leasing'] = [];
-        }
-        $branchNames     = $_POST['branch_name']      ?? [];
-        $branchAddresses = $_POST['branch_address']   ?? [];
-        $branchPhones    = $_POST['branch_phone']     ?? [];
-        $branchWhatsapps = $_POST['branch_whatsapp']  ?? [];
-        $branchEmails    = $_POST['branch_email']     ?? [];
-        $branchSchedules = $_POST['branch_schedule']  ?? [];
-        $branchMapUrls   = $_POST['branch_map_url']   ?? [];
-        $branchImageUrls = $_POST['branch_image_url'] ?? [];
-        $leasingBranches = [];
-        foreach ($branchNames as $i => $n) {
-            $n = trim((string)$n);
-            if ($n === '') {
-                continue;
-            }
-            $leasingBranches[] = [
-                'name'      => $n,
-                'address'   => trim((string)($branchAddresses[$i]  ?? '')),
-                'phone'     => trim((string)($branchPhones[$i]     ?? '')),
-                'whatsapp'  => trim((string)($branchWhatsapps[$i]  ?? '')),
-                'email'     => trim((string)($branchEmails[$i]     ?? '')),
-                'schedule'  => trim((string)($branchSchedules[$i]  ?? '')),
-                'map_url'   => trim((string)($branchMapUrls[$i]    ?? '')),
-                'image_url' => trim((string)($branchImageUrls[$i]  ?? '')),
-            ];
-        }
-        $siteData['leasing']['branches'] = $leasingBranches;
-        if ($contentService->saveAll($siteData)) {
-            $successMsg = 'Sucursales de Leasing guardadas correctamente.';
+        if (!isset($_POST['ulr_location_id'])) {
+            $errorMsg = 'El formulario legacy de sucursales por texto libre está deshabilitado. Use el panel «Asociar sucursales del maestro».';
         } else {
-            $errorMsg = 'Error al guardar las sucursales de Leasing.';
+            require_once __DIR__ . '/../../includes/admin-location-helper.php';
+            $_POST['ulr_unit_key'] = 'leasing';
+            $applyError = admin_apply_unit_location_refs_post($siteData, $_POST);
+            if ($applyError !== null) {
+                $errorMsg = $applyError;
+            } elseif ($contentService->saveAll($siteData)) {
+                $successMsg = 'Asociaciones de sucursales guardadas correctamente.';
+            } else {
+                $errorMsg = 'Error al guardar las asociaciones de sucursales.';
+            }
         }
     }
 
-    // 62. SAVE SEMINUEVOS BRANCHES
+    // 62. SAVE SEMINUEVOS BRANCHES — redirige a location_refs
     elseif ($action === 'save_seminuevos_branches') {
-        if (!isset($siteData['seminuevos'])) {
-            $siteData['seminuevos'] = [];
-        }
-        $branchNames     = $_POST['branch_name']      ?? [];
-        $branchAddresses = $_POST['branch_address']   ?? [];
-        $branchPhones    = $_POST['branch_phone']     ?? [];
-        $branchWhatsapps = $_POST['branch_whatsapp']  ?? [];
-        $branchEmails    = $_POST['branch_email']     ?? [];
-        $branchSchedules = $_POST['branch_schedule']  ?? [];
-        $branchMapUrls   = $_POST['branch_map_url']   ?? [];
-        $branchImageUrls = $_POST['branch_image_url'] ?? [];
-        $seminuevosBranches = [];
-        foreach ($branchNames as $i => $n) {
-            $n = trim((string)$n);
-            if ($n === '') {
-                continue;
-            }
-            $seminuevosBranches[] = [
-                'name'      => $n,
-                'address'   => trim((string)($branchAddresses[$i]  ?? '')),
-                'phone'     => trim((string)($branchPhones[$i]     ?? '')),
-                'whatsapp'  => trim((string)($branchWhatsapps[$i]  ?? '')),
-                'email'     => trim((string)($branchEmails[$i]     ?? '')),
-                'schedule'  => trim((string)($branchSchedules[$i]  ?? '')),
-                'map_url'   => trim((string)($branchMapUrls[$i]    ?? '')),
-                'image_url' => trim((string)($branchImageUrls[$i]  ?? '')),
-            ];
-        }
-        $siteData['seminuevos']['branches'] = $seminuevosBranches;
-        if ($contentService->saveAll($siteData)) {
-            $successMsg = 'Sucursales de Venta de Autos guardadas correctamente.';
+        if (!isset($_POST['ulr_location_id'])) {
+            $errorMsg = 'El formulario legacy de sucursales por texto libre está deshabilitado. Use el panel «Asociar sucursales del maestro».';
         } else {
-            $errorMsg = 'Error al guardar las sucursales de Venta de Autos.';
+            require_once __DIR__ . '/../../includes/admin-location-helper.php';
+            $_POST['ulr_unit_key'] = 'seminuevos';
+            $applyError = admin_apply_unit_location_refs_post($siteData, $_POST);
+            if ($applyError !== null) {
+                $errorMsg = $applyError;
+            } elseif ($contentService->saveAll($siteData)) {
+                $successMsg = 'Asociaciones de sucursales guardadas correctamente.';
+            } else {
+                $errorMsg = 'Error al guardar las asociaciones de sucursales.';
+            }
         }
     }
 
@@ -3025,6 +2921,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../../includes/admin-custom-unit-actions.php';
     require __DIR__ . '/../../includes/admin-global-sucursales-actions.php';
     require __DIR__ . '/../../includes/admin-locations-actions.php';
+    require __DIR__ . '/../../includes/admin-location-refs-actions.php';
     require __DIR__ . '/../../includes/admin-unit-content-actions.php';
 
     if (unit_content_handle_post($action, $siteData, $contentService, $successMsg, $errorMsg)) {
@@ -4149,8 +4046,15 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                             </form>
                         </div>
                         <?php require __DIR__ . '/../../includes/admin-legacy-locations-notice.php'; ?>
-                        <!-- Sucursal Form Card -->
-                        <div class="admin-card">
+                        <?php
+                        $ulrUnitKey = 'rentacar';
+                        $ulrTabSlug = 'sucursales';
+                        $ulrTitle = 'Sucursales asociadas (Rent A Car)';
+                        $ulrSiteData = $siteData;
+                        require __DIR__ . '/../../includes/admin-unit-location-refs-panel.php';
+                        ?>
+                        <!-- Sucursal Form Card (legacy — solo lectura/edición respaldo) -->
+                        <div class="admin-card d-none">
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy" id="sucursalFormTitle">
                                 <i class="bi bi-geo-alt-fill me-2 text-danger"></i>Agregar Nueva Sucursal
                             </h5>
@@ -5397,7 +5301,8 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                     <div class="tab-pane fade" id="tab-semi-team" role="tabpanel" aria-labelledby="tab-semi-team-nav">
                         <?php
                         require_once __DIR__ . '/../../services/GlobalSucursalesService.php';
-                        $globalSucursalNames = GlobalSucursalesService::getNames($siteData);
+                        require_once __DIR__ . '/../../includes/admin-location-select.php';
+                        $activeMasterLocations = getActiveLocations($siteData, true);
                         ?>
                         
                         <!-- General team content form -->
@@ -5490,20 +5395,24 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         </div>
                                         
                                         <div class="mb-3">
-                                            <label for="semi_agent_branch" class="form-label">Sucursal</label>
-                                            <?php if (empty($globalSucursalNames)): ?>
-                                            <select id="semi_agent_branch" name="agent_branch" class="form-select form-control-premium" disabled>
-                                                <option value="">No hay sucursales registradas</option>
+                                            <label for="semi_agent_location_id" class="form-label">Sucursal</label>
+                                            <?php if (empty($activeMasterLocations)): ?>
+                                            <select id="semi_agent_location_id" name="agent_location_id" class="form-select form-control-premium" disabled>
+                                                <option value="">No hay sucursales en el maestro</option>
                                             </select>
-                                            <div class="form-text text-danger">Registre sucursales en <strong>Generales → Sucursales</strong> primero.</div>
+                                            <input type="hidden" name="agent_branch" value="">
+                                            <div class="form-text text-danger">Registre sucursales en <strong>Generales → Sucursales maestro</strong> primero.</div>
                                             <?php else: ?>
-                                            <select id="semi_agent_branch" name="agent_branch" class="form-select form-control-premium" required>
-                                                <option value="">Seleccione sucursal...</option>
-                                                <?php foreach ($globalSucursalNames as $sucursalName): ?>
-                                                <option value="<?php echo esc($sucursalName); ?>"><?php echo esc($sucursalName); ?></option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                            <div class="form-text">Listado desde <strong>Generales → Sucursales</strong>.</div>
+                                            <?php
+                                            admin_render_location_select([
+                                                'siteData' => $siteData,
+                                                'name' => 'agent_location_id',
+                                                'id' => 'semi_agent_location_id',
+                                                'required' => true,
+                                            ]);
+                                            ?>
+                                            <input type="hidden" name="agent_branch" id="semi_agent_branch_legacy" value="">
+                                            <div class="form-text">Listado desde <strong>Sucursales maestro</strong> (<code>locations[]</code>).</div>
                                             <?php endif; ?>
                                         </div>
                                         
@@ -5950,47 +5859,14 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                             </div>
                         </div>
 
-                        <!-- BRANCHES SEMINUEVOS — datos web por sucursal -->
-                        <div class="admin-card">
-                            <?php require __DIR__ . '/../../includes/admin-legacy-locations-notice.php'; ?>
-                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
-                                <i class="bi bi-building me-2 text-danger"></i>Sucursales — datos web (Venta de Autos)
-                            </h5>
-                            <p class="text-muted small mb-4">Información de contacto y ubicación de cada sucursal para el sitio web. El <strong>Nombre</strong> es obligatorio; los demás campos son opcionales.</p>
-                            <?php $semi_branches_ui = $seminuevos['branches'] ?? []; ?>
-                            <form method="POST" action="?tab=semi-contact" id="semiBranchesForm">
-                                <input type="hidden" name="action" value="save_seminuevos_branches">
-                                <div id="semiBranchList">
-                                    <?php if (empty($semi_branches_ui)): ?>
-                                        <p class="text-muted small mb-3" id="semiBranchEmpty">No hay sucursales configuradas. Usa el botón para agregar.</p>
-                                    <?php else: ?>
-                                        <?php foreach ($semi_branches_ui as $b): ?>
-                                        <div class="branch-row border rounded p-3 mb-3 bg-light position-relative" data-branch-row>
-                                            <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amBranchRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
-                                            <div class="row g-2">
-                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Nombre *</label><input type="text" name="branch_name[]" class="form-control form-control-premium" value="<?php echo esc($b['name'] ?? ''); ?>" placeholder="Ej: Sucursal Tocumen" required></div>
-                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Dirección</label><input type="text" name="branch_address[]" class="form-control form-control-premium" value="<?php echo esc($b['address'] ?? ''); ?>" placeholder="Ej: Ave. Tocumen, Panamá"></div>
-                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Teléfono</label><input type="text" name="branch_phone[]" class="form-control form-control-premium" value="<?php echo esc($b['phone'] ?? ''); ?>" placeholder="507-XXXX-XXXX"></div>
-                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">WhatsApp</label><input type="text" name="branch_whatsapp[]" class="form-control form-control-premium" value="<?php echo esc($b['whatsapp'] ?? ''); ?>" placeholder="507XXXXXXXX"></div>
-                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Email</label><input type="email" name="branch_email[]" class="form-control form-control-premium" value="<?php echo esc($b['email'] ?? ''); ?>" placeholder="seminuevos@automarket.com"></div>
-                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Horario</label><input type="text" name="branch_schedule[]" class="form-control form-control-premium" value="<?php echo esc($b['schedule'] ?? ''); ?>" placeholder="Lun–Vie 8:00am–5:00pm"></div>
-                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Enlace Google Maps</label><input type="url" name="branch_map_url[]" class="form-control form-control-premium" value="<?php echo esc($b['map_url'] ?? ''); ?>" placeholder="https://maps.app.goo.gl/..."></div>
-                                                <div class="col-12"><label class="form-label fw-semibold small text-muted mb-1">URL imagen (opcional)</label><input type="url" name="branch_image_url[]" class="form-control form-control-premium" value="<?php echo esc($b['image_url'] ?? ''); ?>" placeholder="https://..."></div>
-                                            </div>
-                                        </div>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
-                                    <button type="button" class="btn btn-outline-secondary" onclick="amBranchAddRow('semiBranchList','semiBranchEmpty')">
-                                        <i class="bi bi-plus-lg me-1"></i> Agregar sucursal
-                                    </button>
-                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
-                                        <i class="bi bi-save"></i> Guardar sucursales
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                        <!-- Sucursales asociadas — maestro -->
+                        <?php
+                        $ulrUnitKey = 'seminuevos';
+                        $ulrTabSlug = 'semi-contact';
+                        $ulrTitle = 'Sucursales asociadas (Venta de Autos)';
+                        $ulrSiteData = $siteData;
+                        require __DIR__ . '/../../includes/admin-unit-location-refs-panel.php';
+                        ?>
 
                     </div>
 
@@ -6578,47 +6454,14 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                             </div>
                         </div>
 
-                        <!-- BRANCHES LEASING — datos web por sucursal -->
-                        <div class="admin-card">
-                            <?php require __DIR__ . '/../../includes/admin-legacy-locations-notice.php'; ?>
-                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
-                                <i class="bi bi-building me-2 text-danger"></i>Sucursales — datos web (Leasing)
-                            </h5>
-                            <p class="text-muted small mb-4">Información de contacto y ubicación de cada sucursal para el sitio web. El <strong>Nombre</strong> es obligatorio; los demás campos son opcionales.</p>
-                            <?php $leasing_branches_ui = $leasing['branches'] ?? []; ?>
-                            <form method="POST" action="?tab=leasing-sucursales" id="leasingBranchesForm">
-                                <input type="hidden" name="action" value="save_leasing_branches">
-                                <div id="leasingBranchList">
-                                    <?php if (empty($leasing_branches_ui)): ?>
-                                        <p class="text-muted small mb-3" id="leasingBranchEmpty">No hay sucursales configuradas. Usa el botón para agregar.</p>
-                                    <?php else: ?>
-                                        <?php foreach ($leasing_branches_ui as $b): ?>
-                                        <div class="branch-row border rounded p-3 mb-3 bg-light position-relative" data-branch-row>
-                                            <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amBranchRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
-                                            <div class="row g-2">
-                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Nombre *</label><input type="text" name="branch_name[]" class="form-control form-control-premium" value="<?php echo esc($b['name'] ?? ''); ?>" placeholder="Ej: Sucursal Tocumen" required></div>
-                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Dirección</label><input type="text" name="branch_address[]" class="form-control form-control-premium" value="<?php echo esc($b['address'] ?? ''); ?>" placeholder="Ej: Ave. Tocumen, Panamá"></div>
-                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Teléfono</label><input type="text" name="branch_phone[]" class="form-control form-control-premium" value="<?php echo esc($b['phone'] ?? ''); ?>" placeholder="507-XXXX-XXXX"></div>
-                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">WhatsApp</label><input type="text" name="branch_whatsapp[]" class="form-control form-control-premium" value="<?php echo esc($b['whatsapp'] ?? ''); ?>" placeholder="507XXXXXXXX"></div>
-                                                <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Email</label><input type="email" name="branch_email[]" class="form-control form-control-premium" value="<?php echo esc($b['email'] ?? ''); ?>" placeholder="leasing@automarket.com"></div>
-                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Horario</label><input type="text" name="branch_schedule[]" class="form-control form-control-premium" value="<?php echo esc($b['schedule'] ?? ''); ?>" placeholder="Lun–Vie 8:00am–5:00pm"></div>
-                                                <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Enlace Google Maps</label><input type="url" name="branch_map_url[]" class="form-control form-control-premium" value="<?php echo esc($b['map_url'] ?? ''); ?>" placeholder="https://maps.app.goo.gl/..."></div>
-                                                <div class="col-12"><label class="form-label fw-semibold small text-muted mb-1">URL imagen (opcional)</label><input type="url" name="branch_image_url[]" class="form-control form-control-premium" value="<?php echo esc($b['image_url'] ?? ''); ?>" placeholder="https://..."></div>
-                                            </div>
-                                        </div>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
-                                    <button type="button" class="btn btn-outline-secondary" onclick="amBranchAddRow('leasingBranchList','leasingBranchEmpty')">
-                                        <i class="bi bi-plus-lg me-1"></i> Agregar sucursal
-                                    </button>
-                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
-                                        <i class="bi bi-save"></i> Guardar sucursales
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                        <!-- Sucursales asociadas — maestro -->
+                        <?php
+                        $ulrUnitKey = 'leasing';
+                        $ulrTabSlug = 'leasing-sucursales';
+                        $ulrTitle = 'Sucursales asociadas (Leasing)';
+                        $ulrSiteData = $siteData;
+                        require __DIR__ . '/../../includes/admin-unit-location-refs-panel.php';
+                        ?>
                     </div>
 
                     <!-- TAB 18: LEASING FLOTA CRUD -->
@@ -7933,7 +7776,7 @@ function resetSemiBankForm() {
 }
 
 function ensureSemiAgentBranchOption(value) {
-    const select = document.getElementById('semi_agent_branch');
+    const select = document.getElementById('semi_agent_location_id');
     if (!select || !value) {
         return;
     }
@@ -7958,7 +7801,15 @@ function initEditSemiAgent(agent) {
     document.getElementById('semi_agent_role').value = agent.role || 'Asesor de Ventas';
     document.getElementById('semi_agent_email').value = agent.email || '';
     document.getElementById('semi_agent_phone').value = agent.phone || '';
-    ensureSemiAgentBranchOption(agent.branch || '');
+    if (agent.location_id) {
+        ensureSemiAgentBranchOption(agent.location_id);
+    } else if (agent.branch) {
+        ensureSemiAgentBranchOption('');
+        const legacy = document.getElementById('semi_agent_branch_legacy');
+        if (legacy) {
+            legacy.value = agent.branch;
+        }
+    }
     
     if (agent.image_url) {
         document.getElementById('semiAgentPhotoHelp').innerHTML = 'Foto actual: <code>' + agent.image_url + '</code>';
@@ -7982,7 +7833,7 @@ function resetSemiAgentForm() {
     document.getElementById('semiAgentFormTitle').innerHTML = '<i class="bi bi-plus-circle-fill me-2 text-danger"></i>Agregar Asesor de Ventas';
     document.getElementById('semiAgentFormAction').value = 'add_semi_agent';
     document.getElementById('semiAgentFormId').value = '';
-    const branchSelect = document.getElementById('semi_agent_branch');
+    const branchSelect = document.getElementById('semi_agent_location_id');
     if (branchSelect) {
         Array.from(branchSelect.options).forEach(function (opt) {
             if (opt.textContent.indexOf('(registro anterior)') !== -1) {
@@ -7990,6 +7841,10 @@ function resetSemiAgentForm() {
             }
         });
         branchSelect.value = '';
+    }
+    const legacyBranch = document.getElementById('semi_agent_branch_legacy');
+    if (legacyBranch) {
+        legacyBranch.value = '';
     }
     
     document.getElementById('semiAgentPhotoHelp').innerHTML = 'Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.';

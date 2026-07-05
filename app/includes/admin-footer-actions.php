@@ -127,41 +127,44 @@ elseif ($action === 'save_footer_social') {
 }
 elseif ($action === 'save_footer_sucursal') {
     $sucId = trim($_POST['sucursal_id'] ?? '');
-    $isEdit = $sucId !== '';
-    if (!isset($siteData['footer']['sucursales'])) {
-        $siteData['footer']['sucursales'] = [];
-    }
-    $entry = [
-        'id' => $isEdit ? $sucId : (time() . '_' . rand(100, 999)),
-        'unit' => trim($_POST['sucursal_unit'] ?? 'grupo'),
-        'name' => trim($_POST['sucursal_name'] ?? ''),
-        'location' => trim($_POST['sucursal_location'] ?? ''),
-        'address' => trim($_POST['sucursal_address'] ?? ''),
-        'schedule' => trim($_POST['sucursal_schedule'] ?? ''),
-        'phone' => trim($_POST['sucursal_phone'] ?? ''),
-        'lat' => trim($_POST['sucursal_lat'] ?? ''),
-        'lng' => trim($_POST['sucursal_lng'] ?? ''),
-        'sort_order' => intval($_POST['sucursal_sort_order'] ?? 99),
-        'active' => isset($_POST['sucursal_active']) && $_POST['sucursal_active'] === '1',
-    ];
-    if ($entry['name'] === '') {
-        $errorMsg = 'El nombre de la sucursal es obligatorio.';
+    if ($sucId === '') {
+        $errorMsg = 'La creación manual de sucursales en footer está deshabilitada. Use el panel de asociaciones desde Sucursales maestro.';
     } else {
-        $found = false;
-        foreach ($siteData['footer']['sucursales'] as $idx => $s) {
-            if (($s['id'] ?? '') === $sucId) {
-                $siteData['footer']['sucursales'][$idx] = $entry;
-                $found = true;
-                break;
-            }
+        if (!isset($siteData['footer']['sucursales'])) {
+            $siteData['footer']['sucursales'] = [];
         }
-        if (!$found) {
-            $siteData['footer']['sucursales'][] = $entry;
-        }
-        if ($contentService->saveAll($siteData)) {
-            $successMsg = $isEdit ? 'Sucursal actualizada.' : 'Sucursal agregada al pie de página.';
+        $entry = [
+            'id' => $sucId,
+            'unit' => trim($_POST['sucursal_unit'] ?? 'grupo'),
+            'name' => trim($_POST['sucursal_name'] ?? ''),
+            'location' => trim($_POST['sucursal_location'] ?? ''),
+            'address' => trim($_POST['sucursal_address'] ?? ''),
+            'schedule' => trim($_POST['sucursal_schedule'] ?? ''),
+            'phone' => trim($_POST['sucursal_phone'] ?? ''),
+            'lat' => trim($_POST['sucursal_lat'] ?? ''),
+            'lng' => trim($_POST['sucursal_lng'] ?? ''),
+            'sort_order' => intval($_POST['sucursal_sort_order'] ?? 99),
+            'active' => isset($_POST['sucursal_active']) && $_POST['sucursal_active'] === '1',
+        ];
+        if ($entry['name'] === '') {
+            $errorMsg = 'El nombre de la sucursal es obligatorio.';
         } else {
-            $errorMsg = 'Error al guardar la sucursal.';
+            $found = false;
+            foreach ($siteData['footer']['sucursales'] as $idx => $s) {
+                if (($s['id'] ?? '') === $sucId) {
+                    $siteData['footer']['sucursales'][$idx] = $entry;
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $siteData['footer']['sucursales'][] = $entry;
+            }
+            if ($contentService->saveAll($siteData)) {
+                $successMsg = 'Sucursal actualizada.';
+            } else {
+                $errorMsg = 'Error al guardar la sucursal.';
+            }
         }
     }
 }

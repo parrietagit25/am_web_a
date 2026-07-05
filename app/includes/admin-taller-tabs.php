@@ -627,45 +627,12 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
         <p class="form-text mb-0 mt-2">Vista pública: <a href="/taller-sucursales.php" target="_blank" rel="noopener">/taller-sucursales.php</a></p>
     </div>
 
-    <!-- BRANCHES TALLER — datos web por sucursal -->
-    <div class="admin-card">
-        <?php require __DIR__ . '/admin-legacy-locations-notice.php'; ?>
-        <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
-            <i class="bi bi-building me-2 text-danger"></i>Sucursales — datos web (Taller)
-        </h5>
-        <p class="text-muted small mb-4">Información de contacto y ubicación de cada sucursal para el sitio web. Distinto del sistema de coordenadas del mapa. El <strong>Nombre</strong> es obligatorio; los demás campos son opcionales.</p>
-        <?php $taller_branches = $taller['branches'] ?? []; ?>
-        <form method="POST" action="?tab=taller-sucursales" id="tallerBranchesForm">
-            <input type="hidden" name="action" value="save_taller_branches">
-            <div id="tallerBranchList">
-                <?php if (empty($taller_branches)): ?>
-                    <p class="text-muted small mb-3" id="tallerBranchEmpty">No hay sucursales configuradas. Usa el botón para agregar.</p>
-                <?php else: ?>
-                    <?php foreach ($taller_branches as $b): ?>
-                    <div class="branch-row border rounded p-3 mb-3 bg-light position-relative" data-branch-row>
-                        <button type="button" class="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-2 me-2" onclick="amBranchRemoveRow(this)" title="Eliminar"><i class="bi bi-x-lg"></i></button>
-                        <div class="row g-2">
-                            <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Nombre *</label><input type="text" name="branch_name[]" class="form-control form-control-premium" value="<?php echo esc($b['name'] ?? ''); ?>" placeholder="Ej: Sucursal Tocumen" required></div>
-                            <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Dirección</label><input type="text" name="branch_address[]" class="form-control form-control-premium" value="<?php echo esc($b['address'] ?? ''); ?>" placeholder="Ej: Ave. Tocumen, Panamá"></div>
-                            <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Teléfono</label><input type="text" name="branch_phone[]" class="form-control form-control-premium" value="<?php echo esc($b['phone'] ?? ''); ?>" placeholder="507-XXXX-XXXX"></div>
-                            <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">WhatsApp</label><input type="text" name="branch_whatsapp[]" class="form-control form-control-premium" value="<?php echo esc($b['whatsapp'] ?? ''); ?>" placeholder="507XXXXXXXX"></div>
-                            <div class="col-md-4"><label class="form-label fw-semibold small text-muted mb-1">Email</label><input type="email" name="branch_email[]" class="form-control form-control-premium" value="<?php echo esc($b['email'] ?? ''); ?>" placeholder="taller@automarket.com"></div>
-                            <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Horario</label><input type="text" name="branch_schedule[]" class="form-control form-control-premium" value="<?php echo esc($b['schedule'] ?? ''); ?>" placeholder="Lun–Vie 8:00am–5:00pm"></div>
-                            <div class="col-md-6"><label class="form-label fw-semibold small text-muted mb-1">Enlace Google Maps</label><input type="url" name="branch_map_url[]" class="form-control form-control-premium" value="<?php echo esc($b['map_url'] ?? ''); ?>" placeholder="https://maps.app.goo.gl/..."></div>
-                            <div class="col-12"><label class="form-label fw-semibold small text-muted mb-1">URL imagen (opcional)</label><input type="url" name="branch_image_url[]" class="form-control form-control-premium" value="<?php echo esc($b['image_url'] ?? ''); ?>" placeholder="https://..."></div>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
-                <button type="button" class="btn btn-outline-secondary" onclick="amBranchAddRow('tallerBranchList','tallerBranchEmpty')">
-                    <i class="bi bi-plus-lg me-1"></i> Agregar sucursal
-                </button>
-                <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
-                    <i class="bi bi-save"></i> Guardar sucursales
-                </button>
-            </div>
-        </form>
-    </div>
+    <!-- BRANCHES TALLER — asociaciones maestro -->
+    <?php
+    $ulrUnitKey = 'taller';
+    $ulrTabSlug = 'taller-sucursales';
+    $ulrTitle = 'Sucursales asociadas (Taller)';
+    $ulrSiteData = $siteData;
+    require __DIR__ . '/admin-unit-location-refs-panel.php';
+    ?>
 </div>

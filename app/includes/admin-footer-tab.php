@@ -147,7 +147,15 @@ $publicBase = $scheme . '://' . $host;
                 </div>
                 <p class="small text-muted mb-2">Página pública: <a href="/sucursales-grupo.php" target="_blank" rel="noopener">/sucursales-grupo.php</a> (no aparece en el pie visual del sitio).</p>
                 <?php require __DIR__ . '/admin-legacy-locations-notice.php'; ?>
-                <div class="alert alert-light border small py-2 mb-3">
+                <?php
+                $ulrUnitKey = 'footer';
+                $ulrTabSlug = 'footer';
+                $ulrTitle = 'Sucursales asociadas (Footer / grupo)';
+                $ulrSiteData = isset($siteData) && is_array($siteData) ? $siteData : $contentService->getAll();
+                $ulrShowFooterUnit = true;
+                require __DIR__ . '/admin-unit-location-refs-panel.php';
+                ?>
+                <div class="alert alert-light border small py-2 mb-3 d-none">
                     Cada unidad también tiene su propio listado en <code>*-sucursales.php</code>. Use el campo <strong>Unidad</strong> para agrupar en la vista consolidada. La sincronización importa desde las unidades sin borrar entradas existentes.
                 </div>
                 <form method="POST" action="?tab=footer" id="footerSucursalForm">
