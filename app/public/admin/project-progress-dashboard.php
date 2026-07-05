@@ -168,7 +168,8 @@ $totalBloques = count($bloques);
     </div>
 </div>
 <div class="col-lg-9 col-md-8 p-0">
-    <div class="admin-header">
+    <div class="admin-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
         <h4 class="fw-bold mb-0"><i class="bi bi-kanban me-2"></i>Dashboard de avances</h4>
         <p class="small text-muted mb-0">
             <?php echo ppd_esc($meta['version_tablero'] ?? 'AM-DASH-1B'); ?>
@@ -176,6 +177,8 @@ $totalBloques = count($bloques);
             · <?php echo (int) $totalBloques; ?> entregables
             · <?php echo ppd_esc(admin_current_username()); ?>
         </p>
+        </div>
+        <a href="/admin/?tab=user-manual" class="btn btn-sm btn-outline-secondary"><i class="bi bi-book me-1"></i>Ver manual de uso</a>
     </div>
     <div class="p-4">
         <?php if ($notaTablero !== ''): ?>
