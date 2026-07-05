@@ -67,4 +67,6 @@ header('Content-Type: text/html; charset=UTF-8');
 header('X-Frame-Options: SAMEORIGIN');
 header('Content-Security-Policy: frame-ancestors \'self\'');
 
+$service->markHppOpened($paymentId);
+
 echo (string) $frame['redirect_html'];

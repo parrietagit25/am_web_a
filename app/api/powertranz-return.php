@@ -1,7 +1,7 @@
 <?php
 /**
  * MerchantResponseUrl — retorno 3DS/HPP Powertranz.
- * AM-RAC-PAY-POWERTRANZ-0A
+ * AM-RAC-PAY-POWERTRANZ-0A/0B
  */
 declare(strict_types=1);
 
@@ -15,15 +15,25 @@ $rawBody = (string) file_get_contents('php://input');
 $parsed = null;
 
 if ($rawBody !== '') {
-    $parsed = json_decode($rawBody, true);
+    $decoded = json_decode($rawBody, true);
+    if (is_array($decoded)) {
+        $parsed = $decoded;
+    }
 }
 
-if (!is_array($parsed)) {
-    $parsed = array_merge($_POST, $_GET);
+if ($parsed === null && ($_POST !== [] || $_GET !== [])) {
+    $parsed = array_merge($_GET, $_POST);
 }
+
+$requestMeta = [
+    'method' => (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'),
+    'content_type' => (string) ($_SERVER['CONTENT_TYPE'] ?? ''),
+    'get' => $_GET,
+    'post' => $_POST,
+];
 
 $service = new PowertranzPaymentService();
-$result = $service->handleMerchantReturn($rawBody, is_array($parsed) ? $parsed : null);
+$result = $service->handleMerchantReturn($rawBody, $parsed, $requestMeta);
 
 $payment = $result['payment'] ?? null;
 $paymentId = (int) ($payment['payment_id'] ?? 0);
@@ -42,9 +52,17 @@ if ($approved || $status === 'approved') {
     $title = 'Pago rechazado';
     $message = (string) ($payment['response_message'] ?? 'La transacción fue rechazada.');
     $alertClass = 'danger';
+} elseif ($status === 'return_error') {
+    $title = 'Retorno inválido';
+    $message = (string) ($payment['error_message'] ?? 'MerchantResponseUrl recibido sin payload válido.');
+    $alertClass = 'warning';
 } elseif ($status === 'complete_error') {
     $title = 'Error al completar pago';
-    $message = (string) ($payment['error_message'] ?? 'Powertranz devolvió respuesta no JSON al completar pago.');
+    $message = (string) ($payment['error_message'] ?? 'Error en completePayment.');
+    $alertClass = 'warning';
+} elseif ($status === 'expired') {
+    $title = 'Pago expirado';
+    $message = 'El SpiToken expiró. Inicie un pago nuevo.';
     $alertClass = 'warning';
 } elseif (!$result['ok']) {
     $title = 'Error procesando pago';

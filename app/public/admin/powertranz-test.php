@@ -174,15 +174,16 @@ $defaultAdminTab = 'powertranz-test';
                     Este intento probablemente expiró. Inicie un nuevo pago.
                 </div>
                 <div id="ptz-hpp-actions" class="d-none mb-3">
-                    <a href="#" id="ptz-open-hpp-btn" class="btn btn-primary btn-lg" target="_blank" rel="noopener">
-                        <i class="bi bi-box-arrow-up-right me-1"></i> Abrir HPP / Completar pago
-                    </a>
+                    <button type="button" class="btn btn-primary btn-lg" id="ptz-open-hpp-btn">
+                        <i class="bi bi-credit-card me-1"></i> Completar pago en iframe
+                    </button>
                     <button type="button" class="btn btn-outline-primary btn-lg ms-2" id="ptz-scroll-hpp-btn">
                         <i class="bi bi-arrows-collapse me-1"></i> Ver HPP abajo
                     </button>
                 </div>
+                <p id="ptz-hpp-hint" class="small text-muted d-none mb-2">Complete el pago dentro del iframe embebido. No abra Conductor en pestaña nueva.</p>
                 <h3 class="h6 fw-bold mb-2">Página HPP / 3DS</h3>
-                <iframe id="ptz-frame" title="Powertranz HPP" sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-top-navigation"<?php
+                <iframe id="ptz-frame" title="Powertranz HPP"<?php
                     if ($lastPaymentHppReady && !$lastPaymentExpired && $lastPaymentFrameUrl !== '') {
                         echo ' src="' . esc($lastPaymentFrameUrl) . '"';
                     }
@@ -208,6 +209,7 @@ $defaultAdminTab = 'powertranz-test';
     const hppActions = document.getElementById('ptz-hpp-actions');
     const openHppBtn = document.getElementById('ptz-open-hpp-btn');
     const scrollHppBtn = document.getElementById('ptz-scroll-hpp-btn');
+    const hppHint = document.getElementById('ptz-hpp-hint');
     const expiryNotice = document.getElementById('ptz-expiry-notice');
     const expiredNotice = document.getElementById('ptz-expired-notice');
     const diagnosticPanel = document.getElementById('ptz-diagnostic-panel');
@@ -226,9 +228,12 @@ $defaultAdminTab = 'powertranz-test';
 
     function isHppReady(data) {
         const status = (data.status || '').toLowerCase();
+        if (['complete_error', 'approved', 'declined', 'expired', 'return_error', 'error'].includes(status)) {
+            return false;
+        }
         const iso = (data.iso_response_code || '').toUpperCase();
         const hasRedirect = !!(data.has_redirect_data || data.frame_url || data.init_hpp_ready);
-        if (data.init_hpp_ready && hasRedirect && status !== 'error') {
+        if (data.init_hpp_ready && hasRedirect) {
             return true;
         }
         return status === 'redirect_ready' && hasRedirect && (iso === 'SP4' || iso === 'SP1' || iso === '3D0' || iso === '00');
@@ -288,16 +293,26 @@ $defaultAdminTab = 'powertranz-test';
         hppActions.classList.toggle('d-none', !ready);
         expiryNotice.classList.toggle('d-none', !ready);
         expiredNotice.classList.toggle('d-none', !expired);
+        if (hppHint) hppHint.classList.toggle('d-none', !ready);
         if (ready && url) {
-            openHppBtn.href = url;
-            frame.src = url;
+            if (!frame.getAttribute('src') || data._freshInit) {
+                frame.src = url;
+            }
         }
     }
 
     function showAlertForPayment(data, expired) {
         showDiagnostic(data);
+        if (data.status === 'complete_error') {
+            showAlert('warning', data.error_message || 'Error al completar pago en Powertranz.');
+            return;
+        }
+        if (data.status === 'return_error') {
+            showAlert('warning', data.error_message || 'Retorno MerchantResponseUrl inválido.');
+            return;
+        }
         if (isHppReady(data) && !expired) {
-            showAlert('success', 'Pago iniciado correctamente (ISO ' + (data.iso_response_code || 'SP4') + '). Continúe en el HPP/3DS para completar la prueba.');
+            showAlert('success', 'Pago iniciado correctamente (ISO ' + (data.iso_response_code || 'SP4') + '). Continúe en el HPP/3DS embebido para completar la prueba.');
             return;
         }
         if (isHppReady(data) && expired) {
@@ -309,7 +324,7 @@ $defaultAdminTab = 'powertranz-test';
             return;
         }
         if (data.non_json_error && data.non_json_phase === 'complete') {
-            showAlert('warning', 'El init fue correcto pero completePayment devolvió respuesta no JSON. Revise diagnóstico técnico.');
+            showAlert('warning', data.error_message || 'El init fue correcto pero completePayment falló. Revise diagnóstico técnico.');
             return;
         }
         if (data.approved) {
@@ -371,6 +386,14 @@ $defaultAdminTab = 'powertranz-test';
     }
 
     scrollHppBtn.addEventListener('click', function () {
+        hppSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    openHppBtn.addEventListener('click', function () {
+        const url = frameUrlForPaymentId(currentPaymentId);
+        if (url) {
+            frame.src = url;
+        }
         hppSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
@@ -441,8 +464,8 @@ $defaultAdminTab = 'powertranz-test';
         <?php if ($lastPaymentHppReady && !$lastPaymentExpired): ?>
         hppActions.classList.remove('d-none');
         expiryNotice.classList.remove('d-none');
-        openHppBtn.href = <?php echo json_encode($lastPaymentFrameUrl, JSON_UNESCAPED_UNICODE); ?>;
-        showAlert('success', 'Pago iniciado correctamente. Continúe en el HPP/3DS para completar la prueba.');
+        if (hppHint) hppHint.classList.remove('d-none');
+        showAlert('success', 'Pago iniciado correctamente. Continúe en el HPP/3DS embebido para completar la prueba.');
         <?php elseif ($lastPaymentExpired): ?>
         expiredNotice.classList.remove('d-none');
         showAlert('warning', 'Este intento probablemente expiró. Inicie un nuevo pago.');

@@ -125,13 +125,86 @@ class PowertranzClient
             ];
         }
 
-        // Powertranz SPI payment: body = token JSON-quoted string, sin headers de merchant auth.
-        return $this->requestRaw(
-            'POST',
-            $this->baseUrl . '/api/spi/payment',
-            json_encode($token, JSON_UNESCAPED_UNICODE),
-            false
-        );
+        // PDF §7.3: body = SpiToken JSON-quoted; Accept text/plain; Content-Type json-patch+json; sin auth merchant.
+        return $this->requestCompletePayment($token);
+    }
+
+    /**
+     * POST /api/spi/payment — finalización según PDF §7.3.
+     *
+     * @return array{ok: bool, http_code: int, data: array<string, mixed>|null, raw: string, error?: string, diagnostic?: array<string, mixed>}
+     */
+    private function requestCompletePayment(string $spiToken): array
+    {
+        $url = $this->baseUrl . '/api/spi/payment';
+        $body = json_encode($spiToken, JSON_UNESCAPED_UNICODE);
+        $headers = [
+            'Accept: text/plain',
+            'Content-Type: application/json-patch+json',
+        ];
+
+        $ch = curl_init($url);
+        if ($ch === false) {
+            return ['ok' => false, 'http_code' => 0, 'data' => null, 'raw' => '', 'error' => 'No se pudo iniciar cURL.'];
+        }
+
+        $opts = [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_TIMEOUT => $this->timeoutSeconds,
+            CURLOPT_CONNECTTIMEOUT => 15,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $body,
+        ];
+
+        curl_setopt_array($ch, $opts);
+        $raw = curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $contentType = (string) curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        $curlErrno = (int) curl_errno($ch);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($raw === false) {
+            $diagnostic = PowertranzSanitizer::buildHttpDiagnostic('', $httpCode, $curlErrno, $curlError, $contentType, $url);
+            $diagnostic['phase'] = 'complete';
+
+            return [
+                'ok' => false,
+                'http_code' => $httpCode,
+                'data' => null,
+                'raw' => '',
+                'error' => $curlError !== '' ? PowertranzSanitizer::text($curlError, 200) : 'Error de red en completePayment.',
+                'diagnostic' => $diagnostic,
+            ];
+        }
+
+        $rawStr = (string) $raw;
+        $decoded = json_decode($rawStr, true);
+
+        if (!is_array($decoded)) {
+            $diagnostic = PowertranzSanitizer::buildHttpDiagnostic($rawStr, $httpCode, $curlErrno, $curlError, $contentType, $url);
+            $diagnostic['phase'] = 'complete';
+            $errorMsg = $httpCode >= 400
+                ? 'completePayment HTTP ' . $httpCode
+                : 'Respuesta JSON inválida en completePayment.';
+
+            return [
+                'ok' => false,
+                'http_code' => $httpCode,
+                'data' => null,
+                'raw' => $rawStr,
+                'error' => $errorMsg,
+                'diagnostic' => $diagnostic,
+            ];
+        }
+
+        return [
+            'ok' => $httpCode >= 200 && $httpCode < 300,
+            'http_code' => $httpCode,
+            'data' => $decoded,
+            'raw' => $rawStr,
+        ];
     }
 
     /**

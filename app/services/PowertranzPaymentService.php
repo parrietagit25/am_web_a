@@ -91,48 +91,130 @@ class PowertranzPaymentService
     }
 
     /**
+     * @param array<string, mixed> $requestMeta
      * @return array{ok: bool, message?: string, payment?: array<string, mixed>}
      */
-    public function handleMerchantReturn(string $rawBody, ?array $parsed = null): array
+    public function handleMerchantReturn(string $rawBody, ?array $parsed = null, array $requestMeta = []): array
     {
-        $data = $parsed ?? json_decode($rawBody, true);
-        if (!is_array($data)) {
-            return ['ok' => false, 'message' => 'Callback Powertranz inválido.'];
+        $callback = is_array($parsed) ? $this->normalizeCallback($parsed) : null;
+        if ($callback === null && $rawBody !== '') {
+            $decoded = json_decode($rawBody, true);
+            $callback = is_array($decoded) ? $this->normalizeCallback($decoded) : null;
         }
 
-        $payment = $this->findPaymentFromCallback($data);
+        $returnEnvelope = $this->buildReturnEnvelope($rawBody, $callback, $requestMeta);
+
+        if ($callback === null || $callback === []) {
+            return [
+                'ok' => false,
+                'message' => 'MerchantResponseUrl recibido sin payload válido.',
+            ];
+        }
+
+        $payment = $this->findPaymentFromCallback($callback);
         if ($payment === null) {
-            return ['ok' => false, 'message' => 'No se encontró el pago asociado al callback.'];
+            return [
+                'ok' => false,
+                'message' => 'No se encontró el pago asociado al callback.',
+            ];
         }
 
-        $spiToken = $this->client->extractSpiToken($data);
+        $paymentId = (int) $payment['id'];
+        $currentStatus = (string) ($payment['status'] ?? '');
+
+        if (in_array($currentStatus, ['approved', 'declined', 'expired', 'complete_error'], true)) {
+            return [
+                'ok' => $currentStatus === 'approved',
+                'message' => 'Retorno ignorado: pago ya finalizado (' . $currentStatus . ').',
+                'payment' => $this->getPublicPayment($paymentId),
+            ];
+        }
+
+        $returnEnvelope['payment_id'] = $paymentId;
+        $returnEnvelope['test_reference'] = (string) ($payment['test_reference'] ?? '');
+        $returnEnvelope['order_identifier'] = (string) ($payment['order_identifier'] ?? '');
+        $returnJson = json_encode(PowertranzSanitizer::sanitizePayload($returnEnvelope), JSON_UNESCAPED_UNICODE);
+
+        $this->updatePayment($paymentId, [
+            'status' => 'return_received',
+            'merchant_response_json_sanitized' => $returnJson,
+        ]);
+
+        if (!$this->callbackHasValidReturn($callback)) {
+            $this->updatePayment($paymentId, [
+                'status' => 'return_error',
+                'error_message' => 'MerchantResponseUrl recibido sin payload válido',
+            ]);
+
+            return [
+                'ok' => false,
+                'message' => 'MerchantResponseUrl recibido sin payload válido.',
+                'payment' => $this->getPublicPayment($paymentId),
+            ];
+        }
+
+        $spiToken = $this->client->extractSpiToken($callback);
         if ($spiToken === '') {
             $spiToken = trim((string) ($payment['spi_token_vault'] ?? ''));
         }
 
-        $this->updatePayment((int) $payment['id'], [
-            'status' => 'returned_from_3ds',
-            'merchant_response_json_sanitized' => json_encode($this->client->sanitizeResponse($data), JSON_UNESCAPED_UNICODE),
-        ]);
-
         if ($spiToken === '') {
-            $this->updatePayment((int) $payment['id'], [
-                'status' => 'error',
-                'response_message' => 'Callback sin SpiToken.',
+            $this->updatePayment($paymentId, [
+                'status' => 'return_error',
                 'error_message' => 'Callback sin SpiToken.',
             ]);
 
-            return ['ok' => false, 'message' => 'Callback sin SpiToken.', 'payment' => $this->getPublicPayment((int) $payment['id'])];
+            return [
+                'ok' => false,
+                'message' => 'Callback sin SpiToken.',
+                'payment' => $this->getPublicPayment($paymentId),
+            ];
         }
 
-        $completePayload = json_encode(['action' => 'completePayment', 'spi_token' => '[REDACTED]'], JSON_UNESCAPED_UNICODE);
-        $this->updatePayment((int) $payment['id'], [
+        if ($this->isSpiTokenExpired($payment)) {
+            $this->updatePayment($paymentId, [
+                'status' => 'expired',
+                'error_message' => 'SpiToken expirado (máx. 5 minutos).',
+            ]);
+
+            return [
+                'ok' => false,
+                'message' => 'SpiToken expirado. Inicie un pago nuevo.',
+                'payment' => $this->getPublicPayment($paymentId),
+            ];
+        }
+
+        $completePayload = json_encode([
+            'action' => 'completePayment',
+            'endpoint' => '/api/spi/payment',
+            'content_type' => 'application/json-patch+json',
+            'accept' => 'text/plain',
+            'spi_token' => '[REDACTED]',
+        ], JSON_UNESCAPED_UNICODE);
+
+        $this->updatePayment($paymentId, [
+            'status' => 'complete_pending',
             'complete_payload_json' => $completePayload,
         ]);
 
         $complete = $this->client->completePayment($spiToken);
 
-        return $this->applyPaymentCompletion((int) $payment['id'], $complete);
+        return $this->applyPaymentCompletion($paymentId, $complete);
+    }
+
+    public function markHppOpened(int $paymentId): void
+    {
+        $row = $this->getPayment($paymentId);
+        if ($row === null) {
+            return;
+        }
+        $status = (string) ($row['status'] ?? '');
+        if (!in_array($status, ['redirect_ready', 'hpp_opened'], true)) {
+            return;
+        }
+        if ($status === 'redirect_ready') {
+            $this->updatePayment($paymentId, ['status' => 'hpp_opened']);
+        }
     }
 
     /**
@@ -275,7 +357,10 @@ class PowertranzPaymentService
         $iso = strtoupper((string) ($row['iso_response_code'] ?? ''));
         $public['init_hpp_ready'] = !empty($row['redirect_data_present'])
             && in_array($iso, ['SP4', 'SP1', '3D0', '00'], true)
-            && in_array($status, ['redirect_ready', 'returned_from_3ds', 'complete_error'], true);
+            && in_array($status, ['redirect_ready', 'hpp_opened', 'return_received', 'returned_from_3ds', 'complete_pending'], true);
+
+        $public['can_open_hpp'] = !empty($row['redirect_data_present'])
+            && !in_array($status, ['approved', 'declined', 'expired'], true);
 
         return $public;
     }
@@ -466,13 +551,13 @@ class PowertranzPaymentService
 
             $update = [
                 'status' => 'complete_error',
-                'error_message' => 'Powertranz devolvió respuesta no JSON al completar pago',
+                'error_message' => $this->completeErrorMessage($api, $diagnostic),
                 'complete_response_json' => $completeResponseJson,
                 'payment_response_json_sanitized' => $completeResponseJson,
                 'completed_at' => date('Y-m-d H:i:s'),
             ];
             if (!$hadHpp || !in_array($initIso, ['SP4', 'SP1', '3D0', '00'], true)) {
-                $update['response_message'] = 'Powertranz devolvió respuesta no JSON al completar pago';
+                $update['response_message'] = $update['error_message'];
             }
 
             $this->updatePayment($paymentId, $update);
@@ -622,5 +707,110 @@ class PowertranzPaymentService
         return PowertranzSanitizer::orderIdentifier(
             'AM-RAC-PTZ-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6))
         );
+    }
+
+    /**
+     * @param array<string, mixed> $parsed
+     * @return array<string, mixed>
+     */
+    private function normalizeCallback(array $parsed): array
+    {
+        $out = [];
+        foreach ($parsed as $key => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+            if (is_string($value) || is_numeric($value) || is_bool($value)) {
+                $out[(string) $key] = $value;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param array<string, mixed>|null $callback
+     * @param array<string, mixed> $requestMeta
+     * @return array<string, mixed>
+     */
+    private function buildReturnEnvelope(string $rawBody, ?array $callback, array $requestMeta): array
+    {
+        $getKeys = array_keys($requestMeta['get'] ?? $_GET);
+        $postKeys = array_keys($requestMeta['post'] ?? $_POST);
+        $hasSpi = is_array($callback) && $this->client->extractSpiToken($callback) !== '';
+
+        return [
+            '_ptz_return_meta' => true,
+            'method' => strtoupper((string) ($requestMeta['method'] ?? $_SERVER['REQUEST_METHOD'] ?? 'GET')),
+            'content_type' => PowertranzSanitizer::text((string) ($requestMeta['content_type'] ?? $_SERVER['CONTENT_TYPE'] ?? ''), 120),
+            'raw_body_length' => strlen($rawBody),
+            'raw_body_preview' => PowertranzSanitizer::sanitizeRawBodyPreview($rawBody, 500),
+            'get_keys' => array_values(array_map('strval', $getKeys)),
+            'post_keys' => array_values(array_map('strval', $postKeys)),
+            'has_spi_token' => $hasSpi,
+            'callback' => $this->client->sanitizeResponse($callback),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $callback
+     */
+    private function callbackHasValidReturn(array $callback): bool
+    {
+        if ($this->client->extractSpiToken($callback) !== '') {
+            return true;
+        }
+        $txn = trim((string) ($callback['TransactionIdentifier'] ?? $callback['transactionIdentifier'] ?? ''));
+        if ($txn !== '') {
+            return true;
+        }
+        $order = trim((string) ($callback['OrderIdentifier'] ?? $callback['orderIdentifier'] ?? ''));
+        if ($order !== '') {
+            return true;
+        }
+        foreach (['IsoResponseCode', 'isoResponseCode', 'ResponseMessage', 'responseMessage', 'AuthenticationStatus', 'authenticationStatus'] as $key) {
+            if (trim((string) ($callback[$key] ?? '')) !== '') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array<string, mixed> $payment
+     */
+    private function isSpiTokenExpired(array $payment): bool
+    {
+        $expires = trim((string) ($payment['spi_token_expires_at'] ?? ''));
+        if ($expires === '') {
+            $created = strtotime((string) ($payment['created_at'] ?? ''));
+            if ($created === false) {
+                return false;
+            }
+
+            return (time() - $created) > 300;
+        }
+        $ts = strtotime($expires);
+
+        return $ts !== false && time() > $ts;
+    }
+
+    /**
+     * @param array<string, mixed> $api
+     * @param array<string, mixed> $diagnostic
+     */
+    private function completeErrorMessage(array $api, array $diagnostic): string
+    {
+        $http = (int) ($api['http_code'] ?? ($diagnostic['http_code'] ?? 0));
+        $class = (string) ($diagnostic['classification'] ?? '');
+        if ($http === 400 && $class === 'empty_response') {
+            return 'completePayment HTTP 400 (respuesta vacía). Revise headers Accept/Content-Type.';
+        }
+        if ($http >= 400) {
+            return 'completePayment HTTP ' . $http;
+        }
+
+        return 'Powertranz devolvió respuesta no JSON al completar pago';
     }
 }
