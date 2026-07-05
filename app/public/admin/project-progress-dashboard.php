@@ -95,6 +95,11 @@ function ppd_visibility_badge_class(string $badge): string
     };
 }
 
+function ppd_modal_id(string $codigo): string
+{
+    return 'modal-' . preg_replace('/[^a-zA-Z0-9_-]/', '-', $codigo);
+}
+
 $summaryLabels = [
     'avance_global'     => 'Avance global registrado',
     'seo_tecnico'       => 'SEO técnico',
@@ -143,16 +148,17 @@ $totalBloques = count($bloques);
         .admin-sidebar a.admin-sidebar-page-link.active { background: rgba(255,255,255,.12); color: #fff; }
         #generales-submenu .nav-link, #generales-submenu a.admin-sidebar-page-link { padding-left: 28px; font-size: .85rem; }
         .admin-header { background: #fff; border-bottom: 1px solid var(--border-color); padding: 15px 30px; }
-        .admin-card { background: #fff; border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
-        .metric-card { border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; background: #fff; height: 100%; }
-        .metric-card .pct { font-size: 1.75rem; font-weight: 700; color: var(--primary-red); }
-        .block-card-click { cursor: pointer; transition: box-shadow .15s, transform .15s; border: 1px solid var(--border-color); border-radius: 12px; background: #fff; padding: 1rem; height: 100%; }
-        .block-card-click:hover { box-shadow: 0 4px 14px rgba(8,16,38,.08); transform: translateY(-1px); }
-        .block-card-click .code { font-size: .72rem; font-family: Consolas, monospace; color: #6c757d; }
+        .admin-card { background: #fff; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(8,16,38,.03); margin-bottom: 25px; padding: 25px; }
+        .metric-card { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; height: 100%; }
+        .metric-card .pct { font-size: 1.5rem; font-weight: 700; color: var(--primary-red); }
+        #ppd-main.project-progress-dashboard { position: relative; z-index: 1; }
+        .project-progress-dashboard .ppd-block-card { cursor: pointer; transition: box-shadow .15s, transform .15s; border: 1px solid var(--border-color); border-radius: 12px; background: #fff; padding: 1rem; height: 100%; }
+        .project-progress-dashboard .ppd-block-card:hover { box-shadow: 0 4px 14px rgba(8,16,38,.08); transform: translateY(-1px); }
+        .project-progress-dashboard .ppd-block-card .code { font-size: .72rem; font-family: Consolas, monospace; color: #6c757d; }
         .progress-thin { height: 6px; }
-        .modal-section-title { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: #495057; margin: 1.25rem 0 .4rem; font-weight: 700; border-bottom: 1px solid #eee; padding-bottom: .25rem; }
-        .modal-section-title:first-of-type { margin-top: 0; }
-        .modal-section-body { font-size: .92rem; line-height: 1.55; }
+        .admin-standalone-modals-root .modal-section-title { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: #495057; margin: 1.25rem 0 .4rem; font-weight: 700; border-bottom: 1px solid #eee; padding-bottom: .25rem; }
+        .admin-standalone-modals-root .modal-section-title:first-of-type { margin-top: 0; }
+        .admin-standalone-modals-root .modal-section-body { font-size: .92rem; line-height: 1.55; }
     </style>
 </head>
 <body>
@@ -167,7 +173,7 @@ $totalBloques = count($bloques);
         <a href="/admin/logout.php" class="btn btn-sm btn-outline-danger w-100">Cerrar sesión</a>
     </div>
 </div>
-<div class="col-lg-9 col-md-8 p-0">
+<div class="col-lg-9 col-md-8 p-0 project-progress-dashboard" id="ppd-main">
     <div class="admin-header d-flex flex-wrap align-items-center justify-content-between gap-2">
         <div>
         <h4 class="fw-bold mb-0"><i class="bi bi-kanban me-2"></i>Dashboard de avances</h4>
@@ -211,12 +217,13 @@ $totalBloques = count($bloques);
             <div class="row g-3">
                 <?php foreach ($featured as $bloque):
                     $codigo = (string) ($bloque['codigo'] ?? '');
+                    $modalId = ppd_modal_id($codigo);
                     $estado = (string) ($bloque['estado'] ?? '');
                     $pct = (int) ($bloque['avance_registrado'] ?? 0);
                     $badges = ppb_string_list($bloque['visibility_badges'] ?? null);
                 ?>
                 <div class="col-md-6">
-                    <div class="block-card-click" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#modal-<?php echo ppd_esc($codigo); ?>">
+                    <div class="ppd-block-card" role="button" tabindex="0" data-progress-modal="<?php echo ppd_esc($modalId); ?>">
                         <div class="code"><?php echo ppd_esc($codigo); ?></div>
                         <h3 class="h6 fw-bold mb-2"><?php echo ppd_esc($bloque['nombre'] ?? ''); ?></h3>
                         <span class="badge rounded-pill <?php echo ppd_esc(ppd_estado_class($estado)); ?>"><?php echo ppd_esc(ppd_estado_display_label($estado)); ?></span>
@@ -275,6 +282,7 @@ $totalBloques = count($bloques);
             <div class="row g-3" id="ppd-blocks-grid">
                 <?php foreach ($bloques as $bloque):
                     $codigo = (string) ($bloque['codigo'] ?? '');
+                    $modalId = ppd_modal_id($codigo);
                     $nombre = (string) ($bloque['nombre'] ?? '');
                     $estado = (string) ($bloque['estado'] ?? '');
                     $area = (string) ($bloque['area'] ?? '');
@@ -284,7 +292,7 @@ $totalBloques = count($bloques);
                     $badges = ppb_string_list($bloque['visibility_badges'] ?? null);
                 ?>
                 <div class="col-sm-6 col-xl-4 ppd-block-col" data-grupo="<?php echo ppd_esc($grupo); ?>" data-estado="<?php echo ppd_esc($estado); ?>" data-search="<?php echo ppd_esc($searchText); ?>">
-                    <div class="block-card-click" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#modal-<?php echo ppd_esc($codigo); ?>">
+                    <div class="ppd-block-card" role="button" tabindex="0" data-progress-modal="<?php echo ppd_esc($modalId); ?>">
                         <div class="code"><?php echo ppd_esc($codigo); ?></div>
                         <h3 class="h6 fw-bold mb-1"><?php echo ppd_esc($nombre); ?></h3>
                         <div class="small text-muted mb-2"><?php echo ppd_esc($area); ?></div>
@@ -308,12 +316,13 @@ $totalBloques = count($bloques);
 </div>
 </div></div>
 
+<div class="admin-standalone-modals-root" id="ppd-modals-root">
 <?php foreach ($bloques as $bloque):
     $codigo = (string) ($bloque['codigo'] ?? '');
     if ($codigo === '') {
         continue;
     }
-    $modalId = 'modal-' . preg_replace('/[^a-zA-Z0-9_-]/', '-', $codigo);
+    $modalId = ppd_modal_id($codigo);
     $estado = (string) ($bloque['estado'] ?? '');
     $pct = (int) ($bloque['avance_registrado'] ?? 0);
     $resumenModal = (string) ($bloque['modal_summary'] ?? $bloque['descripcion'] ?? '');
@@ -445,10 +454,47 @@ $totalBloques = count($bloques);
     </div>
 </div>
 <?php endforeach; ?>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 (function () {
+    var main = document.getElementById('ppd-main');
+    if (main) {
+        function openProgressModal(card) {
+            var id = card.getAttribute('data-progress-modal');
+            if (!id) return;
+            var modalEl = document.getElementById(id);
+            if (modalEl && window.bootstrap) {
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            }
+        }
+
+        main.addEventListener('click', function (event) {
+            if (event.target.closest('.admin-sidebar, aside, nav')) {
+                return;
+            }
+            var card = event.target.closest('.ppd-block-card[data-progress-modal]');
+            if (!card) {
+                return;
+            }
+            event.preventDefault();
+            openProgressModal(card);
+        });
+
+        main.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' && event.key !== ' ') {
+                return;
+            }
+            var card = event.target.closest('.ppd-block-card[data-progress-modal]');
+            if (!card) {
+                return;
+            }
+            event.preventDefault();
+            openProgressModal(card);
+        });
+    }
+
     var search = document.getElementById('ppd-search');
     var filterGrupo = document.getElementById('ppd-filter-grupo');
     var filterEstado = document.getElementById('ppd-filter-estado');
@@ -476,5 +522,6 @@ $totalBloques = count($bloques);
     if (filterEstado) filterEstado.addEventListener('change', applyFilters);
 })();
 </script>
+<?php require __DIR__ . '/../../includes/admin-standalone-sidebar.php'; ?>
 </body>
 </html>
