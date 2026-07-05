@@ -171,7 +171,7 @@ class PowertranzSanitizer
             'content_type' => self::text($contentType, 120),
             'response_body_length' => strlen($raw),
             'response_body_preview' => self::sanitizeRawBodyPreview($raw, 500),
-            'endpoint' => self::text($endpoint, 200),
+            'endpoint' => $endpoint,
         ];
     }
 

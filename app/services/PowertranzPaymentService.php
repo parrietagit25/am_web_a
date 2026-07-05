@@ -153,6 +153,19 @@ class PowertranzPaymentService
             ];
         }
 
+        if (!$this->callbackIndicatesHppCompleted($callback)) {
+            $this->updatePayment($paymentId, [
+                'status' => 'return_error',
+                'error_message' => 'Retorno recibido antes de completar HPP/3DS',
+            ]);
+
+            return [
+                'ok' => false,
+                'message' => 'Retorno recibido antes de completar HPP/3DS. Complete el pago en el iframe embebido.',
+                'payment' => $this->getPublicPayment($paymentId),
+            ];
+        }
+
         $spiToken = $this->client->extractSpiToken($callback);
         if ($spiToken === '') {
             $spiToken = trim((string) ($payment['spi_token_vault'] ?? ''));
@@ -757,21 +770,50 @@ class PowertranzPaymentService
      */
     private function callbackHasValidReturn(array $callback): bool
     {
+        if ($callback === []) {
+            return false;
+        }
+
+        return $this->callbackIndicatesHppCompleted($callback)
+            || $this->client->extractSpiToken($callback) !== ''
+            || trim((string) ($callback['TransactionIdentifier'] ?? $callback['transactionIdentifier'] ?? '')) !== ''
+            || trim((string) ($callback['OrderIdentifier'] ?? $callback['orderIdentifier'] ?? '')) !== '';
+    }
+
+    /**
+     * Evita completePayment si el retorno no indica que el usuario terminó HPP/3DS.
+     *
+     * @param array<string, mixed> $callback
+     */
+    private function callbackIndicatesHppCompleted(array $callback): bool
+    {
         if ($this->client->extractSpiToken($callback) !== '') {
             return true;
         }
-        $txn = trim((string) ($callback['TransactionIdentifier'] ?? $callback['transactionIdentifier'] ?? ''));
-        if ($txn !== '') {
-            return true;
-        }
-        $order = trim((string) ($callback['OrderIdentifier'] ?? $callback['orderIdentifier'] ?? ''));
-        if ($order !== '') {
-            return true;
-        }
-        foreach (['IsoResponseCode', 'isoResponseCode', 'ResponseMessage', 'responseMessage', 'AuthenticationStatus', 'authenticationStatus'] as $key) {
+
+        foreach ([
+            'AuthenticationStatus', 'authenticationStatus',
+            'RiskManagement', 'riskManagement',
+            'RiskManagementResponse', 'riskManagementResponse',
+            'PaRes', 'paRes', 'CRes', 'cRes',
+        ] as $key) {
             if (trim((string) ($callback[$key] ?? '')) !== '') {
                 return true;
             }
+        }
+
+        if (array_key_exists('Approved', $callback) || array_key_exists('approved', $callback)) {
+            return true;
+        }
+
+        $iso = strtoupper(trim((string) ($callback['IsoResponseCode'] ?? $callback['isoResponseCode'] ?? '')));
+        if ($iso !== '' && !in_array($iso, ['SP4', 'SP1', '97'], true)) {
+            return true;
+        }
+
+        $msg = strtolower(trim((string) ($callback['ResponseMessage'] ?? $callback['responseMessage'] ?? '')));
+        if ($msg !== '' && !str_contains($msg, 'preprocessing complete')) {
+            return true;
         }
 
         return false;
