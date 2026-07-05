@@ -159,6 +159,8 @@ elseif ($action === 'delete_renting_car') {
 
 // ADD RENTING POST
 elseif ($action === 'add_renting_post') {
+    require_once __DIR__ . '/renting-posts.php';
+    require_once __DIR__ . '/admin-html-sanitize.php';
     if (!isset($siteData['renting']['posts'])) {
         $siteData['renting']['posts'] = [];
     }
@@ -169,6 +171,9 @@ elseif ($action === 'add_renting_post') {
     $subheading = trim($_POST['renting_post_subheading'] ?? '');
     $description = trim($_POST['renting_post_description'] ?? '');
     $content = trim($_POST['renting_post_content'] ?? '');
+    if (isRentingHtmlContent($content)) {
+        $content = sanitizeAdminHtmlContent($content);
+    }
     $imageUrl = trim($_POST['renting_post_image_url'] ?? '');
 
     if (isset($_FILES['renting_post_image']) && $_FILES['renting_post_image']['error'] === UPLOAD_ERR_OK) {
@@ -202,6 +207,8 @@ elseif ($action === 'add_renting_post') {
 
 // EDIT RENTING POST
 elseif ($action === 'edit_renting_post') {
+    require_once __DIR__ . '/renting-posts.php';
+    require_once __DIR__ . '/admin-html-sanitize.php';
     if (!isset($siteData['renting']['posts'])) {
         $siteData['renting']['posts'] = [];
     }
@@ -222,6 +229,10 @@ elseif ($action === 'edit_renting_post') {
                 $imageUrl = $uploadedPath;
             }
         }
+        $postContent = trim($_POST['renting_post_content'] ?? '');
+        if (isRentingHtmlContent($postContent)) {
+            $postContent = sanitizeAdminHtmlContent($postContent);
+        }
         $siteData['renting']['posts'][$foundIdx] = [
             'id' => $id,
             'title' => trim($_POST['renting_post_title'] ?? ''),
@@ -230,7 +241,7 @@ elseif ($action === 'edit_renting_post') {
             'link_text' => trim($_POST['renting_post_link_text'] ?? 'Ver Más'),
             'subheading' => trim($_POST['renting_post_subheading'] ?? ''),
             'description' => trim($_POST['renting_post_description'] ?? ''),
-            'content' => trim($_POST['renting_post_content'] ?? ''),
+            'content' => $postContent,
             'image_url' => $imageUrl,
         ];
         if ($contentService->saveAll($siteData)) {
@@ -510,13 +521,14 @@ elseif ($action === 'save_renting_servicios') {
     }
 
     require_once __DIR__ . '/renting-posts.php';
+    require_once __DIR__ . '/admin-html-sanitize.php';
 
     $rawParagraphs = trim($_POST['renting_servicios_paragraphs'] ?? '');
     $introHtml = '';
     $paragraphs = [];
 
     if (isRentingHtmlContent($rawParagraphs)) {
-        $introHtml = normalizeRentingRawContent($rawParagraphs);
+        $introHtml = sanitizeAdminHtmlContent(normalizeRentingRawContent($rawParagraphs));
     } else {
         $paragraphs = preg_split("/\r\n\r\n|\n\n/", $rawParagraphs);
         $paragraphs = array_values(array_filter(array_map('trim', $paragraphs)));
@@ -628,6 +640,7 @@ elseif ($action === 'edit_renting_servicio_item') {
 // SAVE RENTING SOBRE NOSOTROS
 elseif ($action === 'save_renting_sobre_nosotros') {
     require_once __DIR__ . '/renting-posts.php';
+    require_once __DIR__ . '/admin-html-sanitize.php';
 
     if (!isset($siteData['renting'])) {
         $siteData['renting'] = [];
@@ -646,7 +659,7 @@ elseif ($action === 'save_renting_sobre_nosotros') {
     $introHtml = '';
     $paragraphs = [];
     if (isRentingHtmlContent($rawParagraphs)) {
-        $introHtml = normalizeRentingRawContent($rawParagraphs);
+        $introHtml = sanitizeAdminHtmlContent(normalizeRentingRawContent($rawParagraphs));
     } else {
         $paragraphs = preg_split("/\r\n\r\n|\n\n/", $rawParagraphs);
         $paragraphs = array_values(array_filter(array_map('trim', $paragraphs)));

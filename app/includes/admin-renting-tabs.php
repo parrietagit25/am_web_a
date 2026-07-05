@@ -404,8 +404,8 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                     </div>
                                     <div class="col-12">
                                         <label for="renting_servicios_paragraphs" class="form-label fw-semibold">Contenido principal</label>
-                                        <textarea id="renting_servicios_paragraphs" name="renting_servicios_paragraphs" class="form-control form-control-premium font-monospace" rows="14" required><?php echo esc($renting_servicios_paragraphs_text); ?></textarea>
-                                        <div class="form-text">Puedes pegar <strong>HTML completo</strong> (<code>&lt;section&gt;</code>, <code>&lt;div&gt;</code>, etc.) o texto plano con párrafos separados por una línea en blanco.</div>
+                                        <textarea id="renting_servicios_paragraphs" name="renting_servicios_paragraphs" class="form-control form-control-premium js-admin-html-editor" data-admin-html-height="400" rows="14" required><?php echo esc($renting_servicios_paragraphs_text); ?></textarea>
+                                        <div class="form-text">Editor Summernote: HTML completo (<code>&lt;section&gt;</code>, <code>&lt;div&gt;</code>, etc.) o texto plano con párrafos separados por línea en blanco. Use <strong>Vista código</strong> para HTML avanzado.</div>
                                     </div>
                                 </div>
 
@@ -547,8 +547,8 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                     </div>
                                     <div class="col-12">
                                         <label for="renting_sobre_paragraphs" class="form-label fw-semibold">Texto principal</label>
-                                        <textarea id="renting_sobre_paragraphs" name="renting_sobre_paragraphs" class="form-control form-control-premium font-monospace" rows="10" required><?php echo esc($renting_sobre_paragraphs_text); ?></textarea>
-                                        <div class="form-text">Párrafos separados por línea en blanco, o <strong>HTML completo</strong> si lo prefieres.</div>
+                                        <textarea id="renting_sobre_paragraphs" name="renting_sobre_paragraphs" class="form-control form-control-premium js-admin-html-editor" data-admin-html-height="350" rows="10" required><?php echo esc($renting_sobre_paragraphs_text); ?></textarea>
+                                        <div class="form-text">Editor Summernote: párrafos separados por línea en blanco, o <strong>HTML completo</strong> (Vista código).</div>
                                     </div>
                                 </div>
 
@@ -641,8 +641,8 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                     </div>
                                     <div class="col-12">
                                         <label for="renting_post_content" class="form-label">Contenido detallado</label>
-                                        <textarea id="renting_post_content" name="renting_post_content" class="form-control form-control-premium font-monospace" rows="12" placeholder="HTML (section, div, etc.) o texto con viñetas (- ítem)." required></textarea>
-                                        <div class="form-text">Puedes pegar <strong>HTML completo</strong> (etiquetas <code>&lt;section&gt;</code>, <code>&lt;div&gt;</code>, etc.) o usar texto plano con <strong>**negritas**</strong> y viñetas (<code>- ítem</code>).</div>
+                                        <textarea id="renting_post_content" name="renting_post_content" class="form-control form-control-premium js-admin-html-editor" data-admin-html-height="400" rows="12" placeholder="HTML (section, div, etc.) o texto con viñetas (- ítem)." required></textarea>
+                                        <div class="form-text">Editor Summernote: <strong>HTML completo</strong> (Vista código) o texto plano con <strong>**negritas**</strong> y viñetas (<code>- ítem</code>).</div>
                                     </div>
                                 </div>
 

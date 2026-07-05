@@ -239,6 +239,8 @@ elseif ($action === 'delete_taller_sucursal') {
     }
 }
 elseif ($action === 'save_taller_sobre_settings') {
+    require_once __DIR__ . '/renting-posts.php';
+    require_once __DIR__ . '/admin-html-sanitize.php';
     if (!isset($siteData['taller'])) {
         $siteData['taller'] = [];
     }
@@ -280,11 +282,16 @@ elseif ($action === 'save_taller_sobre_settings') {
         ];
     }
 
+    $rightContent = trim($_POST['taller_sobre_right_content'] ?? '');
+    if (isRentingHtmlContent($rightContent)) {
+        $rightContent = sanitizeAdminHtmlContent($rightContent);
+    }
+
     $siteData['taller']['sobre_nosotros'] = [
         'page_title' => trim($_POST['taller_sobre_page_title'] ?? 'Sobre Nosotros'),
         'section_title' => trim($_POST['taller_sobre_section_title'] ?? 'Sobre Automarket Taller'),
         'right_title' => trim($_POST['taller_sobre_right_title'] ?? ''),
-        'right_content' => trim($_POST['taller_sobre_right_content'] ?? ''),
+        'right_content' => $rightContent,
         'main_image_url' => $mainImage,
         'bottom_title' => trim($_POST['taller_sobre_bottom_title'] ?? ''),
         'stats' => $stats,

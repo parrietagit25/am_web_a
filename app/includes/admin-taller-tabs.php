@@ -505,8 +505,8 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 </div>
                 <div class="col-12">
                     <label for="taller_sobre_right_content" class="form-label fw-semibold">Contenido (derecha)</label>
-                    <textarea id="taller_sobre_right_content" name="taller_sobre_right_content" rows="7" class="form-control form-control-premium font-monospace"><?php echo esc($taller_sobre['right_content'] ?? ''); ?></textarea>
-                    <div class="form-text">Puedes usar texto simple o HTML.</div>
+                    <textarea id="taller_sobre_right_content" name="taller_sobre_right_content" rows="7" class="form-control form-control-premium js-admin-html-editor" data-admin-html-height="350"><?php echo esc($taller_sobre['right_content'] ?? ''); ?></textarea>
+                    <div class="form-text">Editor Summernote: texto simple o HTML (Vista código).</div>
                 </div>
                 <div class="col-12">
                     <label for="taller_sobre_bottom_title" class="form-label fw-semibold">Título final (antes de las 3 imágenes)</label>

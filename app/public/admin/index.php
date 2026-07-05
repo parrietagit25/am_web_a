@@ -937,7 +937,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // 15. SAVE TERMS AND CONDITIONS
     elseif ($action === 'save_terms') {
-        $terms = $_POST['terminos_condiciones'] ?? '';
+        require_once __DIR__ . '/../../includes/admin-html-sanitize.php';
+        $terms = sanitizeAdminHtmlContent((string) ($_POST['terminos_condiciones'] ?? ''));
         $siteData['homepage']['terminos_condiciones'] = $terms;
         if ($contentService->saveAll($siteData)) {
             $successMsg = 'Términos y Condiciones actualizados correctamente.';
@@ -948,7 +949,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // 16. SAVE RENTAL REQUIREMENTS
     elseif ($action === 'save_requirements') {
-        $reqs = $_POST['requisitos_alquiler'] ?? '';
+        require_once __DIR__ . '/../../includes/admin-html-sanitize.php';
+        $reqs = sanitizeAdminHtmlContent((string) ($_POST['requisitos_alquiler'] ?? ''));
         $siteData['homepage']['requisitos_alquiler'] = $reqs;
         if ($contentService->saveAll($siteData)) {
             $successMsg = 'Requisitos de Alquiler actualizados correctamente.';
@@ -4504,10 +4506,9 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 <div class="row g-3">
                                     <div class="col-12">
                                         <label for="terminos_condiciones" class="form-label">Contenido HTML</label>
-                                        <textarea id="terminos_condiciones" name="terminos_condiciones" class="form-control form-control-premium font-monospace" rows="15" required><?php echo esc($homepage['terminos_condiciones'] ?? ''); ?></textarea>
+                                        <textarea id="terminos_condiciones" name="terminos_condiciones" class="form-control form-control-premium js-admin-html-editor" data-admin-html-height="450" rows="15" required><?php echo esc($homepage['terminos_condiciones'] ?? ''); ?></textarea>
                                         <div class="form-text">
-                                            Este campo acepta etiquetas HTML básicas (como <code>&lt;h2&gt;</code>, <code>&lt;h3&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;ul&gt;</code>, <code>&lt;li&gt;</code>).
-                                            Puedes usar las clases CSS <code>subtitulo2</code> para títulos de sección, <code>subtitulo3</code> para títulos de protección, y la clase <code>lista-puntos-rojos</code> en la etiqueta <code>&lt;ul&gt;</code> para viñetas rojas.
+                                            Editor visual Summernote. Para clases CSS del sitio (<code>subtitulo2</code>, <code>subtitulo3</code>, <code>lista-puntos-rojos</code>) use <strong>Vista código</strong> y conserve las etiquetas HTML existentes.
                                         </div>
                                     </div>
                                 </div>
@@ -4534,7 +4535,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                 <div class="row g-3">
                                     <div class="col-12">
                                         <label for="requisitos_alquiler" class="form-label">Contenido HTML</label>
-                                        <textarea id="requisitos_alquiler" name="requisitos_alquiler" class="form-control form-control-premium font-monospace" rows="15" required><?php echo esc($homepage['requisitos_alquiler'] ?? ''); ?></textarea>
+                                        <textarea id="requisitos_alquiler" name="requisitos_alquiler" class="form-control form-control-premium js-admin-html-editor" data-admin-html-height="450" rows="15" required><?php echo esc($homepage['requisitos_alquiler'] ?? ''); ?></textarea>
                                         <div class="form-text">
                                             Este campo acepta etiquetas HTML básicas (como <code>&lt;h2&gt;</code>, <code>&lt;h3&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;ul&gt;</code>, <code>&lt;li&gt;</code>).
                                             Puedes usar las clases CSS <code>subtitulo2</code> para títulos de sección, y <code>subtitulo3</code> para sub-encabezados.
@@ -7078,6 +7079,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
 <!-- Bootstrap 5 JS Bundle -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+<?php require __DIR__ . '/../../includes/admin-html-summernote-scripts.php'; ?>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
@@ -7612,7 +7614,11 @@ function initEditRentingPost(post) {
     document.getElementById('renting_post_link_text').value = post.link_text || 'Ver Más';
     document.getElementById('renting_post_subheading').value = post.subheading || '';
     document.getElementById('renting_post_description').value = post.description || '';
-    document.getElementById('renting_post_content').value = post.content || '';
+    if (typeof adminHtmlEditorSetValue === 'function') {
+        adminHtmlEditorSetValue('renting_post_content', post.content || '');
+    } else {
+        document.getElementById('renting_post_content').value = post.content || '';
+    }
     document.getElementById('renting_post_image_url').value = post.image_url || '';
     if (post.image_url) {
         document.getElementById('rentingPostImageHelp').innerHTML = 'Imagen actual: <code>' + post.image_url + '</code>';
@@ -7625,6 +7631,9 @@ function initEditRentingPost(post) {
 
 function resetRentingPostForm() {
     document.getElementById('rentingPostForm').reset();
+    if (typeof adminHtmlEditorSetValue === 'function') {
+        adminHtmlEditorSetValue('renting_post_content', '');
+    }
     document.getElementById('rentingPostFormTitle').innerHTML = '<i class="bi bi-file-post-fill me-2 text-danger"></i>Agregar publicación (Renting)';
     document.getElementById('rentingPostFormAction').value = 'add_renting_post';
     document.getElementById('rentingPostFormId').value = '';
