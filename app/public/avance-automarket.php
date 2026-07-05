@@ -120,7 +120,7 @@ function dash_estado_class(string $estado): string
 }
 
 $pageTitle = (string) ($meta['titulo'] ?? 'Tablero de avance Automarket');
-$notaPct   = (string) ($meta['nota_porcentajes'] ?? '');
+$notaTablero = (string) ($meta['nota_tablero'] ?? '');
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -291,14 +291,14 @@ $notaPct   = (string) ($meta['nota_porcentajes'] ?? '');
         · Actualizado: <?php echo dash_esc($meta['fecha_actualizacion'] ?? '—'); ?>
     </p>
 
-    <?php if ($notaPct !== ''): ?>
-    <div class="note"><?php echo dash_esc($notaPct); ?></div>
+    <?php if ($notaTablero !== ''): ?>
+    <div class="note"><?php echo dash_esc($notaTablero); ?></div>
     <?php endif; ?>
 
     <div class="summary-grid">
         <?php
         $summaryLabels = [
-            'avance_global'     => 'Avance global estimado',
+            'avance_global'     => 'Avance global registrado',
             'seo_tecnico'       => 'SEO técnico',
             'cms_editorial'     => 'CMS / editorial',
             'ux_conversion'     => 'UX / conversión',
@@ -336,7 +336,7 @@ $notaPct   = (string) ($meta['nota_porcentajes'] ?? '');
             <span class="pill <?php echo dash_esc(dash_estado_class($estado)); ?>"><?php echo dash_esc($estado); ?></span>
             <span class="pill estado-default <?php echo dash_esc($prioClass); ?>"><?php echo dash_esc($prioridad); ?></span>
             <div class="block-meta">
-                <div><strong><?php echo (int) ($bloque['porcentaje_estimado'] ?? 0); ?>%</strong> estimado</div>
+                <div><strong><?php echo (int) ($bloque['porcentaje_estimado'] ?? 0); ?>%</strong> avance registrado</div>
                 <div>Commit: <strong><?php echo dash_esc($bloque['ultimo_commit'] ?? '—'); ?></strong></div>
                 <div>Próxima acción: <?php echo dash_esc($bloque['siguiente_accion'] ?? '—'); ?></div>
             </div>

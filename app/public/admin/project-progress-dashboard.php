@@ -1,6 +1,6 @@
 <?php
 /**
- * Admin — Dashboard de avances del proyecto (AM-DASH-ADMIN-AVANCES-1A).
+ * Admin — Dashboard de avances del proyecto (AM-DASH-ADMIN-AVANCES-1B).
  * Lee app/config/project-progress.php. Sin secretos ni credenciales.
  */
 declare(strict_types=1);
@@ -8,6 +8,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../services/AdminUserService.php';
 require_once __DIR__ . '/../../includes/admin-auth.php';
+require_once __DIR__ . '/../../includes/project-progress-block-enrichment.php';
 
 AdminUserService::ensureSchema();
 admin_require_login();
@@ -21,7 +22,7 @@ if (!is_array($progress)) {
 
 $meta    = is_array($progress['meta'] ?? null) ? $progress['meta'] : [];
 $resumen = is_array($progress['resumen'] ?? null) ? $progress['resumen'] : [];
-$bloques = is_array($progress['bloques'] ?? null) ? $progress['bloques'] : [];
+$bloques = ppb_enrich_all(is_array($progress['bloques'] ?? null) ? $progress['bloques'] : []);
 
 /**
  * @param mixed $value
@@ -57,14 +58,7 @@ function ppd_estado_class(string $estado): string
 
 function ppd_estado_grupo(string $estado): string
 {
-    $cerrado = [
-        'Cerrado producción',
-        'Cerrado local',
-        'Cerrado por absorción en bloque posterior',
-        'Diagnóstico aprobado',
-        'Cerrado por absorción en B3-D',
-    ];
-    if (in_array($estado, $cerrado, true) || str_starts_with($estado, 'Cerrado')) {
+    if (str_starts_with($estado, 'Cerrado') || $estado === 'Diagnóstico aprobado') {
         return 'cerrado';
     }
     if ($estado === 'Pendiente externo' || $estado === 'Bloqueado por dato externo') {
@@ -80,47 +74,29 @@ function ppd_estado_grupo(string $estado): string
     return 'en_progreso';
 }
 
-/** @return list<string> */
-function ppd_string_list(mixed $value): array
+function ppd_estado_display_label(string $estado): string
 {
-    if (!is_array($value)) {
-        return [];
-    }
-    $out = [];
-    foreach ($value as $item) {
-        $s = trim((string) $item);
-        if ($s !== '') {
-            $out[] = $s;
-        }
+    if ($estado === 'Bloqueado por dato externo') {
+        return 'Bloqueado por tercero';
     }
 
-    return $out;
+    return $estado;
 }
 
-/** @return list<array{label: string, url: string}> */
-function ppd_link_list(mixed $value): array
+function ppd_visibility_badge_class(string $badge): string
 {
-    if (!is_array($value)) {
-        return [];
-    }
-    $out = [];
-    foreach ($value as $item) {
-        if (!is_array($item)) {
-            continue;
-        }
-        $label = trim((string) ($item['label'] ?? ''));
-        $url = trim((string) ($item['url'] ?? ''));
-        if ($label === '' || $url === '') {
-            continue;
-        }
-        $out[] = ['label' => $label, 'url' => $url];
-    }
-
-    return $out;
+    return match ($badge) {
+        'Visible en web' => 'bg-primary-subtle text-primary-emphasis',
+        'Administrable' => 'bg-info-subtle text-info-emphasis',
+        'Técnico interno', 'Infraestructura' => 'bg-secondary-subtle text-secondary-emphasis',
+        'SEO técnico' => 'bg-success-subtle text-success-emphasis',
+        'Integración' => 'bg-warning-subtle text-dark',
+        default => 'bg-light text-dark border',
+    };
 }
 
 $summaryLabels = [
-    'avance_global'     => 'Avance global',
+    'avance_global'     => 'Avance global registrado',
     'seo_tecnico'       => 'SEO técnico',
     'cms_editorial'     => 'CMS / editorial',
     'ux_conversion'     => 'UX / conversión',
@@ -130,30 +106,25 @@ $summaryLabels = [
 ];
 
 $grupoLabels = [
-    'cerrado'           => 'Cerrado',
+    'cerrado'           => 'Bloques cerrados',
     'en_progreso'       => 'En progreso',
-    'pendiente_externo' => 'Pendiente externo',
-    'pendiente_interno' => 'Pendiente interno',
+    'pendiente_externo' => 'Pendientes externos',
+    'pendiente_interno' => 'Pendientes internos',
     'pospuesto'         => 'Pospuesto',
 ];
 
 $featuredCodes = ['AM-RAC-BARS-RATES', 'AM-RAC-PAY-POWERTRANZ'];
 $featured = [];
-$rest = [];
 foreach ($bloques as $bloque) {
-    if (!is_array($bloque)) {
-        continue;
-    }
     $codigo = (string) ($bloque['codigo'] ?? '');
     if (in_array($codigo, $featuredCodes, true)) {
         $featured[] = $bloque;
-    } else {
-        $rest[] = $bloque;
     }
 }
 
 $defaultAdminTab = 'project-progress-dashboard';
-$pageTitle = (string) ($meta['titulo'] ?? 'Dashboard de avances');
+$notaTablero = trim((string) ($meta['nota_tablero'] ?? ''));
+$totalBloques = count($bloques);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -179,8 +150,9 @@ $pageTitle = (string) ($meta['titulo'] ?? 'Dashboard de avances');
         .block-card-click:hover { box-shadow: 0 4px 14px rgba(8,16,38,.08); transform: translateY(-1px); }
         .block-card-click .code { font-size: .72rem; font-family: Consolas, monospace; color: #6c757d; }
         .progress-thin { height: 6px; }
-        .modal-section-title { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: #6c757d; margin: 1rem 0 .35rem; font-weight: 600; }
-        .modal-section-title:first-child { margin-top: 0; }
+        .modal-section-title { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: #495057; margin: 1.25rem 0 .4rem; font-weight: 700; border-bottom: 1px solid #eee; padding-bottom: .25rem; }
+        .modal-section-title:first-of-type { margin-top: 0; }
+        .modal-section-body { font-size: .92rem; line-height: 1.55; }
     </style>
 </head>
 <body>
@@ -199,17 +171,18 @@ $pageTitle = (string) ($meta['titulo'] ?? 'Dashboard de avances');
     <div class="admin-header">
         <h4 class="fw-bold mb-0"><i class="bi bi-kanban me-2"></i>Dashboard de avances</h4>
         <p class="small text-muted mb-0">
-            <?php echo ppd_esc($meta['version_tablero'] ?? 'AM-DASH-1A'); ?>
+            <?php echo ppd_esc($meta['version_tablero'] ?? 'AM-DASH-1B'); ?>
             · Actualizado: <?php echo ppd_esc($meta['fecha_actualizacion'] ?? '—'); ?>
+            · <?php echo (int) $totalBloques; ?> entregables
             · <?php echo ppd_esc(admin_current_username()); ?>
         </p>
     </div>
     <div class="p-4">
-        <?php if (!empty($meta['nota_porcentajes'])): ?>
-        <div class="alert alert-warning py-2 small mb-4"><?php echo ppd_esc($meta['nota_porcentajes']); ?></div>
+        <?php if ($notaTablero !== ''): ?>
+        <div class="alert alert-light border py-2 small mb-4 mb-0"><i class="bi bi-clipboard-check me-1"></i><?php echo ppd_esc($notaTablero); ?></div>
         <?php endif; ?>
 
-        <div class="row g-3 mb-4">
+        <div class="row g-3 mb-4 mt-3">
             <?php foreach ($summaryLabels as $key => $label):
                 if (!array_key_exists($key, $resumen)) {
                     continue;
@@ -230,26 +203,29 @@ $pageTitle = (string) ($meta['titulo'] ?? 'Dashboard de avances');
 
         <?php if (!empty($featured)): ?>
         <div class="admin-card">
-            <h2 class="h5 fw-bold mb-3">Módulos recientes</h2>
+            <h2 class="h5 fw-bold mb-1">Módulos recientes</h2>
+            <p class="small text-muted mb-3">Entregables RAC con mayor impacto operativo reciente.</p>
             <div class="row g-3">
                 <?php foreach ($featured as $bloque):
                     $codigo = (string) ($bloque['codigo'] ?? '');
                     $estado = (string) ($bloque['estado'] ?? '');
-                    $pct = (int) ($bloque['porcentaje_estimado'] ?? 0);
+                    $pct = (int) ($bloque['avance_registrado'] ?? 0);
+                    $badges = ppb_string_list($bloque['visibility_badges'] ?? null);
                 ?>
                 <div class="col-md-6">
-                    <div class="block-card-click" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#modal-<?php echo ppd_esc($codigo); ?>" data-block-code="<?php echo ppd_esc($codigo); ?>">
+                    <div class="block-card-click" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#modal-<?php echo ppd_esc($codigo); ?>">
                         <div class="code"><?php echo ppd_esc($codigo); ?></div>
                         <h3 class="h6 fw-bold mb-2"><?php echo ppd_esc($bloque['nombre'] ?? ''); ?></h3>
-                        <span class="badge rounded-pill <?php echo ppd_esc(ppd_estado_class($estado)); ?>"><?php echo ppd_esc($estado); ?></span>
+                        <span class="badge rounded-pill <?php echo ppd_esc(ppd_estado_class($estado)); ?>"><?php echo ppd_esc(ppd_estado_display_label($estado)); ?></span>
+                        <?php foreach (array_slice($badges, 0, 2) as $vb): ?>
+                        <span class="badge rounded-pill <?php echo ppd_esc(ppd_visibility_badge_class($vb)); ?>"><?php echo ppd_esc($vb); ?></span>
+                        <?php endforeach; ?>
                         <div class="mt-2 small text-muted"><?php echo ppd_esc($bloque['descripcion'] ?? ''); ?></div>
                         <div class="d-flex align-items-center gap-2 mt-3">
                             <strong class="text-danger"><?php echo $pct; ?>%</strong>
-                            <div class="progress flex-grow-1 progress-thin">
-                                <div class="progress-bar bg-danger" style="width:<?php echo min(100, max(0, $pct)); ?>%"></div>
-                            </div>
+                            <span class="small text-muted">Avance registrado</span>
                         </div>
-                        <div class="small text-primary mt-2"><i class="bi bi-box-arrow-up-right"></i> Ver detalle</div>
+                        <div class="small text-primary mt-2"><i class="bi bi-box-arrow-up-right"></i> Ver detalle ejecutivo</div>
                     </div>
                 </div>
                 <?php endforeach; ?>
@@ -264,7 +240,7 @@ $pageTitle = (string) ($meta['titulo'] ?? 'Dashboard de avances');
                     <input type="search" id="ppd-search" class="form-control form-control-sm" placeholder="Nombre o código…" style="min-width:220px">
                 </div>
                 <div>
-                    <label for="ppd-filter-grupo" class="form-label small mb-1">Grupo de estado</label>
+                    <label for="ppd-filter-grupo" class="form-label small mb-1">Estado de implementación</label>
                     <select id="ppd-filter-grupo" class="form-select form-select-sm">
                         <option value="">Todos</option>
                         <?php foreach ($grupoLabels as $key => $label): ?>
@@ -279,17 +255,15 @@ $pageTitle = (string) ($meta['titulo'] ?? 'Dashboard de avances');
                         <?php
                         $estadosUnicos = [];
                         foreach ($bloques as $b) {
-                            if (is_array($b)) {
-                                $e = (string) ($b['estado'] ?? '');
-                                if ($e !== '') {
-                                    $estadosUnicos[$e] = true;
-                                }
+                            $e = (string) ($b['estado'] ?? '');
+                            if ($e !== '') {
+                                $estadosUnicos[$e] = true;
                             }
                         }
                         ksort($estadosUnicos);
                         foreach (array_keys($estadosUnicos) as $estadoOpt):
                         ?>
-                        <option value="<?php echo ppd_esc($estadoOpt); ?>"><?php echo ppd_esc($estadoOpt); ?></option>
+                        <option value="<?php echo ppd_esc($estadoOpt); ?>"><?php echo ppd_esc(ppd_estado_display_label($estadoOpt)); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -297,23 +271,24 @@ $pageTitle = (string) ($meta['titulo'] ?? 'Dashboard de avances');
 
             <div class="row g-3" id="ppd-blocks-grid">
                 <?php foreach ($bloques as $bloque):
-                    if (!is_array($bloque)) {
-                        continue;
-                    }
                     $codigo = (string) ($bloque['codigo'] ?? '');
                     $nombre = (string) ($bloque['nombre'] ?? '');
                     $estado = (string) ($bloque['estado'] ?? '');
                     $area = (string) ($bloque['area'] ?? '');
-                    $pct = (int) ($bloque['porcentaje_estimado'] ?? 0);
+                    $pct = (int) ($bloque['avance_registrado'] ?? 0);
                     $grupo = ppd_estado_grupo($estado);
                     $searchText = strtolower($codigo . ' ' . $nombre . ' ' . $estado . ' ' . $area);
+                    $badges = ppb_string_list($bloque['visibility_badges'] ?? null);
                 ?>
                 <div class="col-sm-6 col-xl-4 ppd-block-col" data-grupo="<?php echo ppd_esc($grupo); ?>" data-estado="<?php echo ppd_esc($estado); ?>" data-search="<?php echo ppd_esc($searchText); ?>">
                     <div class="block-card-click" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#modal-<?php echo ppd_esc($codigo); ?>">
                         <div class="code"><?php echo ppd_esc($codigo); ?></div>
                         <h3 class="h6 fw-bold mb-1"><?php echo ppd_esc($nombre); ?></h3>
                         <div class="small text-muted mb-2"><?php echo ppd_esc($area); ?></div>
-                        <span class="badge rounded-pill <?php echo ppd_esc(ppd_estado_class($estado)); ?>"><?php echo ppd_esc($estado); ?></span>
+                        <span class="badge rounded-pill <?php echo ppd_esc(ppd_estado_class($estado)); ?>"><?php echo ppd_esc(ppd_estado_display_label($estado)); ?></span>
+                        <?php if (!empty($badges[0])): ?>
+                        <span class="badge rounded-pill <?php echo ppd_esc(ppd_visibility_badge_class($badges[0])); ?>"><?php echo ppd_esc($badges[0]); ?></span>
+                        <?php endif; ?>
                         <div class="d-flex align-items-center gap-2 mt-2">
                             <strong><?php echo $pct; ?>%</strong>
                             <div class="progress flex-grow-1 progress-thin">
@@ -331,87 +306,93 @@ $pageTitle = (string) ($meta['titulo'] ?? 'Dashboard de avances');
 </div></div>
 
 <?php foreach ($bloques as $bloque):
-    if (!is_array($bloque)) {
-        continue;
-    }
     $codigo = (string) ($bloque['codigo'] ?? '');
     if ($codigo === '') {
         continue;
     }
     $modalId = 'modal-' . preg_replace('/[^a-zA-Z0-9_-]/', '-', $codigo);
     $estado = (string) ($bloque['estado'] ?? '');
-    $pct = (int) ($bloque['porcentaje_estimado'] ?? 0);
+    $pct = (int) ($bloque['avance_registrado'] ?? 0);
     $resumenModal = (string) ($bloque['modal_summary'] ?? $bloque['descripcion'] ?? '');
     $queSeHizo = (string) ($bloque['que_se_hizo'] ?? '');
-    $adminLocs = ppd_link_list($bloque['admin_locations'] ?? null);
-    $publicLocs = ppd_link_list($bloque['public_locations'] ?? null);
-    $testLinks = ppd_link_list($bloque['test_links'] ?? null);
-    $techLocs = ppd_string_list($bloque['technical_locations'] ?? null);
-    $evidenceItems = ppd_string_list($bloque['evidence_items'] ?? null);
-    if (empty($evidenceItems) && !empty($bloque['evidencia'])) {
-        $evidenceItems = [(string) $bloque['evidencia']];
-    }
-    $commits = ppd_string_list($bloque['commits'] ?? null);
+    $adminLocs = ppb_link_list($bloque['admin_locations'] ?? null);
+    $publicLocs = ppb_link_list($bloque['public_locations'] ?? null);
+    $testLinks = ppb_link_list($bloque['test_links'] ?? null);
+    $validationItems = ppb_string_list($bloque['validation_items'] ?? null);
+    $evidenceItems = ppb_string_list($bloque['evidence_items'] ?? null);
+    $commits = ppb_string_list($bloque['commits'] ?? null);
     if (empty($commits) && !empty($bloque['ultimo_commit']) && (string) $bloque['ultimo_commit'] !== '—') {
         $commits = [(string) $bloque['ultimo_commit']];
     }
-    $blockers = ppd_string_list($bloque['blockers'] ?? null);
+    $blockers = ppb_string_list($bloque['blockers'] ?? null);
     $publicNote = trim((string) ($bloque['public_locations_note'] ?? ''));
+    $publicText = trim((string) ($bloque['public_web_text'] ?? ''));
+    $adminNote = trim((string) ($bloque['admin_note'] ?? ''));
+    $badges = ppb_string_list($bloque['visibility_badges'] ?? null);
 ?>
 <div class="modal fade" id="<?php echo ppd_esc($modalId); ?>" tabindex="-1" aria-labelledby="<?php echo ppd_esc($modalId); ?>-label" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header border-bottom">
                 <div>
-                    <div class="small text-muted font-monospace"><?php echo ppd_esc($codigo); ?></div>
+                    <div class="small text-muted font-monospace"><?php echo ppd_esc($codigo); ?> · <?php echo ppd_esc($bloque['area'] ?? ''); ?></div>
                     <h5 class="modal-title fw-bold" id="<?php echo ppd_esc($modalId); ?>-label"><?php echo ppd_esc($bloque['nombre'] ?? ''); ?></h5>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
-                <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-                    <span class="badge rounded-pill <?php echo ppd_esc(ppd_estado_class($estado)); ?>"><?php echo ppd_esc($estado); ?></span>
-                    <span class="badge bg-dark"><?php echo $pct; ?>%</span>
-                    <?php if (!empty($bloque['prioridad'])): ?>
-                    <span class="badge bg-light text-dark border"><?php echo ppd_esc($bloque['prioridad']); ?></span>
-                    <?php endif; ?>
+                <div class="modal-section-title">Estado y avance</div>
+                <div class="modal-section-body d-flex flex-wrap gap-2 align-items-center mb-2">
+                    <span class="badge rounded-pill <?php echo ppd_esc(ppd_estado_class($estado)); ?>"><?php echo ppd_esc(ppd_estado_display_label($estado)); ?></span>
+                    <span class="badge bg-dark"><?php echo $pct; ?>% avance registrado</span>
+                    <?php foreach ($badges as $vb): ?>
+                    <span class="badge rounded-pill <?php echo ppd_esc(ppd_visibility_badge_class($vb)); ?>"><?php echo ppd_esc($vb); ?></span>
+                    <?php endforeach; ?>
                 </div>
 
                 <?php if ($resumenModal !== ''): ?>
-                <p class="mb-0"><?php echo ppd_esc($resumenModal); ?></p>
+                <div class="modal-section-title">Resumen</div>
+                <p class="modal-section-body mb-0"><?php echo ppd_esc($resumenModal); ?></p>
                 <?php endif; ?>
 
                 <?php if ($queSeHizo !== ''): ?>
                 <div class="modal-section-title">Qué se hizo</div>
-                <p class="small mb-0"><?php echo ppd_esc($queSeHizo); ?></p>
+                <p class="modal-section-body mb-0"><?php echo ppd_esc($queSeHizo); ?></p>
                 <?php endif; ?>
 
-                <?php if (!empty($adminLocs)): ?>
                 <div class="modal-section-title">Dónde se administra</div>
-                <ul class="small mb-0">
-                    <?php foreach ($adminLocs as $link): ?>
-                    <li><?php echo ppd_esc($link['label']); ?></li>
-                    <?php endforeach; ?>
-                </ul>
-                <?php endif; ?>
+                <div class="modal-section-body">
+                    <?php if (!empty($adminLocs)): ?>
+                    <ul class="mb-0 ps-3">
+                        <?php foreach ($adminLocs as $link): ?>
+                        <li><?php echo ppd_esc($link['label']); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <?php elseif ($adminNote !== ''): ?>
+                    <p class="mb-0"><?php echo ppd_esc($adminNote); ?></p>
+                    <?php endif; ?>
+                </div>
 
                 <div class="modal-section-title">Dónde se ve en la web</div>
-                <?php if (!empty($publicLocs)): ?>
-                <ul class="small mb-0">
-                    <?php foreach ($publicLocs as $link): ?>
-                    <li><?php echo ppd_esc($link['label']); ?></li>
-                    <?php endforeach; ?>
-                </ul>
-                <?php elseif ($publicNote !== ''): ?>
-                <p class="small text-muted mb-0"><?php echo ppd_esc($publicNote); ?></p>
-                <?php else: ?>
-                <p class="small text-muted mb-0">Sin ubicación pública documentada para este bloque.</p>
-                <?php endif; ?>
+                <div class="modal-section-body">
+                    <?php if (!empty($publicLocs)): ?>
+                    <ul class="mb-2 ps-3">
+                        <?php foreach ($publicLocs as $link): ?>
+                        <li><?php echo ppd_esc($link['label']); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <?php endif; ?>
+                    <?php if ($publicNote !== ''): ?>
+                    <p class="mb-0"><?php echo ppd_esc($publicNote); ?></p>
+                    <?php elseif ($publicText !== ''): ?>
+                    <p class="mb-0"><?php echo ppd_esc($publicText); ?></p>
+                    <?php endif; ?>
+                </div>
 
-                <?php if (!empty($techLocs)): ?>
-                <div class="modal-section-title">Qué no se ve directamente</div>
-                <ul class="small mb-0">
-                    <?php foreach ($techLocs as $item): ?>
+                <?php if (!empty($validationItems)): ?>
+                <div class="modal-section-title">Validación técnica</div>
+                <ul class="modal-section-body mb-0 ps-3">
+                    <?php foreach ($validationItems as $item): ?>
                     <li><?php echo ppd_esc($item); ?></li>
                     <?php endforeach; ?>
                 </ul>
@@ -419,22 +400,8 @@ $pageTitle = (string) ($meta['titulo'] ?? 'Dashboard de avances');
 
                 <?php if (!empty($evidenceItems)): ?>
                 <div class="modal-section-title">Evidencia</div>
-                <ul class="small mb-0">
+                <ul class="modal-section-body mb-0 ps-3">
                     <?php foreach ($evidenceItems as $item): ?>
-                    <li><?php echo ppd_esc($item); ?></li>
-                    <?php endforeach; ?>
-                </ul>
-                <?php endif; ?>
-
-                <?php if (!empty($commits)): ?>
-                <div class="modal-section-title">Últimos commits</div>
-                <p class="small font-monospace mb-0"><?php echo ppd_esc(implode(' · ', $commits)); ?></p>
-                <?php endif; ?>
-
-                <?php if (!empty($blockers)): ?>
-                <div class="modal-section-title">Bloqueos</div>
-                <ul class="small text-danger mb-0">
-                    <?php foreach ($blockers as $item): ?>
                     <li><?php echo ppd_esc($item); ?></li>
                     <?php endforeach; ?>
                 </ul>
@@ -442,15 +409,29 @@ $pageTitle = (string) ($meta['titulo'] ?? 'Dashboard de avances');
 
                 <?php if (!empty($bloque['siguiente_accion'])): ?>
                 <div class="modal-section-title">Siguiente acción</div>
-                <p class="small mb-0"><?php echo ppd_esc($bloque['siguiente_accion']); ?></p>
+                <p class="modal-section-body mb-0"><?php echo ppd_esc($bloque['siguiente_accion']); ?></p>
+                <?php endif; ?>
+
+                <?php if (!empty($blockers)): ?>
+                <div class="modal-section-title">Bloqueos</div>
+                <ul class="modal-section-body mb-0 ps-3 text-danger">
+                    <?php foreach ($blockers as $item): ?>
+                    <li><?php echo ppd_esc($item); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+                <?php endif; ?>
+
+                <?php if (!empty($commits)): ?>
+                <div class="modal-section-title">Commits de referencia</div>
+                <p class="modal-section-body font-monospace small mb-0"><?php echo ppd_esc(implode(' · ', $commits)); ?></p>
                 <?php endif; ?>
             </div>
-            <div class="modal-footer flex-wrap">
+            <div class="modal-footer flex-wrap border-top">
                 <?php foreach ($adminLocs as $link): ?>
-                <a href="<?php echo ppd_esc($link['url']); ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-box-arrow-in-right me-1"></i>Abrir en admin — <?php echo ppd_esc($link['label']); ?></a>
+                <a href="<?php echo ppd_esc($link['url']); ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-box-arrow-in-right me-1"></i>Abrir en admin</a>
                 <?php endforeach; ?>
                 <?php foreach ($publicLocs as $link): ?>
-                <a href="<?php echo ppd_esc($link['url']); ?>" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener noreferrer"><i class="bi bi-globe me-1"></i>Ver en web — <?php echo ppd_esc($link['label']); ?></a>
+                <a href="<?php echo ppd_esc($link['url']); ?>" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener noreferrer"><i class="bi bi-globe me-1"></i>Ver en web</a>
                 <?php endforeach; ?>
                 <?php foreach ($testLinks as $link): ?>
                 <a href="<?php echo ppd_esc($link['url']); ?>" class="btn btn-sm btn-outline-warning"><i class="bi bi-bug me-1"></i><?php echo ppd_esc($link['label']); ?></a>

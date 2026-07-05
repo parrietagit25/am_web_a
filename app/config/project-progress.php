@@ -8,9 +8,9 @@
 return [
     'meta' => [
         'titulo'           => 'Tablero de avance Automarket',
-        'version_tablero'  => 'AM-DASH-1A',
+        'version_tablero'  => 'AM-DASH-1B',
         'fecha_actualizacion' => '2026-07-04',
-        'nota_porcentajes' => 'Los porcentajes son estimaciones de auditoría interna, no métricas exactas ni KPIs de producción.',
+        'nota_tablero' => 'Tablero interno de implementación, validación y seguimiento de entregables del proyecto Automarket.',
         'metodologia_estados' => 'La funcionalidad no se bloquea por falta de contenido de mercadeo. Separar: En diagnóstico, Diagnóstico aprobado, Pendiente funcional, Módulo listo / contenido pendiente, Módulo técnico listo / contenido pendiente Mercadeo, Cerrado por absorción en bloque posterior, Bloqueado por decisión de negocio, Bloqueado por dato externo, Cerrado producción.',
     ],
 
@@ -129,7 +129,7 @@ return [
         ['fecha' => '2026-07-03', 'texto' => 'AM-DASH-0F cerrado prod HEAD f0b010f — dashboard recalibrado post AM-CONT-4C-B4; siguientes acciones obsoletas B0/B1/4C-A/DASH-0E alineadas; AM-CONT-4C-B cerrado técnicamente; AM-CONT-4C sigue abierto por contenido Mercadeo; nota Search Console 2–4 semanas; métricas 86/93/73/92/64.'],
         ['fecha' => '2026-07-04', 'texto' => 'AM-RAC-BARS-RATES cerrado prod: tarifas BARS/RW Web, reglas comerciales, protecciones/extras admin, reserva pública, cron PTY/TBM, captcha activo; commits c24afdb, bed56f3, 5f88780, 385b110.'],
         ['fecha' => '2026-07-04', 'texto' => 'AM-RAC-PAY-POWERTRANZ 80% pendiente externo: alive e init HPP $1 OK (SP4); HPP error 757 Hosted page not found; PageSet GFRHPP / PageName HPPBilling1 no confirmados merchant 77700791; modo diagnóstico; completePayment automático bloqueado.'],
-        ['fecha' => '2026-07-04', 'texto' => 'AM-DASH-ADMIN-AVANCES-1A: dashboard de avances visible en admin Generales; bloques RAC BARS 100% y Powertranz 80% documentados; métricas 87/92/93/68/73/90/80.'],
+        ['fecha' => '2026-07-04', 'texto' => 'AM-DASH-ADMIN-AVANCES-1B: modales ejecutivos enriquecidos; fallbacks por categoría; lenguaje de avance registrado; sin disclaimers débiles.'],
     ],
 
     'bloques' => [
@@ -1025,12 +1025,12 @@ return [
                 'SpiToken presente (redactado en UI/BD)',
                 'Callback HPP error 757 — Hosted page not found',
             ],
-            'que_se_hizo'         => 'Cliente Powertranz aislado; endpoints alive, init, return y status; tabla rac_powertranz_payments; sanitización de secretos; modo diagnóstico con completePayment automático bloqueado por seguridad.',
+            'que_se_hizo'         => 'Cliente Powertranz aislado; alive OK; init HPP OK; ISO SP4; RedirectData presente; SpiToken presente; tabla rac_powertranz_payments; endpoints alive/init/return/status; modo diagnóstico activo; completePayment automático bloqueado.',
             'admin_locations'     => [
                 ['label' => 'Rent A Car → Powertranz Test', 'url' => '/admin/powertranz-test.php'],
             ],
             'public_locations'    => [],
-            'public_locations_note' => 'No visible todavía. No conectado a reservas reales ni al checkout público.',
+            'public_locations_note' => 'No está visible al público por seguridad. No está conectado aún a reservas reales ni al checkout público.',
             'technical_locations' => [
                 'Cliente Powertranz (PowertranzClient)',
                 'Sanitización de secretos (PowertranzSanitizer)',
@@ -1047,7 +1047,7 @@ return [
             'test_links'          => [
                 ['label' => 'Ver prueba técnica', 'url' => '/admin/powertranz-test.php'],
             ],
-            'siguiente_accion'    => 'Esperar confirmación FAC. Luego configurar PageSet/PageName correcto en config.php privado, repetir prueba HPP y validar completePayment.',
+            'siguiente_accion'    => 'Esperar confirmación FAC. Configurar PageSet/PageName correcto en config.php privado. Repetir prueba HPP. Luego validar completePayment.',
             'fecha_actualizacion' => '2026-07-04',
         ],
         [
