@@ -39,9 +39,6 @@ require_once __DIR__ . '/../includes/schema-location-itemlist.php';
 .sn-howto-btn:hover { background: #a81812; color: #fff; transform: translateY(-1px); }
 .sn-section-title { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; color: #0b1f6b; }
 .sn-section-title span { color: #c51f17; }
-/* Preview primera sucursal */
-.sn-accordion-item--principal { border-left: 4px solid #c51f17 !important; }
-.sn-badge-principal { display: inline-flex; align-items: center; gap: 5px; background: #c51f17; color: #fff; font-family: 'Montserrat', sans-serif; font-size: .68rem; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; padding: 3px 10px; border-radius: 50px; vertical-align: middle; margin-left: 10px; }
 </style>
 
 <section class="sn-breadcrumb-strip py-4">
@@ -91,7 +88,7 @@ require_once __DIR__ . '/../includes/schema-location-itemlist.php';
                     'autoInit' => $isFirst,
                 ]);
             ?>
-            <div class="accordion-item sn-accordion-item<?php echo $isFirst ? ' sn-accordion-item--principal' : ''; ?>">
+            <div class="accordion-item sn-accordion-item">
                 <h2 class="accordion-header mb-0">
                     <button class="accordion-button sn-accordion-btn <?php echo $isFirst ? '' : 'collapsed'; ?>"
                             type="button" data-bs-toggle="collapse"
@@ -100,7 +97,6 @@ require_once __DIR__ . '/../includes/schema-location-itemlist.php';
                             aria-controls="<?php echo $collapseId; ?>">
                         <i class="bi bi-geo-alt-fill me-2 fs-5"></i>
                         <?php echo esc($suc['name']); ?>
-                        <?php if ($isFirst): ?><span class="sn-badge-principal"><i class="bi bi-star-fill"></i>Principal</span><?php endif; ?>
                     </button>
                 </h2>
                 <div id="<?php echo $collapseId; ?>" class="accordion-collapse collapse <?php echo $isFirst ? 'show' : ''; ?>" data-bs-parent="#snSucursalesAccordion">

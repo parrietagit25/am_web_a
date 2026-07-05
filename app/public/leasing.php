@@ -315,12 +315,6 @@ require __DIR__ . '/../includes/render-header-banner.php';
 <?php $ucUnitKey = 'leasing'; require __DIR__ . '/../includes/unit-content-home-sections.php'; ?>
 
 <?php
-$_unitBranches = $leasingData['branches'] ?? [];
-$_unitBranchesUnitKey = 'leasing';
-require __DIR__ . '/../includes/unit-branches-section.php';
-?>
-
-<?php
 $_sfItems  = $leasingData['faqs'] ?? [];
 require __DIR__ . '/../includes/schema-faq.php';
 ?>

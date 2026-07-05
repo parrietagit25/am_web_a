@@ -291,9 +291,6 @@ function am_location_canonical_url(string $slug): string
     return $path !== '' ? 'https://www.automarket.com.pa' . $path : '';
 }
 
-/**
- * @return array<string, string>
- */
 function am_location_unit_labels(): array
 {
     return [
@@ -303,6 +300,59 @@ function am_location_unit_labels(): array
         'renting'    => 'Renting',
         'taller'     => 'Taller',
     ];
+}
+
+function am_unit_sucursales_public_url(string $unitKey): string
+{
+    static $map = [
+        'rentacar'   => '/sucursales.php',
+        'seminuevos' => '/seminuevos-sucursales.php',
+        'leasing'    => '/leasing-sucursales.php',
+        'renting'    => '/renting-sucursales.php',
+        'taller'     => '/taller-sucursales.php',
+    ];
+
+    return $map[$unitKey] ?? '#';
+}
+
+/**
+ * Sucursales activas agrupadas por unidad (location_refs + fallback legacy).
+ * Usado en /sucursales-grupo.php.
+ *
+ * @return list<array{unit_key: string, label: string, page_url: string, items: list<array<string, mixed>>}>
+ */
+function am_sucursales_grouped_by_unit(ContentService $contentService): array
+{
+    $siteData = $contentService->getAll();
+    $legacyByUnit = [
+        'rentacar'   => $siteData['homepage']['sucursales'] ?? [],
+        'seminuevos' => $siteData['seminuevos']['sucursales'] ?? [],
+        'leasing'    => $siteData['leasing']['sucursales'] ?? [],
+        'renting'    => $siteData['renting']['sucursales'] ?? [],
+        'taller'     => $siteData['taller']['sucursales'] ?? [],
+    ];
+
+    $groups = [];
+    foreach (am_location_unit_labels() as $unitKey => $label) {
+        $legacyRaw = is_array($legacyByUnit[$unitKey] ?? null) ? $legacyByUnit[$unitKey] : [];
+        $rows = am_list_sucursales_for_unit($contentService, $unitKey, $legacyRaw);
+        $rows = array_values(array_filter($rows, function ($row) {
+            return trim((string) ($row['name'] ?? '')) !== '';
+        }));
+
+        if ($rows === []) {
+            continue;
+        }
+
+        $groups[] = [
+            'unit_key' => $unitKey,
+            'label'    => $label,
+            'page_url' => am_unit_sucursales_public_url($unitKey),
+            'items'    => $rows,
+        ];
+    }
+
+    return $groups;
 }
 
 /**
