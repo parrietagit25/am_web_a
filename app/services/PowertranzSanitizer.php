@@ -125,7 +125,8 @@ class PowertranzSanitizer
         $preview = preg_replace('/"SpiToken"\s*:\s*"[^"]+"/i', '"SpiToken":"[REDACTED]"', $preview) ?? $preview;
         $preview = preg_replace('/Powertranz-PowertranzPassword\s*:\s*[^\r\n]+/i', 'Powertranz-PowertranzPassword: [REDACTED]', $preview) ?? $preview;
         $preview = preg_replace('/Powertranz-PowertranzId\s*:\s*[^\r\n]+/i', 'Powertranz-PowertranzId: [REDACTED]', $preview) ?? $preview;
-        $preview = preg_replace('/SpiToken\s+\S+/i', 'SpiToken [REDACTED]', $preview) ?? $preview;
+        $preview = preg_replace('/SpiToken[=+\s][A-Za-z0-9+\/=_-]+/i', 'SpiToken=[REDACTED]', $preview) ?? $preview;
+        $preview = preg_replace('/SpiToken\s+[A-Za-z0-9+\/=_-]+/i', 'SpiToken [REDACTED]', $preview) ?? $preview;
 
         return self::text($preview, $maxLen);
     }
@@ -231,7 +232,7 @@ class PowertranzSanitizer
             $analysis['form_action_path'] = (string) ($parts['path'] ?? $action);
         }
 
-        if (preg_match_all('/<input\b[^>]*type=["\']hidden["\'][^>]*name=["\']([^"\']+)/i', $html, $inputs) > 0) {
+        if (preg_match_all('/<input\b[^>]*name=["\']([^"\']+)/i', $html, $inputs) > 0) {
             foreach ($inputs[1] as $name) {
                 $name = trim((string) $name);
                 if ($name !== '' && !in_array($name, $analysis['hidden_input_names'], true)) {

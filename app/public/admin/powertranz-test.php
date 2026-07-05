@@ -96,8 +96,8 @@ $diagnosticMode = PowertranzPaymentService::isDiagnosticMode();
                 <div class="col-md-4"><strong>ID:</strong> <?php echo defined('POWERTRANZ_ID') && trim((string) POWERTRANZ_ID) !== '' ? 'definido' : '<span class="text-danger">falta</span>'; ?></div>
                 <div class="col-md-4"><strong>PASSWORD:</strong> <?php echo defined('POWERTRANZ_PASSWORD') && trim((string) POWERTRANZ_PASSWORD) !== '' ? 'definido' : '<span class="text-danger">falta</span>'; ?></div>
                 <div class="col-md-4"><strong>CURRENCY:</strong> <?php echo esc(PowertranzClient::currencyCode()); ?></div>
-                <div class="col-md-4"><strong>HPP PageSet:</strong> <?php echo defined('POWERTRANZ_HPP_PAGE_SET') && trim((string) POWERTRANZ_HPP_PAGE_SET) !== '' ? 'definido' : '<span class="text-warning">falta</span>'; ?></div>
-                <div class="col-md-4"><strong>HPP PageName:</strong> <?php echo defined('POWERTRANZ_HPP_PAGE_NAME') && trim((string) POWERTRANZ_HPP_PAGE_NAME) !== '' ? 'definido' : '<span class="text-warning">falta</span>'; ?></div>
+                <div class="col-md-4"><strong>HPP PageSet:</strong> <?php echo defined('POWERTRANZ_HPP_PAGE_SET') && trim((string) POWERTRANZ_HPP_PAGE_SET) !== '' ? esc((string) POWERTRANZ_HPP_PAGE_SET) : '<span class="text-warning">falta</span>'; ?></div>
+                <div class="col-md-4"><strong>HPP PageName:</strong> <?php echo defined('POWERTRANZ_HPP_PAGE_NAME') && trim((string) POWERTRANZ_HPP_PAGE_NAME) !== '' ? esc((string) POWERTRANZ_HPP_PAGE_NAME) : '<span class="text-warning">falta</span>'; ?></div>
                 <div class="col-md-12"><strong>MerchantResponseUrl:</strong> <code><?php echo esc($merchantUrl); ?></code></div>
             </div>
             <div class="mt-3 d-flex gap-2 flex-wrap">
@@ -140,6 +140,17 @@ $diagnosticMode = PowertranzPaymentService::isDiagnosticMode();
                     <button type="button" class="btn btn-outline-secondary" id="ptz-status-btn" disabled>Consultar estado</button>
                 </div>
             </form>
+            <div id="ptz-hpp-757-panel" class="alert alert-danger d-none mt-3">
+                <h3 class="h6 fw-bold mb-2">Error HPP 757 — Hosted page not found</h3>
+                <p class="mb-2">Powertranz aceptó el init (ISO SP4), pero la Hosted Page configurada no existe o no está asignada a este merchant en staging.</p>
+                <div class="row g-2 small">
+                    <div class="col-md-3"><strong>payment_id:</strong> <span id="ptz-757-payment-id">—</span></div>
+                    <div class="col-md-3"><strong>ISO init:</strong> <span id="ptz-757-iso">SP4</span></div>
+                    <div class="col-md-3"><strong>PageSet:</strong> <span id="ptz-757-pageset">—</span></div>
+                    <div class="col-md-3"><strong>PageName:</strong> <span id="ptz-757-pagename">—</span></div>
+                </div>
+                <p class="small mb-0 mt-2">Validar PageSet/PageName asignados al merchant en portal/FAC antes de reintentar.</p>
+            </div>
             <div id="ptz-init-alert" class="alert d-none mt-3"></div>
             <div id="ptz-diagnostic-panel" class="alert alert-secondary d-none mt-3">
                 <h3 class="h6 fw-bold mb-2">Diagnóstico técnico (respuesta no JSON)</h3>
@@ -220,6 +231,7 @@ $diagnosticMode = PowertranzPaymentService::isDiagnosticMode();
     const expiryNotice = document.getElementById('ptz-expiry-notice');
     const expiredNotice = document.getElementById('ptz-expired-notice');
     const diagnosticPanel = document.getElementById('ptz-diagnostic-panel');
+    const hpp757Panel = document.getElementById('ptz-hpp-757-panel');
     let currentPaymentId = <?php echo ($lastPaymentHppReady && !$lastPaymentExpired && !empty($lastPayment['payment_id'])) ? (int) $lastPayment['payment_id'] : 0; ?>;
     let redirectReadyAt = <?php echo ($lastPaymentHppReady && !$lastPaymentExpired) ? (int) (strtotime((string) ($lastPayment['updated_at'] ?? $lastPayment['created_at'] ?? '')) ?: 0) : 0; ?>;
 
@@ -308,14 +320,36 @@ $diagnosticMode = PowertranzPaymentService::isDiagnosticMode();
         }
     }
 
+    function showHpp757Panel(data) {
+        const is757 = data.status === 'hpp_error'
+            && ((data.hpp_error_code === '757')
+                || (data.error_message || '').includes('757')
+                || (data.error_message || '').toLowerCase().includes('hosted page not found'));
+        if (!hpp757Panel) return;
+        hpp757Panel.classList.toggle('d-none', !is757);
+        if (!is757) return;
+        document.getElementById('ptz-757-payment-id').textContent = data.payment_id || currentPaymentId || '—';
+        document.getElementById('ptz-757-iso').textContent = data.iso_response_code || 'SP4';
+        document.getElementById('ptz-757-pageset').textContent = data.hpp_page_set || '—';
+        document.getElementById('ptz-757-pagename').textContent = data.hpp_page_name || '—';
+    }
+
     function showAlertForPayment(data, expired) {
         showDiagnostic(data);
-        if (data.status === 'complete_error') {
-            showAlert('warning', data.error_message || 'Error al completar pago en Powertranz.');
+        showHpp757Panel(data);
+        if (data.status === 'hpp_error') {
+            const is757 = (data.hpp_error_code === '757')
+                || (data.error_message || '').includes('757')
+                || (data.error_message || '').toLowerCase().includes('hosted page not found');
+            if (is757) {
+                showAlert('danger', 'Powertranz encontró el init SP4, pero la Hosted Page configurada no existe para este merchant (757).');
+                return;
+            }
+            showAlert('danger', data.error_message || 'Error HPP antes de tarjeta. Revise RedirectData/HPP config.');
             return;
         }
-        if (data.status === 'hpp_error') {
-            showAlert('danger', data.error_message || 'Error HPP antes de tarjeta. Revise RedirectData/HPP config.');
+        if (data.status === 'complete_error') {
+            showAlert('warning', data.error_message || 'Error al completar pago en Powertranz.');
             return;
         }
         if (data.status === 'return_received_diagnostic' || data.status === 'return_empty_diagnostic') {
@@ -432,6 +466,7 @@ $diagnosticMode = PowertranzPaymentService::isDiagnosticMode();
         initBtn.disabled = true;
         alertBox.classList.add('d-none');
         diagnosticPanel.classList.add('d-none');
+        if (hpp757Panel) hpp757Panel.classList.add('d-none');
         expiredNotice.classList.add('d-none');
         const fd = new FormData(form);
         const payload = {

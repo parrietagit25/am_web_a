@@ -416,6 +416,24 @@ class PowertranzPaymentService
         $public['diagnostic_mode'] = self::isDiagnosticMode();
         $public['auto_complete_enabled'] = self::isAutoCompleteEnabled();
 
+        $req = json_decode((string) ($row['request_payload_json'] ?? ''), true);
+        if (is_array($req)) {
+            $hosted = $req['ExtendedData']['HostedPage'] ?? null;
+            if (is_array($hosted)) {
+                $public['hpp_page_set'] = (string) ($hosted['PageSet'] ?? '');
+                $public['hpp_page_name'] = (string) ($hosted['PageName'] ?? '');
+            }
+        }
+        if (empty($public['hpp_page_set']) && defined('POWERTRANZ_HPP_PAGE_SET')) {
+            $public['hpp_page_set'] = trim((string) POWERTRANZ_HPP_PAGE_SET);
+        }
+        if (empty($public['hpp_page_name']) && defined('POWERTRANZ_HPP_PAGE_NAME')) {
+            $public['hpp_page_name'] = trim((string) POWERTRANZ_HPP_PAGE_NAME);
+        }
+        if ((string) ($row['status'] ?? '') === 'hpp_error') {
+            $public['hpp_error_code'] = self::extractHppErrorCode((string) ($row['error_message'] ?? ''));
+        }
+
         $initDiagnostic = PowertranzSanitizer::extractDiagnostic((string) ($row['response_payload_json'] ?? ''));
         $completeDiagnostic = PowertranzSanitizer::extractDiagnostic((string) ($row['complete_response_json'] ?? ''));
         if ($initDiagnostic !== null) {
@@ -986,5 +1004,14 @@ class PowertranzPaymentService
         }
 
         return 'Powertranz devolvió respuesta no JSON al completar pago';
+    }
+
+    private static function extractHppErrorCode(string $errorMessage): string
+    {
+        if (preg_match('/HPP error\s+(\d+)/i', $errorMessage, $m) === 1) {
+            return trim($m[1]);
+        }
+
+        return '';
     }
 }
