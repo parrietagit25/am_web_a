@@ -13,6 +13,7 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/AdminUserService.php';
 require_once __DIR__ . '/../services/PowertranzClient.php';
 require_once __DIR__ . '/../services/PowertranzPaymentService.php';
+require_once __DIR__ . '/../services/PowertranzSanitizer.php';
 require_once __DIR__ . '/../includes/admin-auth.php';
 
 AdminUserService::ensureSchema();
@@ -69,6 +70,13 @@ $api = $result['api'] ?? [];
 $endpoint = strtolower($mode) === 'auth' ? '/api/spi/auth' : '/api/spi/sale';
 
 http_response_code($result['ok'] ? 200 : 422);
+$diagnostic = null;
+if (isset($api['diagnostic']) && is_array($api['diagnostic'])) {
+    $diagnostic = PowertranzSanitizer::sanitizePayload($api['diagnostic']);
+} elseif (is_array($payment) && !empty($payment['init_diagnostic'])) {
+    $diagnostic = $payment['init_diagnostic'];
+}
+
 echo json_encode([
     'ok' => (bool) ($result['ok'] ?? false),
     'message' => (string) ($result['message'] ?? ''),
@@ -80,11 +88,15 @@ echo json_encode([
     'order_identifier' => $payment['order_identifier'] ?? null,
     'transaction_identifier' => $payment['transaction_identifier'] ?? null,
     'status' => $payment['status'] ?? null,
-    'http_code' => (int) ($api['http_code'] ?? 0),
+    'http_code' => (int) ($api['http_code'] ?? ($diagnostic['http_code'] ?? 0)),
     'iso_response_code' => $api['iso_response_code'] ?? ($payment['iso_response_code'] ?? null),
     'response_message' => $api['response_message'] ?? ($payment['response_message'] ?? null),
+    'error_message' => $payment['error_message'] ?? null,
     'has_redirect_data' => (bool) ($api['has_redirect_data'] ?? ($payment['has_redirect_data'] ?? false)),
     'has_spi_token' => (bool) ($api['has_spi_token'] ?? ($payment['has_spi_token'] ?? false)),
+    'non_json_error' => !empty($payment['non_json_error']),
+    'non_json_phase' => $payment['non_json_phase'] ?? null,
+    'diagnostic' => $diagnostic,
     'frame_url' => (!empty($payment['has_redirect_data']) && !empty($payment['payment_id']))
         ? '/admin/powertranz-payment-frame.php?payment_id=' . (int) $payment['payment_id']
         : ($payment['frame_url'] ?? null),

@@ -267,7 +267,7 @@ class PowertranzClient
     }
 
     /**
-     * @return array{ok: bool, http_code: int, data: array<string, mixed>|null, raw: string, error?: string}
+     * @return array{ok: bool, http_code: int, data: array<string, mixed>|null, raw: string, error?: string, diagnostic?: array<string, mixed>}
      */
     private function requestRaw(string $method, string $url, ?string $body, bool $withAuthHeaders): array
     {
@@ -300,27 +300,36 @@ class PowertranzClient
         curl_setopt_array($ch, $opts);
         $raw = curl_exec($ch);
         $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $contentType = (string) curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        $curlErrno = (int) curl_errno($ch);
         $curlError = curl_error($ch);
         curl_close($ch);
 
         if ($raw === false) {
+            $diagnostic = PowertranzSanitizer::buildHttpDiagnostic('', $httpCode, $curlErrno, $curlError, $contentType, $url);
+
             return [
                 'ok' => false,
                 'http_code' => $httpCode,
                 'data' => null,
                 'raw' => '',
-                'error' => $curlError !== '' ? $curlError : 'Error de red Powertranz.',
+                'error' => $curlError !== '' ? PowertranzSanitizer::text($curlError, 200) : 'Error de red Powertranz.',
+                'diagnostic' => $diagnostic,
             ];
         }
 
-        $decoded = json_decode((string) $raw, true);
+        $rawStr = (string) $raw;
+        $decoded = json_decode($rawStr, true);
         if (!is_array($decoded)) {
+            $diagnostic = PowertranzSanitizer::buildHttpDiagnostic($rawStr, $httpCode, $curlErrno, $curlError, $contentType, $url);
+
             return [
                 'ok' => false,
                 'http_code' => $httpCode,
                 'data' => null,
-                'raw' => (string) $raw,
+                'raw' => $rawStr,
                 'error' => 'Respuesta JSON inválida de Powertranz.',
+                'diagnostic' => $diagnostic,
             ];
         }
 
@@ -328,7 +337,7 @@ class PowertranzClient
             'ok' => $httpCode >= 200 && $httpCode < 300,
             'http_code' => $httpCode,
             'data' => $decoded,
-            'raw' => (string) $raw,
+            'raw' => $rawStr,
         ];
     }
 }

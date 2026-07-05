@@ -28,11 +28,38 @@ if ($paymentId <= 0) {
 
 $service = new PowertranzPaymentService();
 $frame = $service->getPaymentForFrame($paymentId);
+$payment = $service->getPublicPayment($paymentId);
 
 if ($frame === null || ($frame['redirect_html'] ?? '') === '') {
     http_response_code(404);
     header('Content-Type: text/html; charset=UTF-8');
-    echo '<!DOCTYPE html><html lang="es"><body><p>No hay RedirectData para este pago.</p></body></html>';
+    $ref = $paymentId;
+    $status = is_array($payment) ? (string) ($payment['status'] ?? '') : '';
+    $errMsg = is_array($payment) ? (string) ($payment['error_message'] ?? '') : '';
+    ?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HPP no disponible</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="p-4 bg-light">
+<div class="container" style="max-width:520px">
+    <div class="alert alert-warning shadow-sm">
+        <h1 class="h5 mb-2">HPP no disponible</h1>
+        <p class="mb-1">Este intento no tiene HPP disponible porque el init falló<?php echo $status === 'complete_error' ? ' o el completado devolvió error' : ''; ?>.</p>
+        <?php if ($errMsg !== ''): ?>
+            <p class="small mb-1 text-muted"><?php echo htmlspecialchars($errMsg, ENT_QUOTES, 'UTF-8'); ?></p>
+        <?php endif; ?>
+        <p class="small mb-0 text-muted">Referencia interna: #<?php echo (int) $ref; ?></p>
+        <p class="small mb-0 mt-2">No se intentará completar el pago desde esta vista.</p>
+    </div>
+</div>
+</body>
+</html>
+    <?php
     exit;
 }
 

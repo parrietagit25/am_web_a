@@ -134,6 +134,21 @@ $defaultAdminTab = 'powertranz-test';
                 </div>
             </form>
             <div id="ptz-init-alert" class="alert d-none mt-3"></div>
+            <div id="ptz-diagnostic-panel" class="alert alert-secondary d-none mt-3">
+                <h3 class="h6 fw-bold mb-2">Diagnóstico técnico (respuesta no JSON)</h3>
+                <p class="small mb-2">Powertranz devolvió una respuesta no JSON. Revise el diagnóstico sanitizado.</p>
+                <div class="row g-2 small font-monospace">
+                    <div class="col-md-3"><strong>Fase:</strong> <span id="ptz-diag-phase">—</span></div>
+                    <div class="col-md-3"><strong>HTTP:</strong> <span id="ptz-diag-http">—</span></div>
+                    <div class="col-md-6"><strong>Content-Type:</strong> <span id="ptz-diag-ctype">—</span></div>
+                    <div class="col-md-3"><strong>Body length:</strong> <span id="ptz-diag-len">—</span></div>
+                    <div class="col-md-3"><strong>Clasificación:</strong> <span id="ptz-diag-class">—</span></div>
+                    <div class="col-md-3"><strong>curl_errno:</strong> <span id="ptz-diag-cerrno">—</span></div>
+                    <div class="col-md-3"><strong>curl_error:</strong> <span id="ptz-diag-cerror">—</span></div>
+                    <div class="col-md-12"><strong>Body preview:</strong></div>
+                    <div class="col-md-12"><pre id="ptz-diag-preview" class="bg-white border rounded p-2 mb-0 small" style="max-height:200px;overflow:auto;white-space:pre-wrap"></pre></div>
+                </div>
+            </div>
         </div>
 
         <div class="admin-card" id="ptz-result-card">
@@ -152,7 +167,7 @@ $defaultAdminTab = 'powertranz-test';
             <div id="ptz-hpp-section" class="border-top pt-3 mt-2">
                 <div id="ptz-expiry-notice" class="alert alert-info d-none mb-3">
                     <i class="bi bi-clock me-1"></i>
-                    Complete este paso en menos de <strong>5 minutos</strong>. Si expira, inicie un pago nuevo.
+                    El SpiToken vence en <strong>5 minutos</strong>. Si expira, inicie un pago nuevo.
                 </div>
                 <div id="ptz-expired-notice" class="alert alert-warning d-none mb-3">
                     <i class="bi bi-exclamation-triangle me-1"></i>
@@ -195,6 +210,7 @@ $defaultAdminTab = 'powertranz-test';
     const scrollHppBtn = document.getElementById('ptz-scroll-hpp-btn');
     const expiryNotice = document.getElementById('ptz-expiry-notice');
     const expiredNotice = document.getElementById('ptz-expired-notice');
+    const diagnosticPanel = document.getElementById('ptz-diagnostic-panel');
     let currentPaymentId = <?php echo ($lastPaymentHppReady && !$lastPaymentExpired && !empty($lastPayment['payment_id'])) ? (int) $lastPayment['payment_id'] : 0; ?>;
     let redirectReadyAt = <?php echo ($lastPaymentHppReady && !$lastPaymentExpired) ? (int) (strtotime((string) ($lastPayment['updated_at'] ?? $lastPayment['created_at'] ?? '')) ?: 0) : 0; ?>;
 
@@ -211,8 +227,33 @@ $defaultAdminTab = 'powertranz-test';
     function isHppReady(data) {
         const status = (data.status || '').toLowerCase();
         const iso = (data.iso_response_code || '').toUpperCase();
-        const hasRedirect = !!(data.has_redirect_data || data.frame_url);
+        const hasRedirect = !!(data.has_redirect_data || data.frame_url || data.init_hpp_ready);
+        if (data.init_hpp_ready && hasRedirect && status !== 'error') {
+            return true;
+        }
         return status === 'redirect_ready' && hasRedirect && (iso === 'SP4' || iso === 'SP1' || iso === '3D0' || iso === '00');
+    }
+
+    function getDiagnostic(data) {
+        return data.diagnostic || data.init_diagnostic || data.complete_diagnostic || null;
+    }
+
+    function showDiagnostic(data) {
+        const diag = getDiagnostic(data);
+        const isNonJson = !!(data.non_json_error || (diag && diag._ptz_diagnostic));
+        if (!isNonJson || !diag) {
+            diagnosticPanel.classList.add('d-none');
+            return;
+        }
+        document.getElementById('ptz-diag-phase').textContent = data.non_json_phase || diag.phase || '—';
+        document.getElementById('ptz-diag-http').textContent = diag.http_code != null ? diag.http_code : '—';
+        document.getElementById('ptz-diag-ctype').textContent = diag.content_type || '—';
+        document.getElementById('ptz-diag-len').textContent = diag.response_body_length != null ? diag.response_body_length : '—';
+        document.getElementById('ptz-diag-class').textContent = diag.classification || '—';
+        document.getElementById('ptz-diag-cerrno').textContent = diag.curl_errno != null ? diag.curl_errno : '—';
+        document.getElementById('ptz-diag-cerror').textContent = diag.curl_error || '—';
+        document.getElementById('ptz-diag-preview').textContent = diag.response_body_preview || '—';
+        diagnosticPanel.classList.remove('d-none');
     }
 
     function isExpired(ts) {
@@ -234,7 +275,7 @@ $defaultAdminTab = 'powertranz-test';
             cls = 'danger';
         } else if (isHppReady(data)) {
             cls = 'info';
-        } else if (data.status === 'error') {
+        } else if (data.status === 'error' || data.status === 'complete_error') {
             cls = 'danger';
         }
         badge.className = 'badge status-pill bg-' + cls;
@@ -254,12 +295,21 @@ $defaultAdminTab = 'powertranz-test';
     }
 
     function showAlertForPayment(data, expired) {
+        showDiagnostic(data);
         if (isHppReady(data) && !expired) {
-            showAlert('success', 'Pago iniciado correctamente. Continúe en el HPP/3DS para completar la prueba.');
+            showAlert('success', 'Pago iniciado correctamente (ISO ' + (data.iso_response_code || 'SP4') + '). Continúe en el HPP/3DS para completar la prueba.');
             return;
         }
         if (isHppReady(data) && expired) {
             showAlert('warning', 'Este intento probablemente expiró. Inicie un nuevo pago.');
+            return;
+        }
+        if (data.non_json_error && data.non_json_phase === 'init') {
+            showAlert('danger', 'Powertranz devolvió una respuesta no JSON. Revisar diagnóstico técnico.');
+            return;
+        }
+        if (data.non_json_error && data.non_json_phase === 'complete') {
+            showAlert('warning', 'El init fue correcto pero completePayment devolvió respuesta no JSON. Revise diagnóstico técnico.');
             return;
         }
         if (data.approved) {
@@ -271,7 +321,7 @@ $defaultAdminTab = 'powertranz-test';
             return;
         }
         if (data.status === 'error' || data.ok === false) {
-            showAlert('danger', data.response_message || data.message || data.error || 'No se pudo iniciar el pago.');
+            showAlert('danger', data.error_message || data.response_message || data.message || 'No se pudo iniciar el pago.');
             return;
         }
         showAlert('info', data.response_message || data.message || 'Estado actualizado.');
@@ -343,6 +393,7 @@ $defaultAdminTab = 'powertranz-test';
         e.preventDefault();
         initBtn.disabled = true;
         alertBox.classList.add('d-none');
+        diagnosticPanel.classList.add('d-none');
         expiredNotice.classList.add('d-none');
         const fd = new FormData(form);
         const payload = {

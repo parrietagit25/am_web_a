@@ -111,4 +111,83 @@ class PowertranzSanitizer
 
         return false;
     }
+
+    /**
+     * Vista previa segura del cuerpo HTTP crudo (sin credenciales, PAN ni SpiToken completo).
+     */
+    public static function sanitizeRawBodyPreview(string $raw, int $maxLen = 500): string
+    {
+        if ($raw === '') {
+            return '';
+        }
+        $preview = mb_substr($raw, 0, $maxLen);
+        $preview = preg_replace('/\b\d{13,19}\b/', '[PAN_REDACTED]', $preview) ?? $preview;
+        $preview = preg_replace('/"SpiToken"\s*:\s*"[^"]+"/i', '"SpiToken":"[REDACTED]"', $preview) ?? $preview;
+        $preview = preg_replace('/Powertranz-PowertranzPassword\s*:\s*[^\r\n]+/i', 'Powertranz-PowertranzPassword: [REDACTED]', $preview) ?? $preview;
+        $preview = preg_replace('/Powertranz-PowertranzId\s*:\s*[^\r\n]+/i', 'Powertranz-PowertranzId: [REDACTED]', $preview) ?? $preview;
+
+        return self::text($preview, $maxLen);
+    }
+
+    /**
+     * Clasifica respuestas que no decodifican como JSON.
+     */
+    public static function classifyNonJsonBody(string $raw): string
+    {
+        if ($raw === '' || trim($raw) === '') {
+            return 'empty_response';
+        }
+        $trim = ltrim($raw);
+        if (stripos($trim, '<!doctype') === 0 || stripos($trim, '<html') === 0) {
+            return 'non_json_html';
+        }
+        if ($trim[0] === '<' && !str_contains($trim, '{')) {
+            return 'non_json_html';
+        }
+        if ($trim[0] === '{' || $trim[0] === '[') {
+            return 'invalid_json';
+        }
+
+        return 'non_json_text';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public static function buildHttpDiagnostic(
+        string $raw,
+        int $httpCode,
+        int $curlErrno,
+        string $curlError,
+        string $contentType,
+        string $endpoint
+    ): array {
+        return [
+            '_ptz_diagnostic' => true,
+            'classification' => self::classifyNonJsonBody($raw),
+            'http_code' => $httpCode,
+            'curl_errno' => $curlErrno,
+            'curl_error' => self::text($curlError, 200),
+            'content_type' => self::text($contentType, 120),
+            'response_body_length' => strlen($raw),
+            'response_body_preview' => self::sanitizeRawBodyPreview($raw, 500),
+            'endpoint' => self::text($endpoint, 200),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public static function extractDiagnostic(?string $json): ?array
+    {
+        if ($json === null || trim($json) === '') {
+            return null;
+        }
+        $decoded = json_decode($json, true);
+        if (!is_array($decoded) || empty($decoded['_ptz_diagnostic'])) {
+            return null;
+        }
+
+        return self::sanitizePayload($decoded);
+    }
 }

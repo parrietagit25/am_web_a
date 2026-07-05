@@ -256,6 +256,27 @@ class PowertranzPaymentService
             $public['frame_url'] = '/admin/powertranz-payment-frame.php?payment_id=' . (int) $row['id'];
         }
 
+        $initDiagnostic = PowertranzSanitizer::extractDiagnostic((string) ($row['response_payload_json'] ?? ''));
+        $completeDiagnostic = PowertranzSanitizer::extractDiagnostic((string) ($row['complete_response_json'] ?? ''));
+        if ($initDiagnostic !== null) {
+            $public['init_diagnostic'] = $initDiagnostic;
+            $public['non_json_error'] = true;
+            $public['non_json_phase'] = 'init';
+        } elseif ($completeDiagnostic !== null) {
+            $public['complete_diagnostic'] = $completeDiagnostic;
+            $public['non_json_error'] = true;
+            $public['non_json_phase'] = 'complete';
+        } else {
+            $public['non_json_error'] = str_contains((string) ($row['error_message'] ?? ''), 'no JSON');
+            $public['non_json_phase'] = null;
+        }
+
+        $status = (string) ($row['status'] ?? '');
+        $iso = strtoupper((string) ($row['iso_response_code'] ?? ''));
+        $public['init_hpp_ready'] = !empty($row['redirect_data_present'])
+            && in_array($iso, ['SP4', 'SP1', '3D0', '00'], true)
+            && in_array($status, ['redirect_ready', 'returned_from_3ds', 'complete_error'], true);
+
         return $public;
     }
 
@@ -325,10 +346,52 @@ class PowertranzPaymentService
     private function applyAuthResponse(int $paymentId, array $api): array
     {
         $data = $api['data'] ?? null;
-        $iso = $this->client->extractIsoCode(is_array($data) ? $data : null);
-        $message = $this->client->extractResponseMessage(is_array($data) ? $data : null);
-        $redirect = is_array($data) ? $this->client->extractRedirectData($data) : '';
-        $spiToken = is_array($data) ? $this->client->extractSpiToken($data) : '';
+
+        if (!is_array($data)) {
+            $diagnostic = is_array($api['diagnostic'] ?? null)
+                ? $api['diagnostic']
+                : PowertranzSanitizer::buildHttpDiagnostic(
+                    (string) ($api['raw'] ?? ''),
+                    (int) ($api['http_code'] ?? 0),
+                    0,
+                    (string) ($api['error'] ?? ''),
+                    '',
+                    ''
+                );
+            $diagnostic['phase'] = 'init';
+            $responseJson = json_encode(PowertranzSanitizer::sanitizePayload($diagnostic), JSON_UNESCAPED_UNICODE);
+
+            $this->updatePayment($paymentId, [
+                'status' => 'error',
+                'iso_response_code' => '',
+                'response_message' => 'Powertranz devolvió respuesta no JSON',
+                'error_message' => 'Powertranz devolvió respuesta no JSON',
+                'response_payload_json' => $responseJson,
+                'auth_response_json_sanitized' => $responseJson,
+                'redirect_data_present' => 0,
+            ]);
+
+            $payment = $this->getPublicPayment($paymentId);
+
+            return [
+                'ok' => false,
+                'message' => 'Powertranz devolvió respuesta no JSON',
+                'payment' => $payment,
+                'api' => [
+                    'http_code' => (int) ($api['http_code'] ?? 0),
+                    'iso_response_code' => '',
+                    'response_message' => 'Powertranz devolvió respuesta no JSON',
+                    'has_redirect_data' => false,
+                    'has_spi_token' => false,
+                    'diagnostic' => $diagnostic,
+                ],
+            ];
+        }
+
+        $iso = $this->client->extractIsoCode($data);
+        $message = $this->client->extractResponseMessage($data);
+        $redirect = $this->client->extractRedirectData($data);
+        $spiToken = $this->client->extractSpiToken($data);
 
         $status = 'error';
         if ($redirect !== '' && in_array($iso, ['SP4', 'SP1', '00', '3D0'], true)) {
@@ -381,10 +444,55 @@ class PowertranzPaymentService
      */
     private function applyPaymentCompletion(int $paymentId, array $api): array
     {
+        $existing = $this->getPayment($paymentId);
         $data = $api['data'] ?? null;
-        $iso = $this->client->extractIsoCode(is_array($data) ? $data : null);
-        $message = $this->client->extractResponseMessage(is_array($data) ? $data : null);
-        $approved = $this->client->isApproved(is_array($data) ? $data : null);
+
+        if (!is_array($data)) {
+            $diagnostic = is_array($api['diagnostic'] ?? null)
+                ? $api['diagnostic']
+                : PowertranzSanitizer::buildHttpDiagnostic(
+                    (string) ($api['raw'] ?? ''),
+                    (int) ($api['http_code'] ?? 0),
+                    0,
+                    (string) ($api['error'] ?? ''),
+                    '',
+                    ''
+                );
+            $diagnostic['phase'] = 'complete';
+            $completeResponseJson = json_encode(PowertranzSanitizer::sanitizePayload($diagnostic), JSON_UNESCAPED_UNICODE);
+
+            $initIso = strtoupper(trim((string) ($existing['iso_response_code'] ?? '')));
+            $hadHpp = !empty($existing['redirect_data_present']);
+
+            $update = [
+                'status' => 'complete_error',
+                'error_message' => 'Powertranz devolvió respuesta no JSON al completar pago',
+                'complete_response_json' => $completeResponseJson,
+                'payment_response_json_sanitized' => $completeResponseJson,
+                'completed_at' => date('Y-m-d H:i:s'),
+            ];
+            if (!$hadHpp || !in_array($initIso, ['SP4', 'SP1', '3D0', '00'], true)) {
+                $update['response_message'] = 'Powertranz devolvió respuesta no JSON al completar pago';
+            }
+
+            $this->updatePayment($paymentId, $update);
+
+            return [
+                'ok' => false,
+                'message' => 'Powertranz devolvió respuesta no JSON al completar pago',
+                'payment' => $this->getPublicPayment($paymentId),
+                'api' => [
+                    'http_code' => (int) ($api['http_code'] ?? 0),
+                    'iso_response_code' => $initIso,
+                    'approved' => false,
+                    'diagnostic' => $diagnostic,
+                ],
+            ];
+        }
+
+        $iso = $this->client->extractIsoCode($data);
+        $message = $this->client->extractResponseMessage($data);
+        $approved = $this->client->isApproved($data);
 
         $status = 'error';
         if ($api['ok']) {

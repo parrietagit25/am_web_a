@@ -42,6 +42,10 @@ if ($approved || $status === 'approved') {
     $title = 'Pago rechazado';
     $message = (string) ($payment['response_message'] ?? 'La transacción fue rechazada.');
     $alertClass = 'danger';
+} elseif ($status === 'complete_error') {
+    $title = 'Error al completar pago';
+    $message = (string) ($payment['error_message'] ?? 'Powertranz devolvió respuesta no JSON al completar pago.');
+    $alertClass = 'warning';
 } elseif (!$result['ok']) {
     $title = 'Error procesando pago';
     $alertClass = 'warning';
