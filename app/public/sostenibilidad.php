@@ -1,30 +1,62 @@
 <?php
 /**
- * Automarket - Sostenibilidad Homepage
+ * Automarket - Sostenibilidad Homepage (CMS: global.sostenibilidad_page + fallback defaults)
  */
 $activeUnit = 'rentacar';
 $skipUnitBusinessSchema = true;
+
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../services/ContentService.php';
+require_once __DIR__ . '/../includes/sostenibilidad-public-copy.php';
+
+$contentService = new ContentService();
+$globalData = $contentService->get('global', []);
+if (!is_array($globalData)) {
+    $globalData = [];
+}
+$sostPage = sostenibilidad_page_copy($globalData);
+
 $seoOverride = [
-    'title'       => 'Sostenibilidad | Automarket',
-    'description' => 'Programas de sostenibilidad, compensación de carbono y movilidad responsable de Automarket en Panamá.',
-    'robots'      => 'index,follow',
+    'title'       => (string) ($sostPage['seo_title'] ?? 'Sostenibilidad | Automarket'),
+    'description' => (string) ($sostPage['meta_description'] ?? ''),
+    'robots'      => ($sostPage['active'] ?? true) !== false ? 'index,follow' : 'noindex,nofollow',
 ];
+
 require_once __DIR__ . '/../includes/header.php';
+
+$heroImageUrl = trim((string) ($sostPage['hero_image_url'] ?? ''));
+if ($heroImageUrl === '') {
+    $heroImageUrl = sostenibilidad_page_defaults()['hero_image_url'];
+}
+$heroTitleLines = preg_split('/\r\n|\r|\n/', (string) ($sostPage['hero_title'] ?? '')) ?: [];
+$heroTitleLines = array_values(array_filter(array_map('trim', $heroTitleLines), static fn ($line) => $line !== ''));
+if ($heroTitleLines === []) {
+    $heroTitleLines = preg_split('/\r\n|\r|\n/', sostenibilidad_page_defaults()['hero_title']) ?: ['Impulsando una', 'movilidad limpia'];
+}
+$impactBlocks = is_array($sostPage['impact_blocks'] ?? null) ? $sostPage['impact_blocks'] : sostenibilidad_page_defaults()['impact_blocks'];
+$contactBullets = is_array($sostPage['contact_bullets'] ?? null) ? $sostPage['contact_bullets'] : sostenibilidad_page_defaults()['contact_bullets'];
+$bodyHtml = trim((string) ($sostPage['body_html'] ?? ''));
 ?>
 
 <!-- Hero Section -->
-<section class="hero-wrapper text-center text-lg-start d-flex align-items-center" style="background: url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=1200&auto=format&fit=crop') no-repeat center center; background-size: cover;" id="cta-hero">
+<section class="hero-wrapper text-center text-lg-start d-flex align-items-center" style="background: url('<?php echo esc($heroImageUrl); ?>') no-repeat center center; background-size: cover;" id="cta-hero">
     <div class="container py-5">
         <div class="row align-items-center">
             <div class="col-lg-7 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">
                 <h1 class="display-3 fw-bold mb-3 font-montserrat leading-tight">
-                    Impulsando una<br>movilidad limpia
+                    <?php
+                    $heroLineCount = count($heroTitleLines);
+                    foreach ($heroTitleLines as $hi => $heroLine):
+                        if ($hi > 0): ?><br><?php endif;
+                        echo esc($heroLine);
+                    endforeach;
+                    ?>
                 </h1>
                 <p class="fs-4 mb-4 opacity-90 font-poppins">
-                    Conoce nuestros programas de compensación de huella de carbono, reciclaje y nuestra flota eléctrica.
+                    <?php echo esc($sostPage['hero_subtitle'] ?? ''); ?>
                 </p>
                 <a href="#programa" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg fs-5">
-                    Conocer Programas <i class="bi bi-chevron-down ms-2"></i>
+                    <?php echo esc($sostPage['hero_cta_label'] ?? 'Conocer Programas'); ?> <i class="bi bi-chevron-down ms-2"></i>
                 </a>
             </div>
         </div>
@@ -34,60 +66,51 @@ require_once __DIR__ . '/../includes/header.php';
 <!-- Impact Metrics -->
 <section class="container py-5" id="programa">
     <div class="text-center mb-5">
-        <span class="badge px-3 py-2 bg-success-subtle text-success rounded-pill fw-bold text-uppercase tracking-wider mb-2">Compromiso Automarket</span>
-        <h2 class="display-5 fw-bold text-navy font-montserrat">Nuestros Ejes de Impacto</h2>
-        <p class="text-muted">Trabajamos bajo metas claras de sostenibilidad ambiental y responsabilidad corporativa.</p>
+        <span class="badge px-3 py-2 bg-success-subtle text-success rounded-pill fw-bold text-uppercase tracking-wider mb-2"><?php echo esc($sostPage['section_badge'] ?? ''); ?></span>
+        <h2 class="display-5 fw-bold text-navy font-montserrat"><?php echo esc($sostPage['section_title'] ?? ''); ?></h2>
+        <p class="text-muted"><?php echo esc($sostPage['section_subtitle'] ?? ''); ?></p>
     </div>
 
     <div class="row g-4 text-center">
-        <!-- Metric 1 -->
+        <?php foreach ($impactBlocks as $block): ?>
         <div class="col-md-4">
             <div class="card border-0 shadow-sm p-4 rounded-4 h-100">
-                <i class="bi bi-tree-fill text-success fs-1 mb-3"></i>
-                <h4 class="fw-bold text-navy">Reforestación y CO2</h4>
-                <p class="text-muted font-poppins text-sm mb-0">Compensamos las emisiones de CO2 de nuestra flota mediante programas de siembra anual en cuencas hidrográficas de Panamá.</p>
+                <i class="bi <?php echo esc(trim((string) ($block['icon'] ?? 'bi-leaf-fill'))); ?> text-success fs-1 mb-3"></i>
+                <h4 class="fw-bold text-navy"><?php echo esc($block['title'] ?? ''); ?></h4>
+                <p class="text-muted font-poppins text-sm mb-0"><?php echo esc($block['text'] ?? ''); ?></p>
             </div>
         </div>
-        <!-- Metric 2 -->
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-4 rounded-4 h-100">
-                <i class="bi bi-ev-front-fill text-success fs-1 mb-3"></i>
-                <h4 class="fw-bold text-navy">Movilidad Eléctrica</h4>
-                <p class="text-muted font-poppins text-sm mb-0">Incrementamos un 15% anual la oferta de autos eléctricos e híbridos enchufables en nuestras divisiones de Rent A Car y Renting.</p>
-            </div>
-        </div>
-        <!-- Metric 3 -->
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-4 rounded-4 h-100">
-                <i class="bi bi-recycle text-success fs-1 mb-3"></i>
-                <h4 class="fw-bold text-navy">Talleres Ecológicos</h4>
-                <p class="text-muted font-poppins text-sm mb-0">Reciclamos el 100% de los aceites usados, baterías gastadas y neumáticos desechados en nuestra red de talleres autorizados.</p>
-            </div>
-        </div>
+        <?php endforeach; ?>
     </div>
 </section>
+
+<?php if ($bodyHtml !== ''): ?>
+<section class="container py-4">
+    <div class="sostenibilidad-body-html font-poppins">
+        <?php echo $bodyHtml; ?>
+    </div>
+</section>
+<?php endif; ?>
 
 <!-- Green contact form -->
 <section class="bg-white py-5 border-top border-bottom" id="impacto">
     <div class="container">
         <div class="row align-items-center justify-content-between g-5">
             <div class="col-lg-5">
-                <h2 class="fw-bold text-navy display-6 font-montserrat">Únete a la Movilidad Verde</h2>
+                <h2 class="fw-bold text-navy display-6 font-montserrat"><?php echo esc($sostPage['contact_title'] ?? ''); ?></h2>
                 <p class="text-muted mb-4 font-poppins">
-                    ¿Quieres incorporar prácticas de movilidad verde en las flotas de tu empresa o registrarte en nuestros voluntariados ecológicos? Escríbenos y entérate de cómo colaborar.
+                    <?php echo esc($sostPage['contact_intro'] ?? ''); ?>
                 </p>
-                <div class="d-flex align-items-center gap-2 mb-3">
+                <?php foreach ($contactBullets as $bi => $bullet): ?>
+                <div class="d-flex align-items-center gap-2<?php echo $bi < count($contactBullets) - 1 ? ' mb-3' : ''; ?>">
                     <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                    <span class="fw-semibold">Alquileres libres de emisiones de carbono</span>
+                    <span class="fw-semibold"><?php echo esc($bullet); ?></span>
                 </div>
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                    <span class="fw-semibold">Alianzas con fundaciones ambientales locales</span>
-                </div>
+                <?php endforeach; ?>
             </div>
             <div class="col-lg-6">
                 <div class="card border-0 shadow p-4 rounded-4 bg-light">
-                    <h4 class="fw-bold text-navy mb-4 font-montserrat">Registro de Interés Ecológico</h4>
+                    <h4 class="fw-bold text-navy mb-4 font-montserrat"><?php echo esc($sostPage['form_title'] ?? ''); ?></h4>
                     <form id="ecoForm" onsubmit="submitEcoLead(event)">
                         <div class="mb-3">
                             <label for="ecoName" class="form-label fw-semibold">Nombre Completo</label>

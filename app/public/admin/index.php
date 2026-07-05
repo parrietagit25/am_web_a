@@ -2915,6 +2915,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../../includes/admin-renting-actions.php';
     require __DIR__ . '/../../includes/admin-taller-actions.php';
     require __DIR__ . '/../../includes/admin-footer-actions.php';
+    require __DIR__ . '/../../includes/admin-sostenibilidad-actions.php';
     require __DIR__ . '/../../includes/admin-rac-actions.php';
     require __DIR__ . '/../../includes/admin-unit-footer-actions.php';
     require __DIR__ . '/../../includes/admin-chatbot-actions.php';
@@ -3414,6 +3415,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                     <?php require_once __DIR__ . '/../../includes/admin-chatbot-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-chatbot-sessions-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-landings-tab.php'; ?>
+                    <?php if (admin_can('footer')) { require_once __DIR__ . '/../../includes/admin-sostenibilidad-tab.php'; } ?>
                     <?php require_once __DIR__ . '/../../includes/admin-global-sucursales-tab.php'; ?>
                     <?php if (admin_can('locations_master')) { require_once __DIR__ . '/../../includes/admin-locations-tab.php'; } ?>
                     <?php require_once __DIR__ . '/../../includes/admin-footer-tab.php'; ?>

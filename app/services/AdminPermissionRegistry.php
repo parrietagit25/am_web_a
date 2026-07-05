@@ -139,6 +139,10 @@ class AdminPermissionRegistry
             return 'renting_sucursales';
         }
 
+        if ($tabSlug === 'sostenibilidad') {
+            return 'footer';
+        }
+
         $perm = self::tabSlugToPermission($tabSlug);
         return in_array($perm, self::allPermissionKeys(), true) ? $perm : null;
     }
@@ -186,6 +190,7 @@ class AdminPermissionRegistry
             'edit_landing_page' => 'landings',
             'delete_landing_page' => 'landings',
             'save_footer_general' => 'footer',
+            'save_sostenibilidad_page' => 'footer',
             'save_footer_page' => 'footer',
             'save_footer_also_know' => 'footer',
             'save_footer_social' => 'footer',

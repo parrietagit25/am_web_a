@@ -46,7 +46,7 @@ $showChatbot = admin_group_visible('chatbot');
 
 $showGenerales = true;
 
-$generalesTabs = ['user-manual', 'project-progress-dashboard', 'global', 'global-sucursales', 'locations-master', 'translations', 'seo', 'landings', 'footer', 'users', 'audit-log', 'telemetry'];
+$generalesTabs = ['user-manual', 'project-progress-dashboard', 'global', 'global-sucursales', 'locations-master', 'translations', 'seo', 'landings', 'sostenibilidad', 'footer', 'users', 'audit-log', 'telemetry'];
 $rentacarContentTabs = UnitContentService::contentTabSlugs('rentacar');
 $rentacarTabs = array_merge(['hero'], $rentacarContentTabs, ['opinions', 'vehicles', 'sucursales', 'terms', 'requirements', 'contact', 'payments', 'rac-reservations', 'rac-bars-rates', 'rac-rate-rules', 'rac-addons']);
 $seminuevosContentTabs = UnitContentService::contentTabSlugs('seminuevos');
@@ -106,6 +106,11 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
             <?php if (admin_can('landings')): ?>
             <button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('landings', $defaultAdminTab); ?>" id="tab-landings-nav" data-bs-toggle="pill" data-bs-target="#tab-landings" type="button" role="tab" data-admin-perm="landings">
                 <i class="bi bi-bullseye me-2"></i> Landing Pages
+            </button>
+            <?php endif; ?>
+            <?php if (admin_can('footer')): ?>
+            <button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('sostenibilidad', $defaultAdminTab); ?>" id="tab-sostenibilidad-nav" data-bs-toggle="pill" data-bs-target="#tab-sostenibilidad" type="button" role="tab" data-admin-perm="footer">
+                <i class="bi bi-leaf-fill me-2"></i> Sostenibilidad
             </button>
             <?php endif; ?>
             <?php if (admin_can('footer')): ?>

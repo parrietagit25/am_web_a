@@ -197,6 +197,7 @@ class AdminUserService
             'translations' => 'translations',
             'seo' => 'seo',
             'landings' => 'landings',
+            'sostenibilidad' => 'footer',
             'footer' => 'footer',
             'users' => 'users',
             'audit-log' => 'audit_log',
