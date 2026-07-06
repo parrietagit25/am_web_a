@@ -1066,5 +1066,6 @@ $defaultAdminTab = 'rac-bars-rates';
     }
 })();
 </script>
+<?php require __DIR__ . '/../../includes/admin-standalone-sidebar.php'; ?>
 </body>
 </html>

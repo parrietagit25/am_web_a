@@ -224,5 +224,6 @@ if (!isset($rules, $formDefaults, $ruleService)) {
     syncTargetField();
 })();
 </script>
+<?php require __DIR__ . '/../../includes/admin-standalone-sidebar.php'; ?>
 </body>
 </html>

@@ -523,5 +523,6 @@ $diagnosticMode = PowertranzPaymentService::isDiagnosticMode();
     }
 })();
 </script>
+<?php require __DIR__ . '/../../includes/admin-standalone-sidebar.php'; ?>
 </body>
 </html>
