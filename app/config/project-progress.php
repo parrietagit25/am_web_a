@@ -139,6 +139,7 @@ return [
         ['fecha' => '2026-07-05', 'texto' => 'AM-CMS-SOSTENIBILIDAD cerrado test: Generales → Sostenibilidad; sostenibilidad.php con CMS y fallback; primer guardado crea estructura JSON.'],
         ['fecha' => '2026-07-05', 'texto' => 'AM-HOTFIX-SESSION-DETALLE cerrado test: fichas /autos/... sin warning público por session_start antes de output.'],
         ['fecha' => '2026-07-05', 'texto' => 'AM-DASH-1C: cierre admin manual + dashboard; UI sin Commits de referencia ni enlaces a repositorio; métricas cms_editorial 94, ux_conversion 70.'],
+        ['fecha' => '2026-07-05', 'texto' => 'Pendiente Mercadeo: FAQ institucional por unidad; asociación sucursales Renting. Fase 2: migración location_refs --apply; inventario SQL LocationName → location_id (no tocado).'],
         ['fecha' => '2026-07-16', 'texto' => 'AM-ADJ-02 cerrado local: colores administrables título/subtítulo hero (RAC, Semi, Leasing, Renting, Taller, custom); helper hex + fallback CSS; sin site_data en commit.'],
     ],
 

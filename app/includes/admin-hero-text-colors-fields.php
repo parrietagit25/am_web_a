@@ -91,7 +91,11 @@ if (!defined('AM_HERO_TEXT_COLORS_ADMIN_JS')):
         if (t.matches('input[data-htc-hex]')) {
             var n = normalizeHex(t.value);
             var picker = document.getElementById(t.id + '_picker');
-            if (picker && n) picker.value = n;
+            if (picker && n) {
+                picker.value = n;
+            } else if (picker && t.value.trim() === '') {
+                picker.value = '#FFFFFF';
+            }
         }
     });
 })();

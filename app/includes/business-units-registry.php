@@ -66,6 +66,8 @@ function am_normalize_custom_business_unit(string $key, array $unit): array
         'activeClass' => trim((string) ($unit['activeClass'] ?? ('active-' . $key))),
         'heroTitle' => trim((string) ($unit['heroTitle'] ?? '')),
         'heroSubtitle' => trim((string) ($unit['heroSubtitle'] ?? '')),
+        'heroTitleColor' => trim((string) ($unit['heroTitleColor'] ?? '')),
+        'heroSubtitleColor' => trim((string) ($unit['heroSubtitleColor'] ?? '')),
         'ctaText' => trim((string) ($unit['ctaText'] ?? '')),
         'ctaLink' => trim((string) ($unit['ctaLink'] ?? '')),
         'sort_order' => intval($unit['sort_order'] ?? 60),
