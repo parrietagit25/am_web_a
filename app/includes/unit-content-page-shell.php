@@ -4,6 +4,8 @@
  *
  * @var string $ucActiveType  news | blog | latest
  */
+require_once __DIR__ . '/../services/HeaderBannerService.php';
+
 $ucActiveType = $ucActiveType ?? 'news';
 $ucHeader = unit_content_get_page_header($contentService, $unitKey, $ucActiveType);
 $ucAlign = $ucHeader['align'] ?? 'left';
@@ -19,12 +21,21 @@ if ($ucPageTitle === '') {
 }
 $ucPageSubtitle = $ucHeader['subtitle'] ?? '';
 $ucPageKicker = $ucHeader['kicker'] ?? '';
-$ucBannerUrl = trim((string) ($ucHeader['banner'] ?? ''));
+$ucHeaderEnabled = !isset($ucHeader['enabled']) || (bool) $ucHeader['enabled'];
+$ucBannerUrl = $ucHeaderEnabled ? trim((string) ($ucHeader['banner'] ?? '')) : '';
+$ucBannerAlt = trim((string) ($ucHeader['alt'] ?? ''));
+$ucButtonUrl = $ucHeaderEnabled
+    ? HeaderBannerService::sanitizeLinkUrl($ucHeader['button_url'] ?? '')
+    : '';
+$ucButtonText = $ucButtonUrl !== '' ? trim((string) ($ucHeader['button_text'] ?? '')) : '';
+if ($ucButtonUrl !== '' && $ucButtonText === '') {
+    $ucButtonText = 'Conocer más sobre ' . $ucPageTitle;
+}
 ?>
 
 <section class="uc-page-hero uc-page-hero--align-<?php echo esc($ucAlign); ?><?php echo $ucBannerUrl !== '' ? ' uc-page-hero--has-image' : ''; ?>">
     <?php if ($ucBannerUrl !== ''): ?>
-        <img class="uc-page-hero__bg-img" src="<?php echo esc($ucBannerUrl); ?>" alt="" aria-hidden="true">
+        <img class="uc-page-hero__bg-img" src="<?php echo esc($ucBannerUrl); ?>" alt="<?php echo esc($ucBannerAlt !== '' ? $ucBannerAlt : $ucPageTitle); ?>">
     <?php endif; ?>
     <div class="uc-page-hero__overlay"></div>
     <div class="container py-4 py-lg-5 position-relative">
@@ -41,6 +52,9 @@ $ucBannerUrl = trim((string) ($ucHeader['banner'] ?? ''));
             <h1 class="uc-page-hero__title mb-2"><?php echo esc($ucPageTitle); ?></h1>
             <?php if ($ucPageSubtitle !== ''): ?>
                 <p class="uc-page-hero__subtitle mb-0"><?php echo esc($ucPageSubtitle); ?></p>
+            <?php endif; ?>
+            <?php if ($ucButtonUrl !== '' && $ucButtonText !== ''): ?>
+                <a href="<?php echo esc($ucButtonUrl); ?>" class="btn btn-theme mt-3"><?php echo esc($ucButtonText); ?></a>
             <?php endif; ?>
         </div>
     </div>

@@ -389,7 +389,7 @@ class ContentService {
      * @param string $prefix
      * @return string|bool
      */
-    public function uploadImage($fileInfo, $prefix = 'upload_') {
+    public function uploadImage($fileInfo, $prefix = 'upload_', bool $strictExtension = false) {
         if (!isset($fileInfo) || $fileInfo['error'] !== UPLOAD_ERR_OK) {
             return false;
         }
@@ -429,7 +429,11 @@ class ContentService {
         }
 
         $extension = pathinfo($fileInfo['name'], PATHINFO_EXTENSION);
-        if (empty($extension) || !in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        if ($strictExtension && (empty($extension) || !in_array(strtolower($extension), $allowedExtensions, true))) {
+            return false;
+        }
+        if (empty($extension) || !in_array(strtolower($extension), $allowedExtensions, true)) {
             $extMap = [
                 'image/jpeg' => 'jpg',
                 'image/png'  => 'png',

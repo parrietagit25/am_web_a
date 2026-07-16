@@ -75,7 +75,7 @@ Existen `PowertranzClient`, `PowertranzPaymentService`, `PowertranzSanitizer`, `
 | ID | Requerimiento | Estado | Complejidad | Bloque |
 |----|---------------|--------|-------------|--------|
 | R1 | Colores hero título/subtítulo | **Completado (AM-ADJ-02)** | Media | AM-ADJ-02 |
-| R2 | Banners (enable, imagen, texto, link) | Existe parcialmente | Media | AM-ADJ-03 |
+| R2 | Banners (enable, imagen, texto, link) | **Completado (AM-ADJ-03)** | Media | AM-ADJ-03 |
 | R3 | Etiquetas Promo / Más buscado / custom / vigencia | Existe parcialmente | Media–Alta | AM-ADJ-04 |
 | R4 | WhatsApp contextual | Existe parcialmente | Baja–Media | AM-ADJ-05 |
 | R5 | Sobre Nosotros por unidad | Existe parcialmente | Media | AM-ADJ-06 |
@@ -115,17 +115,19 @@ Existen `PowertranzClient`, `PowertranzPaymentService`, `PowertranzSanitizer`, `
 
 ### R2 — Banners configurables
 
-1. **Estado:** Existe parcialmente.  
-2. **Evidencia:** `HeaderBannerService` (static/slider); `admin-header-banner-section.php`; `header_banner` en heroes por unidad; `page_headers` blog solo imagen string. Falta: `enabled`, `link_url` por banner/slide. Seminuevos: click hardcode a `/inventario.php`.  
-3. **Comportamiento:** Imagen/slider + título/subtítulo en slides; no desactivar ni CTA genérico.  
-4. **Cambio mínimo:** Schema `enabled` (default true) + `link_url`; UI admin; respetar en render.  
-5. **Conservar:** Modos static/slider y uploads.  
-6. **Dependencias:** R1 opcional.  
-7. **Riesgos:** Compat JSON; conflicto click Seminuevos vs link nuevo.  
-8. **Aceptación:** Activar/desactivar; imagen+texto+link opcional en home por unidad.  
-9. **Pruebas:** Cada unidad; legacy sin keys nuevas.  
-10. **Complejidad:** Media.  
-11. **Bloque:** AM-ADJ-03.
+1. **Estado:** **Completado (AM-ADJ-03, 2026-07-16).**
+2. **Arquitectura:** Se extendió `HeaderBannerService` y sus includes compartidos; no se creó un tercer sistema. `page_headers` conserva su modelo existente con fallback de `banner`.
+3. **Claves:** `enabled`, `image_url`, `alt`, `title`, `subtitle`, `link_text`, `link_url`; slider con estado, alt y enlace por slide. Ausencia de `enabled` = `true`.
+4. **Cobertura:** RAC, Seminuevos, Leasing, Renting, Taller, unidad custom; páginas generales compatibles `noticias.php`, `blog.php` y `contenido-reciente.php`.
+5. **Comportamiento:** Banner inactivo no muestra imagen/slider y conserva el H1; CTA usa `<a href>` semántico; Seminuevos conserva `/inventario.php` solo como fallback legacy.
+6. **Uploads / seguridad:** Reutiliza `ContentService`; MIME real, 12 MB, extensión estricta para banners, nombre generado, sin SVG/base64; enlaces solo ruta interna, ancla o HTTPS.
+7. **Accesibilidad:** alt administrable/fallback, títulos opcionales en `h2`, CTA por teclado y sin `onclick`.
+8. **Compatibilidad:** Claves legacy (`image_url`, `banner_image_url`, `hero_image_url`, `page_headers.*.banner`) sincronizadas; sin migración de `site_data.json`.
+9. **Pruebas:** suite `tests/am-adj03-header-banner-test.php`; `php -l`; POST real RAC/Seminuevos/Leasing/Renting/Taller/custom; smoke HTTP 200 sin errores PHP en ocho rutas. Datos/SQLite restaurados por hash.
+10. **Páginas excluidas:** institucionales sin sistema administrable compatible (Sostenibilidad, Sobre Nosotros, Trabaja con nosotros y sucursales grupo); no se añadieron banners PHP individuales.
+11. **Riesgos residuales:** overflow móvil RAC/Leasing y 404 telemetry/rac-sucursales son preexistentes y fuera de alcance.
+12. **Complejidad:** Media.
+13. **Bloque:** AM-ADJ-03.
 
 ### R3 — Etiquetas visibles
 

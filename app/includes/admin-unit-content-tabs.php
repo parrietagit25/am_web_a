@@ -53,15 +53,31 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
             ?>
             <div class="border rounded-3 p-3 p-md-4 mb-3 bg-light">
                 <div class="fw-semibold mb-3 text-navy"><i class="bi bi-layout-text-window me-2"></i><?php echo esc($phLabel); ?></div>
+                <input type="hidden" name="content_page_enabled_<?php echo esc($phType); ?>" value="0">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox"
+                           name="content_page_enabled_<?php echo esc($phType); ?>"
+                           id="content-page-enabled-<?php echo esc($ucDomUnit . '-' . $phType); ?>"
+                           value="1"<?php echo !isset($ph['enabled']) || $ph['enabled'] ? ' checked' : ''; ?>>
+                    <label class="form-check-label fw-semibold" for="content-page-enabled-<?php echo esc($ucDomUnit . '-' . $phType); ?>">Mostrar cabecera</label>
+                    <div class="form-text">Al desactivarla se conserva el título principal de la página sin imagen de banner.</div>
+                </div>
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label">Imagen de cabecera</label>
-                        <input type="file" name="content_page_banner_<?php echo esc($phType); ?>" class="form-control form-control-premium" accept="image/*">
-                        <small class="text-muted d-block mt-1">Recomendado: 1920×700 px — JPG o WebP</small>
+                        <input type="file" name="content_page_banner_<?php echo esc($phType); ?>" class="form-control form-control-premium" accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp">
+                        <small class="text-muted d-block mt-1">Recomendado: 1920×700 px — JPG o WebP. Máx. 12 MB.</small>
                         <?php if (!empty($ph['banner'])): ?>
                             <div class="small text-muted mt-2">Actual: <code><?php echo esc($ph['banner']); ?></code></div>
                             <img src="<?php echo esc($ph['banner']); ?>" alt="" class="img-fluid rounded mt-2 border" style="max-height:120px;object-fit:cover;">
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="content_page_remove_<?php echo esc($phType); ?>" id="content-page-remove-<?php echo esc($ucDomUnit . '-' . $phType); ?>" value="1">
+                                <label class="form-check-label text-danger" for="content-page-remove-<?php echo esc($ucDomUnit . '-' . $phType); ?>">Quitar imagen actual</label>
+                            </div>
                         <?php endif; ?>
+                        <label class="form-label mt-3">Texto alternativo de la imagen</label>
+                        <input type="text" name="content_page_alt_<?php echo esc($phType); ?>" class="form-control form-control-premium"
+                               value="<?php echo esc($ph['alt'] ?? ''); ?>" maxlength="180" placeholder="Descripción breve de la imagen">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Etiqueta superior (kicker)</label>
@@ -76,6 +92,13 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
                             <option value="center" <?php echo ($ph['align'] ?? '') === 'center' ? 'selected' : ''; ?>>Centro</option>
                             <option value="right" <?php echo ($ph['align'] ?? '') === 'right' ? 'selected' : ''; ?>>Derecha</option>
                         </select>
+                        <label class="form-label mt-3">Texto del enlace o botón</label>
+                        <input type="text" name="content_page_button_text_<?php echo esc($phType); ?>" class="form-control form-control-premium"
+                               value="<?php echo esc($ph['button_text'] ?? ''); ?>" maxlength="100" placeholder="Ej: Conocer más">
+                        <label class="form-label mt-3">URL del enlace</label>
+                        <input type="text" name="content_page_button_url_<?php echo esc($phType); ?>" class="form-control form-control-premium"
+                               value="<?php echo esc($ph['button_url'] ?? ''); ?>" maxlength="500" placeholder="/ruta, #seccion o https://...">
+                        <div class="form-text">Se aceptan rutas internas, anclas y URL HTTPS.</div>
                     </div>
                 </div>
             </div>

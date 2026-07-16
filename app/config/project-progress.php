@@ -141,6 +141,7 @@ return [
         ['fecha' => '2026-07-05', 'texto' => 'AM-DASH-1C: cierre admin manual + dashboard; UI sin Commits de referencia ni enlaces a repositorio; métricas cms_editorial 94, ux_conversion 70.'],
         ['fecha' => '2026-07-05', 'texto' => 'Pendiente Mercadeo: FAQ institucional por unidad; asociación sucursales Renting. Fase 2: migración location_refs --apply; inventario SQL LocationName → location_id (no tocado).'],
         ['fecha' => '2026-07-16', 'texto' => 'AM-ADJ-02 cerrado local: colores administrables título/subtítulo hero (RAC, Semi, Leasing, Renting, Taller, custom); helper hex + fallback CSS; sin site_data en commit.'],
+        ['fecha' => '2026-07-16', 'texto' => 'AM-ADJ-03 cerrado local: banners configurables activos/inactivos, texto, alt y enlaces seguros en cinco unidades, custom y page_headers compatibles; uploads estrictos; pruebas unitarias/E2E/smoke; datos restaurados por hash.'],
     ],
 
     'bloques' => [
@@ -1235,6 +1236,25 @@ return [
                 ['label' => 'Leasing / Renting / Taller → Principal', 'url' => '/admin/'],
             ],
             'siguiente_accion'    => 'Cerrado. Siguiente: AM-ADJ-03 banners. Validar visual en test al desplegar.',
+            'fecha_actualizacion' => '2026-07-16',
+        ],
+        [
+            'codigo'              => 'AM-ADJ-03',
+            'nombre'              => 'Banners configurables por página y unidad',
+            'area'                => 'CMS editorial',
+            'prioridad'           => 'Media',
+            'estado'              => 'Cerrado local',
+            'porcentaje_estimado' => 100,
+            'descripcion'         => 'Activación, imagen, alt, texto y enlace para header banners static/slider y cabeceras de Noticias, Blog y Novedades, con compatibilidad legacy.',
+            'dependencias'        => ['AM-ADJ-01', 'AM-ADJ-02'],
+            'ultimo_commit'       => 'AM-ADJ-03 banners configurables por página y unidad',
+            'evidencia'           => 'HeaderBannerService extendido; includes admin/render compartidos; URLs seguras; uploads MIME/extensión/tamaño; custom preservado; pruebas unitarias, POST real y smoke HTTP sin errores PHP; site_data/SQLite restaurados por SHA-256.',
+            'admin_locations'     => [
+                ['label' => 'Unidades oficiales → Principal', 'url' => '/admin/'],
+                ['label' => 'Contenido por unidad → Configuración', 'url' => '/admin/'],
+                ['label' => 'Unidades personalizadas', 'url' => '/admin/'],
+            ],
+            'siguiente_accion'    => 'Cerrado. Siguiente bloque autorizado: AM-ADJ-04 etiquetas.',
             'fecha_actualizacion' => '2026-07-16',
         ],
     ],

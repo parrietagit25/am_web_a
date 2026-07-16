@@ -2,6 +2,8 @@
 /**
  * Gestor unificado de contenido por unidad de negocio (latest, blog, news).
  */
+require_once __DIR__ . '/HeaderBannerService.php';
+
 class UnitContentService
 {
     public const TYPES = ['latest', 'blog', 'news'];
@@ -516,25 +518,37 @@ class UnitContentService
 
         return [
             'news' => [
+                'enabled' => true,
                 'banner' => '',
+                'alt' => '',
                 'kicker' => 'Actualidad',
                 'title' => 'Noticias',
                 'subtitle' => 'Comunicados, novedades y actualidad de ' . $label . '.',
                 'align' => 'left',
+                'button_text' => '',
+                'button_url' => '',
             ],
             'blog' => [
+                'enabled' => true,
                 'banner' => '',
+                'alt' => '',
                 'kicker' => 'Recursos',
                 'title' => 'Blog',
                 'subtitle' => 'Artículos, guías y contenido permanente.',
                 'align' => 'center',
+                'button_text' => '',
+                'button_url' => '',
             ],
             'latest' => [
+                'enabled' => true,
                 'banner' => '',
+                'alt' => '',
                 'kicker' => 'Destacados',
                 'title' => 'Novedades',
                 'subtitle' => 'Promociones, eventos e información destacada de ' . $label . '.',
                 'align' => 'center',
+                'button_text' => '',
+                'button_url' => '',
             ],
         ];
     }
@@ -557,12 +571,19 @@ class UnitContentService
             $title = $defaults['title'];
         }
 
+        $buttonUrl = HeaderBannerService::sanitizeLinkUrl($row['button_url'] ?? '');
+
         return [
+            'enabled' => !array_key_exists('enabled', $row)
+                || filter_var($row['enabled'], FILTER_VALIDATE_BOOLEAN),
             'banner' => trim((string) ($row['banner'] ?? '')),
+            'alt' => trim((string) ($row['alt'] ?? '')),
             'kicker' => trim((string) ($row['kicker'] ?? $defaults['kicker'])),
             'title' => $title,
             'subtitle' => trim((string) ($row['subtitle'] ?? '')),
             'align' => $align,
+            'button_text' => $buttonUrl !== '' ? trim((string) ($row['button_text'] ?? '')) : '',
+            'button_url' => $buttonUrl,
         ];
     }
 
@@ -583,7 +604,7 @@ class UnitContentService
         return $normalized;
     }
 
-    /** @param array<string, mixed> $siteData @return array{banner: string, kicker: string, title: string, subtitle: string, align: string} */
+    /** @param array<string, mixed> $siteData @return array{enabled: bool, banner: string, alt: string, kicker: string, title: string, subtitle: string, align: string, button_text: string, button_url: string} */
     public static function getPageHeader(array $siteData, string $unitKey, string $type): array
     {
         if (!self::isValidType($type)) {

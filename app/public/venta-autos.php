@@ -304,11 +304,15 @@ $vehicles = $db->select("SELECT * FROM Automarket_Invs_web WHERE Status = 'DISPO
 
 <?php
 $hbSectionId = 'cta-hero';
-$hbSectionExtraStyle = 'cursor: pointer;';
-$hbSectionOnclick = "window.location.href='/inventario.php'";
 $hbSkipContainer = true;
 $hbInnerHtml = '';
+$semiHeaderBannerRaw = $seminuevosData['header_banner'] ?? null;
+if (!is_array($semiHeaderBannerRaw) || !array_key_exists('link_url', $semiHeaderBannerRaw)) {
+    $hbDefaultLinkUrl = '/inventario.php';
+    $hbDefaultLinkText = 'Ver inventario';
+}
 require __DIR__ . '/../includes/render-header-banner.php';
+unset($semiHeaderBannerRaw);
 ?>
 
 <!-- Content Sections -->

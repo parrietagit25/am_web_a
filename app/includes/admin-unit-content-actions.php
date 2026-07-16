@@ -3,6 +3,7 @@
  * Handlers POST — gestor de contenido por unidad de negocio.
  */
 require_once __DIR__ . '/../services/UnitContentService.php';
+require_once __DIR__ . '/../services/HeaderBannerService.php';
 
 function unit_content_validate_unit(array $siteData, string $unitKey): bool
 {
@@ -69,19 +70,39 @@ function unit_content_parse_item_from_post(string $type): array
 }
 
 /** @param array<string, array<string, mixed>> $pageHeaders */
-function unit_content_parse_page_headers_from_post(array $pageHeaders): array
+function unit_content_parse_page_headers_from_post(array $pageHeaders, ?string &$validationError = null): array
 {
+    $validationError = null;
+
     foreach (UnitContentService::TYPES as $type) {
         if (!isset($pageHeaders[$type]) || !is_array($pageHeaders[$type])) {
             $pageHeaders[$type] = [];
         }
 
-        $existingBanner = trim((string) ($pageHeaders[$type]['banner'] ?? ''));
+        $removeBanner = filter_var($_POST['content_page_remove_' . $type] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $existingBanner = $removeBanner ? '' : trim((string) ($pageHeaders[$type]['banner'] ?? ''));
+        $rawButtonUrl = trim((string) ($_POST['content_page_button_url_' . $type] ?? ''));
+        $buttonUrl = HeaderBannerService::sanitizeLinkUrl($rawButtonUrl);
+        if ($rawButtonUrl !== '' && $buttonUrl === '') {
+            $validationError = 'El enlace de la cabecera de '
+                . UnitContentService::TYPE_LABELS[$type]
+                . ' no es válido. Use una ruta interna, un ancla o una URL HTTPS.';
+            return $pageHeaders;
+        }
 
+        $pageHeaders[$type]['enabled'] = filter_var(
+            $_POST['content_page_enabled_' . $type] ?? ($pageHeaders[$type]['enabled'] ?? true),
+            FILTER_VALIDATE_BOOLEAN
+        );
+        $pageHeaders[$type]['alt'] = trim($_POST['content_page_alt_' . $type] ?? '');
         $pageHeaders[$type]['kicker'] = trim($_POST['content_page_kicker_' . $type] ?? ($pageHeaders[$type]['kicker'] ?? ''));
         $pageHeaders[$type]['title'] = trim($_POST['content_page_title_' . $type] ?? ($pageHeaders[$type]['title'] ?? ''));
         $pageHeaders[$type]['subtitle'] = trim($_POST['content_page_subtitle_' . $type] ?? '');
         $pageHeaders[$type]['banner'] = $existingBanner;
+        $pageHeaders[$type]['button_url'] = $buttonUrl;
+        $pageHeaders[$type]['button_text'] = $buttonUrl !== ''
+            ? trim($_POST['content_page_button_text_' . $type] ?? '')
+            : '';
 
         $align = trim($_POST['content_page_align_' . $type] ?? ($pageHeaders[$type]['align'] ?? 'left'));
         if (!in_array($align, ['left', 'center', 'right'], true)) {
@@ -94,19 +115,30 @@ function unit_content_parse_page_headers_from_post(array $pageHeaders): array
 }
 
 /** @param array<string, array<string, mixed>> $pageHeaders */
-function unit_content_apply_page_header_uploads(array &$pageHeaders, ContentService $contentService, string $unitKey): void
+function unit_content_apply_page_header_uploads(array &$pageHeaders, ContentService $contentService, string $unitKey): ?string
 {
     foreach (UnitContentService::TYPES as $type) {
         $field = 'content_page_banner_' . $type;
-        if (!isset($_FILES[$field]) || $_FILES[$field]['error'] !== UPLOAD_ERR_OK) {
+        $error = (int) ($_FILES[$field]['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($error === UPLOAD_ERR_NO_FILE) {
             continue;
         }
-
-        $uploaded = $contentService->uploadImage($_FILES[$field], 'uc_banner_' . preg_replace('/[^a-z0-9_-]/i', '-', $unitKey) . '_' . $type . '_');
-        if ($uploaded) {
-            $pageHeaders[$type]['banner'] = $uploaded;
+        if ($error !== UPLOAD_ERR_OK) {
+            return 'No se pudo subir la imagen de cabecera de ' . UnitContentService::TYPE_LABELS[$type] . '. Verifique el tamaño.';
         }
+
+        $uploaded = $contentService->uploadImage(
+            $_FILES[$field],
+            'uc_banner_' . preg_replace('/[^a-z0-9_-]/i', '-', $unitKey) . '_' . $type . '_',
+            true
+        );
+        if (!$uploaded) {
+            return 'La imagen de cabecera de ' . UnitContentService::TYPE_LABELS[$type] . ' no es válida. Use JPG, PNG, GIF o WEBP de hasta 12 MB.';
+        }
+        $pageHeaders[$type]['banner'] = $uploaded;
     }
+
+    return null;
 }
 
 function unit_content_apply_uploads(array &$row, ContentService $contentService, ?array $existing = null): void
@@ -189,8 +221,17 @@ function unit_content_handle_post(
                 ($current['settings']['page_headers'] ?? []),
                 UnitContentService::unitLabel($siteData, $unitKey)
             );
-            $pageHeaders = unit_content_parse_page_headers_from_post($existingHeaders);
-            unit_content_apply_page_header_uploads($pageHeaders, $contentService, $unitKey);
+            $pageHeaderValidationError = null;
+            $pageHeaders = unit_content_parse_page_headers_from_post($existingHeaders, $pageHeaderValidationError);
+            if ($pageHeaderValidationError !== null) {
+                $errorMsg = $pageHeaderValidationError;
+                break;
+            }
+            $pageHeaderUploadError = unit_content_apply_page_header_uploads($pageHeaders, $contentService, $unitKey);
+            if ($pageHeaderUploadError !== null) {
+                $errorMsg = $pageHeaderUploadError;
+                break;
+            }
 
             $current['settings'] = UnitContentService::normalizeSettings($current['settings'] ?? [], [
                 'home_block_enabled' => isset($_POST['home_block_enabled']),

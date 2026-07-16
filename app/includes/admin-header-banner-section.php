@@ -10,20 +10,44 @@ require_once __DIR__ . '/../services/HeaderBannerService.php';
 
 $hbPrefix = $hbPrefix ?? 'hb_default';
 $hbDomId = $hbDomId ?? 'hb-default';
-$hbConfig = $hbConfig ?? HeaderBannerService::defaults();
+$hbConfig = HeaderBannerService::normalize($hbConfig ?? []);
+$hbEnabled = (bool) ($hbConfig['enabled'] ?? true);
 $hbMode = ($hbConfig['mode'] ?? HeaderBannerService::MODE_STATIC) === HeaderBannerService::MODE_SLIDER
     ? HeaderBannerService::MODE_SLIDER
     : HeaderBannerService::MODE_STATIC;
 $hbSlides = $hbConfig['slider']['slides'] ?? [];
 if (empty($hbSlides)) {
-    $hbSlides = [['image_url' => '', 'alt' => '', 'title' => '', 'subtitle' => '']];
+    $hbSlides = [[
+        'enabled' => true,
+        'image_url' => '',
+        'alt' => '',
+        'title' => '',
+        'subtitle' => '',
+        'link_text' => '',
+        'link_url' => '',
+    ]];
 }
 $hbStaticUrl = (string) ($hbConfig['image_url'] ?? '');
+$hbAlt = (string) ($hbConfig['alt'] ?? '');
+$hbTitle = (string) ($hbConfig['title'] ?? '');
+$hbSubtitle = (string) ($hbConfig['subtitle'] ?? '');
+$hbLinkText = (string) ($hbConfig['link_text'] ?? '');
+$hbLinkUrl = (string) ($hbConfig['link_url'] ?? '');
 $hbInterval = (int) ($hbConfig['slider']['interval_ms'] ?? 5000);
 $hbTransition = (string) ($hbConfig['slider']['transition'] ?? 'fade');
 ?>
 <div class="hb-section border rounded-3 p-4 bg-white" id="<?php echo esc($hbDomId); ?>" data-hb-prefix="<?php echo esc($hbPrefix); ?>">
     <h6 class="fw-bold text-navy-light mb-3"><i class="bi bi-images me-1"></i>Cabecera de la página</h6>
+
+    <input type="hidden" name="<?php echo esc($hbPrefix); ?>_enabled" value="0">
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox"
+               name="<?php echo esc($hbPrefix); ?>_enabled"
+               id="<?php echo esc($hbDomId); ?>-enabled"
+               value="1"<?php echo $hbEnabled ? ' checked' : ''; ?>>
+        <label class="form-check-label fw-semibold" for="<?php echo esc($hbDomId); ?>-enabled">Mostrar cabecera o banner</label>
+        <div class="form-text">Al desactivarlo se oculta la imagen o slider; el título principal de la página se conserva.</div>
+    </div>
 
     <div class="mb-3 d-flex flex-wrap gap-4">
         <div class="form-check">
@@ -45,14 +69,48 @@ $hbTransition = (string) ($hbConfig['slider']['transition'] ?? 'fade');
     <div class="hb-static-panel<?php echo $hbMode === HeaderBannerService::MODE_SLIDER ? ' d-none' : ''; ?>">
         <label class="form-label fw-semibold">Imagen de cabecera</label>
         <input type="hidden" name="<?php echo esc($hbPrefix); ?>_static_url" value="<?php echo esc($hbStaticUrl); ?>">
-        <input type="file" name="<?php echo esc($hbPrefix); ?>_static_file" class="form-control form-control-premium hb-static-file" accept="image/*">
-        <div class="form-text">JPG, PNG, GIF o WEBP. Máx. 5MB.</div>
+        <input type="file" name="<?php echo esc($hbPrefix); ?>_static_file" class="form-control form-control-premium hb-static-file" accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp">
+        <div class="form-text">JPG, PNG, GIF o WEBP. Máx. 12MB.</div>
         <small class="text-muted d-block mt-1">Recomendado: 1920×700 px — JPG o WebP</small>
         <?php if ($hbStaticUrl !== ''): ?>
         <div class="mt-2">
             <img src="<?php echo esc($hbStaticUrl); ?>" alt="" class="img-thumbnail hb-static-preview" style="max-height: 120px;">
+            <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" name="<?php echo esc($hbPrefix); ?>_remove_static" id="<?php echo esc($hbDomId); ?>-remove-static" value="1">
+                <label class="form-check-label text-danger" for="<?php echo esc($hbDomId); ?>-remove-static">Quitar imagen actual al guardar</label>
+            </div>
         </div>
         <?php endif; ?>
+        <div class="row g-3 mt-1">
+            <div class="col-12">
+                <label class="form-label fw-semibold">Texto alternativo de la imagen</label>
+                <input type="text" name="<?php echo esc($hbPrefix); ?>_alt" class="form-control form-control-premium"
+                       value="<?php echo esc($hbAlt); ?>" maxlength="180" placeholder="Ej: Vehículos Automarket en carretera">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Título del banner (opcional)</label>
+                <input type="text" name="<?php echo esc($hbPrefix); ?>_title" class="form-control form-control-premium"
+                       value="<?php echo esc($hbTitle); ?>" maxlength="180">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Subtítulo del banner (opcional)</label>
+                <input type="text" name="<?php echo esc($hbPrefix); ?>_subtitle" class="form-control form-control-premium"
+                       value="<?php echo esc($hbSubtitle); ?>" maxlength="300">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label fw-semibold">Texto del enlace o botón</label>
+                <input type="text" name="<?php echo esc($hbPrefix); ?>_link_text" class="form-control form-control-premium"
+                       value="<?php echo esc($hbLinkText); ?>" maxlength="100" placeholder="Ej: Conocer más">
+            </div>
+            <div class="col-md-7">
+                <label class="form-label fw-semibold">URL del enlace</label>
+                <input type="text" name="<?php echo esc($hbPrefix); ?>_link_url" class="form-control form-control-premium"
+                       value="<?php echo esc($hbLinkUrl); ?>" maxlength="500" placeholder="/leasing.php, #seccion o https://...">
+            </div>
+            <div class="col-12">
+                <div class="form-text">Use textos breves y contraste legible. Se aceptan rutas internas, anclas y URL HTTPS.</div>
+            </div>
+        </div>
     </div>
 
     <div class="hb-slider-panel<?php echo $hbMode === HeaderBannerService::MODE_STATIC ? ' d-none' : ''; ?>">
@@ -84,12 +142,14 @@ $hbTransition = (string) ($hbConfig['slider']['transition'] ?? 'fade');
             </button>
         </div>
         <div class="hb-slides-list d-flex flex-column gap-2">
-            <?php foreach ($hbSlides as $slide): ?>
+            <?php foreach ($hbSlides as $slideIndex => $slide):
+                $hbSlideFieldId = $hbDomId . '-slide-' . intval($slideIndex);
+            ?>
             <div class="hb-slide-row border rounded p-3 bg-light-gray">
                 <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
                     <input type="hidden" name="<?php echo esc($hbPrefix); ?>_slide_url[]" value="<?php echo esc($slide['image_url'] ?? ''); ?>">
                     <div class="flex-grow-1" style="min-width: 200px;">
-                        <input type="file" name="<?php echo esc($hbPrefix); ?>_slide_file[]" class="form-control form-control-sm" accept="image/*">
+                        <input type="file" name="<?php echo esc($hbPrefix); ?>_slide_file[]" class="form-control form-control-sm" accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp">
                         <div class="form-text">Deje vacío para conservar la imagen actual.</div>
                         <small class="text-muted d-block mt-1">Recomendado: 1920×700 px — JPG o WebP</small>
                     </div>
@@ -99,6 +159,18 @@ $hbTransition = (string) ($hbConfig['slider']['transition'] ?? 'fade');
                     <button type="button" class="btn btn-sm btn-outline-danger hb-remove-slide-btn" title="Quitar"><i class="bi bi-trash"></i></button>
                 </div>
                 <div class="row g-2">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold mb-1" for="<?php echo esc($hbSlideFieldId); ?>-enabled">Estado</label>
+                        <select id="<?php echo esc($hbSlideFieldId); ?>-enabled" name="<?php echo esc($hbPrefix); ?>_slide_enabled[]" class="form-select form-select-sm">
+                            <option value="1"<?php echo !isset($slide['enabled']) || $slide['enabled'] ? ' selected' : ''; ?>>Activo</option>
+                            <option value="0"<?php echo isset($slide['enabled']) && !$slide['enabled'] ? ' selected' : ''; ?>>Inactivo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-9">
+                        <label class="form-label small fw-semibold mb-1" for="<?php echo esc($hbSlideFieldId); ?>-alt">Texto alternativo</label>
+                        <input type="text" id="<?php echo esc($hbSlideFieldId); ?>-alt" name="<?php echo esc($hbPrefix); ?>_slide_alt[]" class="form-control form-control-sm"
+                               value="<?php echo esc($slide['alt'] ?? ''); ?>" maxlength="180" placeholder="Descripción breve de la imagen">
+                    </div>
                     <div class="col-md-6">
                         <label class="form-label small fw-semibold mb-1">Título del slide (opcional)</label>
                         <input type="text" name="<?php echo esc($hbPrefix); ?>_slide_title[]" class="form-control form-control-sm"
@@ -108,6 +180,16 @@ $hbTransition = (string) ($hbConfig['slider']['transition'] ?? 'fade');
                         <label class="form-label small fw-semibold mb-1">Subtítulo del slide (opcional)</label>
                         <input type="text" name="<?php echo esc($hbPrefix); ?>_slide_subtitle[]" class="form-control form-control-sm"
                                value="<?php echo esc($slide['subtitle'] ?? ''); ?>" placeholder="Texto breve bajo el título">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small fw-semibold mb-1" for="<?php echo esc($hbSlideFieldId); ?>-link-text">Texto del enlace</label>
+                        <input type="text" id="<?php echo esc($hbSlideFieldId); ?>-link-text" name="<?php echo esc($hbPrefix); ?>_slide_link_text[]" class="form-control form-control-sm"
+                               value="<?php echo esc($slide['link_text'] ?? ''); ?>" maxlength="100" placeholder="Ej: Ver promoción">
+                    </div>
+                    <div class="col-md-7">
+                        <label class="form-label small fw-semibold mb-1" for="<?php echo esc($hbSlideFieldId); ?>-link-url">URL del enlace</label>
+                        <input type="text" id="<?php echo esc($hbSlideFieldId); ?>-link-url" name="<?php echo esc($hbPrefix); ?>_slide_link_url[]" class="form-control form-control-sm"
+                               value="<?php echo esc($slide['link_url'] ?? ''); ?>" maxlength="500" placeholder="/ruta, #seccion o https://...">
                     </div>
                 </div>
             </div>
@@ -122,7 +204,7 @@ $hbTransition = (string) ($hbConfig['slider']['transition'] ?? 'fade');
     if (!root || root.dataset.hbInit === '1') return;
     root.dataset.hbInit = '1';
 
-    const prefix = root.getAttribute('data-hb-prefix') || '';
+    const prefix = (root.getAttribute('data-hb-prefix') || '').replace(/[^a-z0-9_-]/gi, '');
     const staticPanel = root.querySelector('.hb-static-panel');
     const sliderPanel = root.querySelector('.hb-slider-panel');
     const slidesList = root.querySelector('.hb-slides-list');
@@ -160,22 +242,31 @@ $hbTransition = (string) ($hbConfig['slider']['transition'] ?? 'fade');
     function addSlideRow() {
         if (!slidesList) return;
         const row = document.createElement('div');
+        const rowId = root.id + '-slide-new-' + Date.now().toString(36);
         row.className = 'hb-slide-row border rounded p-3 bg-light-gray';
         row.innerHTML = ''
             + '<div class="d-flex flex-wrap align-items-center gap-3 mb-2">'
             + '<input type="hidden" name="' + prefix + '_slide_url[]" value="">'
             + '<div class="flex-grow-1" style="min-width:200px;">'
-            + '<input type="file" name="' + prefix + '_slide_file[]" class="form-control form-control-sm" accept="image/*">'
+            + '<input type="file" name="' + prefix + '_slide_file[]" class="form-control form-control-sm" accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp">'
             + '<div class="form-text">Suba una imagen para el slider.</div>'
             + '<small class="text-muted d-block mt-1">Recomendado: 1920×700 px — JPG o WebP</small>'
             + '</div>'
             + '<button type="button" class="btn btn-sm btn-outline-danger hb-remove-slide-btn" title="Quitar"><i class="bi bi-trash"></i></button>'
             + '</div>'
             + '<div class="row g-2">'
+            + '<div class="col-md-3"><label class="form-label small fw-semibold mb-1" for="' + rowId + '-enabled">Estado</label>'
+            + '<select id="' + rowId + '-enabled" name="' + prefix + '_slide_enabled[]" class="form-select form-select-sm"><option value="1" selected>Activo</option><option value="0">Inactivo</option></select></div>'
+            + '<div class="col-md-9"><label class="form-label small fw-semibold mb-1" for="' + rowId + '-alt">Texto alternativo</label>'
+            + '<input type="text" id="' + rowId + '-alt" name="' + prefix + '_slide_alt[]" class="form-control form-control-sm" maxlength="180" placeholder="Descripción breve de la imagen"></div>'
             + '<div class="col-md-6"><label class="form-label small fw-semibold mb-1">Título del slide (opcional)</label>'
             + '<input type="text" name="' + prefix + '_slide_title[]" class="form-control form-control-sm" placeholder="Ej: Promoción de verano"></div>'
             + '<div class="col-md-6"><label class="form-label small fw-semibold mb-1">Subtítulo del slide (opcional)</label>'
             + '<input type="text" name="' + prefix + '_slide_subtitle[]" class="form-control form-control-sm" placeholder="Texto breve bajo el título"></div>'
+            + '<div class="col-md-5"><label class="form-label small fw-semibold mb-1" for="' + rowId + '-link-text">Texto del enlace</label>'
+            + '<input type="text" id="' + rowId + '-link-text" name="' + prefix + '_slide_link_text[]" class="form-control form-control-sm" maxlength="100" placeholder="Ej: Ver promoción"></div>'
+            + '<div class="col-md-7"><label class="form-label small fw-semibold mb-1" for="' + rowId + '-link-url">URL del enlace</label>'
+            + '<input type="text" id="' + rowId + '-link-url" name="' + prefix + '_slide_link_url[]" class="form-control form-control-sm" maxlength="500" placeholder="/ruta, #seccion o https://..."></div>'
             + '</div>';
         slidesList.appendChild(row);
         bindSlideRow(row);
