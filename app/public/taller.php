@@ -77,9 +77,12 @@ $tallerHeroCta = taller_hero_cta_text($taller);
 $hbSectionId = 'cta-hero';
 $tallerHeroTitle = trim($taller['hero_title'] ?? '') ?: 'Automarket Taller';
 $tallerHeroSubtitle = trim($taller['hero_subtitle'] ?? '') ?: 'Servicio de mantenimiento certificado, mecánicos capacitados y repuestos originales.';
+require_once __DIR__ . '/../includes/hero-text-colors.php';
+$tallerHeroTitleColorAttr = am_hero_text_color_attr($taller['hero_title_color'] ?? '');
+$tallerHeroSubtitleColorAttr = am_hero_text_color_attr($taller['hero_subtitle_color'] ?? '');
 $hbInnerHtml = '<div class="row align-items-center"><div class="col-lg-8 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">'
-    . '<h1 class="display-4 fw-bold mb-3 font-montserrat">' . nl2br(esc($tallerHeroTitle)) . '</h1>'
-    . '<p class="fs-5 mb-4 opacity-90 font-poppins">' . esc($tallerHeroSubtitle) . '</p>'
+    . '<h1 class="display-4 fw-bold mb-3 font-montserrat"' . $tallerHeroTitleColorAttr . '>' . nl2br(esc($tallerHeroTitle)) . '</h1>'
+    . '<p class="fs-5 mb-4 opacity-90 font-poppins"' . $tallerHeroSubtitleColorAttr . '>' . esc($tallerHeroSubtitle) . '</p>'
     . '<a href="#servicios" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg">' . esc($tallerHeroCta) . '</a>'
     . '</div></div>';
 require __DIR__ . '/../includes/render-header-banner.php';

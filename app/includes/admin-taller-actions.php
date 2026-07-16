@@ -14,8 +14,11 @@ if ($action === 'save_taller_home') {
         $siteData['taller']['team'] = [];
     }
 
+    require_once __DIR__ . '/hero-text-colors.php';
     $siteData['taller']['hero_title'] = trim($_POST['taller_hero_title'] ?? '');
     $siteData['taller']['hero_subtitle'] = trim($_POST['taller_hero_subtitle'] ?? '');
+    am_apply_hero_text_color_from_post($siteData['taller'], 'taller_hero_title_color', 'hero_title_color');
+    am_apply_hero_text_color_from_post($siteData['taller'], 'taller_hero_subtitle_color', 'hero_subtitle_color');
     $siteData['taller']['services_title'] = trim($_POST['taller_services_title'] ?? 'Conoce Nuestros Servicios');
     $siteData['taller']['services_subtitle'] = trim($_POST['taller_services_subtitle'] ?? 'Algunos de los Servicios que Ofrecemos en Nuestros Talleres son');
     $siteData['taller']['team_title_line_1'] = trim($_POST['taller_team_title_line_1'] ?? 'Tenemos un equipo de');

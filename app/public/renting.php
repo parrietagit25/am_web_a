@@ -239,9 +239,12 @@ $rentingHeroCta = renting_hero_cta_text($renting);
 $hbSectionId = 'cta-hero';
 $rentingHeroTitle = trim($renting['hero_title'] ?? '') ?: 'Automarket Renting';
 $rentingHeroSubtitle = trim($renting['hero_subtitle'] ?? '') ?: 'Tu auto nuevo, una cuota mensual con todo incluido.';
+require_once __DIR__ . '/../includes/hero-text-colors.php';
+$rentingHeroTitleColorAttr = am_hero_text_color_attr($renting['hero_title_color'] ?? '');
+$rentingHeroSubtitleColorAttr = am_hero_text_color_attr($renting['hero_subtitle_color'] ?? '');
 $hbInnerHtml = '<div class="col-lg-8 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">'
-    . '<h1 class="display-4 fw-bold mb-3 font-montserrat">' . nl2br(esc($rentingHeroTitle)) . '</h1>'
-    . '<p class="fs-5 mb-4 opacity-90 font-poppins">' . esc($rentingHeroSubtitle) . '</p>'
+    . '<h1 class="display-4 fw-bold mb-3 font-montserrat"' . $rentingHeroTitleColorAttr . '>' . nl2br(esc($rentingHeroTitle)) . '</h1>'
+    . '<p class="fs-5 mb-4 opacity-90 font-poppins"' . $rentingHeroSubtitleColorAttr . '>' . esc($rentingHeroSubtitle) . '</p>'
     . '<a href="#cotizar-seccion" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg">' . esc($rentingHeroCta) . '</a>'
     . '</div>';
 require __DIR__ . '/../includes/render-header-banner.php';

@@ -76,6 +76,15 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                     <input type="text" id="taller_hero_subtitle" name="taller_hero_subtitle" class="form-control form-control-premium" placeholder="Servicio de mantenimiento certificado..." value="<?php echo esc($taller['hero_subtitle'] ?? ''); ?>">
                     <div class="form-text">Texto descriptivo breve bajo el titulo principal del hero.</div>
                 </div>
+                <?php
+                $htcTitleName = 'taller_hero_title_color';
+                $htcSubtitleName = 'taller_hero_subtitle_color';
+                $htcTitleId = 'taller_hero_title_color';
+                $htcSubtitleId = 'taller_hero_subtitle_color';
+                $htcTitleValue = $taller['hero_title_color'] ?? '';
+                $htcSubtitleValue = $taller['hero_subtitle_color'] ?? '';
+                require __DIR__ . '/admin-hero-text-colors-fields.php';
+                ?>
                 <div class="col-md-6">
                     <label for="taller_hero_cta_text" class="form-label fw-semibold">CTA del hero</label>
                     <input type="text" id="taller_hero_cta_text" name="taller_hero_cta_text" class="form-control form-control-premium" value="<?php echo esc($taller['hero_cta_text'] ?? ''); ?>" placeholder="Ver Servicios">

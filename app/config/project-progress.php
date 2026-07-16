@@ -139,7 +139,7 @@ return [
         ['fecha' => '2026-07-05', 'texto' => 'AM-CMS-SOSTENIBILIDAD cerrado test: Generales → Sostenibilidad; sostenibilidad.php con CMS y fallback; primer guardado crea estructura JSON.'],
         ['fecha' => '2026-07-05', 'texto' => 'AM-HOTFIX-SESSION-DETALLE cerrado test: fichas /autos/... sin warning público por session_start antes de output.'],
         ['fecha' => '2026-07-05', 'texto' => 'AM-DASH-1C: cierre admin manual + dashboard; UI sin Commits de referencia ni enlaces a repositorio; métricas cms_editorial 94, ux_conversion 70.'],
-        ['fecha' => '2026-07-05', 'texto' => 'Pendiente Mercadeo: FAQ institucional por unidad; asociación sucursales Renting. Fase 2: migración location_refs --apply; inventario SQL LocationName → location_id (no tocado).'],
+        ['fecha' => '2026-07-16', 'texto' => 'AM-ADJ-02 cerrado local: colores administrables título/subtítulo hero (RAC, Semi, Leasing, Renting, Taller, custom); helper hex + fallback CSS; sin site_data en commit.'],
     ],
 
     'bloques' => [
@@ -1216,6 +1216,25 @@ return [
             'evidencia'           => 'No implementado; sin cambios en inventario SQL.',
             'siguiente_accion'    => 'Fase 2 futura con autorización.',
             'fecha_actualizacion' => '2026-07-05',
+        ],
+        [
+            'codigo'              => 'AM-ADJ-02',
+            'nombre'              => 'Colores administrables del hero (título/subtítulo)',
+            'area'                => 'CMS editorial',
+            'prioridad'           => 'Media',
+            'estado'              => 'Cerrado local',
+            'porcentaje_estimado' => 100,
+            'descripcion'         => 'Color hex independiente para título y subtítulo del hero en RAC, Seminuevos, Leasing, Renting, Taller y unidades personalizadas. Fallback al CSS original si vacío o inválido.',
+            'dependencias'        => ['AM-ADJ-01'],
+            'ultimo_commit'       => '—',
+            'evidencia'           => 'Helper hero-text-colors.php; admin color pickers; persistencia title_color/subtitle_color (RAC) y hero_*_color / heroTitleColor; php -l OK; pruebas unitarias de sanitización hex.',
+            'admin_locations'     => [
+                ['label' => 'Rent A Car → Principal', 'url' => '/admin/?tab=hero'],
+                ['label' => 'Venta de Autos → Principal', 'url' => '/admin/?tab=semi-home'],
+                ['label' => 'Leasing / Renting / Taller → Principal', 'url' => '/admin/'],
+            ],
+            'siguiente_accion'    => 'Cerrado. Siguiente: AM-ADJ-03 banners. Validar visual en test al desplegar.',
+            'fecha_actualizacion' => '2026-07-16',
         ],
     ],
 ];

@@ -23,7 +23,7 @@ La base CMS/SEO/RAC de Automarket está madura (tablero ~88%). Los ajustes solic
 | Powertranz/FAC | **Congelado** — no es proveedor definitivo; no usar como diseño base |
 | Registro/fidelización / Motus | Fase posterior / proyecto separado |
 
-**Primer bloque de implementación recomendado:** AM-ADJ-02 (colores administrables del hero) — bajo acoplamiento, sin tocar reservas ni pagos.
+**Primer bloque de implementación recomendado (tras AM-ADJ-02 cerrado):** AM-ADJ-03 (banners enable/link).
 
 ---
 
@@ -74,7 +74,7 @@ Existen `PowertranzClient`, `PowertranzPaymentService`, `PowertranzSanitizer`, `
 
 | ID | Requerimiento | Estado | Complejidad | Bloque |
 |----|---------------|--------|-------------|--------|
-| R1 | Colores hero título/subtítulo | No existe | Media | AM-ADJ-02 |
+| R1 | Colores hero título/subtítulo | **Completado (AM-ADJ-02)** | Media | AM-ADJ-02 |
 | R2 | Banners (enable, imagen, texto, link) | Existe parcialmente | Media | AM-ADJ-03 |
 | R3 | Etiquetas Promo / Más buscado / custom / vigencia | Existe parcialmente | Media–Alta | AM-ADJ-04 |
 | R4 | WhatsApp contextual | Existe parcialmente | Baja–Media | AM-ADJ-05 |
@@ -100,17 +100,18 @@ Existen `PowertranzClient`, `PowertranzPaymentService`, `PowertranzSanitizer`, `
 
 ### R1 — Colores administrables del hero
 
-1. **Estado:** No existe.  
-2. **Evidencia:** Textos editables (`homepage.hero.title/subtitle`, `seminuevos.hero_*`, leasing/renting/taller equivalentes) en admin; color de **unidad** (`business_units[].color`) no aplica al H1 del hero. Frontend: `text-white` en overlays (`rent-a-car.php`, `leasing.php`, `renting.php`, `taller.php`, `unidad.php`); Seminuevos título bajo banner con `text-navy`. Sin keys `title_color`/`subtitle_color`. `HeaderBannerService` + `render-header-banner.php` sin color de texto.  
-3. **Comportamiento:** Solo tipografía/color CSS fijo.  
-4. **Cambio mínimo:** Keys hex + color pickers admin + inline style/CSS var con fallback.  
-5. **Conservar:** Estructura hero/banner actual y fallbacks de copy.  
-6. **Dependencias:** AM-ADJ-03 si el color también aplica a captions de slides.  
-7. **Riesgos:** Contraste WCAG sobre fotos claras.  
-8. **Aceptación:** Admin cambia color; público refleja; vacío → color actual.  
-9. **Pruebas:** Guardar/vaciar/restaurar; smoke 5 homes + custom.  
-10. **Complejidad:** Media.  
-11. **Bloque:** AM-ADJ-02.
+1. **Estado:** **Completado (AM-ADJ-02, 2026-07-16).**  
+2. **Evidencia / claves:**  
+   - RAC: `homepage.hero.title_color`, `homepage.hero.subtitle_color`  
+   - Seminuevos / Leasing / Renting / Taller: `hero_title_color`, `hero_subtitle_color`  
+   - Custom: `heroTitleColor`, `heroSubtitleColor` (unidad o `pages[slug]`)  
+   - Helper: `app/includes/hero-text-colors.php`  
+   - Admin fields: `app/includes/admin-hero-text-colors-fields.php`  
+3. **Comportamiento:** Color picker + hex; vacío = CSS original (`text-white` / `text-navy`); backend normaliza a `#RRGGBB` o rechaza.  
+4. **Archivos:** admin save/forms (RAC/semi/leasing/renting/taller/custom), páginas públicas correspondientes, `business-units-registry.php`.  
+5. **Pruebas:** `php -l` OK en todos los PHP tocados; suite unitaria helper (hex válido/inválido, attr, reject). Sin commit de `site_data.json`.  
+6. **Riesgos residuales:** contraste WCAG a cargo del administrador (nota en UI).  
+7. **No incluido:** sostenibilidad.php (hero distinto, fuera de lista de unidades del bloque).  
 
 ### R2 — Banners configurables
 
@@ -344,7 +345,7 @@ Justificación: primero CMS de bajo riesgo; luego menús/contenidos; después RA
 | Orden | Bloque | Notas |
 |-------|--------|-------|
 | 01 | AM-ADJ-01 | Este documento |
-| 02 | AM-ADJ-02 | Colores hero |
+| 02 | AM-ADJ-02 | Colores hero — **CERRADO 2026-07-16** |
 | 03 | AM-ADJ-03 | Banners enable/link |
 | 04 | AM-ADJ-04 | Etiquetas |
 | 05 | AM-ADJ-05 | WhatsApp contextual |

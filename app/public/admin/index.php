@@ -213,8 +213,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 2. SAVE HOMEPAGE HERO & FEATURED BANNER
     elseif ($action === 'save_homepage') {
+        require_once __DIR__ . '/../../includes/hero-text-colors.php';
+        if (!isset($siteData['homepage']['hero']) || !is_array($siteData['homepage']['hero'])) {
+            $siteData['homepage']['hero'] = [];
+        }
         $siteData['homepage']['hero']['title'] = trim($_POST['hero_title'] ?? '');
         $siteData['homepage']['hero']['subtitle'] = trim($_POST['hero_subtitle'] ?? '');
+        am_apply_hero_text_color_from_post($siteData['homepage']['hero'], 'hero_title_color', 'title_color');
+        am_apply_hero_text_color_from_post($siteData['homepage']['hero'], 'hero_subtitle_color', 'subtitle_color');
 
         if (!isset($siteData['homepage']['fleet_section']) || !is_array($siteData['homepage']['fleet_section'])) {
             $siteData['homepage']['fleet_section'] = [];
@@ -932,8 +938,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $siteData['seminuevos'] = [];
         }
 
+        require_once __DIR__ . '/../../includes/hero-text-colors.php';
         $siteData['seminuevos']['hero_title'] = trim($_POST['semi_hero_title'] ?? '');
         $siteData['seminuevos']['hero_subtitle'] = trim($_POST['semi_hero_subtitle'] ?? '');
+        am_apply_hero_text_color_from_post($siteData['seminuevos'], 'semi_hero_title_color', 'hero_title_color');
+        am_apply_hero_text_color_from_post($siteData['seminuevos'], 'semi_hero_subtitle_color', 'hero_subtitle_color');
         $siteData['seminuevos']['inventory_eyebrow'] = trim($_POST['semi_inventory_eyebrow'] ?? '');
         $siteData['seminuevos']['anatomy_eyebrow'] = trim($_POST['semi_anatomy_eyebrow'] ?? '');
         $siteData['seminuevos']['anatomy_title'] = trim($_POST['semi_anatomy_title'] ?? '');
@@ -1906,8 +1915,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $siteData['leasing']['hero'] = [];
         }
 
+        require_once __DIR__ . '/../../includes/hero-text-colors.php';
         $siteData['leasing']['hero_title'] = trim($_POST['leasing_hero_title'] ?? '');
         $siteData['leasing']['hero_subtitle'] = trim($_POST['leasing_hero_subtitle'] ?? '');
+        am_apply_hero_text_color_from_post($siteData['leasing'], 'leasing_hero_title_color', 'hero_title_color');
+        am_apply_hero_text_color_from_post($siteData['leasing'], 'leasing_hero_subtitle_color', 'hero_subtitle_color');
         $siteData['leasing']['intro_text'] = trim($_POST['leasing_intro_text'] ?? '');
         $siteData['leasing']['lead_title'] = trim($_POST['leasing_lead_title'] ?? '');
         $siteData['leasing']['opinions_title'] = trim($_POST['leasing_opinions_title'] ?? '');
@@ -3448,6 +3460,17 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                     </div>
 
                                     <?php
+                                    require_once __DIR__ . '/../../includes/hero-text-colors.php';
+                                    $htcTitleName = 'hero_title_color';
+                                    $htcSubtitleName = 'hero_subtitle_color';
+                                    $htcTitleId = 'hero_title_color';
+                                    $htcSubtitleId = 'hero_subtitle_color';
+                                    $htcTitleValue = $homepage['hero']['title_color'] ?? '';
+                                    $htcSubtitleValue = $homepage['hero']['subtitle_color'] ?? '';
+                                    require __DIR__ . '/../../includes/admin-hero-text-colors-fields.php';
+                                    ?>
+
+                                    <?php
                                     require_once __DIR__ . '/../../includes/rentacar-public-copy.php';
                                     $racFleetDefaults = rentacar_fleet_section_defaults();
                                     $racSearchDefaults = rentacar_search_results_defaults();
@@ -4486,6 +4509,15 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <label for="semi_hero_subtitle" class="form-label fw-semibold">Subtítulo bajo el H1</label>
                                         <input type="text" id="semi_hero_subtitle" name="semi_hero_subtitle" class="form-control form-control-premium" value="<?php echo esc($seminuevos['hero_subtitle'] ?? ''); ?>" placeholder="<?php echo esc($semiCopyDefaults['hero_subtitle']); ?>">
                                     </div>
+                                    <?php
+                                    $htcTitleName = 'semi_hero_title_color';
+                                    $htcSubtitleName = 'semi_hero_subtitle_color';
+                                    $htcTitleId = 'semi_hero_title_color';
+                                    $htcSubtitleId = 'semi_hero_subtitle_color';
+                                    $htcTitleValue = $seminuevos['hero_title_color'] ?? '';
+                                    $htcSubtitleValue = $seminuevos['hero_subtitle_color'] ?? '';
+                                    require __DIR__ . '/../../includes/admin-hero-text-colors-fields.php';
+                                    ?>
                                     <div class="col-md-4">
                                         <label for="semi_inventory_eyebrow" class="form-label fw-semibold">Badge sección inventario</label>
                                         <input type="text" id="semi_inventory_eyebrow" name="semi_inventory_eyebrow" class="form-control form-control-premium" value="<?php echo esc($seminuevos['inventory_eyebrow'] ?? ''); ?>" placeholder="<?php echo esc($semiCopyDefaults['inventory_eyebrow']); ?>">
@@ -5728,6 +5760,15 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         <input type="text" id="leasing_hero_subtitle" name="leasing_hero_subtitle" class="form-control form-control-premium" placeholder="Soluciones integrales de Leasing Operativo..." value="<?php echo esc($leasing['hero_subtitle'] ?? ''); ?>">
                                         <div class="form-text">Texto descriptivo breve bajo el titulo principal del hero.</div>
                                     </div>
+                                    <?php
+                                    $htcTitleName = 'leasing_hero_title_color';
+                                    $htcSubtitleName = 'leasing_hero_subtitle_color';
+                                    $htcTitleId = 'leasing_hero_title_color';
+                                    $htcSubtitleId = 'leasing_hero_subtitle_color';
+                                    $htcTitleValue = $leasing['hero_title_color'] ?? '';
+                                    $htcSubtitleValue = $leasing['hero_subtitle_color'] ?? '';
+                                    require __DIR__ . '/../../includes/admin-hero-text-colors-fields.php';
+                                    ?>
 
                                     <div class="col-md-6">
                                         <label for="leasing_lead_title" class="form-label fw-semibold">Título Principal de Sección (debajo de cabecera)</label>

@@ -384,7 +384,7 @@ function am_custom_unit_editable_pages(array $unit, string $unitKey): array
 }
 
 /**
- * @return array{heroTitle: string, heroSubtitle: string, hero_image_url: string, body_html: string}
+ * @return array{heroTitle: string, heroSubtitle: string, heroTitleColor: string, heroSubtitleColor: string, hero_image_url: string, body_html: string}
  */
 function am_custom_unit_page_content(array $unit, string $pageSlug): array
 {
@@ -392,6 +392,8 @@ function am_custom_unit_page_content(array $unit, string $pageSlug): array
         return [
             'heroTitle' => trim((string) ($unit['heroTitle'] ?? '')),
             'heroSubtitle' => trim((string) ($unit['heroSubtitle'] ?? '')),
+            'heroTitleColor' => trim((string) ($unit['heroTitleColor'] ?? '')),
+            'heroSubtitleColor' => trim((string) ($unit['heroSubtitleColor'] ?? '')),
             'hero_image_url' => trim((string) ($unit['hero_image_url'] ?? '')),
             'body_html' => (string) ($unit['body_html'] ?? ''),
         ];
@@ -402,6 +404,8 @@ function am_custom_unit_page_content(array $unit, string $pageSlug): array
     return [
         'heroTitle' => trim((string) ($page['heroTitle'] ?? $page['label'] ?? '')),
         'heroSubtitle' => trim((string) ($page['heroSubtitle'] ?? '')),
+        'heroTitleColor' => trim((string) ($page['heroTitleColor'] ?? '')),
+        'heroSubtitleColor' => trim((string) ($page['heroSubtitleColor'] ?? '')),
         'hero_image_url' => trim((string) ($page['hero_image_url'] ?? '')),
         'body_html' => (string) ($page['body_html'] ?? ''),
     ];

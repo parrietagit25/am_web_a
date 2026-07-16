@@ -70,6 +70,15 @@ foreach ($customUnitsForTabs as $unitKey => $unit):
                                         <label class="form-label fw-semibold">Subtítulo del hero</label>
                                         <input type="text" name="hero_subtitle" class="form-control form-control-premium" value="<?php echo esc($content['heroSubtitle']); ?>">
                                     </div>
+                                    <?php
+                                    $htcTitleName = 'hero_title_color';
+                                    $htcSubtitleName = 'hero_subtitle_color';
+                                    $htcTitleId = 'hero_title_color_' . preg_replace('/[^a-z0-9_]/', '_', $unitKey . '_' . ($pageSlug !== '' ? $pageSlug : 'main'));
+                                    $htcSubtitleId = 'hero_subtitle_color_' . preg_replace('/[^a-z0-9_]/', '_', $unitKey . '_' . ($pageSlug !== '' ? $pageSlug : 'main'));
+                                    $htcTitleValue = $content['heroTitleColor'] ?? '';
+                                    $htcSubtitleValue = $content['heroSubtitleColor'] ?? '';
+                                    require __DIR__ . '/admin-hero-text-colors-fields.php';
+                                    ?>
                                     <div class="col-12">
                                         <label class="form-label fw-semibold">Contenido HTML de la página</label>
                                         <textarea name="body_html" rows="18" class="form-control form-control-premium font-monospace" style="font-size:13px;line-height:1.45;" placeholder="<section>...</section>"><?php echo esc($content['body_html']); ?></textarea>

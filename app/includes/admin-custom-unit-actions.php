@@ -15,14 +15,27 @@ if ($action === 'save_custom_unit_content') {
     } elseif (!isset($siteData['global']['business_units'][$unitKey]) || !is_array($siteData['global']['business_units'][$unitKey])) {
         $errorMsg = 'Unidad de negocio no encontrada. Guarde primero la configuración global.';
     } else {
+        require_once __DIR__ . '/hero-text-colors.php';
         $heroTitle = trim((string) ($_POST['hero_title'] ?? ''));
         $heroSubtitle = trim((string) ($_POST['hero_subtitle'] ?? ''));
         $bodyHtml = (string) ($_POST['body_html'] ?? '');
+        $heroTitleColor = am_normalize_hex_color($_POST['hero_title_color'] ?? '');
+        $heroSubtitleColor = am_normalize_hex_color($_POST['hero_subtitle_color'] ?? '');
 
         if ($pageSlug === '') {
             $siteData['global']['business_units'][$unitKey]['heroTitle'] = $heroTitle;
             $siteData['global']['business_units'][$unitKey]['heroSubtitle'] = $heroSubtitle;
             $siteData['global']['business_units'][$unitKey]['body_html'] = $bodyHtml;
+            if ($heroTitleColor === '') {
+                unset($siteData['global']['business_units'][$unitKey]['heroTitleColor']);
+            } else {
+                $siteData['global']['business_units'][$unitKey]['heroTitleColor'] = $heroTitleColor;
+            }
+            if ($heroSubtitleColor === '') {
+                unset($siteData['global']['business_units'][$unitKey]['heroSubtitleColor']);
+            } else {
+                $siteData['global']['business_units'][$unitKey]['heroSubtitleColor'] = $heroSubtitleColor;
+            }
             $hbPath = ['global', 'business_units', $unitKey];
         } else {
             if (!isset($siteData['global']['business_units'][$unitKey]['pages']) || !is_array($siteData['global']['business_units'][$unitKey]['pages'])) {
@@ -37,6 +50,16 @@ if ($action === 'save_custom_unit_content') {
             $pageData['heroTitle'] = $heroTitle;
             $pageData['heroSubtitle'] = $heroSubtitle;
             $pageData['body_html'] = $bodyHtml;
+            if ($heroTitleColor === '') {
+                unset($pageData['heroTitleColor']);
+            } else {
+                $pageData['heroTitleColor'] = $heroTitleColor;
+            }
+            if ($heroSubtitleColor === '') {
+                unset($pageData['heroSubtitleColor']);
+            } else {
+                $pageData['heroSubtitleColor'] = $heroSubtitleColor;
+            }
             if (empty($pageData['label'])) {
                 $pageData['label'] = strtoupper(str_replace('-', ' ', $pageSlug));
             }

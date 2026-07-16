@@ -52,9 +52,12 @@ $leasingOpiniones = $leasingData['opiniones'] ?? [];
 $hbSectionId = 'cta-hero';
 $leasingHeroTitle = trim($leasingData['hero_title'] ?? '') ?: 'Optimiza la flota de tu empresa';
 $leasingHeroSubtitle = trim($leasingData['hero_subtitle'] ?? '') ?: 'Soluciones integrales de Leasing Operativo y administración de vehículos corporativos en Panamá.';
+require_once __DIR__ . '/../includes/hero-text-colors.php';
+$leasingHeroTitleColorAttr = am_hero_text_color_attr($leasingData['hero_title_color'] ?? '');
+$leasingHeroSubtitleColorAttr = am_hero_text_color_attr($leasingData['hero_subtitle_color'] ?? '');
 $hbInnerHtml = '<div class="row align-items-center"><div class="col-lg-7 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">'
-    . '<h1 class="display-3 fw-bold mb-3 font-montserrat leading-tight">' . nl2br(esc($leasingHeroTitle)) . '</h1>'
-    . '<p class="fs-4 mb-4 opacity-90 font-poppins">' . esc($leasingHeroSubtitle) . '</p>'
+    . '<h1 class="display-3 fw-bold mb-3 font-montserrat leading-tight"' . $leasingHeroTitleColorAttr . '>' . nl2br(esc($leasingHeroTitle)) . '</h1>'
+    . '<p class="fs-4 mb-4 opacity-90 font-poppins"' . $leasingHeroSubtitleColorAttr . '>' . esc($leasingHeroSubtitle) . '</p>'
     . '<a href="#soluciones" class="btn btn-theme btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg fs-5">' . esc($leasingHeroCta) . ' <i class="bi bi-chevron-down ms-2"></i></a>'
     . '</div></div>';
 require __DIR__ . '/../includes/render-header-banner.php';

@@ -14,8 +14,11 @@ if ($action === 'save_renting_home') {
         $siteData['renting']['hero'] = [];
     }
 
+    require_once __DIR__ . '/hero-text-colors.php';
     $siteData['renting']['hero_title'] = trim($_POST['renting_hero_title'] ?? '');
     $siteData['renting']['hero_subtitle'] = trim($_POST['renting_hero_subtitle'] ?? '');
+    am_apply_hero_text_color_from_post($siteData['renting'], 'renting_hero_title_color', 'hero_title_color');
+    am_apply_hero_text_color_from_post($siteData['renting'], 'renting_hero_subtitle_color', 'hero_subtitle_color');
     $siteData['renting']['intro_title'] = trim($_POST['renting_intro_title'] ?? '');
     $siteData['renting']['intro_text'] = trim($_POST['renting_intro_text'] ?? '');
     $siteData['renting']['cars_section_title'] = trim($_POST['renting_cars_section_title'] ?? 'Renting de Autos en Panamá');

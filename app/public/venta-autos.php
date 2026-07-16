@@ -15,6 +15,9 @@ $seminuevosData = $contentService->get('seminuevos', []);
 $semiCopyDefaults = seminuevos_public_copy_defaults();
 $semiHeroTitle = seminuevos_public_copy($seminuevosData, 'hero_title', $semiCopyDefaults['hero_title']);
 $semiHeroSubtitle = seminuevos_public_copy($seminuevosData, 'hero_subtitle', $semiCopyDefaults['hero_subtitle']);
+require_once __DIR__ . '/../includes/hero-text-colors.php';
+$semiHeroTitleColorAttr = am_hero_text_color_attr($seminuevosData['hero_title_color'] ?? '');
+$semiHeroSubtitleColorAttr = am_hero_text_color_attr($seminuevosData['hero_subtitle_color'] ?? '');
 $semiInventoryEyebrow = seminuevos_public_copy($seminuevosData, 'inventory_eyebrow', $semiCopyDefaults['inventory_eyebrow']);
 $semiAnatomyEyebrow = seminuevos_public_copy($seminuevosData, 'anatomy_eyebrow', $semiCopyDefaults['anatomy_eyebrow']);
 $semiAnatomyTitle = seminuevos_public_copy($seminuevosData, 'anatomy_title', $semiCopyDefaults['anatomy_title']);
@@ -308,10 +311,10 @@ require __DIR__ . '/../includes/render-header-banner.php';
 <div class="container py-5" id="inventario">
     <div class="text-center mb-5">
         <span class="badge px-3 py-2 bg-primary-subtle text-primary rounded-pill fw-bold text-uppercase tracking-wider mb-2"><?php echo esc($semiInventoryEyebrow); ?></span>
-        <h1 class="display-5 fw-bold text-navy font-montserrat">
+        <h1 class="display-5 fw-bold text-navy font-montserrat"<?php echo $semiHeroTitleColorAttr; ?>>
             <?php echo esc($semiHeroTitle); ?>
         </h1>
-        <p class="text-muted"><?php echo esc($semiHeroSubtitle); ?></p>
+        <p class="text-muted"<?php echo $semiHeroSubtitleColorAttr; ?>><?php echo esc($semiHeroSubtitle); ?></p>
     </div>
 
     <!-- Inventory list dynamic autoplaying carousel -->

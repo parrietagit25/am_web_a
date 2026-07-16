@@ -99,6 +99,15 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <input type="text" id="renting_hero_subtitle" name="renting_hero_subtitle" class="form-control form-control-premium" placeholder="Tu auto nuevo, una cuota mensual con todo incluido." value="<?php echo esc($renting['hero_subtitle'] ?? ''); ?>">
                                         <div class="form-text">Texto descriptivo breve bajo el titulo principal del hero.</div>
                                     </div>
+                                    <?php
+                                    $htcTitleName = 'renting_hero_title_color';
+                                    $htcSubtitleName = 'renting_hero_subtitle_color';
+                                    $htcTitleId = 'renting_hero_title_color';
+                                    $htcSubtitleId = 'renting_hero_subtitle_color';
+                                    $htcTitleValue = $renting['hero_title_color'] ?? '';
+                                    $htcSubtitleValue = $renting['hero_subtitle_color'] ?? '';
+                                    require __DIR__ . '/admin-hero-text-colors-fields.php';
+                                    ?>
 
                                     <div class="col-md-6">
                                         <label for="renting_hero_cta_text" class="form-label fw-semibold">CTA del hero</label>

@@ -15,6 +15,9 @@ $racOpinionesSection = rentacar_opiniones_section_copy(is_array($homepageData) ?
 $hbConfig = HeaderBannerService::normalizeFromNode(is_array($homepageHero) ? $homepageHero : []);
 $heroTitle = $homepageHero['title'] ?? 'Te acompañamos a tu destino';
 $heroSubtitle = $homepageHero['subtitle'] ?? 'Reserva tu vehículo en línea en segundos con la flota más moderna';
+require_once __DIR__ . '/../includes/hero-text-colors.php';
+$heroTitleColorAttr = am_hero_text_color_attr(is_array($homepageHero) ? ($homepageHero['title_color'] ?? '') : '');
+$heroSubtitleColorAttr = am_hero_text_color_attr(is_array($homepageHero) ? ($homepageHero['subtitle_color'] ?? '') : '');
 ?>
 
 <style>
@@ -24,8 +27,8 @@ $heroSubtitle = $homepageHero['subtitle'] ?? 'Reserva tu vehículo en línea en 
 <?php
 $hbSectionId = 'cta-hero';
 $hbInnerHtml = '<div class="row align-items-center"><div class="col-lg-7 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">'
-    . '<h1 class="display-3 fw-bold mb-3 font-montserrat leading-tight">' . nl2br(esc($heroTitle)) . '</h1>'
-    . '<p class="fs-4 mb-0 opacity-90 font-poppins">' . esc($heroSubtitle) . '</p>'
+    . '<h1 class="display-3 fw-bold mb-3 font-montserrat leading-tight"' . $heroTitleColorAttr . '>' . nl2br(esc($heroTitle)) . '</h1>'
+    . '<p class="fs-4 mb-0 opacity-90 font-poppins"' . $heroSubtitleColorAttr . '>' . esc($heroSubtitle) . '</p>'
     . '</div></div>';
 require __DIR__ . '/../includes/render-header-banner.php';
 ?>

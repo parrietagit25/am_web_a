@@ -39,6 +39,9 @@ $activeUnit = $unitKey;
 $heroTitle = $content['heroTitle'] !== '' ? $content['heroTitle'] : (string) ($unit['label'] ?? '');
 $heroSubtitle = $content['heroSubtitle'];
 $bodyHtml = trim($content['body_html']);
+require_once __DIR__ . '/../includes/hero-text-colors.php';
+$heroTitleColorAttr = am_hero_text_color_attr($content['heroTitleColor'] ?? '');
+$heroSubtitleColorAttr = am_hero_text_color_attr($content['heroSubtitleColor'] ?? '');
 
 $hbNode = $pageSlug === ''
     ? $unit
@@ -62,9 +65,9 @@ require_once __DIR__ . '/../includes/header.php';
 $hbSectionExtraStyle = 'min-height: 360px;';
 $hbBackgroundOverlay = 'linear-gradient(135deg, rgba(8,16,38,0.82), rgba(8,16,38,0.45)),';
 $hbInnerHtml = '<div class="row align-items-center"><div class="col-lg-8 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">'
-    . '<h1 class="display-4 fw-bold mb-3 font-montserrat">' . esc($heroTitle) . '</h1>';
+    . '<h1 class="display-4 fw-bold mb-3 font-montserrat"' . $heroTitleColorAttr . '>' . esc($heroTitle) . '</h1>';
 if ($heroSubtitle !== '') {
-    $hbInnerHtml .= '<p class="fs-5 mb-0 opacity-90 font-poppins">' . esc($heroSubtitle) . '</p>';
+    $hbInnerHtml .= '<p class="fs-5 mb-0 opacity-90 font-poppins"' . $heroSubtitleColorAttr . '>' . esc($heroSubtitle) . '</p>';
 }
 $hbInnerHtml .= '</div></div>';
 require __DIR__ . '/../includes/render-header-banner.php';
