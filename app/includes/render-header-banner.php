@@ -48,6 +48,8 @@ if ($staticLinkText === '' && $staticLinkUrl !== '') {
     $staticLinkText = $staticTitle !== '' ? 'Conocer más sobre ' . $staticTitle : 'Ver más';
 }
 $staticHasCaption = $staticTitle !== '' || $staticSubtitle !== '' || ($staticLinkUrl !== '' && $staticLinkText !== '');
+$hbHasLegacyContent = trim(strip_tags($hbInnerHtml)) !== '';
+$renderStaticCaption = $staticHasCaption && !$hbHasLegacyContent;
 ?>
 <?php if (!$hbEnabled): ?>
     <?php if (trim(strip_tags($hbInnerHtml)) !== ''): ?>
@@ -127,12 +129,12 @@ $staticHasCaption = $staticTitle !== '' || $staticSubtitle !== '' || ($staticLin
 <?php else: ?>
 <section class="<?php echo esc($hbSectionClass); ?> position-relative overflow-hidden" style="background: <?php echo $hbBgPrefix; ?>url('<?php echo esc($staticImage); ?>') no-repeat center center; background-size: cover;<?php echo $hbSectionExtraStyle !== '' ? ' ' . esc($hbSectionExtraStyle) : ''; ?>"<?php echo $hbSectionId !== '' ? ' id="' . esc($hbSectionId) . '"' : ''; ?>>
     <img src="<?php echo esc($staticImage); ?>" alt="<?php echo esc($staticAlt !== '' ? $staticAlt : $staticTitle); ?>" class="visually-hidden">
-    <?php if (!$hbSkipContainer || $hbInnerHtml !== ''): ?>
+    <?php if ($hbHasLegacyContent || (!$hbSkipContainer && !$renderStaticCaption)): ?>
     <div class="container py-5">
         <?php echo $hbInnerHtml; ?>
     </div>
     <?php endif; ?>
-    <?php if ($staticHasCaption): ?>
+    <?php if ($renderStaticCaption): ?>
     <div class="container position-relative pb-4" style="z-index: 2;">
         <div class="hb-static-caption text-white text-shadow">
             <?php if ($staticTitle !== ''): ?>
@@ -163,6 +165,8 @@ unset(
     $staticAlt,
     $staticLinkUrl,
     $staticLinkText,
-    $staticHasCaption
+    $staticHasCaption,
+    $hbHasLegacyContent,
+    $renderStaticCaption
 );
 ?>

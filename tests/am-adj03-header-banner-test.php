@@ -133,6 +133,23 @@ adj03_assert(str_contains($staticHtml, 'alt="Banner accesible"'), 'Static banner
 adj03_assert(str_contains($staticHtml, '<h2'), 'Static banner uses H2');
 adj03_assert(str_contains($staticHtml, 'href="/reservar.php"'), 'Static banner renders semantic link');
 adj03_assert(!str_contains($staticHtml, 'onclick='), 'Static banner avoids onclick navigation');
+adj03_assert(substr_count($staticHtml, 'class="container') === 1, 'New caption without legacy content uses one container');
+
+$legacyPriorityHtml = adj03_render_banner([
+    'enabled' => true,
+    'mode' => 'static',
+    'image_url' => '/assets/banner.webp',
+    'title' => 'Título nuevo',
+    'subtitle' => 'Subtítulo nuevo',
+    'link_text' => 'CTA nuevo',
+    'link_url' => '/nuevo.php',
+], '<h1>Hero legacy</h1><a class="btn" href="/legacy.php">CTA legacy</a>');
+adj03_assert(str_contains($legacyPriorityHtml, 'Hero legacy'), 'Legacy content is preserved');
+adj03_assert(str_contains($legacyPriorityHtml, 'CTA legacy'), 'Legacy CTA is preserved');
+adj03_assert(!str_contains($legacyPriorityHtml, 'hb-static-caption'), 'New caption is suppressed when legacy content exists');
+adj03_assert(!str_contains($legacyPriorityHtml, 'href="/nuevo.php"'), 'New CTA is suppressed when legacy content exists');
+adj03_assert(substr_count($legacyPriorityHtml, 'class="container') === 1, 'Legacy content and new caption do not create duplicate containers');
+adj03_assert(substr_count($legacyPriorityHtml, 'class="btn') === 1, 'Legacy content and new caption do not create duplicate CTAs');
 
 $sliderHtml = adj03_render_banner([
     'enabled' => true,
