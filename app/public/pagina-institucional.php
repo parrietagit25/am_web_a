@@ -62,6 +62,12 @@ $seoOverride = [
     'description' => strip_tags(substr($page['content_html'] ?? '', 0, 160)),
     'robots' => 'index,follow',
 ];
+$pageContentHtml = (string) ($page['content_html'] ?? '');
+if ($key === 'sobre_nosotros') {
+    $pageContentHtml = preg_replace_callback('/<\s*\/?\s*h1\b([^>]*)>/i', static function (array $match): string {
+        return str_contains($match[0], '/') ? '</h2>' : '<h2' . $match[1] . '>';
+    }, $pageContentHtml);
+}
 
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/article-content.php';
@@ -83,7 +89,7 @@ require_once __DIR__ . '/../includes/article-content.php';
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="bg-white border rounded-4 shadow-sm p-4 p-md-5 institutional-content font-poppins">
-                <?php echo renderRacArticleContent($page['content_html'] ?? ''); ?>
+                <?php echo renderRacArticleContent($pageContentHtml); ?>
             </div>
         </div>
     </div>

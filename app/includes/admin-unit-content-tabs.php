@@ -252,6 +252,9 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
             </div>
         </form>
     </div>
+    <?php if (in_array($ucUnitKey, ['rentacar', 'seminuevos', 'leasing'], true) || UnitContentService::isCustomUnit($ucUnitKey)): ?>
+        <?php require __DIR__ . '/admin-unit-about-section.php'; ?>
+    <?php endif; ?>
 </div>
 
 <?php

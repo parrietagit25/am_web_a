@@ -40,6 +40,7 @@ class WhatsappContextService
 
     private const DYNAMIC_UNIT_ROUTES = [
         'blog.php', 'noticias.php', 'contenido-reciente.php', 'noticia.php', 'contactos.php',
+        'sobre-nosotros.php',
     ];
 
     /**

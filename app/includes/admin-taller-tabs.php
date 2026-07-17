@@ -492,6 +492,12 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
         <form method="POST" action="?tab=taller-sobre" enctype="multipart/form-data">
             <input type="hidden" name="action" value="save_taller_sobre_settings">
             <div class="row g-3">
+                <div class="col-12">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="taller_sobre_published" name="taller_sobre_published" value="1"<?php echo (!array_key_exists('published', $taller_sobre) || !empty($taller_sobre['published'])) ? ' checked' : ''; ?>>
+                        <label class="form-check-label fw-semibold" for="taller_sobre_published">Publicado</label>
+                    </div>
+                </div>
                 <div class="col-md-6">
                     <label for="taller_sobre_page_title" class="form-label fw-semibold">Título de página</label>
                     <input type="text" id="taller_sobre_page_title" name="taller_sobre_page_title" class="form-control form-control-premium" value="<?php echo esc($taller_sobre['page_title'] ?? 'Sobre Nosotros'); ?>">
@@ -507,6 +513,8 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                     <?php if (!empty($taller_sobre['main_image_url'] ?? '')): ?>
                         <div class="mt-2"><img src="<?php echo esc($taller_sobre['main_image_url']); ?>" alt="" class="img-thumbnail" style="max-height: 160px;"></div>
                     <?php endif; ?>
+                    <label for="taller_sobre_main_image_alt" class="form-label fw-semibold mt-2">Texto alternativo</label>
+                    <input type="text" id="taller_sobre_main_image_alt" name="taller_sobre_main_image_alt" class="form-control form-control-premium" value="<?php echo esc($taller_sobre['main_image_alt'] ?? ''); ?>">
                 </div>
                 <div class="col-md-6">
                     <label for="taller_sobre_right_title" class="form-label fw-semibold">Título de la columna derecha</label>
@@ -516,6 +524,14 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                     <label for="taller_sobre_right_content" class="form-label fw-semibold">Contenido (derecha)</label>
                     <textarea id="taller_sobre_right_content" name="taller_sobre_right_content" rows="7" class="form-control form-control-premium js-admin-html-editor" data-admin-html-height="350"><?php echo esc($taller_sobre['right_content'] ?? ''); ?></textarea>
                     <div class="form-text">Editor Summernote: texto simple o HTML (Vista código).</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Texto del CTA</label>
+                    <input type="text" name="taller_sobre_cta_text" maxlength="100" class="form-control form-control-premium" value="<?php echo esc($taller_sobre['cta_text'] ?? ''); ?>">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">URL del CTA</label>
+                    <input type="text" name="taller_sobre_cta_url" class="form-control form-control-premium" value="<?php echo esc($taller_sobre['cta_url'] ?? ''); ?>">
                 </div>
                 <div class="col-12">
                     <label for="taller_sobre_bottom_title" class="form-label fw-semibold">Título final (antes de las 3 imágenes)</label>

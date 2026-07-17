@@ -504,6 +504,12 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                 <input type="hidden" name="action" value="save_renting_sobre_nosotros">
 
                                 <div class="row g-3">
+                                    <div class="col-12">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="renting_sobre_published" name="renting_sobre_published" value="1"<?php echo (!array_key_exists('published', $renting_sobre) || !empty($renting_sobre['published'])) ? ' checked' : ''; ?>>
+                                            <label class="form-check-label fw-semibold" for="renting_sobre_published">Publicado</label>
+                                        </div>
+                                    </div>
                                     <div class="col-md-6">
                                         <label for="renting_sobre_page_title" class="form-label fw-semibold">Título de la página</label>
                                         <input type="text" id="renting_sobre_page_title" name="renting_sobre_page_title" class="form-control form-control-premium" value="<?php echo esc($renting_sobre['page_title'] ?? 'Sobre Nosotros'); ?>" required>
@@ -516,6 +522,14 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                         <label for="renting_sobre_paragraphs" class="form-label fw-semibold">Texto principal</label>
                                         <textarea id="renting_sobre_paragraphs" name="renting_sobre_paragraphs" class="form-control form-control-premium js-admin-html-editor" data-admin-html-height="350" rows="10" required><?php echo esc($renting_sobre_paragraphs_text); ?></textarea>
                                         <div class="form-text">Editor Summernote: párrafos separados por línea en blanco, o <strong>HTML completo</strong> (Vista código).</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Texto del CTA</label>
+                                        <input type="text" name="renting_sobre_cta_text" maxlength="100" class="form-control form-control-premium" value="<?php echo esc($renting_sobre['cta_text'] ?? ''); ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">URL del CTA</label>
+                                        <input type="text" name="renting_sobre_cta_url" class="form-control form-control-premium" value="<?php echo esc($renting_sobre['cta_url'] ?? ''); ?>">
                                     </div>
                                 </div>
 

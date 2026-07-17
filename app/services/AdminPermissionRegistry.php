@@ -157,6 +157,14 @@ class AdminPermissionRegistry
         if ($action === 'save_unit_location_refs') {
             return self::permissionForUnitLocationRefKey(trim((string) ($_POST['ulr_unit_key'] ?? '')));
         }
+        if ($action === 'save_unit_about_page') {
+            $aboutUnit = trim((string) ($_POST['about_unit'] ?? ''));
+            return [
+                'rentacar' => 'hero',
+                'seminuevos' => 'semi_home',
+                'leasing' => 'leasing_home',
+            ][$aboutUnit] ?? 'global';
+        }
 
         static $exact = null;
         if ($exact === null) {

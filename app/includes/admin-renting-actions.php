@@ -644,6 +644,7 @@ elseif ($action === 'edit_renting_servicio_item') {
 elseif ($action === 'save_renting_sobre_nosotros') {
     require_once __DIR__ . '/renting-posts.php';
     require_once __DIR__ . '/admin-html-sanitize.php';
+    require_once __DIR__ . '/../services/UnitAboutService.php';
 
     if (!isset($siteData['renting'])) {
         $siteData['renting'] = [];
@@ -662,7 +663,11 @@ elseif ($action === 'save_renting_sobre_nosotros') {
     $introHtml = '';
     $paragraphs = [];
     if (isRentingHtmlContent($rawParagraphs)) {
-        $introHtml = sanitizeAdminHtmlContent(normalizeRentingRawContent($rawParagraphs));
+        try {
+            $introHtml = UnitAboutService::sanitizeBodyHtml(normalizeRentingRawContent($rawParagraphs));
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            $errorMsg = $e->getMessage();
+        }
     } else {
         $paragraphs = preg_split("/\r\n\r\n|\n\n/", $rawParagraphs);
         $paragraphs = array_values(array_filter(array_map('trim', $paragraphs)));
@@ -673,7 +678,7 @@ elseif ($action === 'save_renting_sobre_nosotros') {
         $imageUrl = $existingGallery[$i - 1]['image_url'] ?? '';
         $fieldName = 'renting_sobre_gallery_' . $i;
         if (isset($_FILES[$fieldName]) && $_FILES[$fieldName]['error'] === UPLOAD_ERR_OK) {
-            $uploadedPath = $contentService->uploadImage($_FILES[$fieldName], 'renting_sobre_');
+            $uploadedPath = $contentService->uploadImage($_FILES[$fieldName], 'renting_sobre_', true);
             if ($uploadedPath) {
                 $imageUrl = $uploadedPath;
             }
@@ -684,20 +689,28 @@ elseif ($action === 'save_renting_sobre_nosotros') {
         ];
     }
 
+    $ctaRaw = trim((string) ($_POST['renting_sobre_cta_url'] ?? ''));
+    $ctaUrl = UnitAboutService::sanitizeCtaUrl($ctaRaw);
+    if ($ctaRaw !== '' && $ctaUrl === '') {
+        $errorMsg = $errorMsg ?: 'La URL del CTA no es válida.';
+    }
     $siteData['renting']['sobre_nosotros'] = [
+        'published' => !empty($_POST['renting_sobre_published']),
         'page_title' => trim($_POST['renting_sobre_page_title'] ?? 'Sobre Nosotros'),
         'heading' => trim($_POST['renting_sobre_heading'] ?? 'Quiénes Somos'),
         'intro_html' => $introHtml,
         'paragraphs' => $paragraphs,
         'gallery' => $gallery,
+        'cta_text' => trim((string) ($_POST['renting_sobre_cta_text'] ?? '')),
+        'cta_url' => $ctaUrl,
     ];
 
     $hasIntro = !empty($introHtml) || !empty($paragraphs);
-    if (!$hasIntro) {
+    if (!$hasIntro && empty($errorMsg)) {
         $errorMsg = 'El texto principal es obligatorio.';
-    } elseif ($contentService->saveAll($siteData)) {
+    } elseif (empty($errorMsg) && $contentService->saveAll($siteData)) {
         $successMsg = 'Sobre Nosotros actualizado correctamente.';
-    } else {
+    } elseif (empty($errorMsg)) {
         $errorMsg = 'Error al guardar Sobre Nosotros.';
     }
 }

@@ -214,6 +214,7 @@ elseif ($action === 'delete_taller_sucursal') {
 elseif ($action === 'save_taller_sobre_settings') {
     require_once __DIR__ . '/renting-posts.php';
     require_once __DIR__ . '/admin-html-sanitize.php';
+    require_once __DIR__ . '/../services/UnitAboutService.php';
     if (!isset($siteData['taller'])) {
         $siteData['taller'] = [];
     }
@@ -229,7 +230,7 @@ elseif ($action === 'save_taller_sobre_settings') {
 
     $mainImage = $existing['main_image_url'] ?? '';
     if (isset($_FILES['taller_sobre_main_image']) && $_FILES['taller_sobre_main_image']['error'] === UPLOAD_ERR_OK) {
-        $uploadedPath = $contentService->uploadImage($_FILES['taller_sobre_main_image'], 'taller_sobre_');
+        $uploadedPath = $contentService->uploadImage($_FILES['taller_sobre_main_image'], 'taller_sobre_', true);
         if ($uploadedPath) {
             $mainImage = $uploadedPath;
         } elseif (empty($errorMsg)) {
@@ -242,7 +243,7 @@ elseif ($action === 'save_taller_sobre_settings') {
         $imageUrl = $existingStats[$i - 1]['image_url'] ?? '';
         $field = 'taller_sobre_stat_image_' . $i;
         if (isset($_FILES[$field]) && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
-            $uploadedPath = $contentService->uploadImage($_FILES[$field], 'taller_sobre_stat_');
+            $uploadedPath = $contentService->uploadImage($_FILES[$field], 'taller_sobre_stat_', true);
             if ($uploadedPath) {
                 $imageUrl = $uploadedPath;
             } elseif (empty($errorMsg)) {
@@ -257,17 +258,30 @@ elseif ($action === 'save_taller_sobre_settings') {
 
     $rightContent = trim($_POST['taller_sobre_right_content'] ?? '');
     if (isRentingHtmlContent($rightContent)) {
-        $rightContent = sanitizeAdminHtmlContent($rightContent);
+        try {
+            $rightContent = UnitAboutService::sanitizeBodyHtml($rightContent);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            $errorMsg = $e->getMessage();
+        }
+    }
+    $ctaRaw = trim((string) ($_POST['taller_sobre_cta_url'] ?? ''));
+    $ctaUrl = UnitAboutService::sanitizeCtaUrl($ctaRaw);
+    if ($ctaRaw !== '' && $ctaUrl === '') {
+        $errorMsg = $errorMsg ?: 'La URL del CTA no es válida.';
     }
 
     $siteData['taller']['sobre_nosotros'] = [
+        'published' => !empty($_POST['taller_sobre_published']),
         'page_title' => trim($_POST['taller_sobre_page_title'] ?? 'Sobre Nosotros'),
         'section_title' => trim($_POST['taller_sobre_section_title'] ?? 'Sobre Automarket Taller'),
         'right_title' => trim($_POST['taller_sobre_right_title'] ?? ''),
         'right_content' => $rightContent,
         'main_image_url' => $mainImage,
+        'main_image_alt' => trim((string) ($_POST['taller_sobre_main_image_alt'] ?? '')),
         'bottom_title' => trim($_POST['taller_sobre_bottom_title'] ?? ''),
         'stats' => $stats,
+        'cta_text' => trim((string) ($_POST['taller_sobre_cta_text'] ?? '')),
+        'cta_url' => $ctaUrl,
     ];
 
     if (empty($siteData['taller']['sobre_nosotros']['right_content'])) {

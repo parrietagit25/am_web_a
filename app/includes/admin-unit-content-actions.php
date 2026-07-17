@@ -4,6 +4,7 @@
  */
 require_once __DIR__ . '/../services/UnitContentService.php';
 require_once __DIR__ . '/../services/HeaderBannerService.php';
+require_once __DIR__ . '/../services/UnitAboutService.php';
 
 function unit_content_validate_unit(array $siteData, string $unitKey): bool
 {
@@ -178,6 +179,75 @@ function unit_content_handle_post(
     $handled = true;
 
     switch ($action) {
+        case 'save_unit_about_page':
+            $unitKey = trim((string) ($_POST['about_unit'] ?? ''));
+            if (!unit_content_validate_unit($siteData, $unitKey)
+                || in_array($unitKey, ['renting', 'taller'], true)) {
+                $errorMsg = 'Unidad no válida para este formulario.';
+                break;
+            }
+
+            $plainFields = [
+                'title' => trim((string) ($_POST['about_title'] ?? '')),
+                'subtitle' => trim((string) ($_POST['about_subtitle'] ?? '')),
+                'main_image_alt' => trim((string) ($_POST['about_image_alt'] ?? '')),
+                'cta_text' => trim((string) ($_POST['about_cta_text'] ?? '')),
+            ];
+            foreach ($plainFields as $plainValue) {
+                if (strip_tags($plainValue) !== $plainValue) {
+                    $errorMsg = 'Los campos de texto no permiten HTML.';
+                    break 2;
+                }
+            }
+            try {
+                $bodyHtml = UnitAboutService::sanitizeBodyHtml((string) ($_POST['about_body_html'] ?? ''));
+            } catch (InvalidArgumentException | RuntimeException $e) {
+                $errorMsg = $e->getMessage();
+                break;
+            }
+            $ctaRaw = trim((string) ($_POST['about_cta_url'] ?? ''));
+            $ctaUrl = UnitAboutService::sanitizeCtaUrl($ctaRaw);
+            if ($ctaRaw !== '' && $ctaUrl === '') {
+                $errorMsg = 'La URL del CTA no es válida.';
+                break;
+            }
+
+            $existingAbout = UnitAboutService::aboutNode($siteData, $unitKey) ?? [];
+            $imageUrl = trim((string) ($existingAbout['main_image_url'] ?? ''));
+            if (!empty($_POST['about_remove_image'])) {
+                $imageUrl = '';
+            }
+            if (isset($_FILES['about_image']) && ($_FILES['about_image']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                $uploaded = $contentService->uploadImage($_FILES['about_image'], 'about_' . preg_replace('/[^a-z0-9_]/', '_', $unitKey) . '_', true);
+                if ($uploaded === false) {
+                    $errorMsg = 'La imagen no es válida. Use JPG, PNG, GIF o WebP de máximo 12 MB.';
+                    break;
+                }
+                $imageUrl = (string) $uploaded;
+            }
+
+            $aboutPage = [
+                'published' => !empty($_POST['about_published']),
+                'title' => $plainFields['title'],
+                'subtitle' => $plainFields['subtitle'],
+                'main_image_url' => $imageUrl,
+                'main_image_alt' => $plainFields['main_image_alt'],
+                'body_html' => $bodyHtml,
+                'cta_text' => $plainFields['cta_text'],
+                'cta_url' => $ctaUrl,
+            ];
+            if (UnitContentService::isCustomUnit($unitKey)) {
+                $siteData['global']['business_units'][$unitKey]['about_page'] = $aboutPage;
+            } else {
+                $siteData[UnitContentService::unitDataKey($unitKey)]['about_page'] = $aboutPage;
+            }
+            if ($contentService->saveAll($siteData)) {
+                $successMsg = 'Sobre Nosotros guardado correctamente.';
+            } else {
+                $errorMsg = 'Error al guardar Sobre Nosotros.';
+            }
+            break;
+
         case 'save_unit_content_settings':
             $unitKey = trim($_POST['content_unit'] ?? '');
             if (!unit_content_validate_unit($siteData, $unitKey)) {

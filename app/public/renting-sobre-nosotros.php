@@ -2,12 +2,26 @@
 /**
  * Automarket - Renting — Sobre Nosotros
  */
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../services/ContentService.php';
+$aboutContentService = new ContentService();
+$aboutRentingData = $aboutContentService->get('renting', []);
+$sobre = is_array($aboutRentingData['sobre_nosotros'] ?? null) ? $aboutRentingData['sobre_nosotros'] : [];
+if (array_key_exists('published', $sobre) && empty($sobre['published'])) {
+    http_response_code(404);
+    $activeUnit = 'renting';
+    $seoOverride = ['title' => 'Página no encontrada | Automarket', 'robots' => 'noindex,nofollow'];
+    require __DIR__ . '/../includes/header.php';
+    echo '<section class="container py-5 my-5 text-center"><h1>Página no encontrada</h1><a href="/renting.php" class="btn btn-theme mt-3">Inicio</a></section>';
+    require __DIR__ . '/../includes/footer.php';
+    exit;
+}
 $activeUnit = 'renting';
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/renting-posts.php';
 
 $renting = $contentService->get('renting', []);
-$sobre = $renting['sobre_nosotros'] ?? [];
+$sobre = $renting['sobre_nosotros'] ?? $sobre;
 
 $pageTitle = $sobre['page_title'] ?? 'Sobre Nosotros';
 $heading = $sobre['heading'] ?? 'Quiénes Somos';
@@ -120,6 +134,14 @@ foreach ($gallery as $img) {
             </div>
         <?php endif; ?>
     </div>
+    <?php
+    require_once __DIR__ . '/../services/UnitAboutService.php';
+    $rentingCtaText = trim((string) ($sobre['cta_text'] ?? ''));
+    $rentingCtaUrl = UnitAboutService::sanitizeCtaUrl((string) ($sobre['cta_url'] ?? ''));
+    ?>
+    <?php if ($rentingCtaText !== '' && $rentingCtaUrl !== ''): ?>
+        <div class="text-center mt-4"><a class="btn btn-primary" href="<?php echo esc($rentingCtaUrl); ?>"><?php echo esc($rentingCtaText); ?></a></div>
+    <?php endif; ?>
 </section>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

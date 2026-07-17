@@ -2,15 +2,30 @@
 /**
  * Automarket - Taller — Sobre Nosotros
  */
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../services/ContentService.php';
+$aboutContentService = new ContentService();
+$aboutTaller = $aboutContentService->get('taller.sobre_nosotros', []);
+if (array_key_exists('published', $aboutTaller) && empty($aboutTaller['published'])) {
+    http_response_code(404);
+    $activeUnit = 'taller';
+    $seoOverride = ['title' => 'Página no encontrada | Automarket', 'robots' => 'noindex,nofollow'];
+    require __DIR__ . '/../includes/header.php';
+    echo '<section class="container py-5 my-5 text-center"><h1>Página no encontrada</h1><a href="/taller.php" class="btn btn-theme mt-3">Inicio</a></section>';
+    require __DIR__ . '/../includes/footer.php';
+    exit;
+}
 $activeUnit = 'taller';
 require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../services/UnitAboutService.php';
 
-$sobre = $contentService->get('taller.sobre_nosotros', []);
+$sobre = $contentService->get('taller.sobre_nosotros', $aboutTaller);
 $pageTitle = $sobre['page_title'] ?? 'Sobre Nosotros';
 $sectionTitle = $sobre['section_title'] ?? 'Sobre Automarket Taller';
 $rightTitle = $sobre['right_title'] ?? '';
 $rightContent = $sobre['right_content'] ?? '';
 $mainImage = $sobre['main_image_url'] ?? '';
+$mainImageAlt = trim((string) ($sobre['main_image_alt'] ?? '')) ?: $pageTitle;
 $bottomTitle = $sobre['bottom_title'] ?? '';
 $stats = $sobre['stats'] ?? [];
 while (count($stats) < 3) {
@@ -24,10 +39,11 @@ function renderTallerSobreContent($raw) {
     $raw = trim($raw ?? '');
     if ($raw === '') return '';
     if (tallerSobreContentIsHtml($raw)) {
-        $raw = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', $raw);
-        $raw = preg_replace('/<iframe\b[^>]*>.*?<\/iframe>/is', '', $raw);
-        $raw = preg_replace('/\s+on\w+\s*=\s*("([^"]*)"|\'([^\']*)\'|[^\s>]+)/i', '', $raw);
-        return $raw;
+        try {
+            return UnitAboutService::sanitizeBodyHtml($raw);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return '';
+        }
     }
     $lines = preg_split("/\r\n|\n|\r/", $raw);
     $html = '';
@@ -52,7 +68,7 @@ function renderTallerSobreContent($raw) {
         <div class="row g-4 align-items-start mb-5">
             <div class="col-lg-6">
                 <?php if (!empty($mainImage)): ?>
-                    <img src="<?php echo esc($mainImage); ?>" alt="Sobre Automarket Taller" class="w-100 rounded-2" style="object-fit:cover; max-height:430px;">
+                    <img src="<?php echo esc($mainImage); ?>" alt="<?php echo esc($mainImageAlt); ?>" class="w-100 rounded-2" style="object-fit:cover; max-height:430px;">
                 <?php endif; ?>
             </div>
             <div class="col-lg-6">
@@ -77,6 +93,13 @@ function renderTallerSobreContent($raw) {
                 </div>
             <?php endforeach; ?>
         </div>
+        <?php
+        $tallerCtaText = trim((string) ($sobre['cta_text'] ?? ''));
+        $tallerCtaUrl = UnitAboutService::sanitizeCtaUrl((string) ($sobre['cta_url'] ?? ''));
+        ?>
+        <?php if ($tallerCtaText !== '' && $tallerCtaUrl !== ''): ?>
+            <div class="text-center mt-4"><a class="btn btn-primary" href="<?php echo esc($tallerCtaUrl); ?>"><?php echo esc($tallerCtaText); ?></a></div>
+        <?php endif; ?>
     </div>
 </section>
 

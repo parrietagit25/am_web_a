@@ -2,6 +2,8 @@
 /**
  * Generación de sitemap.xml (páginas estáticas + vehículos disponibles).
  */
+require_once __DIR__ . '/UnitAboutService.php';
+
 class SitemapService
 {
     private const MAX_VEHICLE_URLS = 1000;
@@ -48,6 +50,22 @@ class SitemapService
 
         foreach (self::STATIC_PAGES as $page) {
             $urls[] = self::entryFromStaticPage($base, $page, $lastmod);
+        }
+        $siteData = $contentService->getAll();
+        foreach (UnitContentService::listAllUnitKeys($siteData) as $unitKey) {
+            if (UnitAboutService::resolve($siteData, $unitKey) === null) {
+                continue;
+            }
+            if ($unitKey === 'renting') {
+                $aboutPage = ['path' => '/renting-sobre-nosotros.php'];
+            } elseif ($unitKey === 'taller') {
+                $aboutPage = ['path' => '/taller-sobre-nosotros.php'];
+            } else {
+                $aboutPage = ['path' => '/sobre-nosotros.php', 'query' => ['unit' => $unitKey]];
+            }
+            $aboutPage['changefreq'] = 'yearly';
+            $aboutPage['priority'] = '0.5';
+            $urls[] = self::entryFromStaticPage($base, $aboutPage, $lastmod);
         }
 
         foreach (self::collectLocationUrls($base, $lastmod, $contentService) as $locationEntry) {
