@@ -143,6 +143,7 @@ return [
         ['fecha' => '2026-07-16', 'texto' => 'AM-ADJ-02 cerrado local: colores administrables título/subtítulo hero (RAC, Semi, Leasing, Renting, Taller, custom); helper hex + fallback CSS; sin site_data en commit.'],
         ['fecha' => '2026-07-16', 'texto' => 'AM-ADJ-03 cerrado local: banners configurables activos/inactivos, texto, alt y enlaces seguros en cinco unidades, custom y page_headers compatibles; uploads estrictos; pruebas unitarias/E2E/smoke; datos restaurados por hash.'],
         ['fecha' => '2026-07-16', 'texto' => 'AM-ADJ-04 cerrado local: etiquetas visuales RAC por regla aplicada y Seminuevos por VIN; tipos cerrados, texto seguro, schema aditivo e igualdad exacta de precios; sin recalcular BARS.'],
+        ['fecha' => '2026-07-16', 'texto' => 'AM-ADJ-05 cerrado local: WhatsApp contextual por unidad con resolver central, sin fallback global, institucionales ocultas, mensajes seguros y Atom/chatbot intactos.'],
     ],
 
     'bloques' => [
@@ -1274,6 +1275,25 @@ return [
                 ['label' => 'Venta de Autos → Inventario', 'url' => '/admin/?tab=semi-inventory'],
             ],
             'siguiente_accion'    => 'Cerrado. Siguiente bloque: AM-ADJ-05, sujeto a autorización.',
+            'fecha_actualizacion' => '2026-07-16',
+        ],
+        [
+            'codigo'              => 'AM-ADJ-05',
+            'nombre'              => 'WhatsApp contextual por unidad de negocio',
+            'area'                => 'CMS / Experiencia de usuario',
+            'prioridad'           => 'Media',
+            'estado'              => 'Cerrado local',
+            'porcentaje_estimado' => 100,
+            'descripcion'         => 'Un único FAB de WhatsApp resuelto por contexto real, contacto unitario y metadata editorial/custom validada; páginas generales sin FAB.',
+            'dependencias'        => ['AM-ADJ-01', 'AM-ADJ-04'],
+            'ultimo_commit'       => 'AM-ADJ-05 WhatsApp contextual por unidad',
+            'evidencia'           => 'Resolver central; cinco unidades oficiales, custom y editorial; URL wa.me segura; teléfono/mensaje validados; HTML/ARIA/singleton y rutas generales probados; hashes restaurados.',
+            'admin_locations'     => [
+                ['label' => 'Rent A Car → Principal', 'url' => '/admin/?tab=hero'],
+                ['label' => 'Unidades oficiales → Contacto', 'url' => '/admin/'],
+                ['label' => 'Unidades personalizadas → Principal', 'url' => '/admin/'],
+            ],
+            'siguiente_accion'    => 'Cerrado. Siguiente bloque: AM-ADJ-06, sujeto a autorización.',
             'fecha_actualizacion' => '2026-07-16',
         ],
     ],

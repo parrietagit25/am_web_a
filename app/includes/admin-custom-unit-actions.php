@@ -36,6 +36,27 @@ if ($action === 'save_custom_unit_content') {
             } else {
                 $siteData['global']['business_units'][$unitKey]['heroSubtitleColor'] = $heroSubtitleColor;
             }
+            require_once __DIR__ . '/../services/WhatsappContextService.php';
+            $customWhatsappRaw = trim((string) ($_POST['custom_whatsapp_number'] ?? ''));
+            $customWhatsapp = WhatsappContextService::normalizePhone($customWhatsappRaw);
+            try {
+                $customWhatsappMessage = WhatsappContextService::normalizeMessage(
+                    (string) ($_POST['custom_whatsapp_message'] ?? '')
+                );
+            } catch (InvalidArgumentException $e) {
+                $customWhatsappMessage = '';
+                $errorMsg = $e->getMessage();
+            }
+            if ($customWhatsappRaw !== '' && $customWhatsapp === '') {
+                $errorMsg = $errorMsg ?: 'El número de WhatsApp debe contener entre 8 y 15 dígitos y no admite letras ni URLs.';
+            }
+            if (empty($errorMsg)) {
+                $siteData['global']['business_units'][$unitKey]['footer_contact'] = [
+                    'whatsapp_number' => $customWhatsapp,
+                    'whatsapp_enabled' => !empty($_POST['custom_whatsapp_enabled']),
+                    'whatsapp_message' => $customWhatsappMessage,
+                ];
+            }
             $hbPath = ['global', 'business_units', $unitKey];
         } else {
             if (!isset($siteData['global']['business_units'][$unitKey]['pages']) || !is_array($siteData['global']['business_units'][$unitKey]['pages'])) {

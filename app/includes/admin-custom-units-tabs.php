@@ -79,6 +79,35 @@ foreach ($customUnitsForTabs as $unitKey => $unit):
                                     $htcSubtitleValue = $content['heroSubtitleColor'] ?? '';
                                     require __DIR__ . '/admin-hero-text-colors-fields.php';
                                     ?>
+                                    <?php if ($isMain): ?>
+                                    <?php
+                                    $customWhatsappContact = is_array($unit['footer_contact'] ?? null) ? $unit['footer_contact'] : [];
+                                    $customWhatsappEnabled = !array_key_exists('whatsapp_enabled', $customWhatsappContact)
+                                        || !empty($customWhatsappContact['whatsapp_enabled']);
+                                    $customWhatsappFieldId = preg_replace('/[^a-z0-9_]/', '_', $unitKey);
+                                    ?>
+                                    <div class="col-12"><hr><h6 class="fw-bold">WhatsApp de la unidad</h6></div>
+                                    <div class="col-md-4">
+                                        <label for="custom_whatsapp_<?php echo esc($customWhatsappFieldId); ?>" class="form-label fw-semibold">Número (con código de país)</label>
+                                        <input type="text" id="custom_whatsapp_<?php echo esc($customWhatsappFieldId); ?>" name="custom_whatsapp_number"
+                                               class="form-control form-control-premium"
+                                               value="<?php echo esc($customWhatsappContact['whatsapp_number'] ?? ''); ?>" placeholder="50760000000">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label for="custom_whatsapp_message_<?php echo esc($customWhatsappFieldId); ?>" class="form-label fw-semibold">Mensaje inicial</label>
+                                        <input type="text" maxlength="200" id="custom_whatsapp_message_<?php echo esc($customWhatsappFieldId); ?>"
+                                               name="custom_whatsapp_message" class="form-control form-control-premium"
+                                               value="<?php echo esc($customWhatsappContact['whatsapp_message'] ?? ''); ?>"
+                                               placeholder="Vacío = saludo neutral con el nombre de la unidad">
+                                    </div>
+                                    <div class="col-md-3 d-flex align-items-center">
+                                        <div class="form-check form-switch mt-3">
+                                            <input class="form-check-input" type="checkbox" id="custom_whatsapp_enabled_<?php echo esc($customWhatsappFieldId); ?>"
+                                                   name="custom_whatsapp_enabled" value="1"<?php echo $customWhatsappEnabled ? ' checked' : ''; ?>>
+                                            <label class="form-check-label" for="custom_whatsapp_enabled_<?php echo esc($customWhatsappFieldId); ?>">Mostrar WhatsApp</label>
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
                                     <div class="col-12">
                                         <label class="form-label fw-semibold">Contenido HTML de la página</label>
                                         <textarea name="body_html" rows="18" class="form-control form-control-premium font-monospace" style="font-size:13px;line-height:1.45;" placeholder="<section>...</section>"><?php echo esc($content['body_html']); ?></textarea>

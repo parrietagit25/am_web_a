@@ -83,19 +83,38 @@ elseif ($action === 'save_rac_social_links') {
     }
 }
 elseif ($action === 'save_rac_unit_contact') {
+    require_once __DIR__ . '/../services/WhatsappContextService.php';
+    $racWhatsappRaw = trim((string) ($_POST['rac_contact_whatsapp'] ?? ''));
+    $racWhatsapp = WhatsappContextService::normalizePhone($racWhatsappRaw);
+    try {
+        $racWhatsappMessage = WhatsappContextService::normalizeMessage(
+            (string) ($_POST['rac_contact_whatsapp_message'] ?? '')
+        );
+    } catch (InvalidArgumentException $e) {
+        $racWhatsappMessage = '';
+        $errorMsg = $e->getMessage();
+    }
+    if ($racWhatsappRaw !== '' && $racWhatsapp === '') {
+        $errorMsg = $errorMsg ?: 'El número de WhatsApp debe contener entre 8 y 15 dígitos y no admite letras ni URLs.';
+    }
+
     if (!isset($siteData['homepage'])) {
         $siteData['homepage'] = [];
     }
-    $siteData['homepage']['contact'] = [
-        'phone_display'   => trim($_POST['rac_contact_phone'] ?? ''),
-        'whatsapp_number' => preg_replace('/\D/', '', $_POST['rac_contact_whatsapp'] ?? ''),
-        'email'           => trim($_POST['rac_contact_email'] ?? ''),
-        'schedule'        => trim($_POST['rac_contact_schedule'] ?? ''),
-    ];
-    $siteData['homepage']['show_payment_methods'] = isset($_POST['rac_show_payment_methods']) && $_POST['rac_show_payment_methods'] === '1';
-    if ($contentService->saveAll($siteData)) {
+    if (empty($errorMsg)) {
+        $siteData['homepage']['contact'] = [
+            'phone_display'      => trim($_POST['rac_contact_phone'] ?? ''),
+            'whatsapp_number'    => $racWhatsapp,
+            'whatsapp_enabled'   => !empty($_POST['rac_contact_whatsapp_enabled']),
+            'whatsapp_message'   => $racWhatsappMessage,
+            'email'              => trim($_POST['rac_contact_email'] ?? ''),
+            'schedule'           => trim($_POST['rac_contact_schedule'] ?? ''),
+        ];
+        $siteData['homepage']['show_payment_methods'] = isset($_POST['rac_show_payment_methods']) && $_POST['rac_show_payment_methods'] === '1';
+    }
+    if (empty($errorMsg) && $contentService->saveAll($siteData)) {
         $successMsg = 'Contacto y medios de pago de Rent A Car guardados correctamente.';
-    } else {
+    } elseif (empty($errorMsg)) {
         $errorMsg = 'Error al guardar contacto de Rent A Car.';
     }
 }

@@ -73,6 +73,7 @@ function am_normalize_custom_business_unit(string $key, array $unit): array
         'sort_order' => intval($unit['sort_order'] ?? 60),
         'hero_image_url' => trim((string) ($unit['hero_image_url'] ?? '')),
         'header_banner' => is_array($unit['header_banner'] ?? null) ? $unit['header_banner'] : [],
+        'footer_contact' => is_array($unit['footer_contact'] ?? null) ? $unit['footer_contact'] : [],
         'body_html' => (string) ($unit['body_html'] ?? ''),
         'pages' => is_array($unit['pages'] ?? null) ? $unit['pages'] : [],
         'content' => is_array($unit['content'] ?? null) ? $unit['content'] : UnitContentService::defaultContentNode(),

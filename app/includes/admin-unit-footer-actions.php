@@ -18,22 +18,41 @@ $ufActionMap = [
 
 if (isset($ufActionMap[$action])) {
     $ufUnitKey = $ufActionMap[$action];
+    require_once __DIR__ . '/../services/WhatsappContextService.php';
 
-    if (!isset($siteData[$ufUnitKey]) || !is_array($siteData[$ufUnitKey])) {
+    $ufWhatsappRaw = trim((string) ($_POST['unit_footer_whatsapp'] ?? ''));
+    $ufWhatsapp = WhatsappContextService::normalizePhone($ufWhatsappRaw);
+    try {
+        $ufWhatsappMessage = WhatsappContextService::normalizeMessage(
+            (string) ($_POST['unit_footer_whatsapp_message'] ?? '')
+        );
+    } catch (InvalidArgumentException $e) {
+        $ufWhatsappMessage = '';
+        $errorMsg = $e->getMessage();
+    }
+    if ($ufWhatsappRaw !== '' && $ufWhatsapp === '') {
+        $errorMsg = $errorMsg ?: 'El número de WhatsApp debe contener entre 8 y 15 dígitos y no admite letras ni URLs.';
+    }
+
+    if (empty($errorMsg) && (!isset($siteData[$ufUnitKey]) || !is_array($siteData[$ufUnitKey]))) {
         $siteData[$ufUnitKey] = [];
     }
 
-    $siteData[$ufUnitKey]['footer_contact'] = [
-        'phone_display'   => trim($_POST['unit_footer_phone'] ?? ''),
-        'whatsapp_number' => preg_replace('/\D/', '', $_POST['unit_footer_whatsapp'] ?? ''),
-        'email'           => trim($_POST['unit_footer_email'] ?? ''),
-        'schedule'        => trim($_POST['unit_footer_schedule'] ?? ''),
-    ];
-    $siteData[$ufUnitKey]['show_payment_methods'] = isset($_POST['unit_show_payment_methods']) && $_POST['unit_show_payment_methods'] === '1';
+    if (empty($errorMsg)) {
+        $siteData[$ufUnitKey]['footer_contact'] = [
+            'phone_display'      => trim($_POST['unit_footer_phone'] ?? ''),
+            'whatsapp_number'    => $ufWhatsapp,
+            'whatsapp_enabled'   => !empty($_POST['unit_footer_whatsapp_enabled']),
+            'whatsapp_message'   => $ufWhatsappMessage,
+            'email'              => trim($_POST['unit_footer_email'] ?? ''),
+            'schedule'           => trim($_POST['unit_footer_schedule'] ?? ''),
+        ];
+        $siteData[$ufUnitKey]['show_payment_methods'] = isset($_POST['unit_show_payment_methods']) && $_POST['unit_show_payment_methods'] === '1';
+    }
 
-    if ($contentService->saveAll($siteData)) {
+    if (empty($errorMsg) && $contentService->saveAll($siteData)) {
         $successMsg = 'Contacto y medios de pago guardados correctamente.';
-    } else {
+    } elseif (empty($errorMsg)) {
         $errorMsg = 'Error al guardar contacto y medios de pago.';
     }
 }

@@ -8,6 +8,30 @@ if (!isset($globalSettings)) {
     }
     $globalSettings = (new ContentService())->get('global');
 }
+if (!isset($contentService) || !($contentService instanceof ContentService)) {
+    $contentService = new ContentService();
+}
+require_once __DIR__ . '/business-units-registry.php';
+require_once __DIR__ . '/../services/WhatsappContextService.php';
+$whatsappSiteData = isset($siteData) && is_array($siteData)
+    ? $siteData
+    : $contentService->getAll();
+$whatsappBusinessUnits = isset($businessUnits) && is_array($businessUnits)
+    ? $businessUnits
+    : am_merge_business_units(
+        is_array($whatsappSiteData['global']['business_units'] ?? null)
+            ? $whatsappSiteData['global']['business_units']
+            : []
+    );
+$whatsappContext = WhatsappContextService::resolve(
+    $whatsappSiteData,
+    $whatsappBusinessUnits,
+    (string) ($_SERVER['PHP_SELF'] ?? $_SERVER['SCRIPT_NAME'] ?? ''),
+    [
+        'u' => $_GET['u'] ?? '',
+        'unit' => $_GET['unit'] ?? '',
+    ]
+);
 if (!class_exists('FooterService')) {
     require_once __DIR__ . '/../services/FooterService.php';
 }
@@ -156,15 +180,18 @@ if ($isPublicSite) {
     }
     ?>
 
-    <!-- WhatsApp Floating Button -->
-    <a href="https://wa.me/<?php echo preg_replace('/\D/', '', $globalSettings['whatsapp_number'] ?? '5072792700'); ?>" 
+    <?php if ($whatsappContext['visible']): ?>
+    <!-- WhatsApp contextual por unidad -->
+    <a href="<?php echo esc($whatsappContext['url']); ?>"
        class="whatsapp-float d-flex align-items-center justify-content-center shadow-lg" 
        target="_blank" 
        rel="noopener noreferrer" 
-       title="WhatsApp">
-        <i class="bi bi-whatsapp"></i>
-        <span class="whatsapp-badge"><?php echo esc(t('whatsapp.help', $globalSettings['whatsapp_label'] ?? '')); ?></span>
+       title="<?php echo esc($whatsappContext['aria_label']); ?>"
+       aria-label="<?php echo esc($whatsappContext['aria_label']); ?>">
+        <i class="bi bi-whatsapp" aria-hidden="true"></i>
+        <span class="whatsapp-badge" aria-hidden="true">WhatsApp <?php echo esc($whatsappContext['unit_label']); ?></span>
     </a>
+    <?php endif; ?>
     <?php if (!empty(trim((string)($trackingCodes['body_end_html'] ?? '')))): ?>
     <?php echo $trackingCodes['body_end_html']; ?>
     <?php endif; ?>

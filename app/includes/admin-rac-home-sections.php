@@ -81,8 +81,8 @@ $rac_show_payments = ($rac_home['show_payment_methods'] ?? true) !== false;
         <i class="bi bi-telephone-fill me-2 text-danger"></i>Contacto y medios de pago (Rent A Car)
     </h5>
     <p class="text-muted small mb-4">
-        Teléfono/WhatsApp de esta unidad para el bloque inferior del home RAC y el <strong>topbar</strong> en páginas Rent A Car.
-        Si quedan vacíos, se usa la configuración global (pestaña General). El botón flotante de WhatsApp sigue siendo global.
+        Teléfono/WhatsApp de esta unidad para páginas Rent A Car. El botón flotante no hereda el WhatsApp global:
+        si el número unitario está vacío o inválido, permanece oculto.
     </p>
     <form method="POST" action="?tab=hero">
         <input type="hidden" name="action" value="save_rac_unit_contact">
@@ -106,6 +106,21 @@ $rac_show_payments = ($rac_home['show_payment_methods'] ?? true) !== false;
                 <label for="rac_contact_schedule" class="form-label fw-semibold">Horario</label>
                 <input type="text" id="rac_contact_schedule" name="rac_contact_schedule" class="form-control form-control-premium"
                        value="<?php echo esc($rac_contact['schedule'] ?? ''); ?>" placeholder="Lun–Vie 8:00am–5:00pm">
+            </div>
+            <div class="col-md-8">
+                <label for="rac_contact_whatsapp_message" class="form-label fw-semibold">Mensaje inicial de WhatsApp</label>
+                <input type="text" id="rac_contact_whatsapp_message" name="rac_contact_whatsapp_message"
+                       class="form-control form-control-premium" maxlength="200"
+                       value="<?php echo esc($rac_contact['whatsapp_message'] ?? ''); ?>"
+                       placeholder="Vacío = saludo neutral de Rent A Car">
+            </div>
+            <div class="col-md-4 d-flex align-items-center">
+                <div class="form-check form-switch mt-3">
+                    <input class="form-check-input" type="checkbox" id="rac_contact_whatsapp_enabled"
+                           name="rac_contact_whatsapp_enabled" value="1"
+                           <?php echo (!array_key_exists('whatsapp_enabled', $rac_contact) || !empty($rac_contact['whatsapp_enabled'])) ? 'checked' : ''; ?>>
+                    <label class="form-check-label" for="rac_contact_whatsapp_enabled">Mostrar WhatsApp en Rent A Car</label>
+                </div>
             </div>
             <div class="col-12">
                 <div class="form-check form-switch">

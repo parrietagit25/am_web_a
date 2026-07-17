@@ -331,6 +331,11 @@ header.navbar {
     transform: scale(1.15) rotate(10deg);
     color: var(--white);
 }
+.whatsapp-float:focus-visible {
+    outline: 3px solid var(--white);
+    outline-offset: 3px;
+    color: var(--white);
+}
 .whatsapp-badge {
     position: absolute;
     right: 70px;
@@ -347,7 +352,8 @@ header.navbar {
     transition: all 0.3s ease;
     pointer-events: none;
 }
-.whatsapp-float:hover .whatsapp-badge {
+.whatsapp-float:hover .whatsapp-badge,
+.whatsapp-float:focus-visible .whatsapp-badge {
     opacity: 1;
     transform: translateX(0);
 }

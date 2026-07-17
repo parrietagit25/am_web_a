@@ -77,7 +77,7 @@ Existen `PowertranzClient`, `PowertranzPaymentService`, `PowertranzSanitizer`, `
 | R1 | Colores hero título/subtítulo | **Completado (AM-ADJ-02)** | Media | AM-ADJ-02 |
 | R2 | Banners (enable, imagen, texto, link) | **Completado (AM-ADJ-03)** | Media | AM-ADJ-03 |
 | R3 | Etiquetas Promo / Más buscado / custom / vigencia | **Completado (AM-ADJ-04)** | Media–Alta | AM-ADJ-04 |
-| R4 | WhatsApp contextual | Existe parcialmente | Baja–Media | AM-ADJ-05 |
+| R4 | WhatsApp contextual | **Completado (AM-ADJ-05)** | Baja–Media | AM-ADJ-05 |
 | R5 | Sobre Nosotros por unidad | Existe parcialmente | Media | AM-ADJ-06 |
 | R6 | Menús por unidad | Ya existe (nav); footer global | Baja / Alta* | AM-ADJ-07 |
 | R7 | Términos por unidad | Existe parcialmente | Media | AM-ADJ-08 |
@@ -147,17 +147,20 @@ Existen `PowertranzClient`, `PowertranzPaymentService`, `PowertranzSanitizer`, `
 
 ### R4 — WhatsApp contextual
 
-1. **Estado:** Existe parcialmente.  
-2. **Evidencia:** FAB global en `footer.php` → `global.whatsapp_number`. Por unidad: `footer_contact.whatsapp_number` / contactos RAC (admin nota: flotante sigue global). Chatbot `chatbot-widget.php` separado (z-index/posición).  
-3. **Comportamiento:** Mismo WA en todas las páginas.  
-4. **Cambio mínimo:** Resolver FAB por `$activeUnit` + ocultar si no hay unidad; no tocar chatbot.  
-5. **Conservar:** Chatbot Atom/web; números de contacto existentes.  
-6. **Dependencias:** Definir qué es «página general».  
-7. **Riesgos:** Páginas sin `activeUnit`; detalle seminuevos.  
-8. **Aceptación:** Unidad X muestra WA de X; home grupo sin FAB (o política acordada).  
-9. **Pruebas:** 5 unidades + institucionales + chatbot intacto.  
-10. **Complejidad:** Baja–Media.  
-11. **Bloque:** AM-ADJ-05.
+1. **Estado:** **Completado (AM-ADJ-05, 2026-07-16).**
+2. **Arquitectura:** `WhatsappContextService` centraliza rutas fijas, contextos editoriales validados y unidades custom; `footer.php` es el único render del FAB.
+3. **Jerarquía:** ruta unitaria cerrada → parámetro `unit`/`u` validado contra registry → contacto propio; sin contexto verificable se oculta.
+4. **Datos:** RAC reutiliza `homepage.contact`; oficiales reutilizan `footer_contact`; custom reutiliza `global.business_units[{key}].footer_contact`. Sin fallback global.
+5. **Campos añadidos:** `whatsapp_enabled` y `whatsapp_message` en formularios de contacto existentes; ausencia de enabled mantiene compatibilidad cuando hay número válido.
+6. **Seguridad:** teléfono de 8–15 dígitos, sin letras/URLs; mensaje máximo 200 sin ángulos/controles; URL fija `wa.me` con `rawurlencode`.
+7. **Páginas generales:** Sostenibilidad, Blog grupo, sucursales grupo/ficha, institucionales y Trabaja con nosotros no renderizan FAB.
+8. **Editorial/custom:** solo muestran WhatsApp con unidad real validada; legacy sin metadata queda oculto.
+9. **Accesibilidad:** `aria-label` específico, icono decorativo, foco visible y objetivo táctil de 60 px.
+10. **Atom/chatbot:** archivos, endpoints, scripts, posición y flujo sin cambios.
+11. **Pruebas:** suite `tests/am-adj05-whatsapp-context-test.php`, smoke HTML 5 unidades + custom + editorial + generales, URL/ARIA/singleton, permisos, PHP lint y hashes restaurados.
+12. **Riesgo residual:** Playwright no está instalado; responsive validado por CSS existente, HTML y smoke HTTP según criterio autorizado.
+13. **Complejidad:** Baja–Media.
+14. **Bloque:** AM-ADJ-05.
 
 ### R5 — Sobre Nosotros
 
@@ -352,7 +355,7 @@ Justificación: primero CMS de bajo riesgo; luego menús/contenidos; después RA
 | 02 | AM-ADJ-02 | Colores hero — **CERRADO 2026-07-16** |
 | 03 | AM-ADJ-03 | Banners enable/link — **CERRADO 2026-07-16** |
 | 04 | AM-ADJ-04 | Etiquetas — **CERRADO 2026-07-16** |
-| 05 | AM-ADJ-05 | WhatsApp contextual |
+| 05 | AM-ADJ-05 | WhatsApp contextual — **CERRADO 2026-07-16** |
 | 06 | AM-ADJ-06 | Sobre Nosotros |
 | 07 | AM-ADJ-07 | Menús (simplificación) |
 | 08 | AM-ADJ-08 | Términos por unidad |
