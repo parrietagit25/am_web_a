@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../services/AllyService.php';
+
 require_once __DIR__ . '/renting-posts.php';
 require_once __DIR__ . '/../services/RentingQuoteAlertService.php';
 
@@ -12,15 +14,11 @@ usort($renting_cars_list, function ($a, $b) {
     return $orderA - $orderB;
 });
 
-$renting_brands_list = $renting_brands;
-usort($renting_brands_list, function ($a, $b) {
-    $orderA = intval($a['sort_order'] ?? 999);
-    $orderB = intval($b['sort_order'] ?? 999);
-    if ($orderA === $orderB) {
-        return strcasecmp($a['name'] ?? '', $b['name'] ?? '');
-    }
-    return $orderA - $orderB;
-});
+$renting_brands_list = AllyService::normalizeList(
+    is_array($renting_brands) ? $renting_brands : [],
+    AllyService::TYPE_RENTING_BRAND,
+    false
+);
 
 $renting_quote_leads_list = $renting_quote_leads;
 usort($renting_quote_leads_list, function ($a, $b) {
@@ -967,26 +965,37 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                             <form method="POST" action="?tab=renting-marcas" enctype="multipart/form-data" id="rentingBrandForm">
                                 <input type="hidden" name="action" id="rentingBrandFormAction" value="add_renting_brand">
                                 <input type="hidden" name="renting_brand_id" id="rentingBrandFormId" value="">
+                                <?php admin_csrf_field(); ?>
 
                                 <div class="row g-3">
                                     <div class="col-md-5">
                                         <label for="renting_brand_name" class="form-label">Nombre de la marca</label>
-                                        <input type="text" id="renting_brand_name" name="renting_brand_name" class="form-control form-control-premium" required>
+                                        <input type="text" id="renting_brand_name" name="renting_brand_name" class="form-control form-control-premium" maxlength="180" required>
                                     </div>
                                     <div class="col-md-3">
                                         <label for="renting_brand_sort_order" class="form-label">Orden</label>
                                         <input type="number" id="renting_brand_sort_order" name="renting_brand_sort_order" class="form-control form-control-premium" value="0" min="0" step="1">
                                     </div>
                                     <div class="col-md-4 d-flex align-items-end pb-2">
+                                        <input type="hidden" name="renting_brand_active" value="0">
                                         <div class="form-check form-switch">
                                             <input class="form-check-input" type="checkbox" role="switch" id="renting_brand_active" name="renting_brand_active" value="1" checked>
                                             <label class="form-check-label fw-semibold text-navy" for="renting_brand_active">Activa en la web</label>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
+                                        <label for="renting_brand_alt" class="form-label">Texto alternativo</label>
+                                        <input type="text" id="renting_brand_alt" name="renting_brand_alt" class="form-control form-control-premium" maxlength="180">
+                                        <div class="form-text">Si queda vacío, se utilizará el nombre.</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="renting_brand_url" class="form-label">Enlace opcional</label>
+                                        <input type="text" id="renting_brand_url" name="renting_brand_url" class="form-control form-control-premium" maxlength="500" placeholder="/ruta-interna.php o https://...">
+                                    </div>
+                                    <div class="col-md-6">
                                         <label for="renting_brand_logo" class="form-label">Logo</label>
-                                        <input type="file" id="renting_brand_logo" name="renting_brand_logo" class="form-control form-control-premium" accept="image/*">
-                                        <div class="form-text" id="rentingBrandLogoHelp">Formatos: JPG, PNG, GIF, WEBP, SVG. Fondo transparente recomendado.</div>
+                                        <input type="file" id="renting_brand_logo" name="renting_brand_logo" class="form-control form-control-premium" accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp" required>
+                                        <div class="form-text" id="rentingBrandLogoHelp">Formatos: JPG, PNG, GIF o WEBP. Máx: 12 MB. Obligatorio al crear.</div>
                                         <small class="text-muted d-block mt-1">Recomendado: 400×200 px — PNG con fondo transparente</small>
                                     </div>
                                 </div>
@@ -1022,12 +1031,12 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                             </tr>
                                         <?php else: ?>
                                             <?php foreach ($renting_brands_list as $brand):
-                                                $brandActive = isset($brand['active']) && ($brand['active'] === true || $brand['active'] === 'true' || $brand['active'] == 1);
+                                                $brandActive = $brand['active'];
                                             ?>
                                                 <tr>
                                                     <td>
                                                         <?php if (!empty($brand['image_url'])): ?>
-                                                            <img src="<?php echo esc($brand['image_url']); ?>" alt="Logo" class="img-thumbnail" style="width: 80px; height: 40px; object-fit: contain;">
+                                                            <img src="<?php echo esc($brand['image_url']); ?>" alt="<?php echo esc($brand['alt']); ?>" class="img-thumbnail" style="width: 80px; height: 40px; object-fit: contain;">
                                                         <?php endif; ?>
                                                     </td>
                                                     <td><strong class="text-navy"><?php echo esc($brand['name'] ?? ''); ?></strong></td>
@@ -1045,6 +1054,7 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                                             <form method="POST" action="?tab=renting-marcas" onsubmit="return confirm('¿Eliminar esta marca?');" style="display:inline;">
                                                                 <input type="hidden" name="action" value="delete_renting_brand">
                                                                 <input type="hidden" name="renting_brand_id" value="<?php echo intval($brand['id']); ?>">
+                                                                <?php admin_csrf_field(); ?>
                                                                 <button type="submit" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash3-fill"></i></button>
                                                             </form>
                                                         </div>

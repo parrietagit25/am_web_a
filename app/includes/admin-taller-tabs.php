@@ -1,13 +1,16 @@
 <?php
+require_once __DIR__ . '/../services/AllyService.php';
+
 $taller_service_cards = $taller['service_cards'] ?? [];
 usort($taller_service_cards, function ($a, $b) {
     return intval($a['sort_order'] ?? 999) - intval($b['sort_order'] ?? 999);
 });
 
-$taller_brands_list = $taller['brands'] ?? [];
-usort($taller_brands_list, function ($a, $b) {
-    return intval($a['sort_order'] ?? 999) - intval($b['sort_order'] ?? 999);
-});
+$taller_brands_list = AllyService::normalizeList(
+    is_array($taller['brands'] ?? null) ? $taller['brands'] : [],
+    AllyService::TYPE_TALLER_BRAND,
+    false
+);
 
 $taller_opiniones_list = $taller['opiniones'] ?? [];
 usort($taller_opiniones_list, function ($a, $b) {
@@ -216,13 +219,17 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
         <form method="POST" action="?tab=taller-home" enctype="multipart/form-data" id="tallerBrandForm">
             <input type="hidden" name="action" id="tallerBrandFormAction" value="add_taller_brand">
             <input type="hidden" name="taller_brand_id" id="tallerBrandFormId" value="">
+            <?php admin_csrf_field(); ?>
             <div class="row g-3">
-                <div class="col-md-5"><label for="taller_brand_name" class="form-label">Nombre</label><input type="text" id="taller_brand_name" name="taller_brand_name" class="form-control form-control-premium" required></div>
+                <div class="col-md-5"><label for="taller_brand_name" class="form-label">Nombre</label><input type="text" id="taller_brand_name" name="taller_brand_name" class="form-control form-control-premium" maxlength="180" required></div>
                 <div class="col-md-3"><label for="taller_brand_sort_order" class="form-label">Orden</label><input type="number" id="taller_brand_sort_order" name="taller_brand_sort_order" class="form-control form-control-premium" value="0"></div>
                 <div class="col-md-4 d-flex align-items-end pb-2">
+                    <input type="hidden" name="taller_brand_active" value="0">
                     <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="taller_brand_active" name="taller_brand_active" value="1" checked><label class="form-check-label fw-semibold text-navy" for="taller_brand_active">Activa</label></div>
                 </div>
-                <div class="col-md-6"><label for="taller_brand_logo" class="form-label">Logo</label><input type="file" id="taller_brand_logo" name="taller_brand_logo" class="form-control form-control-premium" accept="image/*"><div class="form-text" id="tallerBrandLogoHelp">Obligatorio al crear.</div><small class="text-muted d-block mt-1">Recomendado: 400×200 px — PNG con fondo transparente</small></div>
+                <div class="col-md-6"><label for="taller_brand_alt" class="form-label">Texto alternativo</label><input type="text" id="taller_brand_alt" name="taller_brand_alt" class="form-control form-control-premium" maxlength="180"><div class="form-text">Si queda vacío, se utilizará el nombre.</div></div>
+                <div class="col-md-6"><label for="taller_brand_url" class="form-label">Enlace opcional</label><input type="text" id="taller_brand_url" name="taller_brand_url" class="form-control form-control-premium" maxlength="500" placeholder="/ruta-interna.php o https://..."></div>
+                <div class="col-md-6"><label for="taller_brand_logo" class="form-label">Logo</label><input type="file" id="taller_brand_logo" name="taller_brand_logo" class="form-control form-control-premium" accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp" required><div class="form-text" id="tallerBrandLogoHelp">JPG, PNG, GIF o WEBP. Máx: 12 MB. Obligatorio al crear.</div><small class="text-muted d-block mt-1">Recomendado: 400×200 px — PNG con fondo transparente</small></div>
             </div>
             <div class="text-end mt-4 d-flex justify-content-end gap-2">
                 <button type="button" class="btn btn-outline-secondary d-none" id="tallerBrandCancelBtn" onclick="resetTallerBrandForm()">Cancelar</button>
@@ -262,9 +269,9 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                 <tbody>
                 <?php if (empty($taller_brands_list)): ?>
                     <tr><td colspan="5" class="text-center py-4 text-muted">No hay marcas registradas.</td></tr>
-                <?php else: foreach ($taller_brands_list as $brand): $active = !isset($brand['active']) || $brand['active'] === true || $brand['active'] === 'true' || $brand['active'] == 1; ?>
+                <?php else: foreach ($taller_brands_list as $brand): $active = $brand['active']; ?>
                     <tr>
-                        <td><?php if (!empty($brand['image_url'])): ?><img src="<?php echo esc($brand['image_url']); ?>" alt="" class="img-thumbnail" style="width:80px;height:40px;object-fit:contain;"><?php endif; ?></td>
+                        <td><?php if (!empty($brand['image_url'])): ?><img src="<?php echo esc($brand['image_url']); ?>" alt="<?php echo esc($brand['alt']); ?>" class="img-thumbnail" style="width:80px;height:40px;object-fit:contain;"><?php endif; ?></td>
                         <td><strong class="text-navy"><?php echo esc($brand['name'] ?? ''); ?></strong></td>
                         <td><span class="badge bg-light text-dark border"><?php echo intval($brand['sort_order'] ?? 0); ?></span></td>
                         <td><?php if ($active): ?><span class="badge bg-success-subtle text-success border border-success-subtle">ACTIVA</span><?php else: ?><span class="badge bg-secondary-subtle text-secondary border">INACTIVA</span><?php endif; ?></td>
@@ -274,6 +281,7 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
                                 <form method="POST" action="?tab=taller-home" onsubmit="return confirm('¿Eliminar esta marca?');" style="display:inline;">
                                     <input type="hidden" name="action" value="delete_taller_brand">
                                     <input type="hidden" name="taller_brand_id" value="<?php echo intval($brand['id']); ?>">
+                                    <?php admin_csrf_field(); ?>
                                     <button type="submit" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash3-fill"></i></button>
                                 </form>
                             </div>

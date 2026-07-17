@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../services/AllyService.php';
+
 /**
  * Acciones POST admin — Taller
  */
@@ -380,39 +382,41 @@ elseif ($action === 'delete_taller_service_card') {
     }
 }
 elseif ($action === 'add_taller_brand') {
-    if (!isset($siteData['taller']['brands'])) {
+    if (!isset($siteData['taller']['brands']) || !is_array($siteData['taller']['brands'])) {
         $siteData['taller']['brands'] = [];
     }
-    $name = trim($_POST['taller_brand_name'] ?? '');
-    $sortOrder = intval($_POST['taller_brand_sort_order'] ?? 0);
-    $active = isset($_POST['taller_brand_active']) && $_POST['taller_brand_active'] == '1';
-    $imageUrl = '';
+    $uploadedPath = false;
     if (isset($_FILES['taller_brand_logo']) && $_FILES['taller_brand_logo']['error'] === UPLOAD_ERR_OK) {
-        $uploadedPath = $contentService->uploadImage($_FILES['taller_brand_logo'], 'taller_brand_');
-        if ($uploadedPath) {
-            $imageUrl = $uploadedPath;
-        }
+        $uploadedPath = $contentService->uploadImage($_FILES['taller_brand_logo'], 'taller_brand_', true);
     }
-    if (!empty($name) && !empty($imageUrl)) {
-        $siteData['taller']['brands'][] = [
-            'id' => time(),
-            'name' => $name,
-            'image_url' => $imageUrl,
-            'sort_order' => $sortOrder,
-            'active' => $active,
-        ];
+    try {
+        if ($uploadedPath === false) {
+            throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF o WEBP de hasta 12 MB.');
+        }
+        $siteData['taller']['brands'][] = AllyService::buildStoredRecord(
+            AllyService::TYPE_TALLER_BRAND,
+            ['id' => time()],
+            [
+                'name' => $_POST['taller_brand_name'] ?? '',
+                'alt' => $_POST['taller_brand_alt'] ?? '',
+                'url' => $_POST['taller_brand_url'] ?? '',
+                'sort_order' => $_POST['taller_brand_sort_order'] ?? 0,
+                'active' => $_POST['taller_brand_active'] ?? '0',
+            ],
+            (string) $uploadedPath
+        );
         if ($contentService->saveAll($siteData)) {
             $successMsg = 'Marca de Taller agregada correctamente.';
         } else {
             $errorMsg = 'Error al guardar la marca.';
         }
-    } else {
-        $errorMsg = 'Nombre y logo de la marca son obligatorios.';
+    } catch (InvalidArgumentException $e) {
+        $errorMsg = $e->getMessage();
     }
 }
 elseif ($action === 'edit_taller_brand') {
     $id = intval($_POST['taller_brand_id'] ?? 0);
-    if (!isset($siteData['taller']['brands'])) {
+    if (!isset($siteData['taller']['brands']) || !is_array($siteData['taller']['brands'])) {
         $siteData['taller']['brands'] = [];
     }
     $foundIdx = -1;
@@ -422,42 +426,59 @@ elseif ($action === 'edit_taller_brand') {
             break;
         }
     }
-    if ($foundIdx !== -1) {
-        $existing = $siteData['taller']['brands'][$foundIdx];
-        $imageUrl = $existing['image_url'] ?? '';
-        if (isset($_FILES['taller_brand_logo']) && $_FILES['taller_brand_logo']['error'] === UPLOAD_ERR_OK) {
-            $uploadedPath = $contentService->uploadImage($_FILES['taller_brand_logo'], 'taller_brand_');
-            if ($uploadedPath) {
-                $imageUrl = $uploadedPath;
-            }
-        }
-        $siteData['taller']['brands'][$foundIdx] = [
-            'id' => $id,
-            'name' => trim($_POST['taller_brand_name'] ?? ''),
-            'image_url' => $imageUrl,
-            'sort_order' => intval($_POST['taller_brand_sort_order'] ?? 0),
-            'active' => isset($_POST['taller_brand_active']) && $_POST['taller_brand_active'] == '1',
-        ];
-        if ($contentService->saveAll($siteData)) {
-            $successMsg = 'Marca de Taller actualizada correctamente.';
-        } else {
-            $errorMsg = 'Error al actualizar la marca.';
-        }
-    } else {
+    if ($id <= 0 || $foundIdx === -1) {
         $errorMsg = 'Marca no encontrada.';
+    } else {
+        $existing = $siteData['taller']['brands'][$foundIdx];
+        $uploadedPath = '';
+        $logoError = (int) ($_FILES['taller_brand_logo']['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($logoError !== UPLOAD_ERR_NO_FILE) {
+            $uploadedPath = $logoError === UPLOAD_ERR_OK
+                ? $contentService->uploadImage($_FILES['taller_brand_logo'], 'taller_brand_', true)
+                : false;
+        }
+        try {
+            if ($uploadedPath === false) {
+                throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF o WEBP de hasta 12 MB.');
+            }
+            $siteData['taller']['brands'][$foundIdx] = AllyService::buildStoredRecord(
+                AllyService::TYPE_TALLER_BRAND,
+                $existing,
+                [
+                    'name' => $_POST['taller_brand_name'] ?? '',
+                    'alt' => $_POST['taller_brand_alt'] ?? '',
+                    'url' => $_POST['taller_brand_url'] ?? '',
+                    'sort_order' => $_POST['taller_brand_sort_order'] ?? 0,
+                    'active' => $_POST['taller_brand_active'] ?? '0',
+                ],
+                (string) $uploadedPath
+            );
+            if ($contentService->saveAll($siteData)) {
+                $successMsg = 'Marca de Taller actualizada correctamente.';
+            } else {
+                $errorMsg = 'Error al actualizar la marca.';
+            }
+        } catch (InvalidArgumentException $e) {
+            $errorMsg = $e->getMessage();
+        }
     }
 }
 elseif ($action === 'delete_taller_brand') {
     $id = intval($_POST['taller_brand_id'] ?? 0);
-    if (!isset($siteData['taller']['brands'])) {
+    if (!isset($siteData['taller']['brands']) || !is_array($siteData['taller']['brands'])) {
         $siteData['taller']['brands'] = [];
     }
-    $siteData['taller']['brands'] = array_values(array_filter($siteData['taller']['brands'], function ($item) use ($id) {
+    $filtered = array_values(array_filter($siteData['taller']['brands'], function ($item) use ($id) {
         return intval($item['id']) !== $id;
     }));
-    if ($contentService->saveAll($siteData)) {
-        $successMsg = 'Marca de Taller eliminada correctamente.';
+    if ($id <= 0 || count($filtered) === count($siteData['taller']['brands'])) {
+        $errorMsg = 'Marca no encontrada.';
     } else {
+        $siteData['taller']['brands'] = $filtered;
+    }
+    if ($errorMsg === '' && $contentService->saveAll($siteData)) {
+        $successMsg = 'Marca de Taller eliminada correctamente.';
+    } elseif ($errorMsg === '') {
         $errorMsg = 'Error al eliminar la marca.';
     }
 }

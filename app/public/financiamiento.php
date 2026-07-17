@@ -5,6 +5,7 @@
 $activeUnit = 'seminuevos';
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../services/ContentService.php';
+require_once __DIR__ . '/../services/AllyService.php';
 
 $contentService = new ContentService();
 $seminuevosData = $contentService->get('seminuevos', []);
@@ -44,7 +45,7 @@ $profiles = $financing['profiles'] ?? [
     ]
 ];
 
-$banks = $financing['banks'] ?? [
+$bankRows = $financing['banks'] ?? [
     ['id' => 1, 'name' => 'Banco General', 'img' => 'https://www.automarket.com.pa/uploads/bancos/bancogeneralaliadofinanciamientoautomarketseminuevos.webp'],
     ['id' => 2, 'name' => 'BAC', 'img' => 'https://www.automarket.com.pa/uploads/bancos/bacaliadofinanciamientoautomarketseminuevos.webp'],
     ['id' => 3, 'name' => 'Multibank', 'img' => 'https://www.automarket.com.pa/uploads/bancos/multibankaliadofinanciamientoautomarketseminuevos.webp'],
@@ -55,6 +56,7 @@ $banks = $financing['banks'] ?? [
     ['id' => 8, 'name' => 'Multi Financiamientos', 'img' => 'https://www.automarket.com.pa/uploads/bancos/multifinanciamientosaliadofinanciamientoautomarketseminuevos.webp'],
     ['id' => 9, 'name' => 'Afiniti Financial', 'img' => 'https://www.automarket.com.pa/uploads/bancos/afinitifinancialaliadofinanciamientoautomarketseminuevos.webp'],
 ];
+$banks = AllyService::normalizeList($bankRows, AllyService::TYPE_SEMI_BANK);
 ?>
 
 <style>
@@ -372,7 +374,13 @@ $banks = $financing['banks'] ?? [
                     foreach ($carouselItems as $b):
                     ?>
                         <div class="bank-partner-card">
-                            <img src="<?php echo esc($b['img']); ?>" alt="<?php echo esc($b['name']); ?>" class="bank-partner-logo img-fluid">
+                            <?php if ($b['url'] !== ''): ?>
+                                <a href="<?php echo esc($b['url']); ?>"<?php echo $b['is_external'] ? ' target="_blank" rel="noopener noreferrer"' : ''; ?> aria-label="<?php echo esc('Visitar ' . $b['name']); ?>">
+                            <?php endif; ?>
+                            <img src="<?php echo esc($b['image_url']); ?>" alt="<?php echo esc($b['alt']); ?>" class="bank-partner-logo img-fluid">
+                            <?php if ($b['url'] !== ''): ?>
+                                </a>
+                            <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 </div>

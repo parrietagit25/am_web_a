@@ -4,6 +4,7 @@
  */
 $activeUnit = 'taller';
 require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../services/AllyService.php';
 
 $taller = $contentService->get('taller', []);
 require_once __DIR__ . '/../services/HeaderBannerService.php';
@@ -28,12 +29,10 @@ $teamImages = array_values(array_filter($teamImages, function ($img) {
     return !empty($img);
 }));
 
-$brands = array_values(array_filter($taller['brands'] ?? [], function ($b) {
-    return ($b['active'] ?? true) !== false;
-}));
-usort($brands, function ($a, $b) {
-    return intval($a['sort_order'] ?? 999) - intval($b['sort_order'] ?? 999);
-});
+$brands = AllyService::normalizeList(
+    is_array($taller['brands'] ?? null) ? $taller['brands'] : [],
+    AllyService::TYPE_TALLER_BRAND
+);
 
 $opiniones = array_values(array_filter($taller['opiniones'] ?? [], function ($o) {
     return ($o['active'] ?? true) !== false;
@@ -128,7 +127,13 @@ require __DIR__ . '/../includes/render-header-banner.php';
         <?php if (!empty($brands)): ?>
             <div class="d-flex flex-wrap justify-content-center align-items-center gap-4">
                 <?php foreach ($brands as $brand): ?>
-                    <img src="<?php echo esc($brand['image_url'] ?? ''); ?>" alt="<?php echo esc($brand['name'] ?? 'Marca'); ?>" class="taller-brand-logo" loading="lazy">
+                    <?php if ($brand['url'] !== ''): ?>
+                        <a href="<?php echo esc($brand['url']); ?>"<?php echo $brand['is_external'] ? ' target="_blank" rel="noopener noreferrer"' : ''; ?> aria-label="<?php echo esc('Visitar ' . $brand['name']); ?>">
+                    <?php endif; ?>
+                    <img src="<?php echo esc($brand['image_url']); ?>" alt="<?php echo esc($brand['alt']); ?>" class="taller-brand-logo" loading="lazy">
+                    <?php if ($brand['url'] !== ''): ?>
+                        </a>
+                    <?php endif; ?>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>

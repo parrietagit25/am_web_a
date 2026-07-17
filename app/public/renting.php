@@ -5,6 +5,7 @@
 $activeUnit = 'renting';
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/renting-posts.php';
+require_once __DIR__ . '/../services/AllyService.php';
 
 $renting = $contentService->get('renting', []);
 require_once __DIR__ . '/../services/HeaderBannerService.php';
@@ -37,12 +38,10 @@ usort($rentingCars, function ($a, $b) {
 });
 
 $rentingPosts = getRentingPosts($contentService);
-$rentingBrands = array_values(array_filter($renting['brands'] ?? [], function ($b) {
-    return ($b['active'] ?? true) !== false;
-}));
-usort($rentingBrands, function ($a, $b) {
-    return intval($a['sort_order'] ?? 999) - intval($b['sort_order'] ?? 999);
-});
+$rentingBrands = AllyService::normalizeList(
+    is_array($renting['brands'] ?? null) ? $renting['brands'] : [],
+    AllyService::TYPE_RENTING_BRAND
+);
 
 require_once __DIR__ . '/../includes/lrt-public-copy.php';
 $rentingOpiniones = array_values(array_filter($renting['opiniones'] ?? [], function ($o) {
@@ -382,7 +381,13 @@ require __DIR__ . '/../includes/render-header-banner.php';
                 $brandItems = array_merge($rentingBrands, $rentingBrands);
                 foreach ($brandItems as $brand):
                 ?>
-                    <img src="<?php echo esc($brand['image_url']); ?>" alt="<?php echo esc($brand['name'] ?? 'Marca'); ?>" class="renting-brand-logo" loading="lazy">
+                    <?php if ($brand['url'] !== ''): ?>
+                        <a href="<?php echo esc($brand['url']); ?>"<?php echo $brand['is_external'] ? ' target="_blank" rel="noopener noreferrer"' : ''; ?> aria-label="<?php echo esc('Visitar ' . $brand['name']); ?>">
+                    <?php endif; ?>
+                    <img src="<?php echo esc($brand['image_url']); ?>" alt="<?php echo esc($brand['alt']); ?>" class="renting-brand-logo" loading="lazy">
+                    <?php if ($brand['url'] !== ''): ?>
+                        </a>
+                    <?php endif; ?>
                 <?php endforeach; ?>
             </div>
         </div>

@@ -57,7 +57,21 @@ function admin_guard_post_action(string $action): bool
         return true;
     }
 
-    if (in_array($action, ['save_unit_menu', 'save_unit_terms_page', 'save_terms'], true)
+    $csrfActions = [
+        'save_unit_menu',
+        'save_unit_terms_page',
+        'save_terms',
+        'add_semi_bank',
+        'edit_semi_bank',
+        'delete_semi_bank',
+        'add_renting_brand',
+        'edit_renting_brand',
+        'delete_renting_brand',
+        'add_taller_brand',
+        'edit_taller_brand',
+        'delete_taller_brand',
+    ];
+    if (in_array($action, $csrfActions, true)
         && !admin_verify_csrf((string) ($_POST['admin_csrf_token'] ?? ''))) {
         return false;
     }

@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../services/AllyService.php';
+
 /**
  * Acciones POST admin — Renting (incluir dentro del bloque de acciones en index.php)
  */
@@ -331,41 +333,43 @@ elseif ($action === 'delete_renting_quote_lead') {
 
 // ADD RENTING BRAND
 elseif ($action === 'add_renting_brand') {
-    if (!isset($siteData['renting']['brands'])) {
+    if (!isset($siteData['renting']['brands']) || !is_array($siteData['renting']['brands'])) {
         $siteData['renting']['brands'] = [];
     }
-    $name = trim($_POST['renting_brand_name'] ?? '');
-    $sort_order = intval($_POST['renting_brand_sort_order'] ?? 0);
-    $active = isset($_POST['renting_brand_active']) && $_POST['renting_brand_active'] == '1';
-    $image_url = '';
+    $uploadedPath = false;
     if (isset($_FILES['renting_brand_logo']) && $_FILES['renting_brand_logo']['error'] === UPLOAD_ERR_OK) {
-        $uploadedPath = $contentService->uploadImage($_FILES['renting_brand_logo'], 'renting_brand_');
-        if ($uploadedPath) {
-            $image_url = $uploadedPath;
-        }
+        $uploadedPath = $contentService->uploadImage($_FILES['renting_brand_logo'], 'renting_brand_', true);
     }
-    if (!empty($name) && !empty($image_url)) {
-        $siteData['renting']['brands'][] = [
-            'id' => time(),
-            'name' => $name,
-            'image_url' => $image_url,
-            'sort_order' => $sort_order,
-            'active' => $active,
-        ];
+    try {
+        if ($uploadedPath === false) {
+            throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF o WEBP de hasta 12 MB.');
+        }
+        $siteData['renting']['brands'][] = AllyService::buildStoredRecord(
+            AllyService::TYPE_RENTING_BRAND,
+            ['id' => time()],
+            [
+                'name' => $_POST['renting_brand_name'] ?? '',
+                'alt' => $_POST['renting_brand_alt'] ?? '',
+                'url' => $_POST['renting_brand_url'] ?? '',
+                'sort_order' => $_POST['renting_brand_sort_order'] ?? 0,
+                'active' => $_POST['renting_brand_active'] ?? '0',
+            ],
+            (string) $uploadedPath
+        );
         if ($contentService->saveAll($siteData)) {
             $successMsg = 'Marca aliada agregada correctamente.';
         } else {
             $errorMsg = 'Error al guardar la marca.';
         }
-    } else {
-        $errorMsg = 'Nombre y logo de la marca son obligatorios.';
+    } catch (InvalidArgumentException $e) {
+        $errorMsg = $e->getMessage();
     }
 }
 
 // EDIT RENTING BRAND
 elseif ($action === 'edit_renting_brand') {
     $id = intval($_POST['renting_brand_id'] ?? 0);
-    if (!isset($siteData['renting']['brands'])) {
+    if (!isset($siteData['renting']['brands']) || !is_array($siteData['renting']['brands'])) {
         $siteData['renting']['brands'] = [];
     }
     $foundIdx = -1;
@@ -375,44 +379,61 @@ elseif ($action === 'edit_renting_brand') {
             break;
         }
     }
-    if ($foundIdx !== -1) {
-        $existing = $siteData['renting']['brands'][$foundIdx];
-        $image_url = $existing['image_url'] ?? '';
-        if (isset($_FILES['renting_brand_logo']) && $_FILES['renting_brand_logo']['error'] === UPLOAD_ERR_OK) {
-            $uploadedPath = $contentService->uploadImage($_FILES['renting_brand_logo'], 'renting_brand_');
-            if ($uploadedPath) {
-                $image_url = $uploadedPath;
-            }
-        }
-        $siteData['renting']['brands'][$foundIdx] = [
-            'id' => $id,
-            'name' => trim($_POST['renting_brand_name'] ?? ''),
-            'image_url' => $image_url,
-            'sort_order' => intval($_POST['renting_brand_sort_order'] ?? 0),
-            'active' => isset($_POST['renting_brand_active']) && $_POST['renting_brand_active'] == '1',
-        ];
-        if ($contentService->saveAll($siteData)) {
-            $successMsg = 'Marca aliada actualizada correctamente.';
-        } else {
-            $errorMsg = 'Error al actualizar la marca.';
-        }
-    } else {
+    if ($id <= 0 || $foundIdx === -1) {
         $errorMsg = 'Marca no encontrada.';
+    } else {
+        $existing = $siteData['renting']['brands'][$foundIdx];
+        $uploadedPath = '';
+        $logoError = (int) ($_FILES['renting_brand_logo']['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($logoError !== UPLOAD_ERR_NO_FILE) {
+            $uploadedPath = $logoError === UPLOAD_ERR_OK
+                ? $contentService->uploadImage($_FILES['renting_brand_logo'], 'renting_brand_', true)
+                : false;
+        }
+        try {
+            if ($uploadedPath === false) {
+                throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF o WEBP de hasta 12 MB.');
+            }
+            $siteData['renting']['brands'][$foundIdx] = AllyService::buildStoredRecord(
+                AllyService::TYPE_RENTING_BRAND,
+                $existing,
+                [
+                    'name' => $_POST['renting_brand_name'] ?? '',
+                    'alt' => $_POST['renting_brand_alt'] ?? '',
+                    'url' => $_POST['renting_brand_url'] ?? '',
+                    'sort_order' => $_POST['renting_brand_sort_order'] ?? 0,
+                    'active' => $_POST['renting_brand_active'] ?? '0',
+                ],
+                (string) $uploadedPath
+            );
+            if ($contentService->saveAll($siteData)) {
+                $successMsg = 'Marca aliada actualizada correctamente.';
+            } else {
+                $errorMsg = 'Error al actualizar la marca.';
+            }
+        } catch (InvalidArgumentException $e) {
+            $errorMsg = $e->getMessage();
+        }
     }
 }
 
 // DELETE RENTING BRAND
 elseif ($action === 'delete_renting_brand') {
     $id = intval($_POST['renting_brand_id'] ?? 0);
-    if (!isset($siteData['renting']['brands'])) {
+    if (!isset($siteData['renting']['brands']) || !is_array($siteData['renting']['brands'])) {
         $siteData['renting']['brands'] = [];
     }
-    $siteData['renting']['brands'] = array_values(array_filter($siteData['renting']['brands'], function ($b) use ($id) {
+    $filtered = array_values(array_filter($siteData['renting']['brands'], function ($b) use ($id) {
         return intval($b['id']) !== $id;
     }));
-    if ($contentService->saveAll($siteData)) {
-        $successMsg = 'Marca aliada eliminada correctamente.';
+    if ($id <= 0 || count($filtered) === count($siteData['renting']['brands'])) {
+        $errorMsg = 'Marca no encontrada.';
     } else {
+        $siteData['renting']['brands'] = $filtered;
+    }
+    if ($errorMsg === '' && $contentService->saveAll($siteData)) {
+        $successMsg = 'Marca aliada eliminada correctamente.';
+    } elseif ($errorMsg === '') {
         $errorMsg = 'Error al eliminar la marca.';
     }
 }

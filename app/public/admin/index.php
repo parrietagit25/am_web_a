@@ -7,6 +7,7 @@ require_once __DIR__ . '/../../services/ContentService.php';
 require_once __DIR__ . '/../../services/Database.php';
 require_once __DIR__ . '/../../services/AdminUserService.php';
 require_once __DIR__ . '/../../services/AdminAuditService.php';
+require_once __DIR__ . '/../../services/AllyService.php';
 require_once __DIR__ . '/../../includes/admin-auth.php';
 
 AdminUserService::ensureSchema();
@@ -1517,43 +1518,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 25. ADD SEMINUEVOS BANK PARTNER
     elseif ($action === 'add_semi_bank') {
-        $name = trim($_POST['bank_name'] ?? '');
-        $img = '';
-
-        if (isset($_FILES['bank_logo']) && $_FILES['bank_logo']['error'] === UPLOAD_ERR_OK) {
-            $uploadedPath = $contentService->uploadImage($_FILES['bank_logo'], 'bank_logo_');
-            if ($uploadedPath) {
-                $img = $uploadedPath;
-            }
+        if (!isset($siteData['seminuevos']['financing']['banks'])
+            || !is_array($siteData['seminuevos']['financing']['banks'])) {
+            $siteData['seminuevos']['financing']['banks'] = [];
         }
-
-        if (!empty($name) && !empty($img)) {
-            if (!isset($siteData['seminuevos']['financing']['banks'])) {
-                $siteData['seminuevos']['financing']['banks'] = [];
+        $uploadedPath = false;
+        if (isset($_FILES['bank_logo']) && ($_FILES['bank_logo']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+            $uploadedPath = $contentService->uploadImage($_FILES['bank_logo'], 'bank_logo_', true);
+        }
+        try {
+            if ($uploadedPath === false) {
+                throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF o WEBP de hasta 12 MB.');
             }
-            $newId = time();
-            $siteData['seminuevos']['financing']['banks'][] = [
-                'id' => $newId,
-                'name' => $name,
-                'img' => $img
-            ];
-
+            $record = AllyService::buildStoredRecord(
+                AllyService::TYPE_SEMI_BANK,
+                ['id' => time()],
+                [
+                    'name' => $_POST['bank_name'] ?? '',
+                    'alt' => $_POST['bank_alt'] ?? '',
+                    'url' => $_POST['bank_url'] ?? '',
+                    'sort_order' => $_POST['bank_sort_order'] ?? 0,
+                    'active' => $_POST['bank_active'] ?? '0',
+                ],
+                (string) $uploadedPath
+            );
+            $siteData['seminuevos']['financing']['banks'][] = $record;
             if ($contentService->saveAll($siteData)) {
                 $successMsg = 'Aliado financiero agregado correctamente.';
             } else {
                 $errorMsg = 'Error al guardar el aliado financiero.';
             }
-        } else {
-            $errorMsg = 'Faltan campos obligatorios para el aliado financiero (Nombre e Imagen).';
+        } catch (InvalidArgumentException $e) {
+            $errorMsg = $e->getMessage();
         }
     }
 
     // 26. EDIT SEMINUEVOS BANK PARTNER
     elseif ($action === 'edit_semi_bank') {
         $id = intval($_POST['bank_id'] ?? 0);
-        $name = trim($_POST['bank_name'] ?? '');
 
-        if (!isset($siteData['seminuevos']['financing']['banks'])) {
+        if (!isset($siteData['seminuevos']['financing']['banks'])
+            || !is_array($siteData['seminuevos']['financing']['banks'])) {
             $siteData['seminuevos']['financing']['banks'] = [];
         }
 
@@ -1565,53 +1570,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        if ($foundIdx !== -1) {
+        if ($id <= 0 || $foundIdx === -1) {
+            $errorMsg = 'Aliado financiero no encontrado.';
+        } else {
             $existing = $siteData['seminuevos']['financing']['banks'][$foundIdx];
-            $img = $existing['img'] ?? '';
-
-            if (isset($_FILES['bank_logo']) && $_FILES['bank_logo']['error'] === UPLOAD_ERR_OK) {
-                $uploadedPath = $contentService->uploadImage($_FILES['bank_logo'], 'bank_logo_');
-                if ($uploadedPath) {
-                    $img = $uploadedPath;
-                }
+            $uploadedPath = '';
+            $logoError = (int) ($_FILES['bank_logo']['error'] ?? UPLOAD_ERR_NO_FILE);
+            if ($logoError !== UPLOAD_ERR_NO_FILE) {
+                $uploadedPath = $logoError === UPLOAD_ERR_OK
+                    ? $contentService->uploadImage($_FILES['bank_logo'], 'bank_logo_', true)
+                    : false;
             }
-
-            if (!empty($name) && !empty($img)) {
-                $siteData['seminuevos']['financing']['banks'][$foundIdx] = [
-                    'id' => $id,
-                    'name' => $name,
-                    'img' => $img
-                ];
-
+            try {
+                if ($uploadedPath === false) {
+                    throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF o WEBP de hasta 12 MB.');
+                }
+                $siteData['seminuevos']['financing']['banks'][$foundIdx] = AllyService::buildStoredRecord(
+                    AllyService::TYPE_SEMI_BANK,
+                    $existing,
+                    [
+                        'name' => $_POST['bank_name'] ?? '',
+                        'alt' => $_POST['bank_alt'] ?? '',
+                        'url' => $_POST['bank_url'] ?? '',
+                        'sort_order' => $_POST['bank_sort_order'] ?? 0,
+                        'active' => $_POST['bank_active'] ?? '0',
+                    ],
+                    (string) $uploadedPath
+                );
                 if ($contentService->saveAll($siteData)) {
                     $successMsg = 'Aliado financiero actualizado correctamente.';
                 } else {
                     $errorMsg = 'Error al actualizar el aliado financiero.';
                 }
-            } else {
-                $errorMsg = 'El nombre y la imagen no pueden estar vacíos.';
+            } catch (InvalidArgumentException $e) {
+                $errorMsg = $e->getMessage();
             }
-        } else {
-            $errorMsg = 'Aliado financiero no encontrado.';
         }
     }
 
     // 27. DELETE SEMINUEVOS BANK PARTNER
     elseif ($action === 'delete_semi_bank') {
         $id = intval($_POST['bank_id'] ?? 0);
-        if (!isset($siteData['seminuevos']['financing']['banks'])) {
+        if (!isset($siteData['seminuevos']['financing']['banks'])
+            || !is_array($siteData['seminuevos']['financing']['banks'])) {
             $siteData['seminuevos']['financing']['banks'] = [];
         }
 
-        $filtered = array_filter($siteData['seminuevos']['financing']['banks'], function($b) use ($id) {
+        $filtered = array_filter($siteData['seminuevos']['financing']['banks'], function ($b) use ($id) {
             return intval($b['id']) !== $id;
         });
-
-        $siteData['seminuevos']['financing']['banks'] = array_values($filtered);
-
-        if ($contentService->saveAll($siteData)) {
-            $successMsg = 'Aliado financiero eliminado correctamente.';
+        if ($id <= 0 || count($filtered) === count($siteData['seminuevos']['financing']['banks'])) {
+            $errorMsg = 'Aliado financiero no encontrado.';
         } else {
+            $siteData['seminuevos']['financing']['banks'] = array_values($filtered);
+        }
+        if ($errorMsg === '' && $contentService->saveAll($siteData)) {
+            $successMsg = 'Aliado financiero eliminado correctamente.';
+        } elseif ($errorMsg === '') {
             $errorMsg = 'Error al eliminar el aliado financiero.';
         }
     }
@@ -3022,6 +3037,11 @@ $renting_brands = $renting['brands'] ?? [];
 $renting_opiniones = $renting['opiniones'] ?? [];
 $taller = $siteData['taller'] ?? [];
 $semi_financing = $seminuevos['financing'] ?? [];
+$semi_banks_list = AllyService::normalizeList(
+    is_array($semi_financing['banks'] ?? null) ? $semi_financing['banks'] : [],
+    AllyService::TYPE_SEMI_BANK,
+    false
+);
 $semi_team = $seminuevos['team'] ?? [];
 $semi_sucursales = $seminuevos['sucursales'] ?? [];
 $semi_contact_messages = $seminuevos['contact_messages'] ?? [];
@@ -5290,16 +5310,39 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                     <form method="POST" action="?tab=semi-financing" enctype="multipart/form-data" id="semiBankForm">
                                         <input type="hidden" name="action" id="semiBankFormAction" value="add_semi_bank">
                                         <input type="hidden" name="bank_id" id="semiBankFormId" value="">
+                                        <?php admin_csrf_field(); ?>
                                         
                                         <div class="mb-3">
                                             <label for="semi_bank_name" class="form-label">Nombre de la Entidad Bancaria</label>
-                                            <input type="text" id="semi_bank_name" name="bank_name" class="form-control form-control-premium" placeholder="Ej: Banco General" required>
+                                            <input type="text" id="semi_bank_name" name="bank_name" class="form-control form-control-premium" maxlength="180" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="semi_bank_alt" class="form-label">Texto alternativo del logo</label>
+                                            <input type="text" id="semi_bank_alt" name="bank_alt" class="form-control form-control-premium" maxlength="180">
+                                            <div class="form-text">Si queda vacío, se utilizará el nombre.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="semi_bank_url" class="form-label">Enlace opcional</label>
+                                            <input type="text" id="semi_bank_url" name="bank_url" class="form-control form-control-premium" maxlength="500" placeholder="/ruta-interna.php o https://...">
+                                        </div>
+                                        <div class="row g-3 mb-3">
+                                            <div class="col-md-6">
+                                                <label for="semi_bank_sort_order" class="form-label">Orden</label>
+                                                <input type="number" id="semi_bank_sort_order" name="bank_sort_order" class="form-control form-control-premium" min="0" value="0">
+                                            </div>
+                                            <div class="col-md-6 d-flex align-items-end pb-2">
+                                                <input type="hidden" name="bank_active" value="0">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="semi_bank_active" name="bank_active" value="1" checked>
+                                                    <label class="form-check-label fw-semibold" for="semi_bank_active">Activo en la web</label>
+                                                </div>
+                                            </div>
                                         </div>
                                         
                                         <div class="mb-3">
                                             <label for="semi_bank_logo" class="form-label">Logo del Banco (.webp recomendado)</label>
-                                            <input type="file" id="semi_bank_logo" name="bank_logo" class="form-control form-control-premium" accept="image/*" required>
-                                            <div class="form-text" id="semiBankLogoHelp">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.</div>
+                                            <input type="file" id="semi_bank_logo" name="bank_logo" class="form-control form-control-premium" accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp" required>
+                                            <div class="form-text" id="semiBankLogoHelp">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 12 MB.</div>
                                             <small class="text-muted d-block mt-1">Recomendado: 400×200 px — PNG con fondo transparente</small>
                                         </div>
                                         
@@ -5325,29 +5368,34 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                                 <tr>
                                                     <th style="width: 80px;">Logo</th>
                                                     <th>Nombre del Banco</th>
+                                                    <th style="width: 70px;">Orden</th>
+                                                    <th style="width: 90px;">Estado</th>
                                                     <th style="width: 120px;" class="text-center">Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php if (empty($semi_financing['banks'] ?? [])): ?>
+                                                <?php if (empty($semi_banks_list)): ?>
                                                     <tr>
-                                                        <td colspan="3" class="text-center py-4 text-muted">No hay aliados financieros configurados.</td>
+                                                        <td colspan="5" class="text-center py-4 text-muted">No hay aliados financieros configurados.</td>
                                                     </tr>
                                                 <?php else: ?>
-                                                    <?php foreach ($semi_financing['banks'] as $bank): ?>
+                                                    <?php foreach ($semi_banks_list as $bank): ?>
                                                         <tr>
                                                             <td>
                                                                 <div class="bg-light p-1 rounded text-center" style="width: 70px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                                                    <img src="<?php echo esc($bank['img']); ?>" alt="<?php echo esc($bank['name']); ?>" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                                                    <img src="<?php echo esc($bank['image_url']); ?>" alt="<?php echo esc($bank['alt']); ?>" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                                                                 </div>
                                                             </td>
                                                             <td><strong><?php echo esc($bank['name']); ?></strong></td>
+                                                            <td><span class="badge bg-light text-dark border"><?php echo intval($bank['sort_order']); ?></span></td>
+                                                            <td><?php if ($bank['active']): ?><span class="badge bg-success-subtle text-success border border-success-subtle">ACTIVO</span><?php else: ?><span class="badge bg-secondary-subtle text-secondary border">INACTIVO</span><?php endif; ?></td>
                                                             <td class="text-center">
                                                                 <div class="d-flex justify-content-center gap-1">
                                                                     <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick='initEditSemiBank(<?php echo json_encode($bank, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'><i class="bi bi-pencil-fill"></i></button>
                                                                     <form method="POST" action="?tab=semi-financing" onsubmit="return confirm('¿Está seguro de eliminar este aliado financiero?');" style="display:inline;">
                                                                         <input type="hidden" name="action" value="delete_semi_bank">
                                                                         <input type="hidden" name="bank_id" value="<?php echo intval($bank['id']); ?>">
+                                                                        <?php admin_csrf_field(); ?>
                                                                         <button type="submit" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash3-fill"></i></button>
                                                                     </form>
                                                                 </div>
@@ -7389,8 +7437,11 @@ function initEditRentingBrand(brand) {
     document.getElementById('rentingBrandFormAction').value = 'edit_renting_brand';
     document.getElementById('rentingBrandFormId').value = brand.id;
     document.getElementById('renting_brand_name').value = brand.name || '';
+    document.getElementById('renting_brand_alt').value = brand.alt || '';
+    document.getElementById('renting_brand_url').value = brand.url || '';
     document.getElementById('renting_brand_sort_order').value = brand.sort_order ?? 0;
     document.getElementById('renting_brand_active').checked = (brand.active === true || brand.active === 'true' || brand.active == 1);
+    document.getElementById('renting_brand_logo').removeAttribute('required');
     if (brand.image_url) {
         document.getElementById('rentingBrandLogoHelp').innerHTML = 'Logo actual: <code>' + brand.image_url + '</code>';
     }
@@ -7407,7 +7458,8 @@ function resetRentingBrandForm() {
     document.getElementById('rentingBrandFormId').value = '';
     document.getElementById('renting_brand_sort_order').value = 0;
     document.getElementById('renting_brand_active').checked = true;
-    document.getElementById('rentingBrandLogoHelp').innerHTML = 'Formatos: JPG, PNG, GIF, WEBP, SVG. Fondo transparente recomendado.';
+    document.getElementById('renting_brand_logo').setAttribute('required', 'required');
+    document.getElementById('rentingBrandLogoHelp').innerHTML = 'Formatos: JPG, PNG, GIF o WEBP. Máx: 12 MB. Obligatorio al crear.';
     document.getElementById('rentingBrandCancelBtn').classList.add('d-none');
     document.getElementById('rentingBrandSubmitBtn').className = 'btn btn-premium d-inline-flex align-items-center gap-2';
     document.getElementById('rentingBrandSubmitText').innerText = 'Agregar marca';
@@ -7506,8 +7558,11 @@ function initEditTallerBrand(brand) {
     document.getElementById('tallerBrandFormAction').value = 'edit_taller_brand';
     document.getElementById('tallerBrandFormId').value = brand.id;
     document.getElementById('taller_brand_name').value = brand.name || '';
+    document.getElementById('taller_brand_alt').value = brand.alt || '';
+    document.getElementById('taller_brand_url').value = brand.url || '';
     document.getElementById('taller_brand_sort_order').value = brand.sort_order ?? 0;
     document.getElementById('taller_brand_active').checked = (brand.active === true || brand.active === 'true' || brand.active == 1);
+    document.getElementById('taller_brand_logo').removeAttribute('required');
     document.getElementById('tallerBrandLogoHelp').innerHTML = 'Deja vacío para conservar el logo actual.';
     document.getElementById('tallerBrandCancelBtn').classList.remove('d-none');
     document.getElementById('tallerBrandSubmitBtn').className = 'btn btn-primary d-inline-flex align-items-center gap-2';
@@ -7522,7 +7577,8 @@ function resetTallerBrandForm() {
     document.getElementById('tallerBrandFormId').value = '';
     document.getElementById('taller_brand_sort_order').value = 0;
     document.getElementById('taller_brand_active').checked = true;
-    document.getElementById('tallerBrandLogoHelp').innerHTML = 'Obligatorio al crear.';
+    document.getElementById('taller_brand_logo').setAttribute('required', 'required');
+    document.getElementById('tallerBrandLogoHelp').innerHTML = 'JPG, PNG, GIF o WEBP. Máx: 12 MB. Obligatorio al crear.';
     document.getElementById('tallerBrandCancelBtn').classList.add('d-none');
     document.getElementById('tallerBrandSubmitBtn').className = 'btn btn-premium d-inline-flex align-items-center gap-2';
     document.getElementById('tallerBrandSubmitText').innerText = 'Agregar marca';
@@ -7643,11 +7699,15 @@ function initEditSemiBank(bank) {
     document.getElementById('semiBankFormAction').value = 'edit_semi_bank';
     document.getElementById('semiBankFormId').value = bank.id;
     document.getElementById('semi_bank_name').value = bank.name || '';
+    document.getElementById('semi_bank_alt').value = bank.alt || '';
+    document.getElementById('semi_bank_url').value = bank.url || '';
+    document.getElementById('semi_bank_sort_order').value = bank.sort_order ?? 0;
+    document.getElementById('semi_bank_active').checked = (bank.active === true || bank.active === 'true' || bank.active == 1);
     
-    if (bank.img) {
-        document.getElementById('semiBankLogoHelp').innerHTML = 'Logo actual: <code>' + bank.img + '</code>';
+    if (bank.image_url) {
+        document.getElementById('semiBankLogoHelp').innerHTML = 'Logo actual: <code>' + bank.image_url + '</code>';
     } else {
-        document.getElementById('semiBankLogoHelp').innerHTML = 'Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.';
+        document.getElementById('semiBankLogoHelp').innerHTML = 'Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 12 MB.';
     }
     
     document.getElementById('semi_bank_logo').removeAttribute('required');
@@ -7666,8 +7726,10 @@ function resetSemiBankForm() {
     document.getElementById('semiBankFormTitle').innerHTML = '<i class="bi bi-plus-circle-fill me-2 text-danger"></i>Agregar Aliado Financiero';
     document.getElementById('semiBankFormAction').value = 'add_semi_bank';
     document.getElementById('semiBankFormId').value = '';
+    document.getElementById('semi_bank_sort_order').value = 0;
+    document.getElementById('semi_bank_active').checked = true;
     
-    document.getElementById('semiBankLogoHelp').innerHTML = 'Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 5MB.';
+    document.getElementById('semiBankLogoHelp').innerHTML = 'Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 12 MB.';
     document.getElementById('semi_bank_logo').setAttribute('required', 'required');
 
     document.getElementById('semiBankCancelBtn').classList.add('d-none');
