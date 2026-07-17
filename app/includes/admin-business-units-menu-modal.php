@@ -25,6 +25,12 @@
                         <input type="text" id="buMenuModalLinkInput" class="form-control form-control-premium" placeholder="Ej: musica.php o /ruta-externa">
                     </div>
                     <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="buMenuModalActive" checked>
+                            <label class="form-check-label fw-semibold" for="buMenuModalActive">Enlace activo</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="buMenuModalHasSubmenu">
                             <label class="form-check-label fw-semibold" for="buMenuModalHasSubmenu">
@@ -70,15 +76,26 @@
             .replace(/"/g, '&quot;');
     }
 
-    function normalizeItem(item) {
+    function boolValue(value) {
+        return value === true || value === 1 || value === '1' || value === 'true';
+    }
+
+    function normalizeItem(item, itemIndex) {
         const submenu = Array.isArray(item?.submenu)
             ? item.submenu
                 .filter((s) => s && String(s.label || '').trim() && String(s.link || '').trim())
-                .map((s) => ({ label: String(s.label).trim(), link: String(s.link).trim() }))
+                .map((s, index) => ({
+                    label: String(s.label).trim(),
+                    link: String(s.link).trim(),
+                    active: !Object.prototype.hasOwnProperty.call(s, 'active') || boolValue(s.active),
+                    sort_order: Number.isInteger(Number(s.sort_order)) ? Number(s.sort_order) : index,
+                }))
             : [];
         return {
             label: String(item?.label || '').trim(),
             link: String(item?.link || '').trim(),
+            active: !Object.prototype.hasOwnProperty.call(item || {}, 'active') || boolValue(item.active),
+            sort_order: Number.isInteger(Number(item?.sort_order)) ? Number(item.sort_order) : itemIndex,
             submenu,
         };
     }
@@ -120,12 +137,16 @@
         if (!container) return;
         container.innerHTML = '';
         (buMenuData[unitKey] || []).forEach((item, i) => {
-            appendHidden(container, 'business_units[' + unitKey + '][menu][' + i + '][label]', item.label);
-            appendHidden(container, 'business_units[' + unitKey + '][menu][' + i + '][link]', item.link);
+            appendHidden(container, 'menu[' + i + '][label]', item.label);
+            appendHidden(container, 'menu[' + i + '][link]', item.link);
+            appendHidden(container, 'menu[' + i + '][active]', item.active ? '1' : '0');
+            appendHidden(container, 'menu[' + i + '][sort_order]', String(i));
             if (item.submenu && item.submenu.length) {
                 item.submenu.forEach((sub, j) => {
-                    appendHidden(container, 'business_units[' + unitKey + '][menu][' + i + '][submenu][' + j + '][label]', sub.label);
-                    appendHidden(container, 'business_units[' + unitKey + '][menu][' + i + '][submenu][' + j + '][link]', sub.link);
+                    appendHidden(container, 'menu[' + i + '][submenu][' + j + '][label]', sub.label);
+                    appendHidden(container, 'menu[' + i + '][submenu][' + j + '][link]', sub.link);
+                    appendHidden(container, 'menu[' + i + '][submenu][' + j + '][active]', sub.active ? '1' : '0');
+                    appendHidden(container, 'menu[' + i + '][submenu][' + j + '][sort_order]', String(j));
                 });
             }
         });
@@ -151,6 +172,9 @@
             const subBadge = subCount
                 ? '<span class="badge bg-secondary-subtle text-secondary border ms-2">' + subCount + ' sub</span>'
                 : '';
+            const inactiveBadge = item.active
+                ? ''
+                : '<span class="badge bg-light text-muted border ms-2">Inactivo</span>';
             const linkPreview = item.link
                 ? '<span class="text-muted small d-block text-truncate">' + escHtml(item.link) + '</span>'
                 : '<span class="text-warning small d-block">Sin URL</span>';
@@ -159,7 +183,7 @@
                 + '<div class="list-group-item bu-menu-item d-flex align-items-center gap-2" data-index="' + index + '">'
                 + '  <span class="bu-menu-handle text-muted" title="Arrastrar"><i class="bi bi-grip-vertical fs-5"></i></span>'
                 + '  <div class="flex-grow-1 min-width-0">'
-                + '    <div class="fw-semibold text-navy">' + escHtml(item.label || '(Sin texto)') + subBadge + '</div>'
+                + '    <div class="fw-semibold text-navy">' + escHtml(item.label || '(Sin texto)') + subBadge + inactiveBadge + '</div>'
                 +      linkPreview
                 + '  </div>'
                 + '  <div class="d-flex gap-1 flex-shrink-0">'
@@ -207,7 +231,10 @@
             + '    <div class="col-md-6">'
             + '      <input type="text" class="form-control form-control-sm bu-submenu-link" placeholder="URL" value="' + escHtml(sub.link) + '">'
             + '    </div>'
-            + '    <div class="col-md-1 d-flex align-items-center">'
+            + '    <div class="col-md-1 d-flex align-items-center justify-content-center">'
+            + '      <input type="checkbox" class="form-check-input bu-submenu-active" title="Activo"' + (sub.active ? ' checked' : '') + '>'
+            + '    </div>'
+            + '    <div class="col-md-12 d-flex justify-content-end">'
             + '      <button type="button" class="btn btn-sm btn-outline-danger bu-submenu-remove-btn" title="Quitar"><i class="bi bi-x-lg"></i></button>'
             + '    </div>'
             + '  </div>'
@@ -221,7 +248,12 @@
             const label = row.querySelector('.bu-submenu-label')?.value.trim() || '';
             const link = row.querySelector('.bu-submenu-link')?.value.trim() || '';
             if (label && link) {
-                items.push({ label, link });
+                items.push({
+                    label,
+                    link,
+                    active: !!row.querySelector('.bu-submenu-active')?.checked,
+                    sort_order: items.length,
+                });
             }
         });
         return items;
@@ -262,6 +294,7 @@
         const item = index >= 0 ? buMenuData[unitKey][index] : { label: '', link: '', submenu: [] };
         document.getElementById('buMenuModalLabelInput').value = item.label || '';
         document.getElementById('buMenuModalLinkInput').value = item.link || '';
+        document.getElementById('buMenuModalActive').checked = !Object.prototype.hasOwnProperty.call(item, 'active') || !!item.active;
         const hasSub = !!(item.submenu && item.submenu.length);
         document.getElementById('buMenuModalHasSubmenu').checked = hasSub;
         toggleSubmenuSection(hasSub);
@@ -271,42 +304,6 @@
             modalInstance = new bootstrap.Modal(document.getElementById('buMenuItemModal'));
         }
         modalInstance.show();
-    }
-
-    function isCustomUnit(unitKey) {
-        const el = document.querySelector('.bu-unit-item[data-unit-key="' + unitKey + '"]');
-        return !!(el && el.getAttribute('data-is-custom') === '1');
-    }
-
-    function slugifyPage(label) {
-        return String(label || '')
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '');
-    }
-
-    function suggestCustomUnitLink(unitKey, label, link) {
-        if (!isCustomUnit(unitKey)) {
-            return link || '';
-        }
-        const trimmed = String(link || '').trim();
-        if (/^https?:\/\//i.test(trimmed)) {
-            return trimmed;
-        }
-        if (/unidad\.php/i.test(trimmed) && /[?&]p=/i.test(trimmed)) {
-            return trimmed;
-        }
-        if (/^([a-z0-9_-]+)\.php$/i.test(trimmed)) {
-            const slug = trimmed.replace(/\.php$/i, '').toLowerCase();
-            return 'unidad.php?u=' + encodeURIComponent(unitKey) + '&p=' + encodeURIComponent(slug);
-        }
-        const slug = slugifyPage(label);
-        if (!slug) {
-            return trimmed;
-        }
-        return 'unidad.php?u=' + encodeURIComponent(unitKey) + '&p=' + encodeURIComponent(slug);
     }
 
     function saveModal() {
@@ -333,12 +330,13 @@
             return;
         }
 
-        let resolvedLink = finalLink;
-        if (!hasSubmenu) {
-            resolvedLink = suggestCustomUnitLink(unitKey, label, finalLink);
-        }
-
-        const newItem = { label, link: resolvedLink, submenu };
+        const newItem = {
+            label,
+            link: finalLink,
+            active: document.getElementById('buMenuModalActive').checked,
+            sort_order: index >= 0 ? index : (buMenuData[unitKey] || []).length,
+            submenu,
+        };
         if (!buMenuData[unitKey]) {
             buMenuData[unitKey] = [];
         }
@@ -379,7 +377,7 @@
         if (this.checked) {
             const list = document.getElementById('buMenuSubmenuList');
             if (list && !list.querySelector('.bu-submenu-row')) {
-                renderSubmenuList([{ label: '', link: '' }]);
+                renderSubmenuList([{ label: '', link: '', active: true, sort_order: 0 }]);
             }
         }
     });
@@ -387,7 +385,7 @@
     document.getElementById('buMenuAddSubmenuBtn')?.addEventListener('click', function () {
         const list = document.getElementById('buMenuSubmenuList');
         const current = readSubmenuFromModal();
-        current.push({ label: '', link: '' });
+        current.push({ label: '', link: '', active: true, sort_order: current.length });
         renderSubmenuList(current);
     });
 
@@ -407,15 +405,11 @@
 
     document.getElementById('buMenuModalSaveBtn')?.addEventListener('click', saveModal);
 
-    const globalForm = document.querySelector('#tab-global form');
-    if (globalForm) {
-        globalForm.addEventListener('submit', function () {
-            document.querySelectorAll('#buUnitModal input, #buMenuItemModal input').forEach(function (el) {
-                el.disabled = true;
-            });
-            syncAllHiddenFields();
+    document.querySelectorAll('.bu-menu-form').forEach(function (form) {
+        form.addEventListener('submit', function () {
+            syncHiddenFields(form.getAttribute('data-unit'));
         });
-    }
+    });
 
     initData();
     renderAllLists();

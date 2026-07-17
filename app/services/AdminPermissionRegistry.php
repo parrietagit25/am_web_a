@@ -165,6 +165,12 @@ class AdminPermissionRegistry
                 'leasing' => 'leasing_home',
             ][$aboutUnit] ?? 'global';
         }
+        if ($action === 'save_unit_menu') {
+            require_once __DIR__ . '/UnitContentService.php';
+            $menuUnit = trim((string) ($_POST['menu_unit'] ?? ''));
+
+            return UnitContentService::contentPermissionKey($menuUnit);
+        }
 
         static $exact = null;
         if ($exact === null) {

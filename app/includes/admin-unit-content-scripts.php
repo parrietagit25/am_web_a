@@ -1,3 +1,4 @@
+<?php require __DIR__ . '/admin-business-units-menu-modal.php'; ?>
 <script>
 function toggleUnitContentHomeMode(unitDom) {
     const mode = document.getElementById('uc-' + unitDom + '-home_display_mode');

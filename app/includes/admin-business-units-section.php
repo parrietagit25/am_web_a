@@ -24,5 +24,4 @@ $businessUnitsOrder = array_keys($businessUnitsForAdmin);
     <?php endforeach; ?>
 </div>
 
-<?php require __DIR__ . '/admin-business-units-menu-modal.php'; ?>
 <?php require __DIR__ . '/admin-business-units-unit-modal.php'; ?>

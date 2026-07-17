@@ -66,8 +66,6 @@ $collapseId = 'collapse-' . preg_replace('/[^a-z0-9_-]/i', '-', $key);
                     <label class="form-label">Subtítulo Hero Principal</label>
                     <input type="text" name="business_units[<?php echo esc($key); ?>][heroSubtitle]" class="form-control form-control-premium bg-white" value="<?php echo esc($unit['heroSubtitle'] ?? ''); ?>">
                 </div>
-
-                <?php require __DIR__ . '/admin-business-units-menu-list.php'; ?>
             </div>
         </div>
     </div>

@@ -5,6 +5,7 @@
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/ContentService.php';
 require_once __DIR__ . '/../services/SeoService.php';
+require_once __DIR__ . '/../services/UnitMenuService.php';
 
 $contentService = new ContentService();
 $siteGlobal = $contentService->get('global');
@@ -302,7 +303,10 @@ $themeRgb = "$r, $g, $b";
             <div class="collapse navbar-collapse justify-content-end" id="dynamicNavbar">
                 <ul class="navbar-nav mb-2 mb-lg-0 gap-1 gap-lg-3 py-3 py-lg-0 align-items-lg-center">
                     <?php
-                    $unitNavMenu = unit_content_inject_nav_menu($currentUnit['menu'] ?? [], $activeUnit ?? 'rentacar');
+                    $unitNavMenu = UnitMenuService::resolve($currentUnit);
+                    if ($unitNavMenu !== []) {
+                        $unitNavMenu = unit_content_inject_nav_menu($unitNavMenu, $activeUnit ?? 'rentacar');
+                    }
                     foreach ($unitNavMenu as $item):
                         $link = $item['link'];
                         if (str_starts_with($link, '#')) {

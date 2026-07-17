@@ -172,7 +172,6 @@ require_once __DIR__ . '/business-units-registry.php';
             + '      <div class="col-md-4"><label class="form-label">Color de Tema</label><div class="d-flex gap-2"><input type="color" name="business_units[' + escHtml(key) + '][color]" class="form-control form-control-color bu-unit-color-input" value="' + escHtml(color) + '" style="height:43px;width:60px;"><input type="text" class="form-control form-control-premium bg-white flex-grow-1 bu-unit-color-text" value="' + escHtml(color) + '" readonly></div></div>'
             + '      <div class="col-md-6"><label class="form-label">Título Hero Principal</label><input type="text" name="business_units[' + escHtml(key) + '][heroTitle]" class="form-control form-control-premium bg-white" value="' + escHtml(heroTitle) + '"></div>'
             + '      <div class="col-md-6"><label class="form-label">Subtítulo Hero Principal</label><input type="text" name="business_units[' + escHtml(key) + '][heroSubtitle]" class="form-control form-control-premium bg-white" value="' + escHtml(heroSubtitle) + '"></div>'
-            + '      <div class="col-12 mt-4"><div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3"><h6 class="fw-bold mb-0 text-navy-light"><i class="bi bi-link-45deg me-1"></i>Enlaces del Menú Secundario</h6><button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 bu-menu-add-btn" data-unit="' + escHtml(key) + '"><i class="bi bi-plus-lg me-1"></i>Agregar enlace</button></div><p class="text-muted small mb-2">Arrastra para cambiar el orden. Usa editar para agregar submenús.</p><div class="bu-menu-sortable list-group mb-2" data-unit="' + escHtml(key) + '"></div><div class="bu-menu-fields" data-unit="' + escHtml(key) + '" aria-hidden="true"></div></div>'
             + '    </div></div></div></div>';
     }
 
@@ -239,10 +238,6 @@ require_once __DIR__ . '/business-units-registry.php';
         accordion.appendChild(panel);
         bindUnitPanel(panel);
 
-        if (window.BuMenuManager) {
-            window.BuMenuManager.registerUnit(key, []);
-        }
-
         const order = getOrder();
         order.push(key);
         setOrder(order);
@@ -280,9 +275,6 @@ require_once __DIR__ . '/business-units-registry.php';
         if (!item || item.getAttribute('data-is-custom') !== '1') return;
         if (!confirm('¿Eliminar esta unidad de negocio? Se quitará al guardar los cambios globales.')) return;
         item.remove();
-        if (window.BuMenuManager) {
-            window.BuMenuManager.removeUnit(key);
-        }
         syncOrderFromDom();
     });
 

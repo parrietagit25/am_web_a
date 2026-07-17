@@ -5,6 +5,7 @@
 require_once __DIR__ . '/../services/UnitContentService.php';
 require_once __DIR__ . '/../services/HeaderBannerService.php';
 require_once __DIR__ . '/../services/UnitAboutService.php';
+require_once __DIR__ . '/../services/UnitMenuService.php';
 
 function unit_content_validate_unit(array $siteData, string $unitKey): bool
 {
@@ -179,6 +180,20 @@ function unit_content_handle_post(
     $handled = true;
 
     switch ($action) {
+        case 'save_unit_menu':
+            $unitKey = strtolower(trim((string) ($_POST['menu_unit'] ?? '')));
+            $menuError = UnitMenuService::apply($siteData, $unitKey, $_POST);
+            if ($menuError !== null) {
+                $errorMsg = $menuError;
+                break;
+            }
+            if ($contentService->saveAll($siteData)) {
+                $successMsg = 'Menú de la unidad guardado correctamente.';
+            } else {
+                $errorMsg = 'Error al guardar el menú de la unidad.';
+            }
+            break;
+
         case 'save_unit_about_page':
             $unitKey = trim((string) ($_POST['about_unit'] ?? ''));
             if (!unit_content_validate_unit($siteData, $unitKey)

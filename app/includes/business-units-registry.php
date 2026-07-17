@@ -63,6 +63,8 @@ function am_normalize_custom_business_unit(string $key, array $unit): array
         'logo_subtitle' => trim((string) ($unit['logo_subtitle'] ?? $label)) ?: $label,
         'nav_logo_url' => trim((string) ($unit['nav_logo_url'] ?? '')),
         'menu' => is_array($unit['menu'] ?? null) ? $unit['menu'] : [],
+        'menu_published' => !array_key_exists('menu_published', $unit)
+            || filter_var($unit['menu_published'], FILTER_VALIDATE_BOOLEAN),
         'activeClass' => trim((string) ($unit['activeClass'] ?? ('active-' . $key))),
         'heroTitle' => trim((string) ($unit['heroTitle'] ?? '')),
         'heroSubtitle' => trim((string) ($unit['heroSubtitle'] ?? '')),
@@ -108,6 +110,10 @@ function am_sort_business_units(array $units): array
  */
 function am_ensure_builtin_menu_essentials(array $unit, string $unitKey): array
 {
+    if (array_key_exists('menu_published', $unit)) {
+        return $unit;
+    }
+
     static $essentials = [
         'seminuevos' => ['label' => 'SUCURSALES', 'link' => '/seminuevos-sucursales.php'],
     ];

@@ -255,6 +255,15 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
     <?php if (in_array($ucUnitKey, ['rentacar', 'seminuevos', 'leasing'], true) || UnitContentService::isCustomUnit($ucUnitKey)): ?>
         <?php require __DIR__ . '/admin-unit-about-section.php'; ?>
     <?php endif; ?>
+    <?php
+    require_once __DIR__ . '/business-units-registry.php';
+    $ucBusinessUnits = am_merge_business_units($siteData['global']['business_units'] ?? []);
+    $key = $ucUnitKey;
+    $unit = $ucBusinessUnits[$ucUnitKey];
+    $buMenuTab = $ucConfigTab;
+    require __DIR__ . '/admin-business-units-menu-list.php';
+    unset($ucBusinessUnits, $key, $unit, $buMenuTab);
+    ?>
 </div>
 
 <?php

@@ -28,10 +28,38 @@ function admin_current_username(): string
     return $user['display_name'] ?? $user['username'] ?? 'admin';
 }
 
+function admin_csrf_token(): string
+{
+    if (empty($_SESSION['admin_csrf_token']) || !is_string($_SESSION['admin_csrf_token'])) {
+        $_SESSION['admin_csrf_token'] = bin2hex(random_bytes(32));
+    }
+
+    return $_SESSION['admin_csrf_token'];
+}
+
+function admin_csrf_field(): void
+{
+    echo '<input type="hidden" name="admin_csrf_token" value="'
+        . esc(admin_csrf_token())
+        . '">';
+}
+
+function admin_verify_csrf(string $token): bool
+{
+    $expected = $_SESSION['admin_csrf_token'] ?? '';
+
+    return is_string($expected) && $expected !== '' && hash_equals($expected, $token);
+}
+
 function admin_guard_post_action(string $action): bool
 {
     if ($action === '') {
         return true;
+    }
+
+    if ($action === 'save_unit_menu'
+        && !admin_verify_csrf((string) ($_POST['admin_csrf_token'] ?? ''))) {
+        return false;
     }
 
     $unitContentActions = [
