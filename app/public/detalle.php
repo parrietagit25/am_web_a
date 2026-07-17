@@ -137,8 +137,14 @@ if (!empty($vehicle['foto_impel'])) {
 
 $spinPlaca = strtolower($vehicle['LicensePlate']);
 $spinUrl = "https://spins.impel.io/automarketpanama/" . urlencode($spinPlaca);
-$inventoryHighlightAssignments = InventoryHighlightService::getAssignments($contentService->get('seminuevos', []));
-$vehicleHighlightBadge = InventoryHighlightService::resolveBadge($vehicle, $inventoryHighlightAssignments);
+$seminuevosHighlightData = $contentService->get('seminuevos', []);
+$inventoryHighlightAssignments = InventoryHighlightService::getAssignments($seminuevosHighlightData);
+$inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevosHighlightData);
+$vehicleHighlightBadge = InventoryHighlightService::resolveBadge(
+    $vehicle,
+    $inventoryHighlightAssignments,
+    $inventoryHighlightMetadata
+);
 ?>
 
 <style>
@@ -254,6 +260,11 @@ $vehicleHighlightBadge = InventoryHighlightService::resolveBadge($vehicle, $inve
 .inv-highlight--pocas { background: linear-gradient(135deg, #c2410c, #ea580c, #fb923c); }
 .inv-highlight--oferta { background: linear-gradient(135deg, #be123c, #e11d48, #f43f5e); }
 .inv-highlight--destacado { background: linear-gradient(135deg, #7c3aed, #8b5cf6, #a78bfa); }
+.inv-highlight--promo { background: #9f1239; }
+.inv-highlight--featured { background: #4c1d95; }
+.inv-highlight--recommended { background: #166534; }
+.inv-highlight--popular { background: #713f12; }
+.inv-highlight--custom { background: #1f2937; }
 </style>
 
 <!-- Navigation Header -->

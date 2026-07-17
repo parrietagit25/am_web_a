@@ -21,6 +21,9 @@ class RacPublicRateService
     private BarsRateCacheService $cacheService;
     private RacRateRuleService $ruleService;
 
+    /** @var array<string, array<int, array{enabled: bool, type: string, text: string}|null>> */
+    private array $visualBadgeCache = [];
+
     public function __construct()
     {
         RacBarsDatabaseSchema::ensure();
@@ -406,7 +409,10 @@ class RacPublicRateService
         $counterTotal = round($finalTotal * self::COUNTER_MARKUP, 2);
 
         $appliedRules = $calculatedRate['applied_rules'] ?? json_decode((string) ($calculatedRate['applied_rules_json'] ?? '[]'), true);
-        $promotionLabel = $this->resolvePromotionLabel(is_array($appliedRules) ? $appliedRules : []);
+        $promotionBadge = $this->resolvePromotionBadge(
+            is_array($appliedRules) ? $appliedRules : [],
+            (string) ($calculatedRate['pickup_datetime'] ?? '')
+        );
         $category = $this->inferCategory($name, $code);
 
         $payload = [
@@ -445,8 +451,9 @@ class RacPublicRateService
             '_isFallback' => false,
         ];
 
-        if ($promotionLabel !== '') {
-            $payload['promotionLabel'] = $promotionLabel;
+        if ($promotionBadge !== null) {
+            $payload['promotionBadge'] = $promotionBadge;
+            $payload['promotionLabel'] = $promotionBadge['text'];
         }
 
         return $payload;
@@ -554,24 +561,64 @@ class RacPublicRateService
 
     /**
      * @param list<array<string, mixed>> $rules
+     * @param array<int, array{enabled: bool, type: string, text: string}> $visualRules
+     * @return array{text: string, type: string}|null
      */
-    private function resolvePromotionLabel(array $rules): string
+    public static function resolvePromotionBadgeFromRules(array $rules, array $visualRules): ?array
     {
         foreach ($rules as $rule) {
-            $type = (string) ($rule['rule_type'] ?? $rule['adjustment_type'] ?? '');
-            $name = trim((string) ($rule['name'] ?? ''));
-            if ($name === '') {
+            $ruleId = (int) ($rule['rule_id'] ?? 0);
+            $badge = $visualRules[$ruleId] ?? null;
+            if (!is_array($badge) || empty($badge['enabled'])) {
                 continue;
             }
-            if (in_array($type, ['seasonal', 'promotion', 'percent_discount'], true)
-                || stripos($name, 'descuento') !== false
-                || stripos($name, 'verano') !== false
-                || stripos($name, 'promo') !== false) {
-                return $name;
+            $type = (string) ($badge['type'] ?? '');
+            $text = trim((string) ($badge['text'] ?? ''));
+            if ($text === '' || !in_array($type, RacRateRuleService::BADGE_TYPES, true)) {
+                continue;
+            }
+
+            return ['text' => $text, 'type' => $type];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rules
+     * @return array{text: string, type: string}|null
+     */
+    private function resolvePromotionBadge(array $rules, string $pickupDateTime): ?array
+    {
+        $ruleIds = array_values(array_unique(array_filter(
+            array_map(static fn (array $rule): int => (int) ($rule['rule_id'] ?? 0), $rules),
+            static fn (int $ruleId): bool => $ruleId > 0
+        )));
+        if ($ruleIds === []) {
+            return null;
+        }
+
+        $dateKey = substr($pickupDateTime, 0, 10);
+        if (!isset($this->visualBadgeCache[$dateKey])) {
+            $this->visualBadgeCache[$dateKey] = [];
+        }
+        $missing = array_values(array_filter(
+            $ruleIds,
+            fn (int $ruleId): bool => !array_key_exists($ruleId, $this->visualBadgeCache[$dateKey])
+        ));
+        if ($missing !== []) {
+            $loaded = $this->ruleService->getVisualBadgeMap($missing, $pickupDateTime);
+            foreach ($missing as $ruleId) {
+                $this->visualBadgeCache[$dateKey][$ruleId] = $loaded[$ruleId] ?? null;
             }
         }
 
-        return '';
+        $visualRules = array_filter(
+            $this->visualBadgeCache[$dateKey],
+            static fn ($badge): bool => is_array($badge)
+        );
+
+        return self::resolvePromotionBadgeFromRules($rules, $visualRules);
     }
 
     private function inferCategory(string $name, string $code): string

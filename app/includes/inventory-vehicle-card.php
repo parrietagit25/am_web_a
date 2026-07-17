@@ -4,6 +4,7 @@
  *
  * @var array<string, mixed> $vehicle
  * @var array<string, string> $inventoryHighlightAssignments
+ * @var array<string, array{enabled: bool, text: string}> $inventoryHighlightMetadata
  */
 require_once __DIR__ . '/../services/InventoryHighlightService.php';
 if (!class_exists('VehicleSlugHelper')) {
@@ -19,7 +20,11 @@ $fullName = trim(($vehicle['Make'] ?? '') . ' ' . ($vehicle['Model'] ?? ''));
 $priceVal = (float) ($vehicle['Price'] ?? 0);
 $tipoCompra = !empty($vehicle['tipo_compra']) ? $vehicle['tipo_compra'] : 'Seminuevo';
 $transmission = !empty($vehicle['Transmission']) ? $vehicle['Transmission'] : 'AUTOMATICO';
-$highlightBadge = InventoryHighlightService::resolveBadge($vehicle, $inventoryHighlightAssignments ?? []);
+$highlightBadge = InventoryHighlightService::resolveBadge(
+    $vehicle,
+    $inventoryHighlightAssignments ?? [],
+    $inventoryHighlightMetadata ?? []
+);
 
 $badgeBgColor = '#1f347f';
 if ($tipoCompra === 'GARANTIZADOS') {

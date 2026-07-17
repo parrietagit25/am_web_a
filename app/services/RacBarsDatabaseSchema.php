@@ -152,6 +152,9 @@ class RacBarsDatabaseSchema
             return_location VARCHAR(20) NULL,
             rate_qualifier VARCHAR(32) NULL,
             applies_to VARCHAR(32) NOT NULL DEFAULT 'all',
+            badge_enabled TINYINT(1) NOT NULL DEFAULT 0,
+            badge_text VARCHAR(60) NULL,
+            badge_type VARCHAR(20) NOT NULL DEFAULT 'promo',
             created_by INT UNSIGNED NULL,
             updated_by INT UNSIGNED NULL,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -212,6 +215,8 @@ class RacBarsDatabaseSchema
             KEY idx_rule_id (rule_id),
             KEY idx_created_at (created_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        self::ensureRateRuleBadgeColumns($db);
 
         $db->execute("CREATE TABLE IF NOT EXISTS rac_rate_quotes (
             id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -366,6 +371,9 @@ class RacBarsDatabaseSchema
             return_location TEXT,
             rate_qualifier TEXT,
             applies_to TEXT NOT NULL DEFAULT 'all',
+            badge_enabled INTEGER NOT NULL DEFAULT 0,
+            badge_text TEXT,
+            badge_type TEXT NOT NULL DEFAULT 'promo',
             created_by INTEGER,
             updated_by INTEGER,
             created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -424,6 +432,8 @@ class RacBarsDatabaseSchema
             created_at TEXT NOT NULL DEFAULT (datetime('now'))
         )");
 
+        self::ensureRateRuleBadgeColumns($db);
+
         $db->execute("CREATE TABLE IF NOT EXISTS rac_rate_quotes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             quote_token TEXT NOT NULL UNIQUE,
@@ -455,5 +465,52 @@ class RacBarsDatabaseSchema
             user_agent_hash TEXT
         )");
         $db->execute("CREATE INDEX IF NOT EXISTS idx_rac_rate_quotes_status ON rac_rate_quotes (status, expires_at)");
+    }
+
+    private static function ensureRateRuleBadgeColumns(Database $db): void
+    {
+        $definitions = $db->getDriverName() === 'mysql'
+            ? [
+                'badge_enabled' => 'TINYINT(1) NOT NULL DEFAULT 0',
+                'badge_text' => 'VARCHAR(60) NULL',
+                'badge_type' => "VARCHAR(20) NOT NULL DEFAULT 'promo'",
+            ]
+            : [
+                'badge_enabled' => 'INTEGER NOT NULL DEFAULT 0',
+                'badge_text' => 'TEXT',
+                'badge_type' => "TEXT NOT NULL DEFAULT 'promo'",
+            ];
+
+        if ($db->getDriverName() === 'mysql') {
+            foreach ($definitions as $column => $definition) {
+                $exists = $db->selectOne(
+                    "SELECT 1 AS found
+                     FROM information_schema.COLUMNS
+                     WHERE TABLE_SCHEMA = DATABASE()
+                       AND TABLE_NAME = 'rac_rate_rules'
+                       AND COLUMN_NAME = :column
+                     LIMIT 1",
+                    [':column' => $column]
+                );
+                if (!$exists) {
+                    $db->execute("ALTER TABLE rac_rate_rules ADD COLUMN {$column} {$definition}");
+                }
+            }
+
+            return;
+        }
+
+        $existingColumns = [];
+        foreach ($db->select('PRAGMA table_info(rac_rate_rules)') as $columnInfo) {
+            $name = (string) ($columnInfo['name'] ?? '');
+            if ($name !== '') {
+                $existingColumns[$name] = true;
+            }
+        }
+        foreach ($definitions as $column => $definition) {
+            if (!isset($existingColumns[$column])) {
+                $db->execute("ALTER TABLE rac_rate_rules ADD COLUMN {$column} {$definition}");
+            }
+        }
     }
 }

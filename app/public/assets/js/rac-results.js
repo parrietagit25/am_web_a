@@ -3,6 +3,22 @@
  */
 (function () {
     const CATEGORY_ORDER = ['económico', 'economico', 'compacto', 'intermedio', 'estándar', 'estandar', 'full size', 'suv', 'premium', 'lujo', 'van', 'pick'];
+    const PROMOTION_BADGE_CLASSES = {
+        promo: 'bg-danger',
+        featured: 'bg-primary',
+        recommended: 'bg-success',
+        popular: 'bg-warning text-dark',
+        custom: 'bg-dark'
+    };
+
+    function escapeHtml(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
 
     function calcDays(pickup, ret) {
         if (!pickup || !ret) return 1;
@@ -118,10 +134,19 @@
             ? `<img src="${vehicle.image}" class="img-fluid vehicle-image-card" alt="" style="max-height:140px;object-fit:contain">`
             : `<div class="py-4"><i class="bi bi-car-front text-muted opacity-25" style="font-size:5rem"></i></div>`;
 
+        const promotionBadge = vehicle.promotionBadge && typeof vehicle.promotionBadge === 'object'
+            ? vehicle.promotionBadge
+            : null;
+        const promotionText = promotionBadge && promotionBadge.text
+            ? promotionBadge.text
+            : (vehicle.promotionLabel || '');
+        const promotionType = promotionBadge && PROMOTION_BADGE_CLASSES[promotionBadge.type]
+            ? promotionBadge.type
+            : 'promo';
         const badge = isFallback
             ? `<span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">Precio aproximado</span>`
-            : (vehicle.promotionLabel
-                ? `<span class="badge bg-success position-absolute top-0 end-0 m-2">${vehicle.promotionLabel}</span>`
+            : (promotionText
+                ? `<span class="badge ${PROMOTION_BADGE_CLASSES[promotionType]} position-absolute top-0 end-0 m-2">${escapeHtml(promotionText)}</span>`
                 : '');
 
         return `

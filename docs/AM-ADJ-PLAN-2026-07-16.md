@@ -76,7 +76,7 @@ Existen `PowertranzClient`, `PowertranzPaymentService`, `PowertranzSanitizer`, `
 |----|---------------|--------|-------------|--------|
 | R1 | Colores hero título/subtítulo | **Completado (AM-ADJ-02)** | Media | AM-ADJ-02 |
 | R2 | Banners (enable, imagen, texto, link) | **Completado (AM-ADJ-03)** | Media | AM-ADJ-03 |
-| R3 | Etiquetas Promo / Más buscado / custom / vigencia | Existe parcialmente | Media–Alta | AM-ADJ-04 |
+| R3 | Etiquetas Promo / Más buscado / custom / vigencia | **Completado (AM-ADJ-04)** | Media–Alta | AM-ADJ-04 |
 | R4 | WhatsApp contextual | Existe parcialmente | Baja–Media | AM-ADJ-05 |
 | R5 | Sobre Nosotros por unidad | Existe parcialmente | Media | AM-ADJ-06 |
 | R6 | Menús por unidad | Ya existe (nav); footer global | Baja / Alta* | AM-ADJ-07 |
@@ -131,17 +131,19 @@ Existen `PowertranzClient`, `PowertranzPaymentService`, `PowertranzSanitizer`, `
 
 ### R3 — Etiquetas visibles
 
-1. **Estado:** Existe parcialmente / requiere ajuste.  
-2. **Evidencia:** `InventoryHighlightService` catálogo fijo: `nuevo`, `ultimas_unidades`, `pocas_unidades`, `oferta`, `destacado`. JSON `seminuevos.inventory_highlights.assignments`. Admin `?tab=semi-inventory`. RAC: `RacPublicRateService::resolvePromotionLabel` (regla tarifa, no CMS). Sin «Promo», «Más buscado», custom libre, vigencia.  
-3. **Comportamiento:** Una etiqueta predefinida por VIN Seminuevos.  
-4. **Cambio mínimo:** Extender catálogo + CSS; opcional `custom_label` + fechas vigencia.  
-5. **Conservar:** Assignments existentes y reconcile post-sync.  
-6. **Dependencias:** Definición Mercadeo (¿etiqueta ≠ descuento?).  
-7. **Riesgos:** Confundir badge visual con regla BARS.  
-8. **Aceptación:** Mostrar Promo/Más buscado/custom; ocultar si vencida.  
-9. **Pruebas:** inventario/detalle; sync VIN.  
-10. **Complejidad:** Media–Alta.  
-11. **Bloque:** AM-ADJ-04.
+1. **Estado:** **Completado (AM-ADJ-04, 2026-07-16).**
+2. **Arquitectura RAC:** metadata aditiva `badge_enabled`, `badge_text` y `badge_type` en `rac_rate_rules`; la etiqueta se resuelve únicamente desde reglas ya presentes en `applied_rules_json`, sin recalcular tarifas.
+3. **Arquitectura Seminuevos:** se conserva `inventory_highlights.assignments`; el mapa paralelo opcional `meta` administra estado y texto por VIN/placa/id.
+4. **Tipos cerrados:** `promo`, `featured`, `recommended`, `popular` y `custom`; no se aceptan clases arbitrarias.
+5. **Administración:** reglas RAC e inventario Seminuevos permiten activar, elegir tipo y configurar texto de hasta 60 caracteres.
+6. **Frontend/API:** RAC conserva `promotionLabel` y añade `promotionBadge`; Seminuevos cubre listado, AJAX y detalle.
+7. **Compatibilidad:** reglas RAC anteriores quedan sin etiqueta por defecto; asignaciones Seminuevos legacy conservan tipo, texto y reconcile post-sync.
+8. **Seguridad/accesibilidad:** whitelist, rechazo de HTML/script/eventos/saltos de línea, escape de salida, texto visible y estilos sólidos de contraste AA.
+9. **Pruebas:** suites RAC/Seminuevos, schema SQLite nuevo/existente/idempotente, igualdad bit a bit de precios, lint PHP/JS, smoke HTTP y denegación sin sesión.
+10. **Exclusiones:** sin cambios en reglas, ajustes, BARS, reservas, recálculo, pagos, inventario SQL ni badge «SIN GARANTÍA».
+11. **Riesgo residual:** matriz visual automatizada limitada por ausencia de Playwright local; no se añadieron dimensiones ni posiciones que alteren tarjetas.
+12. **Complejidad:** Media–Alta.
+13. **Bloque:** AM-ADJ-04.
 
 ### R4 — WhatsApp contextual
 
@@ -348,8 +350,8 @@ Justificación: primero CMS de bajo riesgo; luego menús/contenidos; después RA
 |-------|--------|-------|
 | 01 | AM-ADJ-01 | Este documento |
 | 02 | AM-ADJ-02 | Colores hero — **CERRADO 2026-07-16** |
-| 03 | AM-ADJ-03 | Banners enable/link |
-| 04 | AM-ADJ-04 | Etiquetas |
+| 03 | AM-ADJ-03 | Banners enable/link — **CERRADO 2026-07-16** |
+| 04 | AM-ADJ-04 | Etiquetas — **CERRADO 2026-07-16** |
 | 05 | AM-ADJ-05 | WhatsApp contextual |
 | 06 | AM-ADJ-06 | Sobre Nosotros |
 | 07 | AM-ADJ-07 | Menús (simplificación) |

@@ -11,7 +11,9 @@ header('Content-Type: application/json; charset=utf-8');
 
 $db = Database::getInstance();
 $contentService = new ContentService();
-$inventoryHighlightAssignments = InventoryHighlightService::getAssignments($contentService->get('seminuevos', []));
+$seminuevosHighlightData = $contentService->get('seminuevos', []);
+$inventoryHighlightAssignments = InventoryHighlightService::getAssignments($seminuevosHighlightData);
+$inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevosHighlightData);
 
 $where = ["Status = 'DISPONIBLE'"];
 $params = [];

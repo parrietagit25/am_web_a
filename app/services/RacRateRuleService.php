@@ -15,6 +15,18 @@ class RacRateRuleService
     private const TZ = 'America/Panama';
 
     /** @var list<string> */
+    public const BADGE_TYPES = ['promo', 'featured', 'recommended', 'popular', 'custom'];
+
+    /** @var array<string, string> */
+    public const BADGE_DEFAULT_LABELS = [
+        'promo' => 'Promo',
+        'featured' => 'Destacado',
+        'recommended' => 'Recomendado',
+        'popular' => 'Más buscado',
+        'custom' => 'Personalizado',
+    ];
+
+    /** @var list<string> */
     public const RULE_TYPES = ['seasonal', 'promotion', 'category_override', 'long_rental', 'manual', 'corporate', 'other'];
 
     /** @var list<string> */
@@ -111,6 +123,92 @@ class RacRateRuleService
 
     /**
      * @param array<string, mixed> $data
+     * @return array{enabled: bool, type: string, text: string}
+     */
+    public static function normalizeVisualBadgeConfig(array $data): array
+    {
+        $enabled = filter_var($data['badge_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $type = strtolower(trim((string) ($data['badge_type'] ?? 'promo')));
+        if (!in_array($type, self::BADGE_TYPES, true)) {
+            throw new InvalidArgumentException('El tipo visual de la etiqueta no es válido.');
+        }
+
+        $text = self::normalizeVisualBadgeText((string) ($data['badge_text'] ?? ''));
+        if ($enabled && $text === '') {
+            $text = self::BADGE_DEFAULT_LABELS[$type];
+        }
+
+        return [
+            'enabled' => $enabled,
+            'type' => $type,
+            'text' => $text,
+        ];
+    }
+
+    public static function normalizeVisualBadgeText(string $text): string
+    {
+        $text = trim($text);
+        if ($text === '') {
+            return '';
+        }
+        $length = function_exists('mb_strlen') ? mb_strlen($text, 'UTF-8') : strlen($text);
+        if ($length > 60) {
+            throw new InvalidArgumentException('El texto de la etiqueta no puede superar 60 caracteres.');
+        }
+        if (preg_match('/[\r\n]/u', $text)
+            || strip_tags($text) !== $text
+            || preg_match('/javascript\s*:|(?:^|\s)on[a-z]+\s*=/iu', $text)) {
+            throw new InvalidArgumentException('El texto de la etiqueta contiene contenido no permitido.');
+        }
+
+        return $text;
+    }
+
+    /**
+     * Solo resuelve metadata visual de reglas que ya fueron aplicadas por el motor.
+     *
+     * @param list<int> $ruleIds
+     * @return array<int, array{enabled: bool, type: string, text: string}>
+     */
+    public function getVisualBadgeMap(array $ruleIds, string $pickupDateTime = ''): array
+    {
+        $ruleIds = array_values(array_unique(array_filter(array_map('intval', $ruleIds), static fn (int $id): bool => $id > 0)));
+        if ($ruleIds === []) {
+            return [];
+        }
+
+        $params = [];
+        $placeholders = [];
+        foreach ($ruleIds as $index => $ruleId) {
+            $placeholder = ':rule_' . $index;
+            $placeholders[] = $placeholder;
+            $params[$placeholder] = $ruleId;
+        }
+
+        $rows = Database::getInstance()->select(
+            'SELECT * FROM rac_rate_rules WHERE id IN (' . implode(', ', $placeholders) . ')',
+            $params
+        );
+        $map = [];
+        foreach ($rows as $row) {
+            $rule = $this->hydrateRuleRow($row);
+            if (!$rule['enabled']
+                || !$rule['badge_enabled']
+                || !$this->dateInValidity($pickupDateTime, $rule['valid_from'], $rule['valid_to'])) {
+                continue;
+            }
+            $map[$rule['id']] = [
+                'enabled' => true,
+                'type' => $rule['badge_type'],
+                'text' => $rule['badge_text'],
+            ];
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param array<string, mixed> $data
      * @param list<array<string, string>> $targets
      */
     public function createRule(array $data, array $targets): int
@@ -125,12 +223,12 @@ class RacRateRuleService
                 name, description, enabled, priority, stackable, stop_processing, rule_type,
                 adjustment_type, adjustment_value, currency, valid_from, valid_to, days_of_week_json,
                 min_rental_days, max_rental_days, pickup_location, return_location, rate_qualifier,
-                applies_to, created_by, updated_by, updated_at
+                applies_to, badge_enabled, badge_text, badge_type, created_by, updated_by, updated_at
             ) VALUES (
                 :name, :description, :enabled, :priority, :stackable, :stop_processing, :rule_type,
                 :adjustment_type, :adjustment_value, :currency, :valid_from, :valid_to, :days_of_week_json,
                 :min_rental_days, :max_rental_days, :pickup_location, :return_location, :rate_qualifier,
-                :applies_to, :created_by, :updated_by, :updated_at
+                :applies_to, :badge_enabled, :badge_text, :badge_type, :created_by, :updated_by, :updated_at
             )',
             $this->ruleBindParams($data, $userId, $now, true)
         );
@@ -169,6 +267,7 @@ class RacRateRuleService
                 min_rental_days = :min_rental_days, max_rental_days = :max_rental_days,
                 pickup_location = :pickup_location, return_location = :return_location,
                 rate_qualifier = :rate_qualifier, applies_to = :applies_to,
+                badge_enabled = :badge_enabled, badge_text = :badge_text, badge_type = :badge_type,
                 updated_by = :updated_by, updated_at = :updated_at
              WHERE id = :id',
             $params
@@ -833,6 +932,16 @@ class RacRateRuleService
      */
     private function hydrateRuleRow(array $row): array
     {
+        try {
+            $badge = self::normalizeVisualBadgeConfig([
+                'badge_enabled' => $row['badge_enabled'] ?? false,
+                'badge_text' => $row['badge_text'] ?? '',
+                'badge_type' => $row['badge_type'] ?? 'promo',
+            ]);
+        } catch (InvalidArgumentException $e) {
+            $badge = ['enabled' => false, 'type' => 'promo', 'text' => ''];
+        }
+
         return [
             'id' => (int) ($row['id'] ?? 0),
             'name' => (string) ($row['name'] ?? ''),
@@ -854,6 +963,9 @@ class RacRateRuleService
             'return_location' => $row['return_location'] ?? null,
             'rate_qualifier' => $row['rate_qualifier'] ?? null,
             'applies_to' => (string) ($row['applies_to'] ?? 'all'),
+            'badge_enabled' => $badge['enabled'],
+            'badge_text' => $badge['text'],
+            'badge_type' => $badge['type'],
             'created_at' => (string) ($row['created_at'] ?? ''),
             'updated_at' => $row['updated_at'] ?? null,
         ];
@@ -904,6 +1016,7 @@ class RacRateRuleService
         if (is_array($daysJson)) {
             $daysJson = json_encode($daysJson, JSON_UNESCAPED_UNICODE);
         }
+        $badge = self::normalizeVisualBadgeConfig($data);
 
         $params = [
             ':name' => trim((string) ($data['name'] ?? '')),
@@ -925,6 +1038,9 @@ class RacRateRuleService
             ':return_location' => self::nullableStr($data['return_location'] ?? null),
             ':rate_qualifier' => self::nullableStr($data['rate_qualifier'] ?? null),
             ':applies_to' => (string) ($data['applies_to'] ?? 'all'),
+            ':badge_enabled' => $badge['enabled'] ? 1 : 0,
+            ':badge_text' => $badge['text'] !== '' ? $badge['text'] : null,
+            ':badge_type' => $badge['type'],
             ':updated_by' => $userId,
             ':updated_at' => $now,
         ];

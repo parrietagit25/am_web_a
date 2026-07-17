@@ -69,6 +69,39 @@ if (!isset($rules, $formDefaults, $ruleService)) {
                 </div>
                 <div class="col-md-3"><label class="form-label">Prioridad</label><input type="number" name="priority" class="form-control" value="<?php echo esc((string) ($formDefaults['priority'] ?? 100)); ?>"></div>
                 <div class="col-md-12"><label class="form-label">Descripción</label><textarea name="description" class="form-control" rows="2"><?php echo esc((string) ($formDefaults['description'] ?? '')); ?></textarea></div>
+                <div class="col-12">
+                    <div class="border rounded-3 p-3 bg-light">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3 form-check ms-2">
+                                <input class="form-check-input" type="checkbox" name="badge_enabled" id="badge_enabled" value="1"<?php echo !empty($formDefaults['badge_enabled']) ? ' checked' : ''; ?>>
+                                <label class="form-check-label fw-semibold" for="badge_enabled">Mostrar etiqueta al usuario</label>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="badge_type">Tipo visual</label>
+                                <select name="badge_type" id="badge_type" class="form-select">
+                                    <?php foreach (RacRateRuleService::BADGE_DEFAULT_LABELS as $badgeType => $badgeDefaultLabel): ?>
+                                    <option value="<?php echo esc($badgeType); ?>"<?php echo ($formDefaults['badge_type'] ?? 'promo') === $badgeType ? ' selected' : ''; ?>><?php echo esc($badgeDefaultLabel); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label" for="badge_text">Texto de la etiqueta</label>
+                                <input type="text" maxlength="60" name="badge_text" id="badge_text" class="form-control" value="<?php echo esc((string) ($formDefaults['badge_text'] ?? '')); ?>" placeholder="Ej. Promoción Día de la Madre">
+                            </div>
+                            <div class="col-12">
+                                <?php
+                                $badgePreviewType = in_array((string) ($formDefaults['badge_type'] ?? ''), RacRateRuleService::BADGE_TYPES, true)
+                                    ? (string) $formDefaults['badge_type']
+                                    : 'promo';
+                                $badgePreviewText = trim((string) ($formDefaults['badge_text'] ?? ''))
+                                    ?: RacRateRuleService::BADGE_DEFAULT_LABELS[$badgePreviewType];
+                                ?>
+                                <span class="badge bg-dark"><?php echo esc($badgePreviewText); ?></span>
+                                <span class="small text-muted ms-2">Esta etiqueta es únicamente visual y no modifica el precio ni la regla comercial.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="col-md-4"><label class="form-label">Tipo de ajuste</label>
                     <select name="adjustment_type" class="form-select">
                         <?php foreach (RacRateRuleService::ADJUSTMENT_TYPES as $type): ?>

@@ -1198,7 +1198,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 InventoryHighlightService::setAssignment(
                     $siteData,
                     ['id' => $newId, 'VIN' => '', 'LicensePlate' => ''],
-                    trim($_POST['highlight_tag'] ?? '')
+                    trim($_POST['highlight_tag'] ?? ''),
+                    [
+                        'enabled' => !empty($_POST['highlight_enabled']),
+                        'text' => (string) ($_POST['highlight_text'] ?? ''),
+                    ]
                 );
                 $contentService->saveAll($siteData);
 
@@ -1277,7 +1281,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     "SELECT id, VIN, LicensePlate FROM Automarket_Invs_web WHERE id = :id LIMIT 1",
                     [':id' => $id]
                 ) ?: ['id' => $id, 'VIN' => '', 'LicensePlate' => ''];
-                InventoryHighlightService::setAssignment($siteData, $vehicleKeys, trim($_POST['highlight_tag'] ?? ''));
+                InventoryHighlightService::setAssignment(
+                    $siteData,
+                    $vehicleKeys,
+                    trim($_POST['highlight_tag'] ?? ''),
+                    [
+                        'enabled' => !empty($_POST['highlight_enabled']),
+                        'text' => (string) ($_POST['highlight_text'] ?? ''),
+                    ]
+                );
                 $contentService->saveAll($siteData);
 
                 $successMsg = 'Vehículo de inventario actualizado correctamente.';
@@ -1320,7 +1332,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!$vehicleKeys) {
                     $errorMsg = 'Vehículo no encontrado.';
                 } else {
-                    InventoryHighlightService::setAssignment($siteData, $vehicleKeys, $highlightTag);
+                    InventoryHighlightService::setAssignment(
+                        $siteData,
+                        $vehicleKeys,
+                        $highlightTag,
+                        [
+                            'enabled' => !empty($_POST['highlight_enabled']),
+                            'text' => (string) ($_POST['highlight_text'] ?? ''),
+                        ]
+                    );
                     if ($contentService->saveAll($siteData)) {
                         $successMsg = 'Etiqueta de resaltado guardada correctamente.';
                         $_GET['tab'] = 'semi-inventory';
@@ -3026,6 +3046,7 @@ $inventoryVehicles = $db->select("SELECT * FROM Automarket_Invs_web $whereClause
 require_once __DIR__ . '/../../services/InventoryHighlightService.php';
 $inventoryHighlightCatalog = InventoryHighlightService::catalog();
 $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($seminuevos);
+$inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -3166,6 +3187,11 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
         .inv-highlight--pocas { background: linear-gradient(135deg, #c2410c, #fb923c); }
         .inv-highlight--oferta { background: linear-gradient(135deg, #be123c, #f43f5e); }
         .inv-highlight--destacado { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
+        .inv-highlight--promo { background: #9f1239; }
+        .inv-highlight--featured { background: #4c1d95; }
+        .inv-highlight--recommended { background: #166534; }
+        .inv-highlight--popular { background: #713f12; }
+        .inv-highlight--custom { background: #1f2937; }
         .form-label {
             font-weight: 600;
             font-size: 0.9rem;
@@ -4948,6 +4974,16 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                         </select>
                                         <div class="form-text">Opcional. Visible en la tarjeta del inventario público.</div>
                                     </div>
+                                    <div class="col-md-2 d-flex align-items-center">
+                                        <div class="form-check mt-3">
+                                            <input class="form-check-input" type="checkbox" id="semi_inv_highlight_enabled" name="highlight_enabled" value="1" checked>
+                                            <label class="form-check-label" for="semi_inv_highlight_enabled">Etiqueta visible</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="semi_inv_highlight_text" class="form-label">Texto personalizado</label>
+                                        <input type="text" maxlength="60" id="semi_inv_highlight_text" name="highlight_text" class="form-control form-control-premium" placeholder="Vacío = texto predeterminado">
+                                    </div>
                                 </div>
 
                                 <div class="form-text mt-2" id="semiInvPhotoHelp">Subir una imagen o colocar un enlace externo. Si se sube archivo, éste tendrá prioridad.</div>
@@ -5013,6 +5049,7 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                 }
                                                 $vehicleForEdit = $vehicle;
                                                 $vehicleForEdit['_highlight_tag'] = InventoryHighlightService::resolveBadgeKey($vehicle, $inventoryHighlightAssignments);
+                                                $vehicleForEdit['_highlight_meta'] = InventoryHighlightService::resolveMetadata($vehicle, $inventoryHighlightMetadata);
                                                 ?>
                                                 <tr>
                                                     <td>
@@ -5051,16 +5088,23 @@ $inventoryHighlightAssignments = InventoryHighlightService::getAssignments($semi
                                                     <td>
                                                         <?php
                                                         $currentHighlight = InventoryHighlightService::resolveBadgeKey($vehicle, $inventoryHighlightAssignments);
+                                                        $currentHighlightMeta = InventoryHighlightService::resolveMetadata($vehicle, $inventoryHighlightMetadata);
                                                         ?>
-                                                        <form method="POST" action="?tab=semi-inventory" class="d-flex gap-1 align-items-center">
+                                                        <form method="POST" action="?tab=semi-inventory" class="d-flex gap-1 align-items-center flex-wrap">
                                                             <input type="hidden" name="action" value="save_inventory_highlight">
                                                             <input type="hidden" name="vehicle_id" value="<?php echo intval($vehicle['id']); ?>">
-                                                            <select name="highlight_tag" class="form-select form-select-sm form-control-premium" onchange="this.form.submit()">
+                                                            <select name="highlight_tag" class="form-select form-select-sm form-control-premium" aria-label="Tipo de etiqueta">
                                                                 <option value="">Sin etiqueta</option>
                                                                 <?php foreach ($inventoryHighlightCatalog as $badgeKey => $badge): ?>
                                                                     <option value="<?php echo esc($badgeKey); ?>" <?php echo $currentHighlight === $badgeKey ? 'selected' : ''; ?>><?php echo esc($badge['label']); ?></option>
                                                                 <?php endforeach; ?>
                                                             </select>
+                                                            <input type="text" maxlength="60" name="highlight_text" class="form-control form-control-sm" value="<?php echo esc($currentHighlightMeta['text']); ?>" placeholder="Texto opcional" aria-label="Texto personalizado de etiqueta">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="checkbox" name="highlight_enabled" value="1" id="highlight-enabled-<?php echo intval($vehicle['id']); ?>"<?php echo $currentHighlightMeta['enabled'] ? ' checked' : ''; ?>>
+                                                                <label class="form-check-label small" for="highlight-enabled-<?php echo intval($vehicle['id']); ?>">Visible</label>
+                                                            </div>
+                                                            <button type="submit" class="btn btn-sm btn-outline-primary">Guardar</button>
                                                         </form>
                                                     </td>
                                                     <td class="text-center">
@@ -7570,6 +7614,8 @@ function initEditSemiInventory(vehicle) {
     document.getElementById('semi_inv_location').value = vehicle.LocationName || 'Via Israel';
     document.getElementById('semi_inv_photo_url').value = vehicle.Photo || '';
     document.getElementById('semi_inv_highlight').value = vehicle._highlight_tag || '';
+    document.getElementById('semi_inv_highlight_enabled').checked = !vehicle._highlight_meta || vehicle._highlight_meta.enabled !== false;
+    document.getElementById('semi_inv_highlight_text').value = vehicle._highlight_meta ? (vehicle._highlight_meta.text || '') : '';
 
     if (vehicle.Photo) {
         document.getElementById('semiInvPhotoHelp').innerHTML = 'Foto actual: <code>' + vehicle.Photo + '</code>';
@@ -7592,6 +7638,8 @@ function resetSemiInvForm() {
     document.getElementById('semiInvFormAction').value = 'add_semi_inventory';
     document.getElementById('semiInvFormId').value = '';
     document.getElementById('semi_inv_highlight').value = '';
+    document.getElementById('semi_inv_highlight_enabled').checked = true;
+    document.getElementById('semi_inv_highlight_text').value = '';
 
     document.getElementById('semiInvPhotoHelp').innerHTML = 'Subir una imagen o colocar un enlace externo. Si se sube archivo, éste tendrá prioridad.';
 

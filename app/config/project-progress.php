@@ -142,6 +142,7 @@ return [
         ['fecha' => '2026-07-05', 'texto' => 'Pendiente Mercadeo: FAQ institucional por unidad; asociación sucursales Renting. Fase 2: migración location_refs --apply; inventario SQL LocationName → location_id (no tocado).'],
         ['fecha' => '2026-07-16', 'texto' => 'AM-ADJ-02 cerrado local: colores administrables título/subtítulo hero (RAC, Semi, Leasing, Renting, Taller, custom); helper hex + fallback CSS; sin site_data en commit.'],
         ['fecha' => '2026-07-16', 'texto' => 'AM-ADJ-03 cerrado local: banners configurables activos/inactivos, texto, alt y enlaces seguros en cinco unidades, custom y page_headers compatibles; uploads estrictos; pruebas unitarias/E2E/smoke; datos restaurados por hash.'],
+        ['fecha' => '2026-07-16', 'texto' => 'AM-ADJ-04 cerrado local: etiquetas visuales RAC por regla aplicada y Seminuevos por VIN; tipos cerrados, texto seguro, schema aditivo e igualdad exacta de precios; sin recalcular BARS.'],
     ],
 
     'bloques' => [
@@ -1255,6 +1256,24 @@ return [
                 ['label' => 'Unidades personalizadas', 'url' => '/admin/'],
             ],
             'siguiente_accion'    => 'Cerrado. Siguiente bloque autorizado: AM-ADJ-04 etiquetas.',
+            'fecha_actualizacion' => '2026-07-16',
+        ],
+        [
+            'codigo'              => 'AM-ADJ-04',
+            'nombre'              => 'Etiquetas visuales para promociones y destacados',
+            'area'                => 'RAC / Venta de Autos',
+            'prioridad'           => 'Media',
+            'estado'              => 'Cerrado local',
+            'porcentaje_estimado' => 100,
+            'descripcion'         => 'Metadata visual administrable, independiente de cálculos, para reglas RAC aplicadas y destacados Seminuevos por VIN.',
+            'dependencias'        => ['AM-ADJ-01', 'AM-ADJ-03'],
+            'ultimo_commit'       => 'AM-ADJ-04 etiquetas visuales para promociones y destacados',
+            'evidencia'           => 'Schema SQLite/MySQL aditivo e idempotente; tipos cerrados y texto de 60 caracteres; API RAC compatible; listado/AJAX/detalle Seminuevos; suites unitarias, lint PHP/JS, smoke HTTP y precios idénticos con/sin badge.',
+            'admin_locations'     => [
+                ['label' => 'Rent A Car → Reglas de tarifas', 'url' => '/admin/rac-rate-rules.php'],
+                ['label' => 'Venta de Autos → Inventario', 'url' => '/admin/?tab=semi-inventory'],
+            ],
+            'siguiente_accion'    => 'Cerrado. Siguiente bloque: AM-ADJ-05, sujeto a autorización.',
             'fecha_actualizacion' => '2026-07-16',
         ],
     ],

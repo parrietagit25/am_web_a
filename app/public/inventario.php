@@ -17,7 +17,8 @@ $inventoryPageTitle = seminuevos_inventory_page_title($seminuevosPageData);
 $inventoryPageSubtitle = seminuevos_inventory_page_subtitle($seminuevosPageData);
 
 $db = Database::getInstance();
-$inventoryHighlightAssignments = InventoryHighlightService::getAssignments($contentService->get('seminuevos', []));
+$inventoryHighlightAssignments = InventoryHighlightService::getAssignments($seminuevosPageData);
+$inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevosPageData);
 
 // Load filter options dynamically
 $distinctMakes = $db->select("SELECT DISTINCT Make FROM Automarket_Invs_web WHERE Make IS NOT NULL AND Make != '' ORDER BY Make");
@@ -313,6 +314,11 @@ $totalPages = ceil($totalMatches / $limit);
 .inv-highlight--destacado {
     background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 55%, #a78bfa 100%);
 }
+.inv-highlight--promo { background: #9f1239; }
+.inv-highlight--featured { background: #4c1d95; }
+.inv-highlight--recommended { background: #166534; }
+.inv-highlight--popular { background: #713f12; }
+.inv-highlight--custom { background: #1f2937; }
 .inv-highlight-preview {
     display: inline-block;
     padding: 5px 12px;

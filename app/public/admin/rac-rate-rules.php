@@ -103,6 +103,9 @@ function rac_rules_form_from_post(): array
         'return_location' => strtoupper(trim((string) ($_POST['return_location'] ?? ''))),
         'rate_qualifier' => trim((string) ($_POST['rate_qualifier'] ?? '')) ?: 'WEB',
         'applies_to' => (string) ($_POST['target_type'] ?? 'all'),
+        'badge_enabled' => !empty($_POST['badge_enabled']) ? 1 : 0,
+        'badge_text' => trim((string) ($_POST['badge_text'] ?? '')),
+        'badge_type' => (string) ($_POST['badge_type'] ?? 'promo'),
     ];
 }
 
@@ -193,6 +196,9 @@ $formDefaults = $editRule ?? [
     'pickup_location' => '',
     'return_location' => '',
     'rate_qualifier' => 'WEB',
+    'badge_enabled' => 0,
+    'badge_text' => '',
+    'badge_type' => 'promo',
     'targets' => [['target_type' => 'all', 'target_value' => '*']],
 ];
 $targetType = (string) (($formDefaults['targets'][0]['target_type'] ?? 'all'));
