@@ -57,7 +57,7 @@ function admin_guard_post_action(string $action): bool
         return true;
     }
 
-    if ($action === 'save_unit_menu'
+    if (in_array($action, ['save_unit_menu', 'save_unit_terms_page', 'save_terms'], true)
         && !admin_verify_csrf((string) ($_POST['admin_csrf_token'] ?? ''))) {
         return false;
     }

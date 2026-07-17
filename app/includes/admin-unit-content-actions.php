@@ -6,6 +6,7 @@ require_once __DIR__ . '/../services/UnitContentService.php';
 require_once __DIR__ . '/../services/HeaderBannerService.php';
 require_once __DIR__ . '/../services/UnitAboutService.php';
 require_once __DIR__ . '/../services/UnitMenuService.php';
+require_once __DIR__ . '/../services/UnitTermsService.php';
 
 function unit_content_validate_unit(array $siteData, string $unitKey): bool
 {
@@ -260,6 +261,20 @@ function unit_content_handle_post(
                 $successMsg = 'Sobre Nosotros guardado correctamente.';
             } else {
                 $errorMsg = 'Error al guardar Sobre Nosotros.';
+            }
+            break;
+
+        case 'save_unit_terms_page':
+            $unitKey = strtolower(trim((string) ($_POST['terms_unit'] ?? '')));
+            $termsError = UnitTermsService::apply($siteData, $unitKey, $_POST);
+            if ($termsError !== null) {
+                $errorMsg = $termsError;
+                break;
+            }
+            if ($contentService->saveAll($siteData)) {
+                $successMsg = 'Términos y condiciones guardados correctamente.';
+            } else {
+                $errorMsg = 'Error al guardar los términos y condiciones.';
             }
             break;
 

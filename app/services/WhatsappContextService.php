@@ -18,7 +18,7 @@ class WhatsappContextService
         'rentacar' => [
             'rent-a-car.php', 'flota.php', 'resultados.php', 'reservar.php',
             'extras.php', 'mi-reserva.php', 'sucursales.php',
-            'requisitos-alquiler.php', 'terminos-condiciones.php',
+            'requisitos-alquiler.php',
             'confirmacion.php', 'pago-seguro.php',
         ],
         'seminuevos' => [
@@ -40,7 +40,7 @@ class WhatsappContextService
 
     private const DYNAMIC_UNIT_ROUTES = [
         'blog.php', 'noticias.php', 'contenido-reciente.php', 'noticia.php', 'contactos.php',
-        'sobre-nosotros.php',
+        'sobre-nosotros.php', 'terminos-condiciones.php',
     ];
 
     /**
@@ -146,6 +146,10 @@ class WhatsappContextService
             }
 
             return '';
+        }
+
+        if ($script === 'terminos-condiciones.php') {
+            return self::validatedUnitParam($query['unit'] ?? 'rentacar', $businessUnits);
         }
 
         if (in_array($script, self::DYNAMIC_UNIT_ROUTES, true)) {

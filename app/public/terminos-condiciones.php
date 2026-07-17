@@ -1,46 +1,95 @@
 <?php
 /**
- * Automarket - Términos y Condiciones
+ * Términos y condiciones por unidad.
  */
-$activeUnit = 'rentacar';
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../services/ContentService.php';
+require_once __DIR__ . '/../services/UnitTermsService.php';
+require_once __DIR__ . '/../services/SeoService.php';
+require_once __DIR__ . '/../includes/business-units-registry.php';
+
+$contentService = new ContentService();
+$siteData = $contentService->getAll();
+$businessUnits = am_merge_business_units($siteData['global']['business_units'] ?? []);
+$requestedUnit = strtolower(trim((string) ($_GET['unit'] ?? 'rentacar')));
+
+function am_render_unit_terms_404(): never
+{
+    global $activeUnit, $seoOverride;
+
+    http_response_code(404);
+    $activeUnit = 'rentacar';
+    $seoOverride = [
+        'title' => 'Página no encontrada | Automarket',
+        'robots' => 'noindex,nofollow',
+    ];
+    require __DIR__ . '/../includes/header.php';
+    echo '<section class="container py-5 my-5 text-center"><h1>Página no encontrada</h1><a href="/rent-a-car.php" class="btn btn-theme mt-3">Inicio</a></section>';
+    require __DIR__ . '/../includes/footer.php';
+    exit;
+}
+
+if (!isset($businessUnits[$requestedUnit])
+    || !UnitContentService::isSupportedUnit($requestedUnit, $siteData)) {
+    am_render_unit_terms_404();
+}
+
+$termsPage = UnitTermsService::resolve($siteData, $requestedUnit);
+if ($termsPage === null) {
+    am_render_unit_terms_404();
+}
+
+try {
+    $termsHtml = UnitTermsService::sanitizeBodyHtml((string) ($termsPage['body_html'] ?? ''));
+} catch (InvalidArgumentException | RuntimeException $e) {
+    am_render_unit_terms_404();
+}
+if ($termsHtml === '') {
+    am_render_unit_terms_404();
+}
+
+$activeUnit = $requestedUnit;
+$unitLabel = UnitContentService::unitLabel($siteData, $requestedUnit);
+$pageTitle = trim((string) ($termsPage['title'] ?? '')) ?: 'Términos y Condiciones';
+$pageSubtitle = trim((string) ($termsPage['subtitle'] ?? ''));
 $seoOverride = [
-    'title'       => 'Términos y condiciones de alquiler | Automarket',
-    'description' => 'Términos y condiciones del servicio de alquiler de Automarket Rent a Car en Panamá.',
+    'title' => $pageTitle . ' | Automarket',
+    'description' => $pageSubtitle !== '' ? $pageSubtitle : $pageTitle . ' de ' . $unitLabel . '.',
+    'canonical' => SeoService::canonicalBaseFromSiteData($siteData)
+        . UnitTermsService::publicUrl($requestedUnit),
 ];
 require_once __DIR__ . '/../includes/header.php';
-
-$terminosHtml = $contentService->get('homepage.terminos_condiciones', '<h3>Términos y Condiciones</h3><p>Contenido en mantenimiento.</p>');
 ?>
 
-<!-- 1. Breadcrumb and Title Section -->
 <section class="py-5" style="background-color: #f8f9fc;">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-2 font-poppins">
-                <li class="breadcrumb-item"><a href="/rent-a-car.php" class="text-danger text-decoration-none fw-semibold">Rent A Car</a></li>
+                <li class="breadcrumb-item"><a href="<?php echo esc(UnitContentService::unitHomePath($siteData, $requestedUnit)); ?>" class="text-danger text-decoration-none fw-semibold"><?php echo esc($unitLabel); ?></a></li>
                 <li class="breadcrumb-item active" aria-current="page">Términos y Condiciones</li>
             </ol>
         </nav>
-        <h1 class="display-5 fw-bold text-navy font-montserrat mb-0" style="font-size: 2.30rem; letter-spacing: -0.5px;">Términos y Condiciones</h1>
-        <p class="text-muted font-poppins mt-2 mb-0">Información importante sobre las condiciones y coberturas de alquiler en Automarket Rent a Car.</p>
+        <h1 class="display-5 fw-bold text-navy font-montserrat mb-0" style="font-size: 2.30rem; letter-spacing: -0.5px;"><?php echo esc($pageTitle); ?></h1>
+        <?php if ($pageSubtitle !== ''): ?>
+            <p class="text-muted font-poppins mt-2 mb-0"><?php echo esc($pageSubtitle); ?></p>
+        <?php endif; ?>
     </div>
 </section>
 
-<!-- 2. Content Section -->
 <section class="container py-5 mb-5">
     <div class="row justify-content-center">
         <div class="col-lg-10 col-12">
             <div class="card border-0 shadow-sm p-4 p-md-5 rounded-4 bg-white">
-                <div class="terms-content font-poppins text-navy fs-6 lh-lg">
-                    <?php echo $terminosHtml; ?>
-                </div>
+                <article class="terms-content font-poppins text-navy fs-6 lh-lg">
+                    <?php echo $termsHtml; ?>
+                </article>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Custom Styles for Terms Content -->
 <style>
+    .terms-content { overflow-wrap: anywhere; }
     .terms-content .subtitulo2 {
         font-family: 'Montserrat', sans-serif;
         font-weight: 700;
@@ -85,6 +134,15 @@ $terminosHtml = $contentService->get('homepage.terminos_condiciones', '<h3>Térm
         position: absolute;
         left: 0;
         top: -2px;
+    }
+    .terms-content table {
+        width: 100%;
+        display: block;
+        overflow-x: auto;
+    }
+    .terms-content a:focus-visible {
+        outline: 3px solid currentColor;
+        outline-offset: 3px;
     }
 </style>
 

@@ -3,6 +3,7 @@
  * Generación de sitemap.xml (páginas estáticas + vehículos disponibles).
  */
 require_once __DIR__ . '/UnitAboutService.php';
+require_once __DIR__ . '/UnitTermsService.php';
 
 class SitemapService
 {
@@ -66,6 +67,27 @@ class SitemapService
             $aboutPage['changefreq'] = 'yearly';
             $aboutPage['priority'] = '0.5';
             $urls[] = self::entryFromStaticPage($base, $aboutPage, $lastmod);
+        }
+
+        foreach (UnitContentService::listAllUnitKeys($siteData) as $unitKey) {
+            $termsPage = UnitTermsService::resolve($siteData, $unitKey);
+            if ($termsPage === null) {
+                continue;
+            }
+            try {
+                $termsBody = UnitTermsService::sanitizeBodyHtml((string) ($termsPage['body_html'] ?? ''));
+            } catch (InvalidArgumentException | RuntimeException $e) {
+                continue;
+            }
+            if ($termsBody === '') {
+                continue;
+            }
+            $urls[] = self::entryFromStaticPage($base, [
+                'path' => '/terminos-condiciones.php',
+                'query' => $unitKey === 'rentacar' ? [] : ['unit' => $unitKey],
+                'changefreq' => 'yearly',
+                'priority' => '0.5',
+            ], $lastmod);
         }
 
         foreach (self::collectLocationUrls($base, $lastmod, $contentService) as $locationEntry) {

@@ -910,10 +910,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // 15. SAVE TERMS AND CONDITIONS
     elseif ($action === 'save_terms') {
-        require_once __DIR__ . '/../../includes/admin-html-sanitize.php';
-        $terms = sanitizeAdminHtmlContent((string) ($_POST['terminos_condiciones'] ?? ''));
-        $siteData['homepage']['terminos_condiciones'] = $terms;
-        if ($contentService->saveAll($siteData)) {
+        require_once __DIR__ . '/../../services/UnitTermsService.php';
+        $currentTerms = UnitTermsService::resolve($siteData, 'rentacar') ?? [];
+        $termsError = UnitTermsService::apply($siteData, 'rentacar', [
+            'terms_published' => '1',
+            'terms_title' => $currentTerms['title'] ?? 'Términos y Condiciones',
+            'terms_subtitle' => $currentTerms['subtitle'] ?? '',
+            'terms_body_html' => (string) ($_POST['terminos_condiciones'] ?? ''),
+        ]);
+        if ($termsError !== null) {
+            $errorMsg = $termsError;
+        } elseif ($contentService->saveAll($siteData)) {
             $successMsg = 'Términos y Condiciones actualizados correctamente.';
         } else {
             $errorMsg = 'Error al guardar los Términos y Condiciones.';
@@ -4450,31 +4457,13 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
 
                     <!-- TAB 8: TERMS AND CONDITIONS -->
                     <div class="tab-pane fade" id="tab-terms" role="tabpanel" aria-labelledby="tab-terms-nav">
-                        <div class="admin-card">
-                            <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
-                                <i class="bi bi-file-earmark-text-fill me-2 text-danger"></i>Editar Términos y Condiciones
-                            </h5>
-                            
-                            <form method="POST" action="">
-                                <input type="hidden" name="action" value="save_terms">
-                                
-                                <div class="row g-3">
-                                    <div class="col-12">
-                                        <label for="terminos_condiciones" class="form-label">Contenido HTML</label>
-                                        <textarea id="terminos_condiciones" name="terminos_condiciones" class="form-control form-control-premium js-admin-html-editor" data-admin-html-height="450" rows="15" required><?php echo esc($homepage['terminos_condiciones'] ?? ''); ?></textarea>
-                                        <div class="form-text">
-                                            Editor visual Summernote. Para clases CSS del sitio (<code>subtitulo2</code>, <code>subtitulo3</code>, <code>lista-puntos-rojos</code>) use <strong>Vista código</strong> y conserve las etiquetas HTML existentes.
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="text-end mt-4">
-                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
-                                        <i class="bi bi-save"></i> Guardar Términos
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                        <?php
+                        $ucUnitKey = 'rentacar';
+                        $ucUnitLabel = UnitContentService::unitLabel($siteData, $ucUnitKey);
+                        $ucConfigTab = 'terms';
+                        require __DIR__ . '/../../includes/admin-unit-terms-section.php';
+                        unset($ucUnitKey, $ucUnitLabel, $ucConfigTab);
+                        ?>
                     </div>
 
                     <!-- TAB 9: RENTAL REQUIREMENTS -->

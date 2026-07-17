@@ -171,6 +171,12 @@ class AdminPermissionRegistry
 
             return UnitContentService::contentPermissionKey($menuUnit);
         }
+        if ($action === 'save_unit_terms_page') {
+            require_once __DIR__ . '/UnitTermsService.php';
+            $termsUnit = trim((string) ($_POST['terms_unit'] ?? ''));
+
+            return UnitTermsService::permissionKey($termsUnit);
+        }
 
         static $exact = null;
         if ($exact === null) {
