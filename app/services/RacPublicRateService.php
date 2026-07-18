@@ -375,6 +375,206 @@ class RacPublicRateService
         );
     }
 
+    /**
+     * Preview de totales sin crear reserva ni marcar el quote como usado.
+     * Reutiliza validateQuote/createQuote + RacAddonService e ITBMS 7% (misma regla que rac-reservation.php).
+     *
+     * @param array<string, mixed> $search
+     * @param array<string, mixed> $extrasInput
+     * @return array<string, mixed>
+     */
+    public function previewTotals(
+        array $search,
+        string $vehicleCode,
+        ?string $quoteToken,
+        array $extrasInput,
+        string $rateType = 'web'
+    ): array {
+        require_once __DIR__ . '/RacAddonService.php';
+
+        $vehicleCode = strtoupper(trim($vehicleCode));
+        if ($vehicleCode === '') {
+            return ['ok' => false, 'message' => 'Código de vehículo inválido.', 'code' => 'vehicle'];
+        }
+
+        $rateType = $rateType === 'counter' ? 'counter' : 'web';
+        $quoteToken = trim((string) ($quoteToken ?? ''));
+        $refreshed = false;
+        $barsQuote = null;
+        $vehiclePayload = null;
+        $pricing = null;
+
+        if (self::isBarsPricingEnabled()) {
+            $resolved = $this->resolveQuoteForPreview($search, $vehicleCode, $quoteToken);
+            if (!($resolved['ok'] ?? false)) {
+                return $resolved;
+            }
+            $barsQuote = $resolved['quote'];
+            $refreshed = !empty($resolved['refreshed']);
+            $vehiclePayload = $resolved['vehicle'] ?? null;
+            $pricing = $resolved['pricing'] ?? null;
+            $quoteToken = (string) ($barsQuote['quote_token'] ?? $quoteToken);
+        }
+
+        $baseForTotal = 0.0;
+        $currency = 'USD';
+        $rentalDays = max(1, (int) ($extrasInput['rental_days'] ?? $extrasInput['billed_days'] ?? 1));
+
+        if (is_array($barsQuote)) {
+            $baseForTotal = (float) ($barsQuote['final_total_rate'] ?? 0);
+            if ($rateType === 'counter') {
+                $baseForTotal = round($baseForTotal * self::COUNTER_MARKUP, 2);
+            }
+            $currency = (string) ($barsQuote['currency'] ?? 'USD');
+            $rentalDays = max(1, (int) ($barsQuote['rental_days'] ?? $rentalDays));
+        } else {
+            $clientBase = $extrasInput['totals']['base'] ?? $extrasInput['rental_base'] ?? null;
+            if (!is_numeric($clientBase)) {
+                return ['ok' => false, 'message' => 'Tarifa base no disponible para preview.', 'code' => 'base'];
+            }
+            $baseForTotal = round((float) $clientBase, 2);
+        }
+
+        $mandatoryTotal = (float) ($extrasInput['mandatoryTotal'] ?? ($extrasInput['totals']['mandatory'] ?? 0));
+        if ($mandatoryTotal < 0) {
+            return ['ok' => false, 'message' => 'Cargos obligatorios no válidos.', 'code' => 'mandatory'];
+        }
+
+        $addonService = new RacAddonService();
+        $addonContext = [
+            'vehicle_code' => $vehicleCode,
+            'sippCode' => $vehicleCode,
+            'vehicle_name' => (string) ($barsQuote['vehicle_name'] ?? $extrasInput['vehicle_name'] ?? $vehicleCode),
+            'vehicle_category' => (string) ($extrasInput['vehicle_category'] ?? ''),
+            'pickup_location' => (string) ($search['locationCode'] ?? $search['pickup_location'] ?? ''),
+            'locationCode' => (string) ($search['locationCode'] ?? $search['pickup_location'] ?? ''),
+            'return_location' => (string) ($search['returnLocationCode'] ?? $search['return_location'] ?? $search['locationCode'] ?? ''),
+            'returnLocationCode' => (string) ($search['returnLocationCode'] ?? $search['return_location'] ?? $search['locationCode'] ?? ''),
+            'rental_days' => $rentalDays,
+            'billed_days' => $rentalDays,
+            'rental_base' => $baseForTotal,
+            'final_total_rate' => $baseForTotal,
+        ];
+
+        $addonResolved = $addonService->resolveReservationAddons($extrasInput, $addonContext);
+        if (!($addonResolved['ok'] ?? false)) {
+            return [
+                'ok' => false,
+                'message' => $addonResolved['message'] ?? 'Extras o protección no válidos.',
+                'code' => 'addons',
+            ];
+        }
+
+        $covAmt = (float) ($addonResolved['totals']['coverage'] ?? 0);
+        $extrasAmt = (float) ($addonResolved['totals']['extras'] ?? 0);
+        $subtotal = $baseForTotal + $mandatoryTotal + $covAmt + $extrasAmt;
+        $itbms = round($subtotal * 0.07, 2);
+        $estimatedTotal = round($subtotal + $itbms, 2);
+
+        $protection = $addonResolved['protection'] ?? [];
+        $driversAmt = 0.0;
+        $equipmentAmt = 0.0;
+        foreach ($addonResolved['extras'] ?? [] as $exItem) {
+            $code = strtoupper((string) ($exItem['item_code'] ?? ''));
+            $line = (float) ($exItem['total_price'] ?? 0);
+            if ($code === 'CONDADIC') {
+                $driversAmt += $line;
+            } else {
+                $equipmentAmt += $line;
+            }
+        }
+
+        return [
+            'ok' => true,
+            'refreshed' => $refreshed,
+            'quote_token' => $quoteToken !== '' ? $quoteToken : null,
+            'expires_at' => is_array($barsQuote) ? (string) ($barsQuote['expires_at'] ?? '') : null,
+            'currency' => $currency,
+            'rate_type' => $rateType,
+            'rental_days' => $rentalDays,
+            'vehicle' => $vehiclePayload,
+            'pricing' => $pricing,
+            'protection' => [
+                'code' => (string) ($protection['code'] ?? ''),
+                'name' => (string) ($protection['name'] ?? 'Sin protección adicional'),
+                'amount' => round($covAmt, 2),
+            ],
+            'totals' => [
+                'base' => round($baseForTotal, 2),
+                'mandatory' => round($mandatoryTotal, 2),
+                'coverage' => round($covAmt, 2),
+                'drivers' => round($driversAmt, 2),
+                'equipment' => round($equipmentAmt, 2),
+                'extras' => round($extrasAmt, 2),
+                'itbms' => $itbms,
+                'total' => $estimatedTotal,
+                'currency' => $currency,
+            ],
+            'reservation_created' => false,
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $search
+     * @return array<string, mixed>
+     */
+    private function resolveQuoteForPreview(array $search, string $vehicleCode, string $quoteToken): array
+    {
+        if ($quoteToken !== '') {
+            $validation = $this->validateQuote($quoteToken, array_merge($search, [
+                'vehicle_code' => $vehicleCode,
+                'sippCode' => $vehicleCode,
+            ]));
+            if ($validation['ok'] ?? false) {
+                return [
+                    'ok' => true,
+                    'refreshed' => false,
+                    'quote' => $validation['quote'],
+                    'vehicle' => null,
+                    'pricing' => null,
+                ];
+            }
+
+            $message = (string) ($validation['message'] ?? 'Tarifa no válida.');
+            $mismatch = stripos($message, 'no coincide') !== false
+                || stripos($message, 'vehículo no coincide') !== false;
+            if ($mismatch) {
+                return ['ok' => false, 'message' => $message, 'code' => 'mismatch'];
+            }
+        }
+
+        $created = $this->createQuote($search, $vehicleCode);
+        if (!($created['ok'] ?? false)) {
+            return [
+                'ok' => false,
+                'message' => $created['message'] ?? 'No se pudo recotizar la tarifa.',
+                'code' => 'quote_failed',
+            ];
+        }
+
+        $pricing = is_array($created['pricing'] ?? null) ? $created['pricing'] : [];
+        $vehicle = is_array($created['vehicle'] ?? null) ? $created['vehicle'] : null;
+
+        return [
+            'ok' => true,
+            'refreshed' => true,
+            'quote' => [
+                'quote_token' => (string) ($created['quote_token'] ?? ''),
+                'expires_at' => (string) ($created['expires_at'] ?? ''),
+                'vehicle_code' => $vehicleCode,
+                'vehicle_name' => (string) ($vehicle['name'] ?? $vehicleCode),
+                'rental_days' => (int) ($vehicle['rentalDays'] ?? 1),
+                'currency' => (string) ($vehicle['currency'] ?? 'USD'),
+                'final_daily_rate' => (float) ($pricing['finalDailyRate'] ?? 0),
+                'final_total_rate' => (float) ($pricing['finalTotalRate'] ?? 0),
+                'base_total_rate' => (float) ($pricing['baseTotalRate'] ?? 0),
+                'discount_amount_total' => (float) ($pricing['discountTotal'] ?? 0),
+            ],
+            'vehicle' => $vehicle,
+            'pricing' => $pricing,
+        ];
+    }
+
     public function expireOldQuotes(): int
     {
         $db = Database::getInstance();

@@ -364,6 +364,27 @@
         return !!(vehicle && vehicle.pricing && vehicle.pricing.rateSource === 'bars_cache');
     }
 
+    function parseQuoteExpiresAt(value) {
+        if (!value) return NaN;
+        const raw = String(value).trim();
+        if (!raw) return NaN;
+        if (/Z$|[+-]\d{2}:?\d{2}$/.test(raw)) {
+            return Date.parse(raw);
+        }
+        if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(raw)) {
+            return Date.parse(raw.replace(' ', 'T') + 'Z');
+        }
+        return Date.parse(raw);
+    }
+
+    function isBarsQuoteExpired(vehicle) {
+        const pricing = vehicle && vehicle.pricing ? vehicle.pricing : {};
+        if (!pricing.barsQuoteToken) return true;
+        const expMs = parseQuoteExpiresAt(pricing.quoteExpiresAt);
+        if (isNaN(expMs)) return false;
+        return Date.now() > expMs;
+    }
+
     function mergeVehiclePreservingQuote(previous, next) {
         if (!previous || !next) {
             return next || previous;
@@ -371,12 +392,12 @@
         const prevPricing = previous.pricing || {};
         const nextPricing = next.pricing || {};
         const merged = Object.assign({}, next);
-        const token = prevPricing.barsQuoteToken || '';
-        if (token || prevPricing.rateSource === 'bars_cache') {
+        if (prevPricing.barsQuoteToken || nextPricing.barsQuoteToken || prevPricing.rateSource === 'bars_cache' || nextPricing.rateSource === 'bars_cache') {
             merged.pricing = Object.assign({}, nextPricing, {
-                rateSource: prevPricing.rateSource || nextPricing.rateSource || 'bars_cache',
-                barsQuoteToken: token || nextPricing.barsQuoteToken || '',
-                quoteExpiresAt: prevPricing.quoteExpiresAt || nextPricing.quoteExpiresAt || '',
+                rateSource: nextPricing.rateSource || prevPricing.rateSource || 'bars_cache',
+                // Preferir token/expiración nuevos al recotizar (AM-ADJ-13).
+                barsQuoteToken: nextPricing.barsQuoteToken || prevPricing.barsQuoteToken || '',
+                quoteExpiresAt: nextPricing.quoteExpiresAt || prevPricing.quoteExpiresAt || '',
                 baseDailyRate: nextPricing.baseDailyRate != null ? nextPricing.baseDailyRate : prevPricing.baseDailyRate,
                 finalDailyRate: nextPricing.finalDailyRate != null ? nextPricing.finalDailyRate : prevPricing.finalDailyRate,
                 finalTotalRate: nextPricing.finalTotalRate != null ? nextPricing.finalTotalRate : prevPricing.finalTotalRate,
@@ -400,15 +421,18 @@
         };
     }
 
-    function ensureBarsQuote(criteria, vehicle, rateType) {
+    function ensureBarsQuote(criteria, vehicle, rateType, options) {
         if (!criteria || !vehicle || !vehicle.sippCode) {
             return Promise.reject(new Error('Datos de reserva incompletos.'));
         }
+        const force = !!(options && options.force);
         const pricing = vehicle.pricing || {};
-        if (pricing.barsQuoteToken) {
+        const hasToken = !!pricing.barsQuoteToken;
+        const expired = isBarsQuoteExpired(vehicle);
+        if (hasToken && !force && !expired) {
             return Promise.resolve(vehicle);
         }
-        if (!isBarsCacheVehicle(vehicle) && pricing.rateSource !== 'bars_cache') {
+        if (!isBarsCacheVehicle(vehicle) && pricing.rateSource !== 'bars_cache' && !force) {
             return Promise.resolve(vehicle);
         }
         return fetch('/api/rac-rate-quote.php', {
@@ -420,19 +444,76 @@
                 if (!data.success) {
                     throw new Error(data.message || 'No se pudo bloquear la tarifa.');
                 }
-                const merged = mergeVehiclePreservingQuote(vehicle, Object.assign({}, vehicle, data.vehicle || {}));
-                merged.pricing = Object.assign({}, merged.pricing || {}, data.pricing || {}, {
+                const incoming = Object.assign({}, vehicle, data.vehicle || {});
+                incoming.pricing = Object.assign({}, (data.vehicle && data.vehicle.pricing) || {}, data.pricing || {}, {
                     barsQuoteToken: data.quote_token,
+                    quoteExpiresAt: data.expires_at || (data.pricing && data.pricing.quoteExpiresAt) || '',
                     rateSource: 'bars_cache',
                 });
+                const merged = mergeVehiclePreservingQuote(vehicle, incoming);
+                merged.pricing = Object.assign({}, merged.pricing || {}, incoming.pricing);
                 sessionStorage.setItem('selectedVehicle', JSON.stringify(merged));
                 return merged;
             });
     }
 
+    /**
+     * Preview server-side de totales (no crea reserva).
+     * @returns {Promise<object>}
+     */
+    function previewRateTotals(criteria, vehicle, extrasSelection, rateType) {
+        if (!criteria || !vehicle || !vehicle.sippCode) {
+            return Promise.reject(new Error('Datos de reserva incompletos.'));
+        }
+        const pricing = vehicle.pricing || {};
+        const payload = Object.assign({}, buildQuotePayload(criteria, vehicle, rateType), {
+            quote_token: pricing.barsQuoteToken || '',
+            rate_quote_token: pricing.barsQuoteToken || '',
+            extras: extrasSelection || {},
+        });
+        return fetch('/api/rac-rate-preview.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        }).then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data || !data.success) {
+                    throw new Error((data && data.message) || 'No se pudo recalcular la tarifa.');
+                }
+                if (data.reservation_created) {
+                    throw new Error('Respuesta de preview inválida.');
+                }
+                let merged = vehicle;
+                if (data.quote_token) {
+                    const incoming = Object.assign({}, vehicle, data.vehicle || {});
+                    incoming.pricing = Object.assign({}, vehicle.pricing || {}, data.pricing || {}, {
+                        barsQuoteToken: data.quote_token,
+                        quoteExpiresAt: data.expires_at || '',
+                        rateSource: 'bars_cache',
+                    });
+                    if (data.pricing && data.pricing.finalTotalRate != null) {
+                        incoming.pricing.finalTotalRate = data.pricing.finalTotalRate;
+                        incoming.pricing.rateBase = data.pricing.finalTotalRate;
+                    }
+                    merged = mergeVehiclePreservingQuote(vehicle, incoming);
+                    merged.pricing = Object.assign({}, merged.pricing || {}, incoming.pricing);
+                    sessionStorage.setItem('selectedVehicle', JSON.stringify(merged));
+                }
+                return {
+                    vehicle: merged,
+                    totals: data.totals || {},
+                    protection: data.protection || {},
+                    refreshed: !!data.refreshed,
+                    quote_token: data.quote_token || null,
+                    expires_at: data.expires_at || null,
+                    reservation_created: false,
+                };
+            });
+    }
+
     function refreshVehicleForExtras(criteria, vehicle) {
         if (isBarsCacheVehicle(vehicle)) {
-            // No bloquear UI esperando quote — se crea al continuar/reservar.
+            // No bloquear UI esperando quote — se crea/valida al preview o al continuar.
             return Promise.resolve(vehicle);
         }
         if (!window.RAC_FLOW?.fetchAvailability || !vehicle?.sippCode) {
@@ -485,8 +566,10 @@
         fetchAvailability,
         findVehicleInResults,
         isBarsCacheVehicle,
+        isBarsQuoteExpired,
         mergeVehiclePreservingQuote,
         ensureBarsQuote,
+        previewRateTotals,
         refreshVehicleForExtras,
         buildQuotePayload,
         UNDERAGE_PER_DAY,

@@ -392,8 +392,142 @@
 
         const state = {
             vehicle, criteria, vehicleContext, rentalBase, saf, mandatoryTotal, nonSafMandatory, billedDays, rateType,
-            packagesByCode, selectedProtection, selectedQty, additionalDrivers, equipment, driverCharge, driverMax
+            packagesByCode, selectedProtection, selectedQty, additionalDrivers, equipment, driverCharge, driverMax,
+            previewSeq: 0,
+            previewTimer: null,
+            previewInFlight: false,
+            lastAppliedPreviewSeq: 0
         };
+
+        function buildExtrasPayloadForPreview() {
+            const items = [];
+            Object.keys(state.selectedQty).forEach(function (code) {
+                const qty = parseInt(state.selectedQty[code], 10) || 0;
+                if (qty < 1) return;
+                const eq = state.equipment.find(function (x) { return x.code === code; });
+                if (!eq) return;
+                items.push({
+                    code: eq.code,
+                    quantity: Math.min(qty, equipmentMaxQuantity(eq))
+                });
+            });
+            return {
+                protection: state.selectedProtection,
+                items: items,
+                additionalDrivers: state.additionalDrivers,
+                mandatoryTotal: state.mandatoryTotal,
+                totals: {
+                    mandatory: state.mandatoryTotal,
+                    saf: state.saf
+                },
+                rental_days: state.billedDays,
+                billed_days: state.billedDays,
+                vehicle_name: state.vehicle.category || state.vehicle.name || '',
+                vehicle_category: state.vehicle.category || ''
+            };
+        }
+
+        function applyServerTotals(preview) {
+            const totals = preview.totals || {};
+            const prot = preview.protection || {};
+            state.rentalBase = typeof totals.base === 'number' ? totals.base : state.rentalBase;
+            if (preview.vehicle) {
+                state.vehicle = preview.vehicle;
+            }
+            const covName = prot.name || state.coverageName || PROTECTION_LABELS.NONE;
+            state.coverageName = covName;
+            state.totals = {
+                base: totals.base != null ? totals.base : state.rentalBase,
+                saf: state.saf,
+                mandatory: totals.mandatory != null ? totals.mandatory : state.mandatoryTotal,
+                mandatoryLines: state.nonSafMandatory,
+                coverage: totals.coverage != null ? totals.coverage : 0,
+                equipment: totals.equipment != null ? totals.equipment : 0,
+                drivers: totals.drivers != null ? totals.drivers : 0,
+                extras: totals.extras != null ? totals.extras : 0,
+                itbms: totals.itbms != null ? totals.itbms : 0,
+                total: totals.total != null ? totals.total : 0,
+                currency: totals.currency || 'USD',
+                serverPreview: true
+            };
+
+            renderMandatoryRows(state.nonSafMandatory);
+            document.getElementById('sumBase').textContent = window.RAC_FLOW.fmtMoney(state.totals.base);
+            document.getElementById('sumSaf').textContent = window.RAC_FLOW.fmtMoney(state.saf);
+            document.getElementById('sumCoverage').textContent = window.RAC_FLOW.fmtMoney(state.totals.coverage);
+            const covRow = document.getElementById('sumCoverageRow');
+            const protCode = String(state.selectedProtection || 'NONE').toUpperCase();
+            if (covRow) covRow.classList.toggle('d-none', protCode === 'NONE' && state.totals.coverage <= 0);
+            const extrasRow = document.getElementById('sumExtrasRow');
+            if (extrasRow) extrasRow.classList.toggle('d-none', state.totals.equipment <= 0);
+            document.getElementById('sumExtras').textContent = window.RAC_FLOW.fmtMoney(state.totals.equipment);
+            document.getElementById('sumItbms').textContent = window.RAC_FLOW.fmtMoney(state.totals.itbms);
+            document.getElementById('sumTotal').textContent = window.RAC_FLOW.fmtMoney(state.totals.total);
+            document.getElementById('sumCoverageLabel').textContent = covName;
+
+            const driverRow = document.getElementById('sumDriverRow');
+            const driverVal = document.getElementById('sumDriver');
+            if (driverRow && driverVal) {
+                if (state.totals.drivers > 0) {
+                    driverRow.classList.remove('d-none');
+                    driverVal.textContent = window.RAC_FLOW.fmtMoney(state.totals.drivers);
+                    document.getElementById('sumDriverLabel').textContent =
+                        `Conductor adicional (×${state.additionalDrivers})`;
+                } else {
+                    driverRow.classList.add('d-none');
+                }
+            }
+
+            const status = document.getElementById('extrasPreviewStatus');
+            if (status) {
+                status.textContent = preview.refreshed
+                    ? 'Tarifa actualizada desde el servidor.'
+                    : 'Resumen recalculado.';
+            }
+        }
+
+        function setPreviewLoading(on) {
+            const loader = document.getElementById('extrasRefreshLoader');
+            if (loader) loader.classList.toggle('d-none', !on);
+            state.previewInFlight = !!on;
+            const btn = document.getElementById('btnContinueExtras');
+            if (btn && !btn.dataset.continuing) {
+                btn.disabled = !!on;
+            }
+        }
+
+        function scheduleServerPreview() {
+            if (!window.RAC_FLOW.previewRateTotals) return;
+            if (state.previewTimer) clearTimeout(state.previewTimer);
+            state.previewTimer = setTimeout(runServerPreview, 350);
+        }
+
+        function runServerPreview() {
+            if (!window.RAC_FLOW.previewRateTotals) return Promise.resolve(null);
+            const seq = ++state.previewSeq;
+            setPreviewLoading(true);
+            const extrasPayload = buildExtrasPayloadForPreview();
+            return window.RAC_FLOW.previewRateTotals(
+                state.criteria,
+                state.vehicle,
+                extrasPayload,
+                state.rateType
+            ).then(function (preview) {
+                if (seq < state.lastAppliedPreviewSeq) return null;
+                state.lastAppliedPreviewSeq = seq;
+                applyServerTotals(preview);
+                setPreviewLoading(false);
+                return preview;
+            }).catch(function (err) {
+                if (seq !== state.previewSeq) return null;
+                setPreviewLoading(false);
+                const status = document.getElementById('extrasPreviewStatus');
+                if (status) {
+                    status.textContent = err.message || 'No se pudo recalcular la tarifa.';
+                }
+                return null;
+            });
+        }
 
         function renderMandatoryRows(charges) {
             const wrap = document.getElementById('sumMandatoryRows');
@@ -485,6 +619,7 @@
             state.coverageName = covName;
             state.coverageDeductible = protCode !== 'NONE' && pkg.deductible != null
                 ? parseFloat(pkg.deductible) : null;
+            scheduleServerPreview();
         }
 
         document.getElementById('extrasMain').addEventListener('change', function (e) {
@@ -532,15 +667,47 @@
         document.getElementById('btnContinueExtras')?.addEventListener('click', function () {
             const btn = document.getElementById('btnContinueExtras');
             if (btn) {
+                if (btn.disabled && btn.dataset.continuing === '1') return;
                 btn.disabled = true;
+                btn.dataset.continuing = '1';
                 btn.dataset.originalText = btn.textContent;
-                btn.textContent = 'Preparando tarifa…';
+                btn.textContent = 'Recalculando tarifa…';
             }
+
+            const forceExpired = window.RAC_FLOW.isBarsQuoteExpired
+                ? window.RAC_FLOW.isBarsQuoteExpired(state.vehicle)
+                : false;
 
             createQuoteForVehicle(state.criteria, state.vehicle, state.rateType)
                 .then(function (quotedVehicle) {
+                    if (forceExpired || (window.RAC_FLOW.isBarsCacheVehicle
+                        && window.RAC_FLOW.isBarsCacheVehicle(quotedVehicle)
+                        && window.RAC_FLOW.isBarsQuoteExpired
+                        && window.RAC_FLOW.isBarsQuoteExpired(quotedVehicle))) {
+                        return window.RAC_FLOW.ensureBarsQuote(state.criteria, quotedVehicle, state.rateType, { force: true });
+                    }
+                    return window.RAC_FLOW.ensureBarsQuote(state.criteria, quotedVehicle, state.rateType);
+                })
+                .then(function (quotedVehicle) {
                     state.vehicle = quotedVehicle;
                     sessionStorage.setItem('selectedVehicle', JSON.stringify(quotedVehicle));
+                    if (!window.RAC_FLOW.previewRateTotals) {
+                        return { vehicle: quotedVehicle, totals: state.totals, protection: { name: state.coverageName } };
+                    }
+                    return window.RAC_FLOW.previewRateTotals(
+                        state.criteria,
+                        quotedVehicle,
+                        buildExtrasPayloadForPreview(),
+                        state.rateType
+                    );
+                })
+                .then(function (preview) {
+                    if (preview && preview.totals) {
+                        applyServerTotals(preview);
+                    }
+                    if (preview && preview.vehicle) {
+                        state.vehicle = preview.vehicle;
+                    }
 
                     const items = [];
                     Object.keys(state.selectedQty).forEach(function (code) {
@@ -574,7 +741,7 @@
                         mandatoryCharges: state.nonSafMandatory,
                         mandatoryTotal: state.mandatoryTotal,
                         totals: state.totals,
-                        pricingSnapshot: quotedVehicle.pricing || {},
+                        pricingSnapshot: (state.vehicle && state.vehicle.pricing) || {},
                         coverage_name: state.coverageName,
                         coverage_deductible: state.coverageDeductible,
                         rate_type: state.rateType
@@ -586,7 +753,12 @@
                 .catch(function (err) {
                     if (btn) {
                         btn.disabled = false;
+                        btn.dataset.continuing = '';
                         btn.textContent = btn.dataset.originalText || 'Continuar';
+                    }
+                    const status = document.getElementById('extrasPreviewStatus');
+                    if (status) {
+                        status.textContent = err.message || 'No se pudo recalcular la tarifa.';
                     }
                     alert(err.message || 'No se pudo bloquear la tarifa. Vuelva a seleccionar el vehículo.');
                 });

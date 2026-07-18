@@ -65,10 +65,11 @@ require_once __DIR__ . '/../includes/rac-stepper.php';
                     <div class="d-flex justify-content-between"><span class="text-muted">ITBMS (7%)</span><span id="sumItbms">$0.00</span></div>
                 </div>
                 <hr>
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="fw-bold text-navy">Total</span>
-                    <span class="fw-bold text-navy fs-4" id="sumTotal">$0.00</span>
+                    <span class="fw-bold text-navy fs-4" id="sumTotal" aria-live="polite">$0.00</span>
                 </div>
+                <p id="extrasPreviewStatus" class="text-muted small mb-3" aria-live="polite" role="status"></p>
                 <button type="button" id="btnContinueExtras" class="btn btn-theme w-100 py-3 rounded-pill fw-bold text-white">
                     Continuar <i class="bi bi-arrow-right ms-1"></i>
                 </button>
@@ -77,8 +78,8 @@ require_once __DIR__ . '/../includes/rac-stepper.php';
     </div>
 </section>
 
-<script src="/assets/js/rac-flow.js?v=6"></script>
-<script src="/assets/js/rac-extras.js?v=15"></script>
+<script src="/assets/js/rac-flow.js?v=7"></script>
+<script src="/assets/js/rac-extras.js?v=16"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const c = window.RAC_FLOW && window.RAC_FLOW.getCriteria();
