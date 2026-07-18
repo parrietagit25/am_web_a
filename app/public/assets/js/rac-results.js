@@ -162,18 +162,18 @@
                         <span class="badge bg-light text-dark border"><i class="bi bi-people-fill text-danger"></i> ${vehicle.passengers || 5} Pax</span>
                         <span class="badge bg-light text-dark border"><i class="bi bi-gear-wide-connected text-danger"></i> ${vehicle.transmission || 'Automática'}</span>
                     </div>
-                    <div class="row g-2 mt-auto">
+                    <div class="row g-2 mt-auto" role="group" aria-label="Opciones de tarifa">
                         <div class="col-6 border-end">
-                            <small class="text-muted d-block">WebExclusivo</small>
+                            <small class="text-muted d-block" id="rate-label-web-${vehicleIndex}">WebExclusivo</small>
                             <span class="fs-4 fw-bold text-navy">$${fmt(webTotal)}</span>
                             <small class="text-muted d-block">$${fmt(rates.webPerDay)}/día · ${billedDays} día${billedDays !== 1 ? 's' : ''}</small>
-                            <button type="button" class="btn btn-theme btn-sm w-100 mt-2 rounded-pill rac-select-btn" data-rate="web" data-vehicle-index="${vehicleIndex}">Reservar Web</button>
+                            <button type="button" class="btn btn-theme btn-sm w-100 mt-2 rounded-pill rac-select-btn" data-rate="web" data-rate-type="web" data-prepayment-available="false" data-vehicle-index="${vehicleIndex}" aria-describedby="rate-label-web-${vehicleIndex}">Reservar Web</button>
                         </div>
                         <div class="col-6">
-                            <small class="text-muted d-block">En mostrador</small>
+                            <small class="text-muted d-block" id="rate-label-counter-${vehicleIndex}">En mostrador</small>
                             <span class="fs-4 fw-bold text-navy">$${fmt(counterTotal)}</span>
                             <small class="text-muted d-block">$${fmt(rates.counterPerDay)}/día · ${billedDays} día${billedDays !== 1 ? 's' : ''}</small>
-                            <button type="button" class="btn btn-outline-dark btn-sm w-100 mt-2 rounded-pill rac-select-btn" data-rate="counter" data-vehicle-index="${vehicleIndex}">Reservar</button>
+                            <button type="button" class="btn btn-outline-dark btn-sm w-100 mt-2 rounded-pill rac-select-btn" data-rate="counter" data-rate-type="counter" data-prepayment-available="false" data-vehicle-index="${vehicleIndex}" aria-describedby="rate-label-counter-${vehicleIndex}">Reservar</button>
                         </div>
                     </div>
                 </div>
@@ -232,7 +232,7 @@
             const vehicle = vehicles[idx];
             if (!vehicle) return;
             btn.addEventListener('click', () => {
-                const rate = btn.getAttribute('data-rate') || 'web';
+                const rate = (btn.getAttribute('data-rate') || 'web') === 'counter' ? 'counter' : 'web';
                 const vendorRateId = window.RAC_FLOW?.resolveVendorRateId
                     ? window.RAC_FLOW.resolveVendorRateId(vehicle, rate)
                     : (vehicle.vendorRateId || '');
@@ -247,7 +247,10 @@
                 if (!usesBarsPricing(results)) {
                     goExtras(Object.assign({}, vehicle, {
                         _selectedRateType: rate,
-                        vendorRateId: vendorRateId
+                        vendorRateId: vendorRateId,
+                        prepayment_available: false,
+                        payment_provider_available: false,
+                        online_payment_available: false
                     }));
                     return;
                 }
@@ -287,7 +290,10 @@
                         const mergedVehicle = Object.assign({}, vehicle, data.vehicle || {}, {
                             _selectedRateType: rate,
                             vendorRateId: vendorRateId,
-                            pricing: mergedPricing
+                            pricing: mergedPricing,
+                            prepayment_available: false,
+                            payment_provider_available: false,
+                            online_payment_available: false
                         });
                         goExtras(mergedVehicle);
                     })

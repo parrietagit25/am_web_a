@@ -140,9 +140,13 @@ class RacReservationReconcileService
             'message' => $message,
             'payment_available' => false,
             'provider_available' => false,
+            'prepayment_available' => false,
+            'payment_provider_available' => false,
+            'online_payment_available' => false,
             'reservation_modified' => false,
             'payment_created' => false,
             'reservation' => $this->publicReservationSummary($row),
+            'rate_channel' => RacPublicRateService::rateChannelDescriptor($rateType),
             'amount_due' => $amountDue,
             'amount_stored' => $storedTotal,
             'amount_recalculated' => is_array($recalculated) ? round((float) ($recalculated['total'] ?? 0), 2) : null,
@@ -189,6 +193,9 @@ class RacReservationReconcileService
             'return_date' => (string) ($row['return_date'] ?? ''),
             'return_time' => (string) ($row['return_time'] ?? ''),
             'rate_type' => (($row['rate_type'] ?? 'web') === 'counter') ? 'counter' : 'web',
+            'rate_channel' => RacPublicRateService::rateChannelDescriptor(
+                (string) ($row['rate_type'] ?? 'web')
+            ),
             'currency' => (string) ($row['currency'] ?? 'USD'),
         ];
     }
@@ -306,6 +313,9 @@ class RacReservationReconcileService
             'message' => $message,
             'payment_available' => false,
             'provider_available' => false,
+            'prepayment_available' => false,
+            'payment_provider_available' => false,
+            'online_payment_available' => false,
             'reservation_modified' => false,
             'payment_created' => false,
             'reservation' => $reservation,

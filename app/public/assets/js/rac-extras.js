@@ -789,7 +789,7 @@
                     <small class="text-muted">${billedDays} día${billedDays !== 1 ? 's' : ''} · ${window.RAC_FLOW.branchLabel(criteria.locationCode)}</small>
                 </div>
                 <div class="text-end">
-                    <small class="text-muted d-block">${rateType === 'counter' ? 'Tarifa mostrador' : 'WebExclusivo'}</small>
+                    <small class="text-muted d-block" data-rate-type="${rateType === 'counter' ? 'counter' : 'web'}" data-prepayment-available="false">${rateType === 'counter' ? 'Tarifa mostrador' : 'WebExclusivo'}</small>
                     <span class="fs-4 fw-bold text-navy">${window.RAC_FLOW.fmtMoney(rentalBase)}</span>
                     <small class="text-muted d-block">solo tarifa</small>
                 </div>

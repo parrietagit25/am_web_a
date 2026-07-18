@@ -16,7 +16,11 @@ class RacPublicRateService
     /** @var list<string> */
     private const HIDDEN_VEHICLE_CODES = ['SIMR', 'SIAR', 'SIMN'];
 
+    /** Markup local mostrador sobre tarifa WEB BARS (no es prepago). */
     private const COUNTER_MARKUP = 1.07;
+
+    /** Qualifier BARS real en caché pública. */
+    public const BARS_RATE_QUALIFIER = 'WEB';
 
     private BarsRateCacheService $cacheService;
     private RacRateRuleService $ruleService;
@@ -47,6 +51,97 @@ class RacPublicRateService
         }
 
         return 30;
+    }
+
+    public static function counterMarkupFactor(): float
+    {
+        return self::COUNTER_MARKUP;
+    }
+
+    /**
+     * Normaliza canal tarifario local. Solo web|counter; cualquier otro valor → web.
+     * AM-ADJ-15: no interpreta prepago ni modos de pago inventados.
+     */
+    public static function normalizeRateType(mixed $value): string
+    {
+        if (is_array($value)) {
+            return 'web';
+        }
+
+        return strtolower(trim((string) $value)) === 'counter' ? 'counter' : 'web';
+    }
+
+    /**
+     * Código rateCode enviado a BARS al crear reserva (evidencia AutomarketReservationApiService).
+     * web → WEB; counter → NONE. No inventa códigos prepaid.
+     */
+    public static function barsRateCodeForChannel(string $rateType): string
+    {
+        return self::normalizeRateType($rateType) === 'counter' ? 'NONE' : 'WEB';
+    }
+
+    /**
+     * Metadatos neutrales de canal (no persistidos como estado financiero).
+     * WebExclusivo ≠ prepago. Prepago permanece desactivado.
+     *
+     * @return array<string, mixed>
+     */
+    public static function rateChannelDescriptor(string $rateType = 'web'): array
+    {
+        $rateType = self::normalizeRateType($rateType);
+
+        return [
+            'rate_type' => $rateType,
+            'rate_qualifier' => self::BARS_RATE_QUALIFIER,
+            'bars_rate_code' => self::barsRateCodeForChannel($rateType),
+            'label' => $rateType === 'counter' ? 'En mostrador' : 'WebExclusivo',
+            'counter_markup' => $rateType === 'counter' ? self::COUNTER_MARKUP : 1.0,
+            'is_prepaid_rate' => false,
+            'prepayment_available' => false,
+            'payment_provider_available' => false,
+            'online_payment_available' => false,
+        ];
+    }
+
+    /**
+     * @return array{web: array<string, mixed>, counter: array<string, mixed>}
+     */
+    public static function allRateChannelDescriptors(): array
+    {
+        return [
+            'web' => self::rateChannelDescriptor('web'),
+            'counter' => self::rateChannelDescriptor('counter'),
+        ];
+    }
+
+    /**
+     * Detecta intentos del cliente de forzar modos de pago/prepago inexistentes.
+     * Los flags se ignoran en respuestas; el servidor siempre devuelve false.
+     */
+    public static function clientAttemptedPrepaidActivation(array $input): bool
+    {
+        $watch = [
+            'prepaid', 'prepago', 'prepayment_available', 'payment_mode',
+            'is_prepaid', 'is_prepaid_rate', 'online_payment_available',
+            'payment_provider_available', 'paid', 'payment_status',
+        ];
+        foreach ($watch as $key) {
+            if (!array_key_exists($key, $input)) {
+                continue;
+            }
+            $v = $input[$key];
+            if ($v === true || $v === 1 || $v === '1' || $v === 'true') {
+                return true;
+            }
+            if (is_string($v)) {
+                $lv = strtolower(trim($v));
+                if (in_array($lv, ['prepaid', 'prepago', 'paid', 'pay_now', 'prepay'], true)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public static function isBarsPricingEnabled(): bool
@@ -87,7 +182,7 @@ class RacPublicRateService
             $returnLocation,
             $pickupDatetime,
             $returnDatetime,
-            'WEB'
+            self::BARS_RATE_QUALIFIER
         );
 
         return [
@@ -101,7 +196,7 @@ class RacPublicRateService
             'return_datetime' => $returnDatetime,
             'pickup_location' => $pickupLocation,
             'return_location' => $returnLocation,
-            'rate_qualifier' => 'WEB',
+            'rate_qualifier' => self::BARS_RATE_QUALIFIER,
             'cache_key' => $cacheKey,
             'age' => $age,
             'promoCode' => $promoCode,
@@ -188,6 +283,11 @@ class RacPublicRateService
             'reason' => null,
             'catalogFallback' => [],
             'rateCodes' => ['WEB'],
+            'rate_qualifier' => self::BARS_RATE_QUALIFIER,
+            'rate_channels' => self::allRateChannelDescriptors(),
+            'prepayment_available' => false,
+            'payment_provider_available' => false,
+            'online_payment_available' => false,
             'message' => null,
             'cacheKey' => $normalized['cache_key'],
             'pricingEngine' => 'bars_calculated',
@@ -207,7 +307,7 @@ class RacPublicRateService
             'return_location' => $normalized['return_location'],
             'pickup_datetime' => $normalized['pickup_datetime'],
             'return_datetime' => $normalized['return_datetime'],
-            'rate_qualifier' => $normalized['rate_qualifier'] ?? 'WEB',
+            'rate_qualifier' => $normalized['rate_qualifier'] ?? self::BARS_RATE_QUALIFIER,
         ];
 
         $result = $this->cacheService->refreshFromBars($barsParams, $reason, true);
@@ -311,6 +411,11 @@ class RacPublicRateService
             'expires_at' => $expiresAt,
             'vehicle' => $vehicle,
             'pricing' => $vehicle['pricing'],
+            'rate_qualifier' => self::BARS_RATE_QUALIFIER,
+            'rate_channels' => self::allRateChannelDescriptors(),
+            'prepayment_available' => false,
+            'payment_provider_available' => false,
+            'online_payment_available' => false,
         ];
     }
 
@@ -397,7 +502,7 @@ class RacPublicRateService
             return ['ok' => false, 'message' => 'Código de vehículo inválido.', 'code' => 'vehicle'];
         }
 
-        $rateType = $rateType === 'counter' ? 'counter' : 'web';
+        $rateType = self::normalizeRateType($rateType);
         $quoteToken = trim((string) ($quoteToken ?? ''));
         $refreshed = false;
         $barsQuote = null;
@@ -491,6 +596,10 @@ class RacPublicRateService
             'expires_at' => is_array($barsQuote) ? (string) ($barsQuote['expires_at'] ?? '') : null,
             'currency' => $currency,
             'rate_type' => $rateType,
+            'rate_channel' => self::rateChannelDescriptor($rateType),
+            'prepayment_available' => false,
+            'payment_provider_available' => false,
+            'online_payment_available' => false,
             'rental_days' => $rentalDays,
             'vehicle' => $vehiclePayload,
             'pricing' => $pricing,
@@ -633,6 +742,8 @@ class RacPublicRateService
             'vendorRateId' => 'bars-' . $code . '-' . substr((string) ($calculatedRate['cache_key'] ?? ''), 0, 12),
             'pricing' => [
                 'rateSource' => 'bars_cache',
+                'rateQualifier' => self::BARS_RATE_QUALIFIER,
+                'rateCode' => 'WEB',
                 'baseDailyRate' => round((float) ($calculatedRate['base_daily_rate'] ?? 0), 2),
                 'baseTotalRate' => round((float) ($calculatedRate['base_total_rate'] ?? 0), 2),
                 'finalDailyRate' => $finalDaily,
@@ -640,10 +751,16 @@ class RacPublicRateService
                 'discountTotal' => round((float) ($calculatedRate['discount_amount_total'] ?? 0), 2),
                 'rateBase' => $finalTotal,
                 'rateBaseCounter' => $counterTotal,
+                'counterMarkup' => self::COUNTER_MARKUP,
                 'cacheKey' => (string) ($calculatedRate['cache_key'] ?? ''),
                 'calculatedRateId' => (int) ($calculatedRate['id'] ?? 0),
                 'snapshotId' => (int) ($calculatedRate['snapshot_id'] ?? 0),
             ],
+            'rateCode' => 'WEB',
+            'rate_channels' => self::allRateChannelDescriptors(),
+            'prepayment_available' => false,
+            'payment_provider_available' => false,
+            'online_payment_available' => false,
             'mandatoryCharges' => [
                 ['code' => 'SAF', 'description' => 'Cargo Administrativo (SAF)', 'amountTotal' => 0],
             ],

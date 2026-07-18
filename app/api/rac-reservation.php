@@ -77,7 +77,8 @@ if (empty($vehicle['name']) && empty($vehicle['sippCode'])) {
 }
 
 $pricing = $vehicle['pricing'] ?? [];
-$rateType = ($input['rate_type'] ?? 'web') === 'counter' ? 'counter' : 'web';
+$rateType = RacPublicRateService::normalizeRateType($input['rate_type'] ?? 'web');
+// Prepago/pago online no existen: flags del cliente se ignoran.
 $quoteToken = trim((string) ($input['rate_quote_token'] ?? $pricing['barsQuoteToken'] ?? $input['quote_token'] ?? ''));
 $barsQuote = null;
 $rateSource = 'legacy';
@@ -215,8 +216,9 @@ if (is_array($barsQuote)) {
     $finalDaily = (float) ($barsQuote['final_daily_rate'] ?? 0);
     $finalTotal = (float) ($barsQuote['final_total_rate'] ?? 0);
     if ($rateType === 'counter') {
-        $finalDaily = round($finalDaily * 1.07, 2);
-        $finalTotal = round($finalTotal * 1.07, 2);
+        $markup = RacPublicRateService::counterMarkupFactor();
+        $finalDaily = round($finalDaily * $markup, 2);
+        $finalTotal = round($finalTotal * $markup, 2);
     }
     $rentalBase = $finalTotal;
     $vehicle['priceWeb'] = $finalDaily;

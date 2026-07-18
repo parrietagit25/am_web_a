@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/BranchDataService.php';
 require_once __DIR__ . '/RacBirthDateService.php';
+require_once __DIR__ . '/RacPublicRateService.php';
 
 class AutomarketReservationApiService {
     private string $baseUrl;
@@ -67,10 +68,10 @@ class AutomarketReservationApiService {
             $phone = preg_replace('/\s+/', '', $phonePrefix . $phoneNumber);
         }
 
-        $rateType = ($input['rate_type'] ?? 'web') === 'counter' ? 'counter' : 'web';
-        $rateCode = $vehicle['rateCode'] ?? 'WEB';
+        $rateType = RacPublicRateService::normalizeRateType($input['rate_type'] ?? 'web');
+        $rateCode = $vehicle['rateCode'] ?? RacPublicRateService::barsRateCodeForChannel($rateType);
         if ($rateType === 'counter' && ($rateCode === '' || $rateCode === 'WEB' || $rateCode === 'Best')) {
-            $rateCode = 'NONE';
+            $rateCode = RacPublicRateService::barsRateCodeForChannel('counter');
         }
 
         $vendorRateId = $vehicle['vendorRateId'] ?? ($vehicle['pricing']['quoteToken'] ?? '');

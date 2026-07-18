@@ -54,4 +54,9 @@ echo json_encode([
     'expires_at' => $result['expires_at'],
     'vehicle' => $result['vehicle'],
     'pricing' => $result['pricing'],
+    'rate_qualifier' => $result['rate_qualifier'] ?? RacPublicRateService::BARS_RATE_QUALIFIER,
+    'rate_channels' => $result['rate_channels'] ?? RacPublicRateService::allRateChannelDescriptors(),
+    'prepayment_available' => false,
+    'payment_provider_available' => false,
+    'online_payment_available' => false,
 ], JSON_UNESCAPED_UNICODE);

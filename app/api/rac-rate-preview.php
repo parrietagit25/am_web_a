@@ -33,7 +33,8 @@ if ($vehicleCode === '' || is_array($input['vehicle_code'] ?? null) || is_array(
     exit;
 }
 
-$rateType = (($input['rate_type'] ?? 'web') === 'counter') ? 'counter' : 'web';
+$rateType = RacPublicRateService::normalizeRateType($input['rate_type'] ?? 'web');
+// Flags de prepago/pago del cliente se ignoran; el servidor es fuente de verdad.
 $quoteToken = trim((string) ($input['quote_token'] ?? $input['rate_quote_token'] ?? ''));
 if (is_array($input['quote_token'] ?? null) || is_array($input['rate_quote_token'] ?? null)) {
     http_response_code(422);
@@ -90,6 +91,10 @@ echo json_encode([
     'expires_at' => $result['expires_at'] ?? null,
     'currency' => $result['currency'] ?? 'USD',
     'rate_type' => $result['rate_type'] ?? $rateType,
+    'rate_channel' => $result['rate_channel'] ?? RacPublicRateService::rateChannelDescriptor($rateType),
+    'prepayment_available' => false,
+    'payment_provider_available' => false,
+    'online_payment_available' => false,
     'rental_days' => $result['rental_days'] ?? null,
     'vehicle' => $result['vehicle'] ?? null,
     'pricing' => $result['pricing'] ?? null,

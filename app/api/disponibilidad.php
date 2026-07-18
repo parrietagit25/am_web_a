@@ -127,5 +127,19 @@ if ($branch && !empty($branch['note']) && empty($result['vehicles']) && empty($r
     $result['branchNote'] = $branch['note'];
 }
 
+// AM-ADJ-15: prepago/pago online no disponibles (aunque el fallback partner no lo declare).
+$result['prepayment_available'] = false;
+$result['payment_provider_available'] = false;
+$result['online_payment_available'] = false;
+if (empty($result['rate_channels']) || !is_array($result['rate_channels'] ?? null)) {
+    $result['rate_channels'] = RacPublicRateService::allRateChannelDescriptors();
+}
+if (empty($result['rateCodes']) || !is_array($result['rateCodes'])) {
+    $result['rateCodes'] = ['WEB'];
+}
+if (empty($result['rate_qualifier'])) {
+    $result['rate_qualifier'] = RacPublicRateService::BARS_RATE_QUALIFIER;
+}
+
 http_response_code($result['success'] ? 200 : 502);
 echo json_encode($result, JSON_UNESCAPED_UNICODE);
