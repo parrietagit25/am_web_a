@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/BranchDataService.php';
+require_once __DIR__ . '/RacBirthDateService.php';
 
 class AutomarketReservationApiService {
     private string $baseUrl;
@@ -112,7 +113,7 @@ class AutomarketReservationApiService {
             'flightNumber' => trim($input['flight_number'] ?? '') ?: null,
             'airlineCode' => trim($input['airline_code'] ?? '') ?: null,
             'remarks' => trim($input['remarks'] ?? $input['customer_comments'] ?? '') ?: null,
-            'birthDate' => trim($input['birth_date'] ?? '') ?: null,
+            'birthDate' => RacBirthDateService::normalize($input['birth_date'] ?? null),
             'extras' => is_array($extras) ? $extras : null,
         ], static function ($v) {
             return $v !== null && $v !== '';

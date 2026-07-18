@@ -94,8 +94,9 @@ $racLocalCaptchaBypass = CaptchaService::isLocalCaptchaBypassAllowed();
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Fecha de nacimiento <small class="text-muted">(opcional)</small></label>
-                            <input type="date" id="birthDate" class="form-control form-control-premium">
+                            <label for="birthDate" class="form-label fw-semibold">Fecha de nacimiento <span class="text-danger">*</span></label>
+                            <input type="date" id="birthDate" name="birth_date" class="form-control form-control-premium" required autocomplete="bday" max="">
+                            <div class="invalid-feedback" id="birthDateFeedback">Ingrese una fecha de nacimiento válida.</div>
                         </div>
                     </div>
                 </div>
@@ -149,6 +150,113 @@ $racLocalCaptchaBypass = CaptchaService::isLocalCaptchaBypassAllowed();
 
 <script src="/assets/js/rac-flow.js?v=4"></script>
 <script>
+const RAC_DRIVER_DRAFT_KEY = 'racDriverDraft';
+
+function panamaTodayIso() {
+    return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Panama',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).format(new Date());
+}
+
+function isValidBirthDateValue(value) {
+    if (typeof value !== 'string') return false;
+    const raw = value.trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return false;
+    const parts = raw.split('-').map(Number);
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+    if (year < 1900) return false;
+    const dt = new Date(Date.UTC(year, month - 1, day));
+    if (dt.getUTCFullYear() !== year || (dt.getUTCMonth() + 1) !== month || dt.getUTCDate() !== day) {
+        return false;
+    }
+    return raw < panamaTodayIso();
+}
+
+function setBirthDateValidity(input) {
+    if (!input) return false;
+    const value = input.value || '';
+    if (!value.trim()) {
+        input.setCustomValidity('required');
+        const fb = document.getElementById('birthDateFeedback');
+        if (fb) fb.textContent = 'La fecha de nacimiento es obligatoria.';
+        return false;
+    }
+    if (!isValidBirthDateValue(value)) {
+        input.setCustomValidity('invalid');
+        const fb = document.getElementById('birthDateFeedback');
+        if (fb) fb.textContent = 'Ingrese una fecha de nacimiento válida.';
+        return false;
+    }
+    input.setCustomValidity('');
+    return true;
+}
+
+function readDriverDraft() {
+    try {
+        const raw = sessionStorage.getItem(RAC_DRIVER_DRAFT_KEY);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        return data && typeof data === 'object' ? data : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function saveDriverDraft() {
+    const draft = {
+        firstName: document.getElementById('firstName')?.value || '',
+        lastName: document.getElementById('lastName')?.value || '',
+        checkoutEmail: document.getElementById('checkoutEmail')?.value || '',
+        emailConfirm: document.getElementById('emailConfirm')?.value || '',
+        phonePrefix: document.getElementById('phonePrefix')?.value || '',
+        checkoutPhone: document.getElementById('checkoutPhone')?.value || '',
+        docType: document.getElementById('docType')?.value || '',
+        docNumber: document.getElementById('docNumber')?.value || '',
+        countryCode: document.getElementById('countryCode')?.value || '',
+        birthDate: document.getElementById('birthDate')?.value || '',
+        flightNumber: document.getElementById('flightNumber')?.value || '',
+        airlineCode: document.getElementById('airlineCode')?.value || '',
+        checkoutComments: document.getElementById('checkoutComments')?.value || ''
+    };
+    try {
+        sessionStorage.setItem(RAC_DRIVER_DRAFT_KEY, JSON.stringify(draft));
+    } catch (e) { /* ignore quota */ }
+}
+
+function restoreDriverDraft() {
+    const draft = readDriverDraft();
+    if (!draft) return;
+    const map = {
+        firstName: 'firstName',
+        lastName: 'lastName',
+        checkoutEmail: 'checkoutEmail',
+        emailConfirm: 'emailConfirm',
+        phonePrefix: 'phonePrefix',
+        checkoutPhone: 'checkoutPhone',
+        docType: 'docType',
+        docNumber: 'docNumber',
+        countryCode: 'countryCode',
+        birthDate: 'birthDate',
+        flightNumber: 'flightNumber',
+        airlineCode: 'airlineCode',
+        checkoutComments: 'checkoutComments'
+    };
+    Object.keys(map).forEach(function (key) {
+        const el = document.getElementById(map[key]);
+        if (el && typeof draft[key] === 'string') {
+            el.value = draft[key];
+        }
+    });
+    const notesCount = document.getElementById('notesCount');
+    const notes = document.getElementById('checkoutComments');
+    if (notesCount && notes) notesCount.textContent = String(notes.value.length);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = window.RAC_FLOW.requireVehicle('/rent-a-car.php');
     const extras = window.RAC_FLOW.getExtras();
@@ -220,7 +328,18 @@ function renderReservePage(vehicle, criteria, extras) {
 
     const notes = document.getElementById('checkoutComments');
     const notesCount = document.getElementById('notesCount');
-    notes.addEventListener('input', () => { notesCount.textContent = notes.value.length; });
+    notes.addEventListener('input', () => { notesCount.textContent = notes.value.length; saveDriverDraft(); });
+
+    const birthDateInput = document.getElementById('birthDate');
+    birthDateInput.max = panamaTodayIso();
+    birthDateInput.addEventListener('input', function () {
+        setBirthDateValidity(birthDateInput);
+        saveDriverDraft();
+    });
+    birthDateInput.addEventListener('change', function () {
+        setBirthDateValidity(birthDateInput);
+        saveDriverDraft();
+    });
 
     document.getElementById('emailConfirm').addEventListener('input', function() {
         if (this.value && this.value !== document.getElementById('checkoutEmail').value) {
@@ -228,8 +347,20 @@ function renderReservePage(vehicle, criteria, extras) {
         } else {
             this.setCustomValidity('');
         }
+        saveDriverDraft();
     });
 
+    [
+        'firstName', 'lastName', 'checkoutEmail', 'phonePrefix', 'checkoutPhone',
+        'docType', 'docNumber', 'countryCode', 'flightNumber', 'airlineCode'
+    ].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', saveDriverDraft);
+        if (el) el.addEventListener('change', saveDriverDraft);
+    });
+
+    restoreDriverDraft();
+    setBirthDateValidity(birthDateInput);
     document.getElementById('checkoutBookingForm').addEventListener('submit', submitCheckoutBooking);
 }
 
@@ -241,6 +372,9 @@ function submitCheckoutBooking(e) {
     if (email !== emailConfirm) {
         document.getElementById('emailConfirm').setCustomValidity('no-match');
     }
+    const birthDateInput = document.getElementById('birthDate');
+    setBirthDateValidity(birthDateInput);
+    saveDriverDraft();
     if (!form.checkValidity()) {
         e.stopPropagation();
         form.classList.add('was-validated');
@@ -253,6 +387,7 @@ function submitCheckoutBooking(e) {
     const rateType = sessionStorage.getItem('selectedRateType') || 'web';
     const firstName = document.getElementById('firstName').value.trim();
     const lastName = document.getElementById('lastName').value.trim();
+    const birthDate = birthDateInput.value.trim();
 
     const payload = {
         first_name: firstName,
@@ -266,7 +401,7 @@ function submitCheckoutBooking(e) {
         doc_type: document.getElementById('docType').value,
         doc_number: document.getElementById('docNumber').value.trim(),
         country_code: document.getElementById('countryCode').value,
-        birth_date: document.getElementById('birthDate').value || null,
+        birth_date: birthDate,
         flight_number: document.getElementById('flightNumber').value.trim(),
         airline_code: document.getElementById('airlineCode').value.trim(),
         customer_comments: document.getElementById('checkoutComments').value.trim(),
@@ -309,6 +444,7 @@ function submitCheckoutBooking(e) {
         sessionStorage.removeItem('selectedRateType');
         sessionStorage.removeItem('extrasSelection');
         sessionStorage.removeItem('searchResults');
+        sessionStorage.removeItem(RAC_DRIVER_DRAFT_KEY);
         const code = data.confirmation_code || data.reservation_code;
         window.location.href = data.redirect || ('/confirmacion.php?code=' + encodeURIComponent(code));
     })

@@ -14,6 +14,7 @@ require_once __DIR__ . '/../services/RacAlertEmailService.php';
 require_once __DIR__ . '/../services/CaptchaService.php';
 require_once __DIR__ . '/../services/RacPublicRateService.php';
 require_once __DIR__ . '/../services/RacAddonService.php';
+require_once __DIR__ . '/../services/RacBirthDateService.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -38,6 +39,14 @@ $emailConfirm = trim($input['email_confirm'] ?? $email);
 $phone = trim($input['customer_phone'] ?? $input['phone'] ?? '');
 $phonePrefix = trim($input['phone_prefix'] ?? '+507');
 $comments = trim($input['customer_comments'] ?? $input['remarks'] ?? '');
+$birthDateError = RacBirthDateService::validationError($input['birth_date'] ?? null);
+if ($birthDateError !== null) {
+    http_response_code(422);
+    echo json_encode(['success' => false, 'message' => $birthDateError], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+$birthDate = RacBirthDateService::normalize($input['birth_date'] ?? null);
+$input['birth_date'] = $birthDate;
 
 if ($name === '' || $email === '' || $phone === '') {
     http_response_code(422);
