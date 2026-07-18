@@ -54,10 +54,12 @@ require_once __DIR__ . '/../includes/header.php';
                     <span>Total estimado</span>
                     <span id="resTotal">—</span>
                 </div>
+                <p id="resPayNote" class="text-muted small mt-2 mb-0" aria-live="polite"></p>
                 <div class="mt-4 d-flex gap-2 flex-wrap">
                     <button type="button" class="btn btn-outline-secondary rounded-pill" onclick="window.print()">
                         <i class="bi bi-printer me-1"></i> Imprimir
                     </button>
+                    <a id="resPayLink" href="/pago-seguro.php" class="btn btn-outline-danger rounded-pill">Verificar monto / Paga tu reserva</a>
                     <a href="/rent-a-car.php" class="btn btn-theme rounded-pill text-white">Nueva reserva</a>
                 </div>
             </div>
@@ -113,6 +115,14 @@ function showReservation(r) {
 
     const total = r.totalAmount != null ? r.totalAmount : (r.total || 0);
     document.getElementById('resTotal').textContent = window.RAC_FLOW.fmtMoney(total);
+    const payNote = document.getElementById('resPayNote');
+    if (payNote) {
+        payNote.textContent = 'El pago en línea aún no está disponible. Puede verificar el monto en Paga tu reserva.';
+    }
+    const payLink = document.getElementById('resPayLink');
+    if (payLink && code && code !== '—') {
+        payLink.href = '/pago-seguro.php?ref=' + encodeURIComponent(code);
+    }
 
     document.getElementById('resDetails').innerHTML = `
         <div class="col-md-6"><strong>Cliente</strong><br>${esc(r.customerName || r.customer_name || '—')}</div>

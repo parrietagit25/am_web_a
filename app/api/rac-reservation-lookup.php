@@ -45,16 +45,23 @@ if ($result['ok'] && is_array($result['data'])) {
 
 $local = (new RacReservationService())->findByBarsCode($code);
 if ($local && !reservationLastNameMatches($local, $lastName)) {
-    http_response_code(403);
+    // Anti-enumeración: misma respuesta que reserva inexistente.
+    http_response_code(404);
     echo json_encode([
         'success' => false,
-        'message' => 'El apellido no coincide con la reserva indicada.',
+        'message' => 'No encontramos esta reserva. Revise el número y apellido o contáctenos.',
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 if ($local) {
     $pickupBranch = BranchDataService::findByCode($local['location_code'] ?? '');
     $returnBranch = BranchDataService::findByCode($local['return_location_code'] ?? '');
+    $email = (string) ($local['customer_email'] ?? '');
+    $maskedEmail = '—';
+    if ($email !== '' && str_contains($email, '@')) {
+        [$u, $d] = explode('@', $email, 2);
+        $maskedEmail = ($u !== '' ? mb_substr($u, 0, 1, 'UTF-8') : '*') . '***@' . $d;
+    }
     http_response_code(200);
     echo json_encode([
         'success' => true,
@@ -63,7 +70,7 @@ if ($local) {
             'confirmationNumber' => RacReservationService::displayConfirmationCode($local),
             'status' => ucfirst($local['status'] ?? 'pending'),
             'customerName' => $local['customer_name'] ?? '',
-            'customerEmail' => $local['customer_email'] ?? '',
+            'customerEmail' => $maskedEmail,
             'vehicleName' => $local['vehicle_name'] ?? '',
             'pickupLocation' => $pickupBranch['name'] ?? ($local['location_code'] ?? ''),
             'returnLocation' => $returnBranch['name'] ?? ($local['return_location_code'] ?? ''),
@@ -71,6 +78,7 @@ if ($local) {
             'returnDateTime' => ($local['return_date'] ?? '') . 'T' . ($local['return_time'] ?? '10:00'),
             'totalAmount' => (float) ($local['price_total_estimated'] ?? 0),
             'coverageName' => $local['coverage_name'] ?? '',
+            'paymentAvailable' => false,
         ],
     ], JSON_UNESCAPED_UNICODE);
     exit;
