@@ -280,17 +280,43 @@ class RacAddonService
         $extrasTotal = 0.0;
         $seenCodes = [];
 
+        // CONDADIC se resuelve una sola vez vía additionalDrivers (evita doble conteo con items[]).
+        $additionalDrivers = max(0, (int) ($extrasInput['additionalDrivers'] ?? 0));
+
         $requestedItems = is_array($extrasInput['items'] ?? null) ? $extrasInput['items'] : [];
         foreach ($requestedItems as $item) {
+            if (!is_array($item)) {
+                return ['ok' => false, 'message' => 'Formato de extras no válido.'];
+            }
             $code = strtoupper(trim((string) ($item['code'] ?? '')));
             if ($code === '' || isset($seenCodes[$code])) {
                 continue;
             }
+            if ($code === 'CONDADIC') {
+                if ($additionalDrivers <= 0) {
+                    $additionalDrivers = max(0, (int) ($item['quantity'] ?? 1));
+                }
+                continue;
+            }
             $seenCodes[$code] = true;
-            $qty = max(1, (int) ($item['quantity'] ?? 1));
+            if (!array_key_exists('quantity', $item) || $item['quantity'] === '' || $item['quantity'] === null) {
+                $qty = 1;
+            } else {
+                if (is_array($item['quantity']) || is_object($item['quantity'])) {
+                    return ['ok' => false, 'message' => 'Cantidad no válida para: ' . $code];
+                }
+                if (!is_numeric($item['quantity']) || (float) $item['quantity'] != (int) $item['quantity']) {
+                    return ['ok' => false, 'message' => 'Cantidad no válida para: ' . $code];
+                }
+                $qty = (int) $item['quantity'];
+            }
             $extraRow = $this->findExtraByCode($code);
             if ($extraRow === null || !$this->productMatchesContext($extraRow, $ctx)) {
                 return ['ok' => false, 'message' => 'Extra no válido: ' . $code];
+            }
+            $maxQty = max(1, (int) ($extraRow['max_quantity'] ?? 1));
+            if ($qty < 1 || $qty > $maxQty) {
+                return ['ok' => false, 'message' => 'Cantidad no válida para: ' . $code];
             }
             $lineTotal = $this->calculateExtraPrice($extraRow, $qty, $ctx);
             $unit = $qty > 0 ? round($lineTotal / $qty, 2) : 0.0;
@@ -311,9 +337,10 @@ class RacAddonService
             ];
         }
 
-        $additionalDrivers = max(0, min(3, (int) ($extrasInput['additionalDrivers'] ?? 0)));
+        $driverRow = $this->findExtraByCode('CONDADIC');
+        $maxDrivers = $driverRow !== null ? max(1, (int) ($driverRow['max_quantity'] ?? 1)) : 3;
+        $additionalDrivers = max(0, min($maxDrivers, $additionalDrivers));
         if ($additionalDrivers > 0) {
-            $driverRow = $this->findExtraByCode('CONDADIC');
             if ($driverRow !== null && $this->productMatchesContext($driverRow, $ctx)) {
                 $lineTotal = $this->calculateExtraPrice($driverRow, $additionalDrivers, $ctx);
                 $unit = $additionalDrivers > 0 ? round($lineTotal / $additionalDrivers, 2) : 0.0;
@@ -456,12 +483,12 @@ class RacAddonService
 
         return [
             'code' => strtoupper((string) ($row['code'] ?? '')),
-            'description' => (string) ($row['name'] ?? ''),
             'name' => (string) ($row['name'] ?? ''),
+            'description' => (string) ($row['description'] ?? ''),
             'amountTotal' => round($total, 2),
             'pricePerDay' => $perDay !== null ? round($perDay, 2) : null,
             'unitName' => ($row['applies_per'] ?? '') === 'day' ? 'day' : 'rental',
-            'maxQuantity' => (int) ($row['max_quantity'] ?? 1),
+            'maxQuantity' => max(1, (int) ($row['max_quantity'] ?? 1)),
             'currency' => (string) ($row['currency'] ?? 'USD'),
             'source' => 'db',
         ];

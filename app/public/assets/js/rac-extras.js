@@ -28,6 +28,32 @@
         return String(pkg.code || pkg.coverageType || '').toUpperCase().trim();
     }
 
+    function protectionTitle(pkg, code) {
+        if (pkg && pkg.source === 'db' && pkg.name) {
+            return String(pkg.name);
+        }
+        return PROTECTION_LABELS[code] || (pkg && (pkg.name || pkg.description)) || code;
+    }
+
+    function equipmentTitle(eq, code) {
+        if (eq && eq.source === 'db' && eq.name) {
+            return String(eq.name);
+        }
+        return EQUIP_LABELS[code] || (eq && (eq.name || eq.description)) || code;
+    }
+
+    function equipmentMaxQuantity(eq) {
+        const maxQ = parseInt(eq && eq.maxQuantity, 10);
+        return Number.isFinite(maxQ) && maxQ > 0 ? maxQ : 1;
+    }
+
+    function driverMaxQuantity(charge) {
+        if (charge && charge.source === 'db') {
+            return equipmentMaxQuantity(charge);
+        }
+        return 3;
+    }
+
     function filterProtectionPackages(list) {
         if (!Array.isArray(list)) return [];
         const fromDb = list.some(function (p) { return p.source === 'db'; });
@@ -313,9 +339,27 @@
             if (packagesByCode[savedCode]) selectedProtection = savedCode;
         }
 
-        const selectedItems = new Set((saved && saved.items) ? saved.items.map(i => i.code) : []);
-        let additionalDrivers = (saved && saved.additionalDrivers) ? parseInt(saved.additionalDrivers, 10) : 0;
+        const selectedQty = {};
+        if (saved && Array.isArray(saved.items)) {
+            saved.items.forEach(function (item) {
+                const raw = item && item.code ? String(item.code) : '';
+                const code = raw.toUpperCase();
+                if (!code || code === 'CONDADIC') return;
+                const match = equipment.find(function (eq) {
+                    return String(eq.code || '').toUpperCase() === code;
+                });
+                const key = match ? match.code : raw;
+                const maxQ = match ? equipmentMaxQuantity(match) : 1;
+                let qty = parseInt(item.quantity, 10);
+                if (!Number.isFinite(qty) || qty < 1) qty = 1;
+                selectedQty[key] = Math.min(maxQ, qty);
+            });
+        }
         const driverCharge = findCondadicCharge(vehicle);
+        const driverMax = driverMaxQuantity(driverCharge);
+        let additionalDrivers = (saved && saved.additionalDrivers) ? parseInt(saved.additionalDrivers, 10) : 0;
+        if (!Number.isFinite(additionalDrivers) || additionalDrivers < 0) additionalDrivers = 0;
+        additionalDrivers = Math.min(driverMax, additionalDrivers);
 
         try {
             renderVehicleHeader(vehicle, criteria, billedDays, rateType, rentalBase);
@@ -337,7 +381,7 @@
             }
         }
         try {
-            renderEquipment(equipment, selectedItems, additionalDrivers, driverCharge, billedDays);
+            renderEquipment(equipment, selectedQty, additionalDrivers, driverCharge, billedDays, driverMax);
         } catch (err) {
             console.error('[rac-extras] renderEquipment error', err);
             const wrap = document.getElementById('equipmentOptions');
@@ -348,7 +392,7 @@
 
         const state = {
             vehicle, criteria, vehicleContext, rentalBase, saf, mandatoryTotal, nonSafMandatory, billedDays, rateType,
-            packagesByCode, selectedProtection, selectedItems, additionalDrivers, equipment, driverCharge
+            packagesByCode, selectedProtection, selectedQty, additionalDrivers, equipment, driverCharge, driverMax
         };
 
         function renderMandatoryRows(charges) {
@@ -375,7 +419,7 @@
                 if (!coverageAmt && pkg.pricePerDay) {
                     coverageAmt = parseFloat(pkg.pricePerDay) * state.billedDays;
                 }
-                covName = PROTECTION_LABELS[protCode] || pkg.name || pkg.description || protCode;
+                covName = protectionTitle(pkg, protCode);
             }
 
             const driverAmt = calcDriverTotal(state.driverCharge, state.additionalDrivers, state.billedDays);
@@ -384,11 +428,13 @@
             state.equipment.forEach(eq => {
                 const code = (eq.code || '').toUpperCase();
                 if (code === 'CONDADIC') return;
-                if (!state.selectedItems.has(eq.code)) return;
+                const qty = parseInt(state.selectedQty[eq.code], 10) || 0;
+                if (qty < 1) return;
+                const capped = Math.min(qty, equipmentMaxQuantity(eq));
                 if (eq.unitName === 'day' || eq.pricePerDay) {
-                    equipAmt += (parseFloat(eq.pricePerDay ?? 0) || 0) * state.billedDays;
+                    equipAmt += (parseFloat(eq.pricePerDay ?? 0) || 0) * state.billedDays * capped;
                 } else {
-                    equipAmt += parseFloat(eq.amountTotal ?? 0) || 0;
+                    equipAmt += (parseFloat(eq.amountTotal ?? 0) || 0) * capped;
                 }
             });
 
@@ -450,18 +496,36 @@
             }
             if (e.target.classList.contains('equip-check')) {
                 const code = e.target.value;
-                if (e.target.checked) state.selectedItems.add(code);
-                else state.selectedItems.delete(code);
+                if (e.target.checked) state.selectedQty[code] = 1;
+                else delete state.selectedQty[code];
                 recalc();
             }
         });
 
         document.getElementById('extrasMain').addEventListener('click', function (e) {
-            const btn = e.target.closest('[data-driver-delta]');
-            if (!btn) return;
-            const delta = parseInt(btn.getAttribute('data-driver-delta'), 10);
-            state.additionalDrivers = Math.max(0, Math.min(3, state.additionalDrivers + delta));
-            document.getElementById('driverCount').textContent = state.additionalDrivers;
+            const driverBtn = e.target.closest('[data-driver-delta]');
+            if (driverBtn) {
+                const delta = parseInt(driverBtn.getAttribute('data-driver-delta'), 10);
+                const maxD = state.driverMax || driverMaxQuantity(state.driverCharge);
+                state.additionalDrivers = Math.max(0, Math.min(maxD, state.additionalDrivers + delta));
+                const countEl = document.getElementById('driverCount');
+                if (countEl) countEl.textContent = state.additionalDrivers;
+                recalc();
+                return;
+            }
+            const equipBtn = e.target.closest('[data-equip-delta]');
+            if (!equipBtn) return;
+            const code = equipBtn.getAttribute('data-equip-code') || '';
+            const delta = parseInt(equipBtn.getAttribute('data-equip-delta'), 10);
+            const eq = state.equipment.find(function (x) { return x.code === code; });
+            if (!eq) return;
+            const maxQ = equipmentMaxQuantity(eq);
+            const current = parseInt(state.selectedQty[code], 10) || 0;
+            const next = Math.max(0, Math.min(maxQ, current + delta));
+            if (next < 1) delete state.selectedQty[code];
+            else state.selectedQty[code] = next;
+            const countEl = document.getElementById('equipCount_' + code);
+            if (countEl) countEl.textContent = String(next);
             recalc();
         });
 
@@ -479,14 +543,26 @@
                     sessionStorage.setItem('selectedVehicle', JSON.stringify(quotedVehicle));
 
                     const items = [];
-                    state.selectedItems.forEach(code => {
-                        const eq = state.equipment.find(x => x.code === code);
-                        if (eq) items.push({ code: eq.code, description: eq.description || eq.code });
+                    Object.keys(state.selectedQty).forEach(function (code) {
+                        const qty = parseInt(state.selectedQty[code], 10) || 0;
+                        if (qty < 1) return;
+                        const eq = state.equipment.find(function (x) { return x.code === code; });
+                        if (!eq) return;
+                        const capped = Math.min(qty, equipmentMaxQuantity(eq));
+                        items.push({
+                            code: eq.code,
+                            name: eq.name || '',
+                            description: eq.description || eq.name || eq.code,
+                            quantity: capped
+                        });
                     });
                     if (state.additionalDrivers > 0) {
                         items.push({
                             code: 'CONDADIC',
-                            description: 'Conductor Adicional',
+                            name: (state.driverCharge && state.driverCharge.name) || 'Conductor Adicional',
+                            description: (state.driverCharge && state.driverCharge.description)
+                                || (state.driverCharge && state.driverCharge.name)
+                                || 'Conductor Adicional',
                             quantity: state.additionalDrivers
                         });
                     }
@@ -599,14 +675,13 @@
             const border = checked ? 'border-danger border-2' : '';
             const amt = parseFloat(pkg.amountTotal || 0) || (parseFloat(pkg.pricePerDay || 0) * days);
             const perDay = parseFloat(pkg.pricePerDay || 0) || (days > 0 ? amt / days : 0);
-            const title = PROTECTION_LABELS[code] || pkg.name || pkg.description || code;
-            const desc = pkg.description || title;
-            let badge = '';
-            if (code === 'STANDARD') {
-                badge = '<span class="badge bg-success text-uppercase ms-2" style="font-size:0.65rem;">Más popular</span>';
-            } else if (code === 'PREMIUM') {
-                badge = '<span class="badge bg-navy text-white text-uppercase ms-2" style="font-size:0.65rem;background:#081026;">Sin preocupaciones</span>';
-            }
+            const title = protectionTitle(pkg, code);
+            const desc = (pkg.description && String(pkg.description).trim() !== '' && String(pkg.description) !== title)
+                ? pkg.description
+                : (pkg.description || title);
+            const badge = pkg.isDefault
+                ? '<span class="badge bg-secondary text-uppercase ms-2" style="font-size:0.65rem;">Predeterminada</span>'
+                : '';
             return `
             <label class="border rounded-3 p-3 d-flex gap-3 align-items-center cursor-pointer ${border}">
                 <input type="radio" name="protection_code" class="form-check-input flex-shrink-0" value="${code}" ${checked}>
@@ -624,27 +699,36 @@
         wrap.innerHTML = html;
     }
 
-    function renderEquipment(equipment, selectedItems, additionalDrivers, driverCharge, billedDays) {
+    function renderEquipment(equipment, selectedQty, additionalDrivers, driverCharge, billedDays, driverMax) {
         const wrap = document.getElementById('equipmentOptions');
         if (!wrap) return;
 
         const others = equipment.filter(e => (e.code || '').toUpperCase() !== 'CONDADIC');
+        const qtyMap = selectedQty && typeof selectedQty === 'object' ? selectedQty : {};
+        const maxDrivers = Math.max(1, parseInt(driverMax, 10) || driverMaxQuantity(driverCharge));
 
         let html = `
             <div class="border rounded-3 p-3 d-flex align-items-center justify-content-between">
                 <div><i class="bi bi-person-plus text-danger me-2"></i><strong>Conductor Adicional</strong>
-                    <small class="text-muted d-block">${driverPriceLabel(driverCharge, billedDays)}</small></div>
-                <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle" data-driver-delta="-1">−</button>
-                    <span id="driverCount" class="fw-bold px-2">${additionalDrivers}</span>
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle" data-driver-delta="1">+</button>
+                    <small class="text-muted d-block">${driverPriceLabel(driverCharge, billedDays)}</small>
+                    ${driverCharge && driverCharge.description
+                        ? `<small class="text-muted d-block">${driverCharge.description}</small>`
+                        : ''}</div>
+                <div class="d-flex align-items-center gap-2" role="group" aria-label="Cantidad de conductores adicionales, máximo ${maxDrivers}">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle" data-driver-delta="-1" aria-label="Quitar conductor adicional">−</button>
+                    <span id="driverCount" class="fw-bold px-2" aria-live="polite">${additionalDrivers}</span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle" data-driver-delta="1" aria-label="Agregar conductor adicional">+</button>
                 </div>
             </div>`;
 
         others.forEach(eq => {
             const code = eq.code || '';
-            const label = EQUIP_LABELS[code] || eq.name || eq.description || code;
-            const checked = selectedItems.has(code) ? 'checked' : '';
+            const label = equipmentTitle(eq, code);
+            const maxQ = equipmentMaxQuantity(eq);
+            const qty = parseInt(qtyMap[code], 10) || 0;
+            const desc = (eq.description && String(eq.description).trim() !== '' && String(eq.description) !== label)
+                ? eq.description
+                : '';
             let priceLabel = '';
             const amountTotal = parseFloat(eq.amountTotal ?? 0);
             if (eq.unitName === 'day' || eq.pricePerDay) {
@@ -653,11 +737,32 @@
             } else {
                 priceLabel = amountTotal > 0 ? `$${amountTotal.toFixed(2)}` : 'Sin cargo';
             }
-            html += `
+            if (maxQ > 1) {
+                html += `
+            <div class="border rounded-3 p-3 d-flex align-items-center justify-content-between">
+                <div class="flex-grow-1 pe-3">
+                    <strong>${label}</strong>
+                    <small class="text-muted d-block">${priceLabel}</small>
+                    ${desc ? `<small class="text-muted d-block">${desc}</small>` : ''}
+                </div>
+                <div class="d-flex align-items-center gap-2" role="group" aria-label="Cantidad de ${label}">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle" data-equip-delta="-1" data-equip-code="${code}" aria-label="Quitar ${label}">−</button>
+                    <span id="equipCount_${code}" class="fw-bold px-2" aria-live="polite">${qty}</span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle" data-equip-delta="1" data-equip-code="${code}" aria-label="Agregar ${label}">+</button>
+                </div>
+            </div>`;
+            } else {
+                const checked = qty > 0 ? 'checked' : '';
+                html += `
             <label class="border rounded-3 p-3 d-flex gap-3 align-items-center cursor-pointer">
-                <input type="checkbox" class="form-check-input equip-check" value="${code}" ${checked}>
-                <div class="flex-grow-1"><strong>${label}</strong><small class="text-muted d-block">${priceLabel}</small></div>
+                <input type="checkbox" class="form-check-input equip-check" value="${code}" ${checked} aria-label="${label}">
+                <div class="flex-grow-1">
+                    <strong>${label}</strong>
+                    <small class="text-muted d-block">${priceLabel}</small>
+                    ${desc ? `<small class="text-muted d-block">${desc}</small>` : ''}
+                </div>
             </label>`;
+            }
         });
 
         wrap.innerHTML = html;
