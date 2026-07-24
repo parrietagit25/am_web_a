@@ -6601,9 +6601,14 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                 </table>
                             </div>
                         </div>
+                    </div>
 
-                        <hr class="my-4">
-                        <p class="text-muted small mb-3">Además de la flota, puedes administrar los logos de aliados/marcas que se muestran en la página principal de Leasing.</p>
+                    <!-- TAB: LEASING ALIADOS Y MARCAS -->
+                    <div class="tab-pane fade" id="tab-leasing-aliados" role="tabpanel" aria-labelledby="tab-leasing-aliados-nav">
+                        <p class="text-muted small mb-3">
+                            Los logos se muestran en <code>/leasing-flota.php</code> solo si hay al menos un aliado activo.
+                            Si la lista está vacía, la sección no aparece en el sitio público.
+                        </p>
                         <?php
                         $allyUnitKey = 'leasing';
                         require __DIR__ . '/../../includes/admin-unit-allies-panel.php';

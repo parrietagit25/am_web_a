@@ -138,6 +138,10 @@ class AdminUserService
         )) {
             return true;
         }
+        // Compat: quien ya tenía flota de leasing puede gestionar aliados hasta reasignar permisos.
+        if ($permission === 'leasing_aliados' && in_array('leasing_flota', self::permissions(), true)) {
+            return true;
+        }
         return in_array($permission, self::permissions(), true);
     }
 
@@ -244,6 +248,7 @@ class AdminUserService
             'leasing-content-blog' => 'leasing_home',
             'leasing-sucursales' => 'leasing_sucursales',
             'leasing-flota' => 'leasing_flota',
+            'leasing-aliados' => 'leasing_aliados',
             'leasing-equipo' => 'leasing_equipo',
             'leasing-contacto' => 'leasing_contacto',
             'leasing-footer' => 'leasing_home',

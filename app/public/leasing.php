@@ -95,20 +95,6 @@ require __DIR__ . '/../includes/render-header-banner.php';
     </div>
 </section>
 
-<?php
-require_once __DIR__ . '/../services/AllyService.php';
-$leasingAlliesData = is_array($siteData ?? null) ? $siteData : $contentService->getAll();
-$alliesItems = AllyService::listForUnit($leasingAlliesData, 'leasing');
-$alliesMeta = AllyService::metaForUnit($leasingAlliesData, 'leasing');
-$alliesTitle = $alliesMeta['title'];
-$alliesSubtitle = $alliesMeta['subtitle'];
-$alliesText = $alliesMeta['text'];
-$alliesLayout = $alliesMeta['layout'];
-$alliesSectionId = 'aliados-leasing';
-$alliesTitleClass = 'fw-bold text-navy font-montserrat text-uppercase text-center mb-4';
-require __DIR__ . '/../includes/unit-allies-section.php';
-?>
-
 <!-- Corporate Leasing Form Section -->
 <section class="leasing-lead-section py-5 bg-light-gray" id="cotizar-seccion">
     <div class="container">

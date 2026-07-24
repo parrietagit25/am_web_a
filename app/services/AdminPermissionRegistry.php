@@ -61,6 +61,7 @@ class AdminPermissionRegistry
                     'leasing_home' => 'Principal',
                     'leasing_sucursales' => 'Sucursales',
                     'leasing_flota' => 'Nuestra flota',
+                    'leasing_aliados' => 'Aliados y marcas',
                     'leasing_equipo' => 'Nuestro equipo',
                     'leasing_contacto' => 'Contacto',
                 ],
@@ -176,6 +177,10 @@ class AdminPermissionRegistry
 
         if ($tabSlug === 'rac-aliados') {
             return 'rac_aliados';
+        }
+
+        if ($tabSlug === 'leasing-aliados') {
+            return 'leasing_aliados';
         }
 
         $perm = self::tabSlugToPermission($tabSlug);
