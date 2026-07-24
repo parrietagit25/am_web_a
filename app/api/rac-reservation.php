@@ -239,6 +239,7 @@ if ($phone !== '' && strpos($phone, '+') !== 0 && $phonePrefix !== '') {
 $barsConfirmation = '';
 $barsStatus = 'pending';
 $barsError = null;
+$barsSource = null;
 
 try {
     $api = new AutomarketReservationApiService();
@@ -247,12 +248,14 @@ try {
         'customer_email' => $email,
         'customer_phone' => $fullPhone,
         'customer_comments' => $comments,
+        'coverage_code' => $coverageCode,
         'search' => $search,
         'vehicle' => $vehicle,
         'extras' => $extras,
     ]));
 
     $barsResult = $api->createReservation($barsPayload);
+    $barsSource = $barsResult['source'] ?? null;
 
     if ($barsResult['ok'] && is_array($barsResult['data'])) {
         $barsConfirmation = strtoupper(trim(
@@ -266,7 +269,7 @@ try {
         }
     } else {
         $barsError = $barsResult['error'] ?? 'No se pudo crear la reserva en el sistema central.';
-        am_log('BARS reservation failed: ' . $barsError, 'ERROR');
+        am_log('BARS reservation failed (' . ($barsSource ?? 'unknown') . '): ' . $barsError, 'ERROR');
     }
 } catch (Exception $e) {
     $barsError = $e->getMessage();
@@ -358,6 +361,7 @@ try {
             'message' => 'Su solicitud fue registrada. Un asesor confirmará los detalles pronto.',
             'last_name' => $lastName,
             'bars_error' => $barsError,
+            'bars_source' => $barsSource,
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
@@ -374,6 +378,7 @@ try {
         'customer_email_sent' => $mailCustomer['sent'] ?? false,
         'message' => 'Reserva confirmada correctamente.',
         'last_name' => $lastName,
+        'bars_source' => $barsSource,
         'redirect' => '/confirmacion.php?code=' . rawurlencode($displayCode),
     ], JSON_UNESCAPED_UNICODE);
 } catch (Exception $e) {

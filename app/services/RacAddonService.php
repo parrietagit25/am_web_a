@@ -259,13 +259,29 @@ class RacAddonService
         $ctx = array_merge($context, ['rental_days' => $rentalDays, 'billed_days' => $rentalDays, 'rental_base' => $rateBase]);
 
         $protectionCode = strtoupper(trim((string) ($extrasInput['protection'] ?? '')));
-        if ($protectionCode === 'NONE' || $protectionCode === '') {
+        if ($protectionCode === 'NONE') {
             $protectionCode = '';
         }
 
         $protectionRow = null;
         $protectionTotal = 0.0;
-        $protectionName = 'Sin protección adicional';
+        $protectionName = '';
+
+        // Si no viene protección y hay productos activos, forzar la más barata.
+        if ($protectionCode === '') {
+            $public = $this->getPublicProtections($ctx);
+            $public = array_values(array_filter(
+                $public,
+                static fn(array $p): bool => strtoupper((string) ($p['code'] ?? '')) !== 'NONE'
+                    && strtoupper((string) ($p['code'] ?? '')) !== ''
+            ));
+            if ($public !== []) {
+                usort($public, static function (array $a, array $b): int {
+                    return ((float) ($a['amountTotal'] ?? 0)) <=> ((float) ($b['amountTotal'] ?? 0));
+                });
+                $protectionCode = strtoupper((string) ($public[0]['code'] ?? ''));
+            }
+        }
 
         if ($protectionCode !== '') {
             $protectionRow = $this->findProtectionByCode($protectionCode);

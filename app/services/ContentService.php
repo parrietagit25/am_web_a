@@ -403,7 +403,7 @@ class ContentService {
             return false;
         }
 
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'text/xml', 'application/xml', 'text/plain'];
         $detectedMime = '';
 
         if (function_exists('finfo_open')) {
@@ -414,12 +414,16 @@ class ContentService {
             }
         }
 
-        if ($detectedMime === '' || !in_array($detectedMime, $allowedTypes, true)) {
+        $extensionHint = strtolower((string) pathinfo((string) ($fileInfo['name'] ?? ''), PATHINFO_EXTENSION));
+        $isSvgCandidate = $extensionHint === 'svg'
+            || in_array($detectedMime, ['image/svg+xml', 'text/xml', 'application/xml', 'text/plain'], true);
+
+        if (!$isSvgCandidate && ($detectedMime === '' || !in_array($detectedMime, $allowedTypes, true))) {
             $imageInfo = @getimagesize($fileInfo['tmp_name']);
             $detectedMime = $imageInfo['mime'] ?? '';
         }
 
-        if (!in_array($detectedMime, $allowedTypes, true)) {
+        if (!$isSvgCandidate && !in_array($detectedMime, ['image/jpeg', 'image/png', 'image/gif', 'image/webp'], true)) {
             return false;
         }
 
@@ -429,7 +433,7 @@ class ContentService {
         }
 
         $extension = pathinfo($fileInfo['name'], PATHINFO_EXTENSION);
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
         if ($strictExtension && (empty($extension) || !in_array(strtolower($extension), $allowedExtensions, true))) {
             return false;
         }
@@ -438,13 +442,34 @@ class ContentService {
                 'image/jpeg' => 'jpg',
                 'image/png'  => 'png',
                 'image/gif'  => 'gif',
-                'image/webp' => 'webp'
+                'image/webp' => 'webp',
+                'image/svg+xml' => 'svg',
             ];
-            $extension = $extMap[$detectedMime] ?? 'png';
+            $extension = $extMap[$detectedMime] ?? ($isSvgCandidate ? 'svg' : 'png');
         }
 
-        $fileName = $prefix . uniqid() . '.' . strtolower($extension);
+        $extension = strtolower((string) $extension);
+        $fileName = $prefix . uniqid() . '.' . $extension;
         $targetFile = $uploadsDir . '/' . $fileName;
+
+        if ($extension === 'svg' || $isSvgCandidate) {
+            $rawSvg = @file_get_contents($fileInfo['tmp_name']);
+            if (!is_string($rawSvg) || $rawSvg === '' || !preg_match('/<svg[\s>]/i', $rawSvg)) {
+                return false;
+            }
+            // Mitiga XSS básico en SVG (scripts / handlers inline).
+            $cleanSvg = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', $rawSvg) ?? '';
+            $cleanSvg = preg_replace('/\son[a-zA-Z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $cleanSvg) ?? '';
+            $cleanSvg = preg_replace('/javascript\s*:/i', '', $cleanSvg) ?? '';
+            if ($cleanSvg === '' || !preg_match('/<svg[\s>]/i', $cleanSvg)) {
+                return false;
+            }
+            if (@file_put_contents($targetFile, $cleanSvg) === false) {
+                return false;
+            }
+
+            return '/assets/img/uploads/' . $fileName;
+        }
 
         if (move_uploaded_file($fileInfo['tmp_name'], $targetFile)) {
             return '/assets/img/uploads/' . $fileName;

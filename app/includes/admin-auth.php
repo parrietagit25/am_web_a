@@ -58,6 +58,9 @@ function admin_guard_post_action(string $action): bool
     }
 
     $csrfActions = [
+        'save_generic_page',
+        'delete_generic_page',
+        'save_unit_footer',
         'save_unit_menu',
         'save_unit_terms_page',
         'save_terms',
@@ -70,6 +73,10 @@ function admin_guard_post_action(string $action): bool
         'add_taller_brand',
         'edit_taller_brand',
         'delete_taller_brand',
+        'save_unit_allies_meta',
+        'add_unit_ally',
+        'edit_unit_ally',
+        'delete_unit_ally',
     ];
     if (in_array($action, $csrfActions, true)
         && !admin_verify_csrf((string) ($_POST['admin_csrf_token'] ?? ''))) {

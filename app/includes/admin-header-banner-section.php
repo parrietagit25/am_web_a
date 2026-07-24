@@ -10,8 +10,18 @@ require_once __DIR__ . '/../services/HeaderBannerService.php';
 
 $hbPrefix = $hbPrefix ?? 'hb_default';
 $hbDomId = $hbDomId ?? 'hb-default';
+$hbAllowOverlay = str_ends_with($hbPrefix, '_home') || str_starts_with($hbPrefix, 'hb_unit_');
+$hbSourceNode = is_array($hbSourceNode ?? null) ? $hbSourceNode : [];
+$hbRawBanner = is_array($hbSourceNode['header_banner'] ?? null) ? $hbSourceNode['header_banner'] : [];
+$hbHasStoredOverlay = array_key_exists('overlay_enabled', $hbRawBanner);
 $hbConfig = HeaderBannerService::normalize($hbConfig ?? []);
 $hbEnabled = (bool) ($hbConfig['enabled'] ?? true);
+$hbOverlayEnabled = (bool) ($hbConfig['overlay_enabled'] ?? false);
+// Unidades custom tenían un degradado fijo: sin clave guardada, el switch arranca activo.
+if (!$hbOverlayEnabled && !$hbHasStoredOverlay && str_starts_with($hbPrefix, 'hb_unit_')) {
+    $hbOverlayEnabled = true;
+}
+$hbOverlayColor = (string) ($hbConfig['overlay_color'] ?? '#081026');
 $hbMode = ($hbConfig['mode'] ?? HeaderBannerService::MODE_STATIC) === HeaderBannerService::MODE_SLIDER
     ? HeaderBannerService::MODE_SLIDER
     : HeaderBannerService::MODE_STATIC;
@@ -48,6 +58,33 @@ $hbTransition = (string) ($hbConfig['slider']['transition'] ?? 'fade');
         <label class="form-check-label fw-semibold" for="<?php echo esc($hbDomId); ?>-enabled">Mostrar cabecera o banner</label>
         <div class="form-text">Al desactivarlo se oculta la imagen o slider; el título principal de la página se conserva.</div>
     </div>
+
+    <?php if ($hbAllowOverlay): ?>
+    <div class="border rounded-3 p-3 mb-3 bg-light">
+        <input type="hidden" name="<?php echo esc($hbPrefix); ?>_overlay_enabled" value="0">
+        <div class="form-check form-switch">
+            <input class="form-check-input hb-overlay-toggle" type="checkbox"
+                   name="<?php echo esc($hbPrefix); ?>_overlay_enabled"
+                   id="<?php echo esc($hbDomId); ?>-overlay-enabled"
+                   value="1"<?php echo $hbOverlayEnabled ? ' checked' : ''; ?>>
+            <label class="form-check-label fw-semibold" for="<?php echo esc($hbDomId); ?>-overlay-enabled">
+                Aplicar overlay de color sobre las imágenes
+            </label>
+        </div>
+        <div class="hb-overlay-color-wrap mt-3<?php echo $hbOverlayEnabled ? '' : ' d-none'; ?>">
+            <label class="form-label fw-semibold" for="<?php echo esc($hbDomId); ?>-overlay-color">Color del overlay</label>
+            <div class="d-flex align-items-center gap-3">
+                <input type="color"
+                       name="<?php echo esc($hbPrefix); ?>_overlay_color"
+                       id="<?php echo esc($hbDomId); ?>-overlay-color"
+                       class="form-control form-control-color hb-overlay-color"
+                       value="<?php echo esc($hbOverlayColor); ?>"
+                       title="Seleccionar color del overlay">
+                <span class="form-text mt-0">Se aplicará con 45% de transparencia a la imagen fija y a todos los slides.</span>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <div class="mb-3 d-flex flex-wrap gap-4">
         <div class="form-check">
@@ -208,6 +245,9 @@ $hbTransition = (string) ($hbConfig['slider']['transition'] ?? 'fade');
     const staticPanel = root.querySelector('.hb-static-panel');
     const sliderPanel = root.querySelector('.hb-slider-panel');
     const slidesList = root.querySelector('.hb-slides-list');
+    const overlayToggle = root.querySelector('.hb-overlay-toggle');
+    const overlayColorWrap = root.querySelector('.hb-overlay-color-wrap');
+    const overlayColor = root.querySelector('.hb-overlay-color');
 
     function togglePanels() {
         const mode = root.querySelector('input[name="' + prefix + '_mode"]:checked')?.value || 'static';
@@ -222,6 +262,14 @@ $hbTransition = (string) ($hbConfig['slider']['transition'] ?? 'fade');
             if (el.classList.contains('hb-mode-radio')) return;
             el.disabled = !isSlider;
         });
+    }
+
+    function toggleOverlayColor() {
+        const enabled = !!overlayToggle?.checked;
+        overlayColorWrap?.classList.toggle('d-none', !enabled);
+        if (overlayColor) {
+            overlayColor.disabled = !enabled;
+        }
     }
 
     function bindSlideRow(row) {
@@ -276,8 +324,10 @@ $hbTransition = (string) ($hbConfig['slider']['transition'] ?? 'fade');
     root.querySelectorAll('.hb-mode-radio').forEach(function (radio) {
         radio.addEventListener('change', togglePanels);
     });
+    overlayToggle?.addEventListener('change', toggleOverlayColor);
     root.querySelector('.hb-add-slide-btn')?.addEventListener('click', addSlideRow);
     slidesList?.querySelectorAll('.hb-slide-row').forEach(bindSlideRow);
     togglePanels();
+    toggleOverlayColor();
 })();
 </script>

@@ -16,7 +16,7 @@ require_once __DIR__ . '/../../includes/admin-auth.php';
 AdminUserService::ensureSchema();
 admin_require_login();
 
-if (!admin_can('rac_reservations') && !admin_can('vehicles')) {
+if (!admin_can_any(['rac_bars_rates', 'rac_reservations', 'vehicles'])) {
     http_response_code(403);
     header('Content-Type: text/html; charset=UTF-8');
     echo '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Sin permiso</title></head><body><p>No tiene permiso para consultar tarifas BARS.</p><p><a href="/admin/">Volver al admin</a></p></body></html>';

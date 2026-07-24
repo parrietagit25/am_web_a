@@ -195,6 +195,33 @@ function unit_content_handle_post(
             }
             break;
 
+        case 'save_unit_nav_content_menu':
+            $unitKey = strtolower(trim((string) ($_POST['nav_menu_unit'] ?? '')));
+            if (!unit_content_validate_unit($siteData, $unitKey)) {
+                $errorMsg = 'Unidad no válida.';
+                break;
+            }
+
+            unit_content_ensure_node($siteData, $unitKey);
+            $current = UnitContentService::getContentNode($siteData, $unitKey);
+            $current['settings'] = UnitContentService::normalizeSettings($current['settings'] ?? [], [
+                'nav_menu_enabled' => filter_var($_POST['nav_menu_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'nav_menu_items' => UnitContentService::normalizeNavMenuItems([
+                    'news' => filter_var($_POST['nav_menu_item_news'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'blog' => filter_var($_POST['nav_menu_item_blog'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'latest' => filter_var($_POST['nav_menu_item_latest'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                ]),
+            ]);
+
+            UnitContentService::setContentNode($siteData, $unitKey, $current);
+
+            if ($contentService->saveAll($siteData)) {
+                $successMsg = 'Menú «Contenido» de la unidad guardado correctamente.';
+            } else {
+                $errorMsg = 'Error al guardar el menú «Contenido» de la unidad.';
+            }
+            break;
+
         case 'save_unit_about_page':
             $unitKey = trim((string) ($_POST['about_unit'] ?? ''));
             if (!unit_content_validate_unit($siteData, $unitKey)

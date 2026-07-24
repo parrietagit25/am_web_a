@@ -102,6 +102,12 @@ define('N8N_RENTING_JWT_SECRET', 'TU_JWT_SECRET_N8N');
 // define('BARS_RW_REQUESTOR_ID', 'website');
 // define('BARS_RW_RATE_QUALIFIER', 'WEB');
 
+// Lab RAC sandbox (/lab/rac-ciclo.php) — fuera de web/admin. Obligatorio fuera de localhost.
+// define('LAB_RAC_SECRET', 'cambia-esta-clave-lab');
+
+// Reserva pública: si SOAP BARS falla, intentar Partner DO (true recomendado en migración).
+// define('RAC_RESERVATION_PARTNER_FALLBACK', true);
+
 // Powertranz / First Atlantic Commerce — pagos HPP/3DS (AM-RAC-PAY-POWERTRANZ-0A/0B)
 // define('POWERTRANZ_ENABLED', true);
 // define('POWERTRANZ_ENV', 'staging');

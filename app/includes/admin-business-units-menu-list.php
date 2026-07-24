@@ -37,8 +37,8 @@ $buMenuPublished = !array_key_exists('menu_published', $unit)
         </div>
 
         <p class="text-muted small mb-2">
-            Arrastra para cambiar el orden. Usa editar para administrar el enlace y sus submenús.
-            Se aceptan rutas internas, anclas y URL HTTPS.
+            Arrastra para cambiar el orden. Usa el lápiz para editar el enlace, activar/desactivar y administrar sus submenús
+            (texto, URL, activo y orden). Se aceptan rutas internas, anclas y URL HTTPS.
             <?php if ($buIsCustomUnit): ?>Los enlaces no se reescriben automáticamente.<?php endif; ?>
         </p>
         <div class="bu-menu-sortable list-group mb-2" data-unit="<?php echo esc($key); ?>"></div>

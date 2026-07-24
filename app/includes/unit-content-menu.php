@@ -3,19 +3,33 @@
  * Menú «Contenido» inyectado en el navbar de cada unidad de negocio.
  */
 
-/** @return array{label: string, link: string, submenu: list<array{label: string, link: string}>} */
-function unit_content_nav_menu_item(string $unitKey): array
+/**
+ * @param array{news: bool, blog: bool, latest: bool}|null $enabledItems null = todos visibles (legacy)
+ * @return array{label: string, link: string, submenu: list<array{label: string, link: string}>}|null
+ */
+function unit_content_nav_menu_item(string $unitKey, ?array $enabledItems = null): ?array
 {
     $query = $unitKey !== 'rentacar' ? ('?unit=' . rawurlencode($unitKey)) : '';
+
+    $submenu = [];
+    if ($enabledItems === null || !empty($enabledItems['news'])) {
+        $submenu[] = ['label' => 'Noticias', 'link' => '/noticias.php' . $query];
+    }
+    if ($enabledItems === null || !empty($enabledItems['blog'])) {
+        $submenu[] = ['label' => 'Blog', 'link' => '/blog.php' . $query];
+    }
+    if ($enabledItems === null || !empty($enabledItems['latest'])) {
+        $submenu[] = ['label' => 'Novedades', 'link' => '/contenido-reciente.php' . $query];
+    }
+
+    if ($submenu === []) {
+        return null;
+    }
 
     return [
         'label' => 'CONTENIDO',
         'link' => '#',
-        'submenu' => [
-            ['label' => 'Noticias', 'link' => '/noticias.php' . $query],
-            ['label' => 'Blog', 'link' => '/blog.php' . $query],
-            ['label' => 'Novedades', 'link' => '/contenido-reciente.php' . $query],
-        ],
+        'submenu' => $submenu,
     ];
 }
 
@@ -58,12 +72,30 @@ function unit_content_strip_legacy_menu_links(array $menu): array
 
 /**
  * Inserta «Contenido» antes de CONTACTOS (o al final si no hay contacto).
+ * Respeta la configuración CMS nav_menu_enabled / nav_menu_items de la unidad.
  *
  * @param list<array<string, mixed>> $menu
+ * @param array<string, mixed>|null $siteData
  * @return list<array<string, mixed>>
  */
-function unit_content_inject_nav_menu(array $menu, string $unitKey): array
+function unit_content_inject_nav_menu(array $menu, string $unitKey, ?array $siteData = null): array
 {
+    $enabledItems = null;
+    if (is_array($siteData)) {
+        require_once __DIR__ . '/../services/UnitContentService.php';
+        $navSettings = UnitContentService::getNavMenuSettings($siteData, $unitKey);
+        if (!$navSettings['enabled']) {
+            return $menu;
+        }
+        $enabledItems = $navSettings['items'];
+    }
+
+    $contentItem = unit_content_nav_menu_item($unitKey, $enabledItems);
+    if ($contentItem === null) {
+        return $menu;
+    }
+
+    // Solo deduplicar enlaces legacy cuando el menú CONTENIDO se va a mostrar.
     $menu = unit_content_strip_legacy_menu_links($menu);
 
     foreach ($menu as $item) {
@@ -82,7 +114,6 @@ function unit_content_inject_nav_menu(array $menu, string $unitKey): array
         }
     }
 
-    $contentItem = unit_content_nav_menu_item($unitKey);
     array_splice($menu, $insertAt, 0, [$contentItem]);
 
     return $menu;

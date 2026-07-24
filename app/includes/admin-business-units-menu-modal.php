@@ -2,6 +2,16 @@
 /**
  * Modal y JS para gestionar menús de unidades de negocio (global admin).
  */
+require_once __DIR__ . '/../services/GenericPageService.php';
+
+$buMenuMasterPages = [];
+foreach (GenericPageService::published(isset($siteData) && is_array($siteData) ? $siteData : []) as $buMenuGp) {
+    $buMenuMasterPages[] = [
+        'title' => (string) ($buMenuGp['title'] ?? ''),
+        'slug' => (string) ($buMenuGp['slug'] ?? ''),
+    ];
+}
+unset($buMenuGp);
 ?>
 <div class="modal fade" id="buMenuItemModal" tabindex="-1" aria-labelledby="buMenuItemModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -23,6 +33,15 @@
                     <div class="col-md-6">
                         <label for="buMenuModalLinkInput" class="form-label">URL o ancla</label>
                         <input type="text" id="buMenuModalLinkInput" class="form-control form-control-premium" placeholder="Ej: musica.php o /ruta-externa">
+                    </div>
+                    <div class="col-12">
+                        <label for="buMenuModalPageSelect" class="form-label">
+                            Página del maestro <span class="text-muted fw-normal">(opcional — llena la URL automáticamente)</span>
+                        </label>
+                        <select id="buMenuModalPageSelect" class="form-select form-control-premium">
+                            <option value="">— Elegir página creada en Maestro de Páginas —</option>
+                        </select>
+                        <div class="form-text">Las páginas funcionales (Nuestra flota, Sucursales, etc.) no aparecen aquí: no se pueden reemplazar por páginas genéricas.</div>
                     </div>
                     <div class="col-12">
                         <div class="form-check form-switch">
@@ -65,8 +84,27 @@
 <script>
 (function () {
     const buMenuData = {};
+    const MASTER_PAGES = <?php echo json_encode($buMenuMasterPages, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
     let modalInstance = null;
     let modalSubmenuSortable = null;
+
+    function masterPageLink(slug) {
+        const unitKey = document.getElementById('buMenuModalUnit')?.value || '';
+        return '/p/' + slug + (unitKey && unitKey !== 'rentacar' ? '?unit=' + encodeURIComponent(unitKey) : '');
+    }
+
+    function masterPageSlugFromLink(link) {
+        const match = String(link || '').match(/^\/p\/([a-z0-9-]+)(?:[/?#]|$)/);
+        if (!match) return '';
+        return MASTER_PAGES.some((p) => p.slug === match[1]) ? match[1] : '';
+    }
+
+    function masterPageOptionsHtml(selectedSlug) {
+        return MASTER_PAGES.map((p) =>
+            '<option value="' + escHtml(p.slug) + '"' + (p.slug === selectedSlug ? ' selected' : '') + '>'
+            + escHtml(p.title) + ' (/p/' + escHtml(p.slug) + ')</option>'
+        ).join('');
+    }
 
     function escHtml(str) {
         return String(str ?? '')
@@ -179,17 +217,41 @@
                 ? '<span class="text-muted small d-block text-truncate">' + escHtml(item.link) + '</span>'
                 : '<span class="text-warning small d-block">Sin URL</span>';
 
+            const subRows = (item.submenu || []).map((sub, subIndex) => {
+                const subInactive = sub.active
+                    ? ''
+                    : '<span class="badge bg-light text-muted border ms-2">Inactivo</span>';
+                return ''
+                    + '<div class="d-flex align-items-center gap-2 ps-4 py-1 border-top small">'
+                    + '  <i class="bi bi-arrow-return-right text-muted"></i>'
+                    + '  <span class="fw-semibold text-navy">' + escHtml(sub.label) + '</span>' + subInactive
+                    + '  <span class="text-muted text-truncate flex-grow-1">' + escHtml(sub.link) + '</span>'
+                    + '  <span class="d-flex gap-1 flex-shrink-0">'
+                    + '    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 bu-sub-edit-btn" data-unit="' + escHtml(unitKey) + '" data-index="' + index + '" title="Editar subopciones"><i class="bi bi-pencil"></i></button>'
+                    + '    <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1 bu-sub-delete-btn" data-unit="' + escHtml(unitKey) + '" data-index="' + index + '" data-sub-index="' + subIndex + '" title="Eliminar subopción"><i class="bi bi-trash"></i></button>'
+                    + '  </span>'
+                    + '</div>';
+            }).join('');
+
+            const addSubBtn = ''
+                + '<button type="button" class="btn btn-sm btn-link text-danger text-decoration-none ps-4 py-1 bu-sub-add-btn" data-unit="' + escHtml(unitKey) + '" data-index="' + index + '">'
+                + '  <i class="bi bi-plus-lg me-1"></i>Agregar subopción'
+                + '</button>';
+
             return ''
-                + '<div class="list-group-item bu-menu-item d-flex align-items-center gap-2" data-index="' + index + '">'
-                + '  <span class="bu-menu-handle text-muted" title="Arrastrar"><i class="bi bi-grip-vertical fs-5"></i></span>'
-                + '  <div class="flex-grow-1 min-width-0">'
-                + '    <div class="fw-semibold text-navy">' + escHtml(item.label || '(Sin texto)') + subBadge + inactiveBadge + '</div>'
-                +      linkPreview
+                + '<div class="list-group-item bu-menu-item" data-index="' + index + '">'
+                + '  <div class="d-flex align-items-center gap-2">'
+                + '    <span class="bu-menu-handle text-muted" title="Arrastrar"><i class="bi bi-grip-vertical fs-5"></i></span>'
+                + '    <div class="flex-grow-1 min-width-0">'
+                + '      <div class="fw-semibold text-navy">' + escHtml(item.label || '(Sin texto)') + subBadge + inactiveBadge + '</div>'
+                +        linkPreview
+                + '    </div>'
+                + '    <div class="d-flex gap-1 flex-shrink-0">'
+                + '      <button type="button" class="btn btn-sm btn-outline-secondary bu-menu-edit-btn" data-unit="' + escHtml(unitKey) + '" data-index="' + index + '" title="Editar enlace y submenús"><i class="bi bi-pencil"></i></button>'
+                + '      <button type="button" class="btn btn-sm btn-outline-danger bu-menu-delete-btn" data-unit="' + escHtml(unitKey) + '" data-index="' + index + '" title="Eliminar"><i class="bi bi-trash"></i></button>'
+                + '    </div>'
                 + '  </div>'
-                + '  <div class="d-flex gap-1 flex-shrink-0">'
-                + '    <button type="button" class="btn btn-sm btn-outline-secondary bu-menu-edit-btn" data-unit="' + escHtml(unitKey) + '" data-index="' + index + '" title="Editar"><i class="bi bi-pencil"></i></button>'
-                + '    <button type="button" class="btn btn-sm btn-outline-danger bu-menu-delete-btn" data-unit="' + escHtml(unitKey) + '" data-index="' + index + '" title="Eliminar"><i class="bi bi-trash"></i></button>'
-                + '  </div>'
+                + '<div class="mt-2">' + subRows + addSubBtn + '</div>'
                 + '</div>';
         }).join('');
 
@@ -221,6 +283,15 @@
     }
 
     function submenuRowHtml(sub, index) {
+        const pageSelectHtml = MASTER_PAGES.length
+            ? ''
+                + '<div class="col-md-12">'
+                + '  <select class="form-select form-select-sm bu-submenu-page-select" title="Página del maestro (llena la URL)">'
+                + '    <option value="">— Página del maestro (opcional) —</option>'
+                +      masterPageOptionsHtml(masterPageSlugFromLink(sub.link))
+                + '  </select>'
+                + '</div>'
+            : '';
         return ''
             + '<div class="list-group-item bu-submenu-row d-flex align-items-start gap-2" data-sub-index="' + index + '">'
             + '  <span class="bu-submenu-handle text-muted pt-2" title="Arrastrar"><i class="bi bi-grip-vertical"></i></span>'
@@ -234,6 +305,7 @@
             + '    <div class="col-md-1 d-flex align-items-center justify-content-center">'
             + '      <input type="checkbox" class="form-check-input bu-submenu-active" title="Activo"' + (sub.active ? ' checked' : '') + '>'
             + '    </div>'
+            +      pageSelectHtml
             + '    <div class="col-md-12 d-flex justify-content-end">'
             + '      <button type="button" class="btn btn-sm btn-outline-danger bu-submenu-remove-btn" title="Quitar"><i class="bi bi-x-lg"></i></button>'
             + '    </div>'
@@ -294,6 +366,12 @@
         const item = index >= 0 ? buMenuData[unitKey][index] : { label: '', link: '', submenu: [] };
         document.getElementById('buMenuModalLabelInput').value = item.label || '';
         document.getElementById('buMenuModalLinkInput').value = item.link || '';
+        const pageSelect = document.getElementById('buMenuModalPageSelect');
+        if (pageSelect) {
+            pageSelect.innerHTML = '<option value="">— Elegir página creada en Maestro de Páginas —</option>'
+                + masterPageOptionsHtml(masterPageSlugFromLink(item.link));
+            pageSelect.closest('.col-12')?.classList.toggle('d-none', !MASTER_PAGES.length);
+        }
         document.getElementById('buMenuModalActive').checked = !Object.prototype.hasOwnProperty.call(item, 'active') || !!item.active;
         const hasSub = !!(item.submenu && item.submenu.length);
         document.getElementById('buMenuModalHasSubmenu').checked = hasSub;
@@ -369,6 +447,36 @@
                 buMenuData[unitKey].splice(idx, 1);
                 renderMenuList(unitKey);
             }
+            return;
+        }
+        const subEditBtn = e.target.closest('.bu-sub-edit-btn');
+        if (subEditBtn) {
+            openModal(subEditBtn.getAttribute('data-unit'), parseInt(subEditBtn.getAttribute('data-index'), 10));
+            return;
+        }
+        const subDeleteBtn = e.target.closest('.bu-sub-delete-btn');
+        if (subDeleteBtn) {
+            const unitKey = subDeleteBtn.getAttribute('data-unit');
+            const idx = parseInt(subDeleteBtn.getAttribute('data-index'), 10);
+            const subIdx = parseInt(subDeleteBtn.getAttribute('data-sub-index'), 10);
+            const parent = (buMenuData[unitKey] || [])[idx];
+            if (!parent || !Array.isArray(parent.submenu)) return;
+            if (confirm('¿Eliminar esta subopción del menú?')) {
+                parent.submenu.splice(subIdx, 1);
+                renderMenuList(unitKey);
+            }
+            return;
+        }
+        const subAddBtn = e.target.closest('.bu-sub-add-btn');
+        if (subAddBtn) {
+            const unitKey = subAddBtn.getAttribute('data-unit');
+            const idx = parseInt(subAddBtn.getAttribute('data-index'), 10);
+            const parent = (buMenuData[unitKey] || [])[idx];
+            if (!parent) return;
+            openModal(unitKey, idx);
+            document.getElementById('buMenuModalHasSubmenu').checked = true;
+            toggleSubmenuSection(true);
+            renderSubmenuList((parent.submenu || []).concat([{ label: '', link: '', active: true, sort_order: (parent.submenu || []).length }]));
         }
     });
 
@@ -404,6 +512,34 @@
     });
 
     document.getElementById('buMenuModalSaveBtn')?.addEventListener('click', saveModal);
+
+    document.getElementById('buMenuModalPageSelect')?.addEventListener('change', function () {
+        if (!this.value) return;
+        const linkInput = document.getElementById('buMenuModalLinkInput');
+        if (linkInput) {
+            linkInput.value = masterPageLink(this.value);
+        }
+        const labelInput = document.getElementById('buMenuModalLabelInput');
+        if (labelInput && !labelInput.value.trim()) {
+            const page = MASTER_PAGES.find((p) => p.slug === this.value);
+            if (page) labelInput.value = page.title;
+        }
+    });
+
+    document.getElementById('buMenuSubmenuList')?.addEventListener('change', function (e) {
+        const select = e.target.closest('.bu-submenu-page-select');
+        if (!select || !select.value) return;
+        const row = select.closest('.bu-submenu-row');
+        const linkInput = row?.querySelector('.bu-submenu-link');
+        if (linkInput) {
+            linkInput.value = masterPageLink(select.value);
+        }
+        const labelInput = row?.querySelector('.bu-submenu-label');
+        if (labelInput && !labelInput.value.trim()) {
+            const page = MASTER_PAGES.find((p) => p.slug === select.value);
+            if (page) labelInput.value = page.title;
+        }
+    });
 
     document.querySelectorAll('.bu-menu-form').forEach(function (form) {
         form.addEventListener('submit', function () {

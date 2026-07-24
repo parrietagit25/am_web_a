@@ -21,7 +21,7 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
     <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4 border-bottom pb-3">
         <div>
             <h5 class="fw-bold mb-1 font-montserrat text-navy"><i class="bi bi-book me-2 text-danger"></i>Manual de uso del panel administrativo</h5>
-            <p class="text-muted mb-0 small">Guía institucional para administradores, Mercadeo, Gerencia y operación. Actualizado 5 de julio de 2026 (AM-ADMIN-MANUAL-1B).</p>
+            <p class="text-muted mb-0 small">Guía institucional para administradores, Mercadeo, Gerencia y operación. Actualizado 23 de julio de 2026 (AM-ADMIN-MANUAL-1C).</p>
         </div>
         <span class="badge bg-light text-navy border">Usuario final</span>
     </div>
@@ -36,11 +36,13 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                 <a href="#manual-sostenibilidad" class="ps-3 small">2.13 Sostenibilidad</a>
                 <a href="#manual-dashboard">3. Dashboard de avances</a>
                 <a href="#manual-rentacar">4. Rent A Car</a>
-                <a href="#manual-rac-bars" class="ps-3 small">4.1 Tarifas BARS/RW Web</a>
-                <a href="#manual-rac-rules" class="ps-3 small">4.2 Reglas de Tarifas</a>
-                <a href="#manual-rac-addons" class="ps-3 small">4.3 Protecciones y Extras</a>
-                <a href="#manual-rac-reservas" class="ps-3 small">4.4 Reservas RAC</a>
-                <a href="#manual-rac-powertranz" class="ps-3 small">4.5 Powertranz/FAC</a>
+                <a href="#manual-rac-reservas" class="ps-3 small">4.9 Reservas RAC (BARS SOAP)</a>
+                <a href="#manual-rac-bars" class="ps-3 small">4.10 Tarifas BARS/RW Web</a>
+                <a href="#manual-rac-rules" class="ps-3 small">4.11 Reglas de Tarifas</a>
+                <a href="#manual-rac-addons" class="ps-3 small">4.12 Protecciones y Extras</a>
+                <a href="#manual-rac-powertranz" class="ps-3 small">4.13 Powertranz/FAC</a>
+                <a href="#manual-rac-lab" class="ps-3 small">4.14 Lab BARS / Partner</a>
+                <a href="#manual-rac-permisos" class="ps-3 small">4.15 Permisos RAC</a>
                 <a href="#manual-seminuevos">5. Venta de Autos</a>
                 <a href="#manual-leasing">6. Leasing Operativo</a>
                 <a href="#manual-renting">7. Renting</a>
@@ -195,6 +197,18 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                                 <li><strong>Superadministrador:</strong> acceso total; use con precaución.</li>
                                 <li><strong>Desactivar:</strong> impide el login sin borrar el historial.</li>
                             </ol>
+                            <p><strong>Permisos granulares Rent A Car</strong> (marque solo lo necesario):</p>
+                            <ul>
+                                <li><code>rac_aliados</code> — Aliados y marcas</li>
+                                <li><code>rac_reservations</code> — Reservas RAC</li>
+                                <li><code>rac_bars_rates</code> — Tarifas BARS</li>
+                                <li><code>rac_rate_rules</code> — Reglas de Tarifas</li>
+                                <li><code>rac_addons</code> — Protecciones y Extras</li>
+                                <li><code>rac_bars_lab</code> — Lab BARS / Partner (diagnóstico; también accesible a super admin)</li>
+                            </ul>
+                            <div class="manual-tip">
+                                Compatibilidad: usuarios que ya tenían <code>vehicles</code> o <code>rac_reservations</code> siguen viendo tarifas, reglas y extras hasta que se reasignen permisos específicos.
+                            </div>
 
                             <h6>2.9 Registro de actividad (auditoría)</h6>
                             <p><span class="badge badge-menu">Generales → Registro de actividad</span></p>
@@ -236,6 +250,7 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                         <div class="accordion-body">
                             <p><span class="badge badge-menu">Generales → Dashboard de avances</span></p>
                             <p>Tablero interno oficial de implementación, validación y seguimiento de entregables del proyecto Automarket. Permite a administración, Mercadeo y Gerencia consultar qué está terminado, qué falta y dónde validar cada cambio.</p>
+                            <p class="small text-muted">Versión actual del tablero: <strong>AM-DASH-1D</strong> (23 jul 2026) — incluye bloques RAC SOAP local, lab ciclo, imágenes/SIPP, protecciones y permisos granulares.</p>
 
                             <h6>Qué permite</h6>
                             <ol>
@@ -295,6 +310,7 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                             <p>Gestión del catálogo de vehículos de alquiler y las <strong>categorías de flota</strong>:</p>
                             <ul>
                                 <li><strong>Tabla de vehículos:</strong> marca, modelo, categoría, transmisión, pasajeros, maletas, imagen, precio referencial, etc.</li>
+                                <li><strong>Código SIPP (opcional):</strong> alinea la foto CMS con tarifas BARS/Partner en el buscador público. Si está vacío, el sistema intenta emparejar por nombre o catálogo Partner.</li>
                                 <li><strong>Agregar / editar vehículo:</strong> complete el formulario y suba foto. La categoría debe coincidir con una categoría definida abajo.</li>
                                 <li><strong>Categorías de la flota:</strong> cambie el <strong>orden</strong> (números) y el <strong>nombre visible</strong> de cada categoría (Sedán, SUV, etc.). Esto actualiza filtros en <code>/flota</code> y el carrusel de la home.</li>
                             </ul>
@@ -316,17 +332,18 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                             <p>Bandeja de mensajes enviados desde formularios de contacto de Rent A Car. Abra cada fila para ver detalle completo.</p>
 
                             <h6>4.8 Pagos recibidos</h6>
-                            <p>Registro histórico de pagos reportados por integraciones anteriores. <strong>No confundir</strong> con la pasarela Powertranz en prueba (sección 4.10).</p>
+                            <p>Registro histórico de pagos reportados por integraciones anteriores. <strong>No confundir</strong> con la pasarela Powertranz en prueba (sección 4.13).</p>
 
                             <h6 id="manual-rac-reservas">4.9 Reservas Rent A Car</h6>
                             <p><span class="badge badge-menu">Rent A Car → Reservas RAC</span></p>
-                            <p><strong>Estado actual:</strong> reserva pública operativa en el sitio web.</p>
+                            <p><strong>Estado actual:</strong> reserva pública operativa. El alta en sistema de flota usa <strong>BARS SOAP local</strong> primero; si falla, puede caer a Partner DO según configuración (<code>RAC_RESERVATION_PARTNER_FALLBACK</code>).</p>
                             <p><strong>Qué funciona hoy:</strong></p>
                             <ul>
                                 <li>Flujo público de cotización y reserva RAC.</li>
-                                <li>Extras y protecciones visibles en el proceso.</li>
-                                <li>Correo de confirmación enviado al completar reserva.</li>
-                                <li>Captcha activo en entornos test y producción.</li>
+                                <li>Búsqueda de tarifas desde caché BARS local (con fallback Partner cuando aplique).</li>
+                                <li>Creación y consulta de reserva vía SOAP local (<code>otavehres</code> / <code>otavehretres</code>).</li>
+                                <li>Extras y protecciones del admin en el proceso (sin opción «Sin protección adicional»).</li>
+                                <li>Registro en base local, correo de confirmación y captcha en el formulario público.</li>
                             </ul>
                             <p><strong>Dónde se ve en la web:</strong></p>
                             <ul>
@@ -335,7 +352,10 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                                 <li><code>/extras.php</code> — protecciones y extras.</li>
                                 <li><code>/reservar.php</code> — formulario de reserva.</li>
                             </ul>
-                            <p><strong>Administración:</strong> use <span class="badge badge-menu">Rent A Car → Reservas RAC</span> para consultar solicitudes registradas. La confirmación operativa final puede requerir procesos internos de la empresa según política de Rent A Car.</p>
+                            <p><strong>Administración:</strong> use <span class="badge badge-menu">Rent A Car → Reservas RAC</span> para consultar solicitudes registradas. La respuesta técnica puede incluir origen <code>local_bars_soap</code> o <code>partner_do</code>.</p>
+                            <div class="manual-warn">
+                                <i class="bi bi-info-circle me-1"></i> El captcha del formulario público puede impedir pruebas E2E desde el navegador; use el Lab (sección 4.14) o el entorno con bypass autorizado para validar SOAP.
+                            </div>
 
                             <h6 id="manual-rac-bars">4.10 Tarifas BARS/RW Web</h6>
                             <p><span class="badge badge-menu">Rent A Car → Tarifas BARS</span></p>
@@ -371,14 +391,21 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                             <p><span class="badge badge-menu">Rent A Car → Protecciones y Extras</span></p>
                             <p>Administra las opciones que el cliente ve durante la reserva:</p>
                             <ul>
-                                <li>Protecciones (coberturas).</li>
+                                <li>Protecciones (coberturas) activas desde este módulo.</li>
                                 <li>Extras (accesorios o servicios adicionales).</li>
                                 <li>Activar/desactivar cada opción.</li>
                                 <li>Nombres, textos y condiciones según los campos disponibles en pantalla.</li>
                             </ul>
+                            <p><strong>Comportamiento público (julio 2026):</strong></p>
+                            <ul>
+                                <li>No existe la opción fija «Sin protección adicional».</li>
+                                <li>Solo se listan protecciones <strong>activas</strong> del admin.</li>
+                                <li>Por defecto se preselecciona la protección <strong>más económica</strong> (menor <code>amountTotal</code>).</li>
+                                <li>Si el cliente llega sin protección válida, el backend fuerza la más barata disponible.</li>
+                            </ul>
                             <p><strong>Dónde se ve:</strong> pantalla pública <code>/extras.php</code> dentro del flujo RAC.</p>
                             <div class="manual-tip">
-                                <strong>Buenas prácticas:</strong> use nombres claros, evite textos excesivamente largos, revise cómo se ve en móvil y confirme con operación que lo publicado coincide con lo que se ofrece en mostrador.
+                                <strong>Buenas prácticas:</strong> use nombres claros, evite textos excesivamente largos, revise cómo se ve en móvil y confirme con operación que lo publicado coincide con lo que se ofrece en mostrador. Mantenga al menos una protección activa.
                             </div>
 
                             <h6 id="manual-rac-powertranz">4.13 Pasarela Powertranz / First Atlantic Commerce</h6>
@@ -407,7 +434,29 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                                     <li>No activar cobro público hasta validación completa con FAC.</li>
                                 </ul>
                             </div>
-                            <p><strong>Siguiente acción:</strong> esperar respuesta FAC → configurar PageSet/PageName en servidor → repetir prueba HPP → validar formulario de tarjeta → luego evaluar integración con reservas.</p>
+                            <p><strong>Siguiente acción Powertranz:</strong> esperar respuesta FAC → configurar PageSet/PageName en servidor → repetir prueba HPP → validar formulario de tarjeta → luego evaluar integración con reservas.</p>
+
+                            <h6 id="manual-rac-lab">4.14 Laboratorio BARS / Partner</h6>
+                            <p><span class="badge badge-menu">Rent A Car → BARS / Partner Lab</span> <em>(super admin o permiso <code>rac_bars_lab</code>)</em></p>
+                            <p>Herramientas de diagnóstico para sistemas (no son pantallas de Mercadeo):</p>
+                            <ul>
+                                <li><strong>Admin Lab:</strong> <code>/admin/rac-bars-api-lab.php</code> — pruebas de catálogo, tarifas, reserva y lookup SOAP/Partner.</li>
+                                <li><strong>Lab sandbox:</strong> <code>/lab/rac-ciclo.php</code> — ciclo completo fuera del sitio público (status, branches, search, reserve, lookup). Protegido; no indexado (<code>robots.txt</code> Disallow <code>/lab/</code>).</li>
+                            </ul>
+                            <div class="manual-warn">
+                                <i class="bi bi-exclamation-triangle me-1"></i> El lab puede crear reservas reales en BARS. Úselo solo con autorización y datos de prueba controlados.
+                            </div>
+
+                            <h6 id="manual-rac-permisos">4.15 Permisos del menú Rent A Car</h6>
+                            <p>Asigne permisos desde <span class="badge badge-menu">Generales → Usuarios</span>. Resumen operativo:</p>
+                            <ul>
+                                <li><strong>Aliados y marcas</strong> → <code>rac_aliados</code> (compatibilidad con <code>vehicles</code>).</li>
+                                <li><strong>Tarifas BARS</strong> → <code>rac_bars_rates</code> (o legado <code>rac_reservations</code> / <code>vehicles</code>).</li>
+                                <li><strong>Reglas de Tarifas</strong> → <code>rac_rate_rules</code> (mismo legado).</li>
+                                <li><strong>Protecciones y Extras</strong> → <code>rac_addons</code> (mismo legado).</li>
+                                <li><strong>Lab BARS / Partner</strong> → <code>rac_bars_lab</code> o super admin.</li>
+                                <li><strong>Powertranz Test</strong> → solo super admin.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -801,6 +850,7 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                             <p>Algunos módulos dependen de terceros o decisiones de negocio. Estado actual:</p>
                             <ul>
                                 <li><strong>Powertranz/FAC (pagos RAC):</strong> pendiente externo — error HPP 757; esperando confirmación de FAC sobre PageSet/PageName. No usar cobros reales.</li>
+                                <li><strong>Reserva pública E2E con captcha:</strong> el flujo SOAP local está cableado; la prueba completa en navegador público puede bloquearse por captcha (validado vía Lab).</li>
                                 <li><strong>Contenido editorial:</strong> blog y novedades de algunas unidades pendientes de carga final por Mercadeo (infraestructura CMS lista).</li>
                                 <li><strong>FAQ por unidad:</strong> pendiente contenido final de Mercadeo.</li>
                                 <li><strong>Redes sociales:</strong> URL oficial de TikTok u otras redes pueden estar pendientes de confirmación.</li>

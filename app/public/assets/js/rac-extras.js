@@ -20,12 +20,31 @@
     const PROTECTION_LABELS = {
         BASIC: 'Protección Básica',
         STANDARD: 'Protección Estándar',
-        PREMIUM: 'Protección Premium',
-        NONE: 'Sin protección adicional'
+        PREMIUM: 'Protección Premium'
     };
 
     function protectionCode(pkg) {
         return String(pkg.code || pkg.coverageType || '').toUpperCase().trim();
+    }
+
+    function protectionAmount(pkg, billedDays) {
+        const days = Math.max(parseInt(billedDays, 10) || 1, 1);
+        let amt = parseFloat(pkg && pkg.amountTotal != null ? pkg.amountTotal : NaN);
+        if (Number.isFinite(amt)) return amt;
+        const perDay = parseFloat(pkg && pkg.pricePerDay != null ? pkg.pricePerDay : 0) || 0;
+        return perDay * days;
+    }
+
+    /** Más barata primero (solo productos reales del admin / API). */
+    function cheapestProtection(packages, billedDays) {
+        const list = Array.isArray(packages) ? packages.slice() : [];
+        if (!list.length) return null;
+        list.sort(function (a, b) {
+            const diff = protectionAmount(a, billedDays) - protectionAmount(b, billedDays);
+            if (diff !== 0) return diff;
+            return protectionCode(a).localeCompare(protectionCode(b));
+        });
+        return list[0];
     }
 
     function protectionTitle(pkg, code) {
@@ -308,35 +327,27 @@
         const saf = window.RAC_FLOW.resolveSafAmount(vehicle);
         const nonSafMandatory = mandatoryLines.filter(function (l) { return l.code !== 'SAF'; });
 
-        const packages = resolveProtectionPackages(vehicle);
+        const packages = resolveProtectionPackages(vehicle).filter(function (pkg) {
+            const code = protectionCode(pkg);
+            return code !== '' && code !== 'NONE';
+        });
         const equipment = resolveEquipmentList(vehicle);
 
-        const packagesByCode = { NONE: { code: 'NONE', name: 'Sin protección adicional', amountTotal: 0 } };
+        const packagesByCode = {};
         packages.forEach(function (pkg, i) {
             const code = protectionCode(pkg) || ('cov_' + i);
             packagesByCode[code] = pkg;
         });
 
-        const dbNone = (vehicle._dbProtections || []).find(function (p) {
-            return protectionCode(p) === 'NONE';
-        });
-        if (dbNone) {
-            packagesByCode.NONE = Object.assign({}, packagesByCode.NONE, dbNone, { code: 'NONE' });
-        }
-
-        const defaultPkg = (vehicle._dbProtections || []).find(function (p) { return p.isDefault; })
-            || packages.find(function (p) { return p.isDefault; })
-            || packages.find(function (p) { return protectionCode(p) === 'BASIC'; })
-            || packages[0];
-        let selectedProtection = defaultPkg ? protectionCode(defaultPkg) : 'NONE';
-        if (defaultPkg && protectionCode(defaultPkg) === 'NONE') {
-            selectedProtection = 'NONE';
-        }
+        const cheapest = cheapestProtection(packages, billedDays);
+        let selectedProtection = cheapest ? protectionCode(cheapest) : '';
 
         const saved = window.RAC_FLOW.getExtras();
         if (saved && saved.protection) {
             const savedCode = String(saved.protection).toUpperCase();
-            if (packagesByCode[savedCode]) selectedProtection = savedCode;
+            if (savedCode !== 'NONE' && packagesByCode[savedCode]) {
+                selectedProtection = savedCode;
+            }
         }
 
         const selectedQty = {};
@@ -434,7 +445,7 @@
             if (preview.vehicle) {
                 state.vehicle = preview.vehicle;
             }
-            const covName = prot.name || state.coverageName || PROTECTION_LABELS.NONE;
+            const covName = prot.name || state.coverageName || '—';
             state.coverageName = covName;
             state.totals = {
                 base: totals.base != null ? totals.base : state.rentalBase,
@@ -456,8 +467,8 @@
             document.getElementById('sumSaf').textContent = window.RAC_FLOW.fmtMoney(state.saf);
             document.getElementById('sumCoverage').textContent = window.RAC_FLOW.fmtMoney(state.totals.coverage);
             const covRow = document.getElementById('sumCoverageRow');
-            const protCode = String(state.selectedProtection || 'NONE').toUpperCase();
-            if (covRow) covRow.classList.toggle('d-none', protCode === 'NONE' && state.totals.coverage <= 0);
+            const protCode = String(state.selectedProtection || '').toUpperCase();
+            if (covRow) covRow.classList.toggle('d-none', !protCode || state.totals.coverage <= 0);
             const extrasRow = document.getElementById('sumExtrasRow');
             if (extrasRow) extrasRow.classList.toggle('d-none', state.totals.equipment <= 0);
             document.getElementById('sumExtras').textContent = window.RAC_FLOW.fmtMoney(state.totals.equipment);
@@ -543,12 +554,12 @@
         }
 
         function recalc() {
-            const protCode = String(state.selectedProtection || 'NONE').toUpperCase();
+            const protCode = String(state.selectedProtection || '').toUpperCase();
             const pkg = state.packagesByCode[protCode] || {};
             let coverageAmt = 0;
-            let covName = PROTECTION_LABELS.NONE;
+            let covName = '—';
 
-            if (protCode !== 'NONE') {
+            if (protCode && protCode !== 'NONE' && Object.keys(pkg).length) {
                 coverageAmt = parseFloat(pkg.amountTotal ?? 0) || 0;
                 if (!coverageAmt && pkg.pricePerDay) {
                     coverageAmt = parseFloat(pkg.pricePerDay) * state.billedDays;
@@ -582,7 +593,7 @@
             document.getElementById('sumSaf').textContent = window.RAC_FLOW.fmtMoney(state.saf);
             document.getElementById('sumCoverage').textContent = window.RAC_FLOW.fmtMoney(coverageAmt);
             const covRow = document.getElementById('sumCoverageRow');
-            if (covRow) covRow.classList.toggle('d-none', protCode === 'NONE' && coverageAmt <= 0);
+            if (covRow) covRow.classList.toggle('d-none', !protCode || coverageAmt <= 0);
 
             const extrasRow = document.getElementById('sumExtrasRow');
             if (extrasRow) extrasRow.classList.toggle('d-none', equipAmt <= 0);
@@ -666,6 +677,28 @@
 
         document.getElementById('btnContinueExtras')?.addEventListener('click', function () {
             const btn = document.getElementById('btnContinueExtras');
+            const available = Object.keys(state.packagesByCode || {});
+            let prot = String(state.selectedProtection || '').toUpperCase();
+            if (available.length) {
+                if (!prot || prot === 'NONE' || !state.packagesByCode[prot]) {
+                    const cheapest = cheapestProtection(
+                        available.map(function (c) { return state.packagesByCode[c]; }),
+                        state.billedDays
+                    );
+                    prot = cheapest ? protectionCode(cheapest) : '';
+                    state.selectedProtection = prot;
+                }
+                if (!prot) {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.dataset.continuing = '';
+                        btn.textContent = btn.dataset.originalText || 'Continuar';
+                    }
+                    alert('Seleccione una protección para continuar.');
+                    return;
+                }
+            }
+
             if (btn) {
                 if (btn.disabled && btn.dataset.continuing === '1') return;
                 btn.disabled = true;
@@ -817,48 +850,33 @@
         const wrap = document.getElementById('protectionOptions');
         if (!wrap) return;
 
-        const safePackages = Array.isArray(packages) ? packages : [];
-        const selectedCode = String(selected || 'NONE').toUpperCase();
+        const safePackages = (Array.isArray(packages) ? packages : []).filter(function (pkg) {
+            const code = protectionCode(pkg);
+            return code !== '' && code !== 'NONE';
+        });
+        const selectedCode = String(selected || '').toUpperCase();
         const days = Math.max(parseInt(billedDays, 10) || 1, 1);
 
-        let html = `
-            <label class="border rounded-3 p-3 d-flex gap-3 align-items-center cursor-pointer ${selectedCode === 'NONE' ? 'border-danger border-2' : ''}">
-                <input type="radio" name="protection_code" class="form-check-input flex-shrink-0" value="NONE" ${selectedCode === 'NONE' ? 'checked' : ''}>
-                <div class="flex-grow-1 min-w-0">
-                    <div class="fw-bold text-navy">Sin protección adicional</div>
-                    <small class="text-muted d-block">Continúa bajo su propio riesgo. La cobertura puede adquirirse en mostrador.</small>
-                </div>
-                <div class="text-end flex-shrink-0">
-                    <div class="fw-bold text-navy">$0.00</div>
-                </div>
-            </label>`;
-
         if (!safePackages.length) {
-            const fromDb = ctx.addonsSource === 'db';
-            wrap.innerHTML = html + (fromDb
-                ? ''
-                : '<p class="text-muted small mt-2">No hay paquetes de protección disponibles para este vehículo.</p>');
+            wrap.innerHTML = '<p class="text-muted small mb-0">No hay protecciones activas configuradas en el admin para este vehículo.</p>';
             return;
         }
 
-        html += safePackages.map(function (pkg, i) {
+        wrap.innerHTML = safePackages.map(function (pkg, i) {
             const code = protectionCode(pkg) || ('cov_' + i);
             const checked = code === selectedCode ? 'checked' : '';
             const border = checked ? 'border-danger border-2' : '';
-            const amt = parseFloat(pkg.amountTotal || 0) || (parseFloat(pkg.pricePerDay || 0) * days);
+            const amt = protectionAmount(pkg, days);
             const perDay = parseFloat(pkg.pricePerDay || 0) || (days > 0 ? amt / days : 0);
             const title = protectionTitle(pkg, code);
             const desc = (pkg.description && String(pkg.description).trim() !== '' && String(pkg.description) !== title)
                 ? pkg.description
                 : (pkg.description || title);
-            const badge = pkg.isDefault
-                ? '<span class="badge bg-secondary text-uppercase ms-2" style="font-size:0.65rem;">Predeterminada</span>'
-                : '';
             return `
             <label class="border rounded-3 p-3 d-flex gap-3 align-items-center cursor-pointer ${border}">
-                <input type="radio" name="protection_code" class="form-check-input flex-shrink-0" value="${code}" ${checked}>
+                <input type="radio" name="protection_code" class="form-check-input flex-shrink-0" value="${code}" ${checked} required>
                 <div class="flex-grow-1 min-w-0">
-                    <div class="fw-bold text-navy">${title}${badge}</div>
+                    <div class="fw-bold text-navy">${title}</div>
                     <small class="text-muted d-block">${desc}</small>
                 </div>
                 <div class="text-end flex-shrink-0">
@@ -867,8 +885,6 @@
                 </div>
             </label>`;
         }).join('');
-
-        wrap.innerHTML = html;
     }
 
     function renderEquipment(equipment, selectedQty, additionalDrivers, driverCharge, billedDays, driverMax) {

@@ -27,6 +27,7 @@ Allow: /
 User-agent: *
 Disallow: /admin/
 Disallow: /api/
+Disallow: /lab/
 
 # Public assets are explicitly crawlable (no block)
 # Allow: /assets/

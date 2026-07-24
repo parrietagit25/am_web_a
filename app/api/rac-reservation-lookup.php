@@ -37,7 +37,7 @@ if ($result['ok'] && is_array($result['data'])) {
     http_response_code(200);
     echo json_encode([
         'success' => true,
-        'source' => 'bars',
+        'source' => $result['source'] ?? 'bars',
         'reservation' => $result['data'],
     ], JSON_UNESCAPED_UNICODE);
     exit;

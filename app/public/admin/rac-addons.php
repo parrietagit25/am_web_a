@@ -14,7 +14,7 @@ require_once __DIR__ . '/../../includes/admin-auth.php';
 AdminUserService::ensureSchema();
 admin_require_login();
 
-if (!admin_can('rac_reservations') && !admin_can('vehicles')) {
+if (!admin_can_any(['rac_addons', 'rac_reservations', 'vehicles'])) {
     http_response_code(403);
     echo 'Sin permiso.';
     exit;

@@ -31,6 +31,11 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
             <li><strong>Destacados</strong> — carrusel o pieza grande arriba (usa la rotación o el destacado único de abajo).</li>
             <li><strong>Novedades</strong> — grilla de tarjetas (ítems de novedades, blog o noticias con el ojo <i class="bi bi-eye-fill"></i> activo).</li>
         </ul>
+        <div class="alert alert-info small mt-3 mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            El menú público de esta unidad se administra ahora en
+            <a class="alert-link" href="?tab=<?php echo esc(UnitContentService::generalTabSlug($ucUnitKey)); ?>">Generales</a>.
+        </div>
     </div>
 
     <div class="admin-card">
@@ -258,15 +263,6 @@ $ucConfigActive = ($defaultAdminTab ?? '') === $ucConfigTab;
     <?php if ($ucUnitKey !== 'rentacar'): ?>
         <?php require __DIR__ . '/admin-unit-terms-section.php'; ?>
     <?php endif; ?>
-    <?php
-    require_once __DIR__ . '/business-units-registry.php';
-    $ucBusinessUnits = am_merge_business_units($siteData['global']['business_units'] ?? []);
-    $key = $ucUnitKey;
-    $unit = $ucBusinessUnits[$ucUnitKey];
-    $buMenuTab = $ucConfigTab;
-    require __DIR__ . '/admin-business-units-menu-list.php';
-    unset($ucBusinessUnits, $key, $unit, $buMenuTab);
-    ?>
 </div>
 
 <?php

@@ -64,6 +64,13 @@ class UnitContentService
         ];
     }
 
+    public static function generalTabSlug(string $unitKey): string
+    {
+        return self::isCustomUnit($unitKey)
+            ? 'unit-' . $unitKey . '-general'
+            : $unitKey . '-general';
+    }
+
     public static function contentPermissionKey(string $unitKey): string
     {
         static $map = [
@@ -627,6 +634,18 @@ class UnitContentService
         return $header;
     }
 
+    /** @return array{news: bool, blog: bool, latest: bool} */
+    public static function normalizeNavMenuItems(mixed $items): array
+    {
+        $items = is_array($items) ? $items : [];
+        $normalized = [];
+        foreach (self::TYPES as $type) {
+            $normalized[$type] = !isset($items[$type]) || filter_var($items[$type], FILTER_VALIDATE_BOOLEAN);
+        }
+
+        return $normalized;
+    }
+
     /** @param array<string, mixed> $settings @param array<string, mixed> $overrides */
     public static function normalizeSettings(array $settings, array $overrides = []): array
     {
@@ -636,6 +655,8 @@ class UnitContentService
         }
 
         $normalized = [
+            'nav_menu_enabled' => !isset($settings['nav_menu_enabled']) || filter_var($settings['nav_menu_enabled'], FILTER_VALIDATE_BOOLEAN),
+            'nav_menu_items' => self::normalizeNavMenuItems($settings['nav_menu_items'] ?? []),
             'home_block_enabled' => !isset($settings['home_block_enabled']) || filter_var($settings['home_block_enabled'], FILTER_VALIDATE_BOOLEAN),
             'home_display_mode' => $mode,
             'home_single' => self::normalizeSpotlightRef($settings['home_single'] ?? []),
@@ -654,6 +675,22 @@ class UnitContentService
         }
 
         return $normalized;
+    }
+
+    /**
+     * Configuración del menú «CONTENIDO» del navbar público.
+     *
+     * @param array<string, mixed> $siteData
+     * @return array{enabled: bool, items: array{news: bool, blog: bool, latest: bool}}
+     */
+    public static function getNavMenuSettings(array $siteData, string $unitKey): array
+    {
+        $settings = self::getContentNode($siteData, $unitKey)['settings'] ?? [];
+
+        return [
+            'enabled' => !isset($settings['nav_menu_enabled']) || filter_var($settings['nav_menu_enabled'], FILTER_VALIDATE_BOOLEAN),
+            'items' => self::normalizeNavMenuItems($settings['nav_menu_items'] ?? []),
+        ];
     }
 
     /** @param array<string, mixed> $siteData @return list<array<string, mixed>> */

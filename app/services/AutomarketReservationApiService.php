@@ -1,11 +1,13 @@
 <?php
 /**
- * Public reservation API on Automarket backend (BARS via Node).
+ * Gateway de reservas RAC: BARS SOAP local (RentWorks) con fallback Partner DO.
+ * Mantiene el contrato usado por rac-reservation.php, lookup y lab.
  */
 
 require_once __DIR__ . '/BranchDataService.php';
 require_once __DIR__ . '/RacBirthDateService.php';
 require_once __DIR__ . '/RacPublicRateService.php';
+require_once __DIR__ . '/BarsReservationClient.php';
 
 class AutomarketReservationApiService {
     private string $baseUrl;
@@ -18,21 +20,101 @@ class AutomarketReservationApiService {
         return $this->baseUrl;
     }
 
-    /**
-     * @return array{ok: bool, data: ?array, error: ?string, httpCode: int}
-     */
-    public function createReservation(array $payload): array {
-        return $this->request('POST', '/api/reservation', $payload, 45);
+    public static function partnerFallbackEnabled(): bool {
+        if (defined('RAC_RESERVATION_PARTNER_FALLBACK')) {
+            return (bool) RAC_RESERVATION_PARTNER_FALLBACK;
+        }
+        // Durante la migración: si SOAP falla, intenta Partner.
+        return true;
     }
 
     /**
-     * @return array{ok: bool, data: ?array, error: ?string, httpCode: int}
+     * @return array{ok: bool, data: ?array, error: ?string, httpCode: int, source?: string}
+     */
+    public function createReservation(array $payload): array {
+        $bars = new BarsReservationClient();
+        if ($bars->isConfigured()) {
+            $local = $bars->createReservation($payload, false);
+            if (!empty($local['ok'])) {
+                $data = is_array($local['data'] ?? null) ? $local['data'] : [];
+                if (empty($data['confirmationNumber']) && !empty($local['confirmation'])) {
+                    $data['confirmationNumber'] = $local['confirmation'];
+                }
+                am_log('RAC reservation created via local BARS SOAP: ' . ($data['confirmationNumber'] ?? ''), 'INFO');
+                return [
+                    'ok' => true,
+                    'data' => $data,
+                    'error' => null,
+                    'httpCode' => (int) ($local['http_code'] ?? 200),
+                    'source' => 'local_bars_soap',
+                ];
+            }
+
+            $soapError = (string) ($local['error'] ?? 'Error SOAP BARS al crear reserva.');
+            am_log('RAC local BARS create failed: ' . $soapError, 'WARNING');
+
+            if (!self::partnerFallbackEnabled()) {
+                return [
+                    'ok' => false,
+                    'data' => is_array($local['data'] ?? null) ? $local['data'] : null,
+                    'error' => $soapError,
+                    'httpCode' => (int) ($local['http_code'] ?? 0),
+                    'source' => 'local_bars_soap',
+                ];
+            }
+            am_log('RAC create falling back to Partner DO', 'WARNING');
+        }
+
+        $partner = $this->request('POST', '/api/reservation', $payload, 45);
+        $partner['source'] = 'partner_do';
+        return $partner;
+    }
+
+    /**
+     * @return array{ok: bool, data: ?array, error: ?string, httpCode: int, source?: string}
      */
     public function lookupReservation(string $code, string $lastName = ''): array {
         $code = strtoupper(trim($code));
         if ($code === '') {
             return ['ok' => false, 'data' => null, 'error' => 'Código de reserva requerido.', 'httpCode' => 400];
         }
+
+        $bars = new BarsReservationClient();
+        if ($bars->isConfigured()) {
+            $local = $bars->lookupReservation($code, $lastName, false);
+            if (!empty($local['ok']) && is_array($local['reservation'] ?? null)) {
+                $reservation = $local['reservation'];
+                // Preferir el código Type=14 que el cliente suele consultar.
+                if (!empty($local['confirmation'])) {
+                    $reservation['confirmationNumber'] = $local['confirmation'];
+                }
+                am_log('RAC reservation lookup via local BARS SOAP: ' . $code, 'INFO');
+                return [
+                    'ok' => true,
+                    'data' => $reservation,
+                    'error' => null,
+                    'httpCode' => (int) ($local['http_code'] ?? 200),
+                    'source' => 'local_bars_soap',
+                ];
+            }
+
+            $soapError = (string) ($local['error'] ?? 'No encontrada en BARS.');
+            // Si BARS responde "no encontrada", no insistir en Partner salvo fallback explícito.
+            $notFound = (bool) preg_match('/Code=284\b|No reservations found/i', $soapError);
+            if ($notFound && !self::partnerFallbackEnabled()) {
+                return [
+                    'ok' => false,
+                    'data' => null,
+                    'error' => $soapError,
+                    'httpCode' => (int) ($local['http_code'] ?? 404),
+                    'source' => 'local_bars_soap',
+                ];
+            }
+            if (!$notFound) {
+                am_log('RAC local BARS lookup failed: ' . $soapError, 'WARNING');
+            }
+        }
+
         $path = '/api/reservation/' . rawurlencode($code);
         $lastName = trim($lastName);
         if ($lastName !== '') {
@@ -42,11 +124,12 @@ class AutomarketReservationApiService {
         if ($result['ok'] && is_array($result['data']) && isset($result['data']['reservation'])) {
             $result['data'] = $result['data']['reservation'];
         }
+        $result['source'] = 'partner_do';
         return $result;
     }
 
     /**
-     * Build body expected by POST /api/reservation from checkout payload.
+     * Build body expected by POST /api/reservation / BarsReservationClient from checkout payload.
      */
     public static function buildCreatePayload(array $input): array {
         $search = $input['search'] ?? [];
@@ -90,6 +173,12 @@ class AutomarketReservationApiService {
             $cov = strtoupper(trim((string) ($extras['protection'] ?? '')));
             if ($cov !== '' && $cov !== 'NONE') {
                 $coverageCode = $cov;
+            }
+        }
+        if ($coverageCode === '') {
+            $covInput = strtoupper(trim((string) ($input['coverage_code'] ?? '')));
+            if ($covInput !== '' && $covInput !== 'NONE') {
+                $coverageCode = $covInput;
             }
         }
 

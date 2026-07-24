@@ -16,7 +16,10 @@ $hbInnerHtml = $hbInnerHtml ?? '';
 $hbSectionExtraStyle = trim($hbSectionExtraStyle ?? '');
 $hbSkipContainer = (bool) ($hbSkipContainer ?? false);
 $hbBackgroundOverlay = trim($hbBackgroundOverlay ?? '');
-$hbBgPrefix = $hbBackgroundOverlay !== '' ? $hbBackgroundOverlay . ' ' : '';
+$hbConfiguredOverlay = HeaderBannerService::overlayCss($hbConfig);
+$hbBgPrefix = $hbConfiguredOverlay !== ''
+    ? $hbConfiguredOverlay . ' '
+    : ($hbBackgroundOverlay !== '' ? $hbBackgroundOverlay . ' ' : '');
 $hbCarouselId = ($hbSectionId !== '' ? $hbSectionId : 'hb') . '-carousel';
 $hbEnabled = (bool) ($hbConfig['enabled'] ?? true);
 $hbDefaultLinkUrl = HeaderBannerService::sanitizeLinkUrl($hbDefaultLinkUrl ?? '');
@@ -167,6 +170,7 @@ unset(
     $staticLinkText,
     $staticHasCaption,
     $hbHasLegacyContent,
-    $renderStaticCaption
+    $renderStaticCaption,
+    $hbConfiguredOverlay
 );
 ?>

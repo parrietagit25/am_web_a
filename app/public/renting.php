@@ -371,29 +371,16 @@ require __DIR__ . '/../includes/render-header-banner.php';
 </section>
 
 <!-- Marcas aliadas -->
-<?php if (!empty($rentingBrands)): ?>
-<section class="py-5 bg-white" id="marcas-aliadas">
-    <div class="container">
-        <?php renting_render_section_heading($brandsTitle, 'renting-section-title text-center mb-4'); ?>
-        <div class="renting-brands-marquee">
-            <div class="renting-brands-track">
-                <?php
-                $brandItems = array_merge($rentingBrands, $rentingBrands);
-                foreach ($brandItems as $brand):
-                ?>
-                    <?php if ($brand['url'] !== ''): ?>
-                        <a href="<?php echo esc($brand['url']); ?>"<?php echo $brand['is_external'] ? ' target="_blank" rel="noopener noreferrer"' : ''; ?> aria-label="<?php echo esc('Visitar ' . $brand['name']); ?>">
-                    <?php endif; ?>
-                    <img src="<?php echo esc($brand['image_url']); ?>" alt="<?php echo esc($brand['alt']); ?>" class="renting-brand-logo" loading="lazy">
-                    <?php if ($brand['url'] !== ''): ?>
-                        </a>
-                    <?php endif; ?>
-                <?php endforeach; ?>
-            </div>
-        </div>
-    </div>
-</section>
-<?php endif; ?>
+<?php
+$alliesItems = $rentingBrands;
+$alliesTitle = $brandsTitle;
+$alliesSubtitle = '';
+$alliesText = '';
+$alliesLayout = 'marquee';
+$alliesSectionId = 'marcas-aliadas';
+$alliesTitleClass = 'renting-section-title text-center mb-4';
+require __DIR__ . '/../includes/unit-allies-section.php';
+?>
 
 <!-- Opiniones -->
 <section class="py-5 bg-light" id="opiniones-renting">

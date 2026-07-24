@@ -391,7 +391,7 @@ elseif ($action === 'add_taller_brand') {
     }
     try {
         if ($uploadedPath === false) {
-            throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF o WEBP de hasta 12 MB.');
+            throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF, WEBP o SVG de hasta 12 MB.');
         }
         $siteData['taller']['brands'][] = AllyService::buildStoredRecord(
             AllyService::TYPE_TALLER_BRAND,
@@ -439,7 +439,7 @@ elseif ($action === 'edit_taller_brand') {
         }
         try {
             if ($uploadedPath === false) {
-                throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF o WEBP de hasta 12 MB.');
+                throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF, WEBP o SVG de hasta 12 MB.');
             }
             $siteData['taller']['brands'][$foundIdx] = AllyService::buildStoredRecord(
                 AllyService::TYPE_TALLER_BRAND,

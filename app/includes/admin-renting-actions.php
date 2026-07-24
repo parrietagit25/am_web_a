@@ -342,7 +342,7 @@ elseif ($action === 'add_renting_brand') {
     }
     try {
         if ($uploadedPath === false) {
-            throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF o WEBP de hasta 12 MB.');
+            throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF, WEBP o SVG de hasta 12 MB.');
         }
         $siteData['renting']['brands'][] = AllyService::buildStoredRecord(
             AllyService::TYPE_RENTING_BRAND,
@@ -392,7 +392,7 @@ elseif ($action === 'edit_renting_brand') {
         }
         try {
             if ($uploadedPath === false) {
-                throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF o WEBP de hasta 12 MB.');
+                throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF, WEBP o SVG de hasta 12 MB.');
             }
             $siteData['renting']['brands'][$foundIdx] = AllyService::buildStoredRecord(
                 AllyService::TYPE_RENTING_BRAND,

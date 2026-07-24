@@ -270,6 +270,9 @@ class RacPublicRateService
             );
         }
 
+        require_once __DIR__ . '/RacVehicleCatalogService.php';
+        $vehicles = (new RacVehicleCatalogService())->enrichVehicles($vehicles);
+
         usort($vehicles, static function (array $a, array $b): int {
             return ((float) ($a['priceWeb'] ?? 0)) <=> ((float) ($b['priceWeb'] ?? 0));
         });

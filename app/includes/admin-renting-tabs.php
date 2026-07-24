@@ -994,8 +994,8 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                     </div>
                                     <div class="col-md-6">
                                         <label for="renting_brand_logo" class="form-label">Logo</label>
-                                        <input type="file" id="renting_brand_logo" name="renting_brand_logo" class="form-control form-control-premium" accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp" required>
-                                        <div class="form-text" id="rentingBrandLogoHelp">Formatos: JPG, PNG, GIF o WEBP. Máx: 12 MB. Obligatorio al crear.</div>
+                                        <input type="file" id="renting_brand_logo" name="renting_brand_logo" class="form-control form-control-premium" accept=".jpg,.jpeg,.png,.gif,.webp,.svg,image/jpeg,image/png,image/gif,image/webp,image/svg+xml" required>
+                                        <div class="form-text" id="rentingBrandLogoHelp">Formatos: JPG, PNG, GIF, WEBP o SVG. Máx: 12 MB. Obligatorio al crear.</div>
                                         <small class="text-muted d-block mt-1">Recomendado: 400×200 px — PNG con fondo transparente</small>
                                     </div>
                                 </div>

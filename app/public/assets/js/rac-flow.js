@@ -36,8 +36,19 @@
 
     function resolveImage(url) {
         if (!url) return '';
-        if (url.startsWith('http')) return url;
-        return IMG_BASE + (url.startsWith('/') ? url : '/' + url);
+        const raw = String(url).trim();
+        if (!raw) return '';
+        if (/^https?:\/\//i.test(raw) || raw.startsWith('data:')) return raw;
+
+        // Imágenes del CMS / uploads del sitio: no anteponer Partner DO.
+        if (raw.startsWith('/assets/') || raw.startsWith('assets/')) {
+            return raw.startsWith('/') ? raw : '/' + raw;
+        }
+
+        const base = (typeof global.RAC_IMAGE_BASE === 'string' && global.RAC_IMAGE_BASE !== '')
+            ? String(global.RAC_IMAGE_BASE).replace(/\/$/, '')
+            : IMG_BASE;
+        return base + (raw.startsWith('/') ? raw : '/' + raw);
     }
 
     function getCriteria() {

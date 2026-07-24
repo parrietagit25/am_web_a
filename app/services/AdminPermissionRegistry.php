@@ -17,6 +17,7 @@ class AdminPermissionRegistry
                     'translations' => 'Traducciones (ES / EN)',
                     'seo' => 'SEO',
                     'landings' => 'Landing pages',
+                    'generic_pages' => 'Maestro de páginas',
                     'footer' => 'Pie de página',
                     'users' => 'Gestión de usuarios',
                     'audit_log' => 'Registro de actividad (auditoría)',
@@ -30,12 +31,17 @@ class AdminPermissionRegistry
                     'news' => 'Contenido (reciente, blog, noticias)',
                     'opinions' => 'Opiniones de clientes',
                     'vehicles' => 'Vehículos / Flota',
+                    'rac_aliados' => 'Aliados y marcas',
                     'sucursales' => 'Sucursales',
                     'terms' => 'Términos y condiciones',
                     'requirements' => 'Requisitos de alquiler',
                     'contact' => 'Contacto / Mensajes',
                     'payments' => 'Pagos recibidos',
                     'rac_reservations' => 'Reservas RAC',
+                    'rac_bars_rates' => 'Tarifas BARS',
+                    'rac_rate_rules' => 'Reglas de Tarifas',
+                    'rac_addons' => 'Protecciones y Extras',
+                    'rac_bars_lab' => 'Lab BARS / Partner (diagnóstico)',
                 ],
             ],
             'seminuevos' => [
@@ -127,6 +133,31 @@ class AdminPermissionRegistry
             return UnitContentService::contentPermissionKey($m[1]);
         }
 
+        if (preg_match('/^([a-z0-9_]+)-general$/', $tabSlug, $m)) {
+            require_once __DIR__ . '/UnitContentService.php';
+
+            if (!in_array($m[1], ['rentacar', 'seminuevos', 'leasing', 'renting', 'taller'], true)) {
+                return null;
+            }
+
+            return UnitContentService::contentPermissionKey($m[1]);
+        }
+
+        if (preg_match('/^([a-z0-9_]+)-footer$/', $tabSlug, $m)) {
+            require_once __DIR__ . '/UnitFooterService.php';
+            if (!in_array($m[1], ['rentacar', 'seminuevos', 'leasing', 'renting', 'taller'], true)) {
+                return null;
+            }
+
+            return UnitFooterService::permissionKey($m[1]);
+        }
+
+        if (preg_match('/^unit-([a-z0-9_]+)-footer$/', $tabSlug, $m)) {
+            require_once __DIR__ . '/UnitFooterService.php';
+
+            return UnitFooterService::permissionKey($m[1]);
+        }
+
         if (preg_match('/^unit-[a-z0-9_]+(?:-[a-z0-9_-]+)?$/', $tabSlug)) {
             return 'global';
         }
@@ -141,6 +172,10 @@ class AdminPermissionRegistry
 
         if ($tabSlug === 'sostenibilidad') {
             return 'footer';
+        }
+
+        if ($tabSlug === 'rac-aliados') {
+            return 'rac_aliados';
         }
 
         $perm = self::tabSlugToPermission($tabSlug);
@@ -170,6 +205,28 @@ class AdminPermissionRegistry
             $menuUnit = trim((string) ($_POST['menu_unit'] ?? ''));
 
             return UnitContentService::contentPermissionKey($menuUnit);
+        }
+        if ($action === 'save_unit_nav_content_menu') {
+            require_once __DIR__ . '/UnitContentService.php';
+            $navMenuUnit = trim((string) ($_POST['nav_menu_unit'] ?? ''));
+
+            return UnitContentService::contentPermissionKey($navMenuUnit);
+        }
+        if ($action === 'save_unit_footer') {
+            require_once __DIR__ . '/UnitFooterService.php';
+            $footerUnit = trim((string) ($_POST['uf_unit'] ?? ''));
+
+            return UnitFooterService::permissionKey($footerUnit);
+        }
+        if (in_array($action, ['save_unit_allies_meta', 'add_unit_ally', 'edit_unit_ally', 'delete_unit_ally'], true)) {
+            require_once __DIR__ . '/AllyService.php';
+            $allyUnit = strtolower(trim((string) ($_POST['ally_unit'] ?? '')));
+            $cfg = AllyService::unitConfig($allyUnit);
+            if ($cfg === null) {
+                return null;
+            }
+
+            return (string) ($cfg['permission'] ?? 'global');
         }
         if ($action === 'save_unit_terms_page') {
             require_once __DIR__ . '/UnitTermsService.php';
@@ -209,6 +266,8 @@ class AdminPermissionRegistry
             'add_landing_page' => 'landings',
             'edit_landing_page' => 'landings',
             'delete_landing_page' => 'landings',
+            'save_generic_page' => 'generic_pages',
+            'delete_generic_page' => 'generic_pages',
             'save_footer_general' => 'footer',
             'save_sostenibilidad_page' => 'footer',
             'save_footer_page' => 'footer',

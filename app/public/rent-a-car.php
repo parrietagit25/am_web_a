@@ -172,6 +172,20 @@ $intervalVal = intval($fleetCarousel['interval'] ?? 3000);
     </div>
 </section>
 
+<?php
+require_once __DIR__ . '/../services/AllyService.php';
+$racAlliesSiteData = is_array($siteData ?? null) ? $siteData : $contentService->getAll();
+$alliesItems = AllyService::listForUnit($racAlliesSiteData, 'rentacar');
+$alliesMeta = AllyService::metaForUnit($racAlliesSiteData, 'rentacar');
+$alliesTitle = $alliesMeta['title'];
+$alliesSubtitle = $alliesMeta['subtitle'];
+$alliesText = $alliesMeta['text'];
+$alliesLayout = $alliesMeta['layout'];
+$alliesSectionId = 'aliados-rac';
+$alliesTitleClass = 'fw-bold text-navy font-montserrat text-uppercase text-center mb-4';
+require __DIR__ . '/../includes/unit-allies-section.php';
+?>
+
 <!-- 4. Sección Destino del Mes / Feria de David -->
 <?php
 $featured = $contentService->get('homepage.featured');

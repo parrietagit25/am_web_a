@@ -40,20 +40,48 @@ $footerData = $footerService->getFooter();
 $fg = $footerData['general'];
 $trackingCodes = $globalSettings['tracking_codes'] ?? [];
 
-$activeFooterColumns = $footerService->getActiveColumns();
-$footerLinkColCount = count($activeFooterColumns);
-if ($footerLinkColCount <= 1) {
-    $footerLinkColClass = 'col-lg-2 col-md-6 col-6';
-} elseif ($footerLinkColCount === 2) {
-    $footerLinkColClass = 'col-lg-2 col-md-6 col-6';
-} else {
-    $footerLinkColClass = 'col-lg-2 col-md-4 col-6';
+require_once __DIR__ . '/../services/UnitFooterService.php';
+$footerActiveUnit = strtolower(trim((string) ($activeUnit ?? 'rentacar')));
+if ($footerActiveUnit === '') {
+    $footerActiveUnit = 'rentacar';
 }
+$footerSiteData = isset($siteData) && is_array($siteData)
+    ? $siteData
+    : $contentService->getAll();
+$unitFooterResolved = UnitFooterService::resolveForRender($footerSiteData, $footerActiveUnit, $footerData);
 
-$alsoKnow = array_filter($footerData['also_know'], fn($l) => !empty($l['active']));
-usort($alsoKnow, fn($a, $b) => intval($a['sort_order'] ?? 99) - intval($b['sort_order'] ?? 99));
+$activeFooterColumns = [[
+    'id' => 'recursos',
+    'title' => $unitFooterResolved['resources_title'],
+    'active' => true,
+    'links' => $unitFooterResolved['resources'],
+]];
+$footerLinkColCount = 1;
+$footerLinkColClass = 'col-lg-2 col-md-6 col-6';
 
-$socialNetworks = FooterService::filterRenderableSocial($footerData['social']);
+$alsoKnow = $unitFooterResolved['also_know'];
+$socialNetworks = $unitFooterResolved['social'];
+$fg['also_know_title'] = $unitFooterResolved['also_know_title'];
+$fg['follow_title'] = $unitFooterResolved['follow_title'];
+$fg['resources_title'] = $unitFooterResolved['resources_title'];
+
+// Columna de marca + franja legal (por unidad si está configurada; si no, global).
+$fg['tagline'] = (string) ($unitFooterResolved['brand_tagline'] ?? ($fg['tagline'] ?? ''));
+$fg['address'] = (string) ($unitFooterResolved['brand_address'] ?? ($fg['address'] ?? ''));
+$fg['phone_display'] = (string) ($unitFooterResolved['brand_phone'] ?? ($fg['phone_display'] ?? ''));
+$fg['email'] = (string) ($unitFooterResolved['brand_email'] ?? ($fg['email'] ?? ''));
+$fg['copyright'] = (string) ($unitFooterResolved['copyright'] ?? ($fg['copyright'] ?? 'Automarket. Todos los derechos reservados.'));
+$fg['privacy_label'] = (string) ($unitFooterResolved['privacy_label'] ?? ($fg['privacy_label'] ?? t('footer.privacy')));
+$fg['privacy_url'] = (string) ($unitFooterResolved['privacy_url'] ?? ($fg['privacy_url'] ?? '/pagina-institucional.php?p=privacidad'));
+$fg['cookies_label'] = (string) ($unitFooterResolved['cookies_label'] ?? ($fg['cookies_label'] ?? t('footer.cookies')));
+$fg['cookies_url'] = (string) ($unitFooterResolved['cookies_url'] ?? ($fg['cookies_url'] ?? '/pagina-institucional.php?p=cookies'));
+$fg['recaptcha_text_before'] = (string) ($unitFooterResolved['recaptcha_text_before'] ?? ($fg['recaptcha_text_before'] ?? 'Este sitio está protegido por reCAPTCHA y se aplican la'));
+$fg['recaptcha_privacy_label'] = (string) ($unitFooterResolved['recaptcha_privacy_label'] ?? ($fg['recaptcha_privacy_label'] ?? 'Política de Privacidad'));
+$fg['recaptcha_privacy_url'] = (string) ($unitFooterResolved['recaptcha_privacy_url'] ?? ($fg['recaptcha_privacy_url'] ?? 'https://policies.google.com/privacy'));
+$fg['recaptcha_text_middle'] = (string) ($unitFooterResolved['recaptcha_text_middle'] ?? ($fg['recaptcha_text_middle'] ?? 'y los'));
+$fg['recaptcha_terms_label'] = (string) ($unitFooterResolved['recaptcha_terms_label'] ?? ($fg['recaptcha_terms_label'] ?? 'Términos del Servicio'));
+$fg['recaptcha_terms_url'] = (string) ($unitFooterResolved['recaptcha_terms_url'] ?? ($fg['recaptcha_terms_url'] ?? 'https://policies.google.com/terms'));
+$fg['recaptcha_text_after'] = (string) ($unitFooterResolved['recaptcha_text_after'] ?? ($fg['recaptcha_text_after'] ?? 'de Google.'));
 
 $reqPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
 $isPublicSite = strpos($reqPath, '/admin') !== 0;
@@ -155,19 +183,30 @@ if ($isPublicSite) {
             <hr class="my-4 border-secondary">
 
             <!-- Copyright and Legal -->
+            <?php
+            $footerPrivacyUrl = (string) ($fg['privacy_url'] ?? '#privacidad');
+            $footerCookiesUrl = (string) ($fg['cookies_url'] ?? '#cookies');
+            $footerRecaptchaPrivacyUrl = (string) ($fg['recaptcha_privacy_url'] ?? 'https://policies.google.com/privacy');
+            $footerRecaptchaTermsUrl = (string) ($fg['recaptcha_terms_url'] ?? 'https://policies.google.com/terms');
+            $footerExternalAttrs = static function (string $url): string {
+                return preg_match('#^https?://#i', $url)
+                    ? ' target="_blank" rel="noopener noreferrer"'
+                    : '';
+            };
+            ?>
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <span class="text-secondary-light small">&copy; <?php echo date('Y'); ?> <?php echo esc($fg['copyright'] ?? t('footer.copyright')); ?></span>
                 <span class="text-secondary-light small d-flex gap-3">
-                    <a href="<?php echo esc($fg['privacy_url'] ?? '#privacidad'); ?>" class="text-secondary-light text-decoration-none"><?php echo esc(t('footer.privacy')); ?></a>
-                    <a href="<?php echo esc($fg['cookies_url'] ?? '#cookies'); ?>" class="text-secondary-light text-decoration-none"><?php echo esc(t('footer.cookies')); ?></a>
+                    <a href="<?php echo esc($footerPrivacyUrl); ?>" class="text-secondary-light text-decoration-none"<?php echo $footerExternalAttrs($footerPrivacyUrl); ?>><?php echo esc((string) ($fg['privacy_label'] ?? t('footer.privacy'))); ?></a>
+                    <a href="<?php echo esc($footerCookiesUrl); ?>" class="text-secondary-light text-decoration-none"<?php echo $footerExternalAttrs($footerCookiesUrl); ?>><?php echo esc((string) ($fg['cookies_label'] ?? t('footer.cookies'))); ?></a>
                 </span>
                 <?php if ($captchaSiteKey !== ''): ?>
-                <p class="text-secondary-light small mb-0 mt-2" style="opacity:0.65;">
-                    Este sitio está protegido por reCAPTCHA y se aplican la
-                    <a href="https://policies.google.com/privacy" class="text-secondary-light" target="_blank" rel="noopener noreferrer">Política de Privacidad</a>
-                    y los
-                    <a href="https://policies.google.com/terms" class="text-secondary-light" target="_blank" rel="noopener noreferrer">Términos del Servicio</a>
-                    de Google.
+                <p class="text-secondary-light small mb-0 mt-2 w-100" style="opacity:0.65;">
+                    <?php echo esc((string) ($fg['recaptcha_text_before'] ?? 'Este sitio está protegido por reCAPTCHA y se aplican la')); ?>
+                    <a href="<?php echo esc($footerRecaptchaPrivacyUrl); ?>" class="text-secondary-light"<?php echo $footerExternalAttrs($footerRecaptchaPrivacyUrl); ?>><?php echo esc((string) ($fg['recaptcha_privacy_label'] ?? 'Política de Privacidad')); ?></a>
+                    <?php echo esc(' ' . trim((string) ($fg['recaptcha_text_middle'] ?? 'y los')) . ' '); ?>
+                    <a href="<?php echo esc($footerRecaptchaTermsUrl); ?>" class="text-secondary-light"<?php echo $footerExternalAttrs($footerRecaptchaTermsUrl); ?>><?php echo esc((string) ($fg['recaptcha_terms_label'] ?? 'Términos del Servicio')); ?></a>
+                    <?php echo esc(' ' . trim((string) ($fg['recaptcha_text_after'] ?? 'de Google.'))); ?>
                 </p>
                 <?php endif; ?>
             </div>

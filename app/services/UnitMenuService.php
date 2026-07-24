@@ -239,13 +239,16 @@ class UnitMenuService
     }
 
     /**
+     * Deduplica links solo entre hermanos del mismo nivel: un mismo link puede
+     * repetirse en distintos submenús o coincidir con el de su elemento padre.
+     *
      * @param list<array<string, mixed>> $items
      * @return list<array<string, mixed>>
      */
     private static function deduplicateTree(array $items, bool $includeInactive): array
     {
-        $seen = [];
-        $walk = static function (array $rows) use (&$walk, &$seen, $includeInactive): array {
+        $walk = static function (array $rows) use (&$walk, $includeInactive): array {
+            $seen = [];
             $result = [];
             foreach ($rows as $row) {
                 $active = !empty($row['active']);

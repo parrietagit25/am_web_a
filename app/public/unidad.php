@@ -63,7 +63,10 @@ require_once __DIR__ . '/../includes/header.php';
 
 <?php
 $hbSectionExtraStyle = 'min-height: 360px;';
-$hbBackgroundOverlay = 'linear-gradient(135deg, rgba(8,16,38,0.82), rgba(8,16,38,0.45)),';
+$hbRawBanner = is_array($hbNode['header_banner'] ?? null) ? $hbNode['header_banner'] : [];
+$hbBackgroundOverlay = !array_key_exists('overlay_enabled', $hbRawBanner)
+    ? 'linear-gradient(135deg, rgba(8,16,38,0.82), rgba(8,16,38,0.45)),'
+    : '';
 $hbInnerHtml = '<div class="row align-items-center"><div class="col-lg-8 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">'
     . '<h1 class="display-4 fw-bold mb-3 font-montserrat"' . $heroTitleColorAttr . '>' . esc($heroTitle) . '</h1>';
 if ($heroSubtitle !== '') {
@@ -88,6 +91,19 @@ require __DIR__ . '/../includes/render-header-banner.php';
 </section>
 
 <?php if ($pageSlug === ''): ?>
+<?php
+require_once __DIR__ . '/../services/AllyService.php';
+$alliesSiteData = is_array($siteData ?? null) ? $siteData : $contentService->getAll();
+$alliesItems = AllyService::listForUnit($alliesSiteData, $unitKey);
+$alliesMeta = AllyService::metaForUnit($alliesSiteData, $unitKey);
+$alliesTitle = $alliesMeta['title'];
+$alliesSubtitle = $alliesMeta['subtitle'];
+$alliesText = $alliesMeta['text'];
+$alliesLayout = $alliesMeta['layout'];
+$alliesSectionId = 'aliados-' . preg_replace('/[^a-z0-9_-]/i', '-', $unitKey);
+$alliesTitleClass = 'fw-bold text-navy font-montserrat text-uppercase text-center mb-4';
+require __DIR__ . '/../includes/unit-allies-section.php';
+?>
 <?php $ucUnitKey = $unitKey; require __DIR__ . '/../includes/unit-content-home-sections.php'; ?>
 <?php endif; ?>
 

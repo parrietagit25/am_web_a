@@ -120,25 +120,27 @@ require __DIR__ . '/../includes/render-header-banner.php';
     </div>
 </section>
 
+<?php
+$alliesItems = $brands;
+$alliesTitle = $brandsTitle;
+$alliesSubtitle = '';
+$alliesText = $brandsText;
+$alliesLayout = 'grid';
+$alliesSectionId = 'marcas-taller';
+$alliesTitleClass = 'taller-section-title font-montserrat mb-3';
+if ($alliesItems === [] && ($alliesTitle !== '' || trim((string) $alliesText) !== '')):
+?>
 <section class="py-5 bg-white" id="marcas-taller">
     <div class="container text-center">
-        <h2 class="taller-section-title font-montserrat mb-3"><?php echo esc($brandsTitle); ?></h2>
-        <?php if (!empty($brandsText)): ?><p class="text-muted mx-auto mb-4" style="max-width: 980px;"><?php echo esc($brandsText); ?></p><?php endif; ?>
-        <?php if (!empty($brands)): ?>
-            <div class="d-flex flex-wrap justify-content-center align-items-center gap-4">
-                <?php foreach ($brands as $brand): ?>
-                    <?php if ($brand['url'] !== ''): ?>
-                        <a href="<?php echo esc($brand['url']); ?>"<?php echo $brand['is_external'] ? ' target="_blank" rel="noopener noreferrer"' : ''; ?> aria-label="<?php echo esc('Visitar ' . $brand['name']); ?>">
-                    <?php endif; ?>
-                    <img src="<?php echo esc($brand['image_url']); ?>" alt="<?php echo esc($brand['alt']); ?>" class="taller-brand-logo" loading="lazy">
-                    <?php if ($brand['url'] !== ''): ?>
-                        </a>
-                    <?php endif; ?>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
+        <?php if ($alliesTitle !== ''): ?><h2 class="<?php echo esc($alliesTitleClass); ?>"><?php echo esc($alliesTitle); ?></h2><?php endif; ?>
+        <?php if (trim((string) $alliesText) !== ''): ?><p class="text-muted mx-auto mb-4" style="max-width: 980px;"><?php echo esc($alliesText); ?></p><?php endif; ?>
     </div>
 </section>
+<?php
+else:
+    require __DIR__ . '/../includes/unit-allies-section.php';
+endif;
+?>
 
 <section class="py-5" id="opiniones-taller" style="background:#f5f6f8;">
     <div class="container">

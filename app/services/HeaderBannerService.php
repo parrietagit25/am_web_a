@@ -13,6 +13,8 @@ class HeaderBannerService
         return [
             'enabled' => true,
             'mode' => self::MODE_STATIC,
+            'overlay_enabled' => false,
+            'overlay_color' => '#081026',
             'image_url' => '',
             'alt' => '',
             'title' => '',
@@ -38,6 +40,12 @@ class HeaderBannerService
             || filter_var($raw['enabled'], FILTER_VALIDATE_BOOLEAN);
         $mode = (string) ($raw['mode'] ?? self::MODE_STATIC);
         $config['mode'] = $mode === self::MODE_SLIDER ? self::MODE_SLIDER : self::MODE_STATIC;
+        $config['overlay_enabled'] = filter_var(
+            $raw['overlay_enabled'] ?? false,
+            FILTER_VALIDATE_BOOLEAN
+        );
+        $config['overlay_color'] = self::sanitizeOverlayColor($raw['overlay_color'] ?? '')
+            ?: '#081026';
 
         $imageUrl = self::sanitizeImageUrl($raw['image_url'] ?? '');
         if ($imageUrl === '') {
@@ -124,6 +132,32 @@ class HeaderBannerService
         $url = self::sanitizeLinkUrl($value);
 
         return str_starts_with($url, '#') ? '' : $url;
+    }
+
+    public static function sanitizeOverlayColor(mixed $value): string
+    {
+        $color = strtoupper(trim((string) $value));
+
+        return preg_match('/^#[0-9A-F]{6}$/', $color) === 1 ? $color : '';
+    }
+
+    public static function overlayCss(array $config, float $opacity = 0.45): string
+    {
+        if (empty($config['overlay_enabled'])) {
+            return '';
+        }
+
+        $color = self::sanitizeOverlayColor($config['overlay_color'] ?? '');
+        if ($color === '') {
+            $color = '#081026';
+        }
+        $opacity = max(0.0, min(1.0, $opacity));
+        $red = hexdec(substr($color, 1, 2));
+        $green = hexdec(substr($color, 3, 2));
+        $blue = hexdec(substr($color, 5, 2));
+        $rgba = sprintf('rgba(%d,%d,%d,%.2F)', $red, $green, $blue, $opacity);
+
+        return 'linear-gradient(' . $rgba . ', ' . $rgba . '),';
     }
 
     /**
@@ -223,9 +257,11 @@ class HeaderBannerService
         string $legacyImageKey = 'image_url'
     ): ?string {
         $nodeRef = &self::nodeRef($siteData, $path);
+        $rawBanner = is_array($nodeRef['header_banner'] ?? null) ? $nodeRef['header_banner'] : [];
         $existing = self::normalizeFromNode($nodeRef, $legacyImageKey);
         $mode = (string) ($post[$prefix . '_mode'] ?? self::MODE_STATIC);
         $mode = $mode === self::MODE_SLIDER ? self::MODE_SLIDER : self::MODE_STATIC;
+        $hasOverlayPost = array_key_exists($prefix . '_overlay_enabled', $post);
 
         $config = self::defaults();
         $config['enabled'] = filter_var(
@@ -233,6 +269,26 @@ class HeaderBannerService
             FILTER_VALIDATE_BOOLEAN
         );
         $config['mode'] = $mode;
+        if ($hasOverlayPost) {
+            $config['overlay_enabled'] = filter_var(
+                $post[$prefix . '_overlay_enabled'],
+                FILTER_VALIDATE_BOOLEAN
+            );
+            $overlayColor = self::sanitizeOverlayColor(
+                $post[$prefix . '_overlay_color'] ?? $existing['overlay_color']
+            );
+            if ($overlayColor === '') {
+                return 'El color del overlay no es válido.';
+            }
+            $config['overlay_color'] = $overlayColor;
+        } elseif (array_key_exists('overlay_enabled', $rawBanner)) {
+            $config['overlay_enabled'] = filter_var(
+                $rawBanner['overlay_enabled'],
+                FILTER_VALIDATE_BOOLEAN
+            );
+            $config['overlay_color'] = self::sanitizeOverlayColor($rawBanner['overlay_color'] ?? '')
+                ?: '#081026';
+        }
         $config['alt'] = trim((string) ($post[$prefix . '_alt'] ?? $existing['alt']));
         $config['title'] = trim((string) ($post[$prefix . '_title'] ?? $existing['title']));
         $config['subtitle'] = trim((string) ($post[$prefix . '_subtitle'] ?? $existing['subtitle']));
@@ -373,6 +429,9 @@ class HeaderBannerService
         }
 
         $config = self::normalize($config);
+        if (!$hasOverlayPost && !array_key_exists('overlay_enabled', $rawBanner)) {
+            unset($config['overlay_enabled'], $config['overlay_color']);
+        }
         $nodeRef['header_banner'] = $config;
         $nodeRef[$legacyImageKey] = self::primaryImageUrl($config, '');
 

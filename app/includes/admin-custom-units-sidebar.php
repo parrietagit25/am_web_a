@@ -18,8 +18,11 @@ foreach ($customUnitsNav as $unitKey => $unit):
     $editablePages = am_custom_unit_editable_pages($unit, $unitKey);
     $headingLabel = trim((string) ($unit['label'] ?? strtoupper($unitKey)));
     $unitTabPrefix = 'unit-' . $unitKey;
+    $unitGeneralTab = UnitContentService::generalTabSlug($unitKey);
     $unitContentTabs = UnitContentService::contentTabSlugs($unitKey);
-    $unitSubmenuOpen = ($defaultAdminTab ?? '') === $unitTabPrefix
+    $unitSubmenuOpen = ($defaultAdminTab ?? '') === $unitGeneralTab
+        || ($defaultAdminTab ?? '') === $unitTabPrefix
+        || ($defaultAdminTab ?? '') === ('unit-' . $unitKey . '-footer')
         || strncmp((string) ($defaultAdminTab ?? ''), $unitTabPrefix . '-', strlen($unitTabPrefix) + 1) === 0
         || in_array($defaultAdminTab ?? '', $unitContentTabs, true);
 ?>
@@ -33,6 +36,17 @@ foreach ($customUnitsNav as $unitKey => $unit):
         <i class="bi bi-chevron-down" id="<?php echo esc($chevronId); ?>"></i>
     </div>
     <div class="collapse<?php echo $unitSubmenuOpen ? ' show' : ''; ?>" id="<?php echo esc($submenuId); ?>" data-bs-parent="#admin-sidebar-accordion">
+        <?php if (admin_can(UnitContentService::contentPermissionKey($unitKey))): ?>
+        <button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active($unitGeneralTab, $defaultAdminTab); ?>"
+                id="tab-<?php echo esc($unitGeneralTab); ?>-nav"
+                data-bs-toggle="pill"
+                data-bs-target="#tab-<?php echo esc($unitGeneralTab); ?>"
+                type="button"
+                role="tab"
+                data-admin-perm="<?php echo esc(UnitContentService::contentPermissionKey($unitKey)); ?>">
+            <i class="bi bi-gear-fill me-2"></i> Generales
+        </button>
+        <?php endif; ?>
         <?php foreach ($editablePages as $pageMeta):
             $tabSlug = (string) ($pageMeta['tab_slug'] ?? ('unit-' . $unitKey));
             $tabId = 'tab-' . $tabSlug . '-nav';
@@ -51,5 +65,18 @@ foreach ($customUnitsNav as $unitKey => $unit):
         </button>
         <?php endforeach; ?>
         <?php $ucUnitKey = $unitKey; $ucSubmenuId = 'custom-unit-content-submenu-' . preg_replace('/[^a-z0-9_-]/i', '-', $unitKey); require __DIR__ . '/admin-unit-content-submenu.php'; ?>
+        <?php if (admin_can('global')):
+            $unitFooterTab = 'unit-' . $unitKey . '-footer';
+        ?>
+        <button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active($unitFooterTab, $defaultAdminTab); ?>"
+                id="tab-<?php echo esc($unitFooterTab); ?>-nav"
+                data-bs-toggle="pill"
+                data-bs-target="#tab-<?php echo esc($unitFooterTab); ?>"
+                type="button"
+                role="tab"
+                data-admin-perm="global">
+            <i class="bi bi-layout-text-window-reverse me-2"></i> Pie de página
+        </button>
+        <?php endif; ?>
     </div>
 <?php endforeach; ?>

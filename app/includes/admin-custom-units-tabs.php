@@ -56,10 +56,12 @@ foreach ($customUnitsForTabs as $unitKey => $unit):
                                         $hbNode = $pageSlug === ''
                                             ? $unit
                                             : (is_array($unit['pages'][$pageSlug] ?? null) ? $unit['pages'][$pageSlug] : []);
+                                        $hbSourceNode = $hbNode;
                                         $hbConfig = HeaderBannerService::normalizeFromNode($hbNode, 'hero_image_url');
                                         $hbPrefix = 'hb_unit_' . $unitKey . '_' . preg_replace('/[^a-z0-9_]/', '_', $hbSlugPart);
                                         $hbDomId = 'hb-unit-' . preg_replace('/[^a-z0-9-]/', '-', $unitKey) . '-' . preg_replace('/[^a-z0-9-]/', '-', $hbSlugPart);
                                         require __DIR__ . '/admin-header-banner-section.php';
+                                        unset($hbSourceNode);
                                         ?>
                                     </div>
                                     <div class="col-md-6">
@@ -122,6 +124,14 @@ foreach ($customUnitsForTabs as $unitKey => $unit):
                                 </div>
                             </form>
                         </div>
+                        <?php if ($isMain): ?>
+                        <div class="mt-4">
+                            <?php
+                            $allyUnitKey = $unitKey;
+                            require __DIR__ . '/admin-unit-allies-panel.php';
+                            ?>
+                        </div>
+                        <?php endif; ?>
                     </div>
 <?php
     endforeach;

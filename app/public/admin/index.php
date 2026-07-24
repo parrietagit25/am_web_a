@@ -42,13 +42,17 @@ if ($ucDataChanged) {
 }
 
 $tabPermMap = AdminUserService::tabSlugOrder();
+require_once __DIR__ . '/../../services/UnitFooterService.php';
 foreach (UnitContentService::listAllUnitKeys($siteData) as $ucMapKey) {
     if (!UnitContentService::isCustomUnit($ucMapKey)) {
         continue;
     }
+    $tabPermMap[UnitContentService::generalTabSlug($ucMapKey)] =
+        UnitContentService::contentPermissionKey($ucMapKey);
     foreach (UnitContentService::contentTabSlugs($ucMapKey) as $ucMapSlug) {
         $tabPermMap[$ucMapSlug] = UnitContentService::contentPermissionKey($ucMapKey);
     }
+    $tabPermMap[UnitFooterService::tabSlug($ucMapKey)] = UnitFooterService::permissionKey($ucMapKey);
 }
 
 $successMsg = '';
@@ -658,6 +662,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'id' => $newId,
                 'name' => $name,
                 'category' => $category,
+                'sipp_code' => strtoupper(trim($_POST['vehicle_sipp_code'] ?? '')),
                 'image_url' => $image_url,
                 'doors' => $doors,
                 'passengers' => $passengers,
@@ -732,6 +737,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'id' => $id,
                 'name' => $name,
                 'category' => $category,
+                'sipp_code' => strtoupper(trim($_POST['vehicle_sipp_code'] ?? ($existing['sipp_code'] ?? ''))),
                 'image_url' => $image_url,
                 'doors' => $doors,
                 'passengers' => $passengers,
@@ -1528,7 +1534,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         try {
             if ($uploadedPath === false) {
-                throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF o WEBP de hasta 12 MB.');
+                throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF, WEBP o SVG de hasta 12 MB.');
             }
             $record = AllyService::buildStoredRecord(
                 AllyService::TYPE_SEMI_BANK,
@@ -1583,7 +1589,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             try {
                 if ($uploadedPath === false) {
-                    throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF o WEBP de hasta 12 MB.');
+                    throw new InvalidArgumentException('El logo no es válido. Use JPG, PNG, GIF, WEBP o SVG de hasta 12 MB.');
                 }
                 $siteData['seminuevos']['financing']['banks'][$foundIdx] = AllyService::buildStoredRecord(
                     AllyService::TYPE_SEMI_BANK,
@@ -2965,6 +2971,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    require __DIR__ . '/../../includes/admin-generic-pages-actions.php';
     require __DIR__ . '/../../includes/admin-users-actions.php';
     require __DIR__ . '/../../includes/admin-renting-actions.php';
     require __DIR__ . '/../../includes/admin-taller-actions.php';
@@ -2972,6 +2979,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../../includes/admin-sostenibilidad-actions.php';
     require __DIR__ . '/../../includes/admin-rac-actions.php';
     require __DIR__ . '/../../includes/admin-unit-footer-actions.php';
+    require __DIR__ . '/../../includes/admin-unit-footer-cms-actions.php';
+    require __DIR__ . '/../../includes/admin-unit-allies-actions.php';
     require __DIR__ . '/../../includes/admin-chatbot-actions.php';
     require __DIR__ . '/../../includes/admin-custom-unit-actions.php';
     require __DIR__ . '/../../includes/admin-global-sucursales-actions.php';
@@ -3480,6 +3489,7 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                     <?php require_once __DIR__ . '/../../includes/admin-chatbot-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-chatbot-sessions-tab.php'; ?>
                     <?php require_once __DIR__ . '/../../includes/admin-landings-tab.php'; ?>
+                    <?php if (admin_can('generic_pages')) { require_once __DIR__ . '/../../includes/admin-generic-pages-tab.php'; } ?>
                     <?php if (admin_can('footer')) { require_once __DIR__ . '/../../includes/admin-sostenibilidad-tab.php'; } ?>
                     <?php require_once __DIR__ . '/../../includes/admin-global-sucursales-tab.php'; ?>
                     <?php if (admin_can('locations_master')) { require_once __DIR__ . '/../../includes/admin-locations-tab.php'; } ?>
@@ -3710,9 +3720,27 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                         if (!AdminUserService::can(UnitContentService::contentPermissionKey($ucUnitKey))) {
                             continue;
                         }
+                        require __DIR__ . '/../../includes/admin-unit-general-tab.php';
                         require __DIR__ . '/../../includes/admin-unit-content-tabs.php';
                     }
                     require __DIR__ . '/../../includes/admin-unit-content-scripts.php';
+
+                    require_once __DIR__ . '/../../services/UnitFooterService.php';
+                    foreach (['rentacar', 'seminuevos', 'leasing', 'renting', 'taller'] as $ufUnitKey) {
+                        if (!AdminUserService::can(UnitFooterService::permissionKey($ufUnitKey))) {
+                            continue;
+                        }
+                        require __DIR__ . '/../../includes/admin-unit-footer-tab.php';
+                    }
+                    foreach (UnitContentService::listAllUnitKeys($siteData) as $ufUnitKey) {
+                        if (!UnitContentService::isCustomUnit($ufUnitKey)) {
+                            continue;
+                        }
+                        if (!AdminUserService::can(UnitFooterService::permissionKey($ufUnitKey))) {
+                            continue;
+                        }
+                        require __DIR__ . '/../../includes/admin-unit-footer-tab.php';
+                    }
                     ?>
                     
                     <!-- TAB 4: OPINIONES DE CLIENTES -->
@@ -3927,13 +3955,19 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                     </div>
                                     
                                     <!-- Vehicle Category -->
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <label for="vehicle_category" class="form-label">Categoría</label>
                                         <select id="vehicle_category" name="vehicle_category" class="form-select form-control-premium" required>
                                             <?php foreach ($fleetCategoryItems as $catItem): ?>
                                                 <option value="<?php echo esc($catItem['category']); ?>"><?php echo esc($catItem['label']); ?></option>
                                             <?php endforeach; ?>
                                         </select>
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label for="vehicle_sipp_code" class="form-label">Código SIPP</label>
+                                        <input type="text" id="vehicle_sipp_code" name="vehicle_sipp_code" class="form-control form-control-premium" placeholder="ECAR" maxlength="8" pattern="[A-Za-z0-9]*">
+                                        <div class="form-text">Opcional. Une esta foto al buscador RAC.</div>
                                     </div>
 
                                     <!-- Vehicle Image -->
@@ -4080,6 +4114,14 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                 </table>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- TAB: RAC ALIADOS Y MARCAS -->
+                    <div class="tab-pane fade" id="tab-rac-aliados" role="tabpanel" aria-labelledby="tab-rac-aliados-nav">
+                        <?php
+                        $allyUnitKey = 'rentacar';
+                        require __DIR__ . '/../../includes/admin-unit-allies-panel.php';
+                        ?>
                     </div>
 
                     <!-- TAB 6: SUCURSALES CRUD -->
@@ -5341,8 +5383,8 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                         
                                         <div class="mb-3">
                                             <label for="semi_bank_logo" class="form-label">Logo del Banco (.webp recomendado)</label>
-                                            <input type="file" id="semi_bank_logo" name="bank_logo" class="form-control form-control-premium" accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp" required>
-                                            <div class="form-text" id="semiBankLogoHelp">Formatos permitidos: JPG, PNG, GIF, WEBP. Máx: 12 MB.</div>
+                                            <input type="file" id="semi_bank_logo" name="bank_logo" class="form-control form-control-premium" accept=".jpg,.jpeg,.png,.gif,.webp,.svg,image/jpeg,image/png,image/gif,image/webp,image/svg+xml" required>
+                                            <div class="form-text" id="semiBankLogoHelp">Formatos permitidos: JPG, PNG, GIF, WEBP o SVG. Máx: 12 MB.</div>
                                             <small class="text-muted d-block mt-1">Recomendado: 400×200 px — PNG con fondo transparente</small>
                                         </div>
                                         
@@ -6559,6 +6601,13 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                 </table>
                             </div>
                         </div>
+
+                        <hr class="my-4">
+                        <p class="text-muted small mb-3">Además de la flota, puedes administrar los logos de aliados/marcas que se muestran en la página principal de Leasing.</p>
+                        <?php
+                        $allyUnitKey = 'leasing';
+                        require __DIR__ . '/../../includes/admin-unit-allies-panel.php';
+                        ?>
                     </div>
 
                     <!-- TAB 19: LEASING EQUIPO CRUD -->
@@ -7027,6 +7076,7 @@ function initEditVehicle(vehicle) {
 
     document.getElementById('vehicle_name').value = vehicle.name || '';
     document.getElementById('vehicle_category').value = vehicle.category || 'Sedanes';
+    document.getElementById('vehicle_sipp_code').value = vehicle.sipp_code || vehicle.sippCode || '';
     document.getElementById('vehicle_doors').value = vehicle.doors || '4 Puertas';
     document.getElementById('vehicle_passengers').value = vehicle.passengers || '5 Pasajeros';
     
