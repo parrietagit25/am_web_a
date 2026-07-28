@@ -243,6 +243,19 @@ class RacAddonService
         ) > 0;
     }
 
+    public function deleteProtection(int $id): bool
+    {
+        if ($id <= 0) {
+            return false;
+        }
+        $db = Database::getInstance();
+
+        return $db->execute(
+            'DELETE FROM rac_protection_products WHERE id = :id',
+            [':id' => $id]
+        ) > 0;
+    }
+
     public function setExtraEnabled(int $id, bool $enabled): bool
     {
         $db = Database::getInstance();

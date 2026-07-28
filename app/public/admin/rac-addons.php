@@ -75,6 +75,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: /admin/rac-addons.php?tab=protections&saved=1');
             exit;
         }
+        if ($action === 'delete_protection') {
+            $id = (int) ($_POST['id'] ?? 0);
+            if ($id <= 0 || !$addonService->deleteProtection($id)) {
+                throw new InvalidArgumentException('No se pudo eliminar la protección.');
+            }
+            header('Location: /admin/rac-addons.php?tab=protections&saved=1');
+            exit;
+        }
         if ($action === 'toggle_extra') {
             $addonService->setExtraEnabled((int) ($_POST['id'] ?? 0), (string) ($_POST['enabled'] ?? '') === '1');
             header('Location: /admin/rac-addons.php?tab=extras&saved=1');

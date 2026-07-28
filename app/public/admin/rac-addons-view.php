@@ -120,6 +120,12 @@ if (!isset($protections, $extras, $addonService)) {
                             <td class="text-nowrap">
                                 <a href="/admin/rac-addons.php?tab=protections&edit=<?php echo esc((string) $p['id']); ?>" class="btn btn-sm btn-outline-secondary">Editar</a>
                                 <form method="post" class="d-inline"><input type="hidden" name="action" value="toggle_protection"><input type="hidden" name="tab" value="protections"><input type="hidden" name="id" value="<?php echo esc((string) $p['id']); ?>"><input type="hidden" name="enabled" value="<?php echo !empty($p['enabled']) ? '0' : '1'; ?>"><button type="submit" class="btn btn-sm btn-outline-secondary"><?php echo !empty($p['enabled']) ? 'Desactivar' : 'Activar'; ?></button></form>
+                                <form method="post" class="d-inline" onsubmit="return confirm('¿Eliminar esta protección? Esta acción no se puede deshacer.');">
+                                    <input type="hidden" name="action" value="delete_protection">
+                                    <input type="hidden" name="tab" value="protections">
+                                    <input type="hidden" name="id" value="<?php echo esc((string) $p['id']); ?>">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Borrar</button>
+                                </form>
                             </td>
                         </tr>
                     <?php endforeach; endif; ?>
