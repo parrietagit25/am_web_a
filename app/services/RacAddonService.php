@@ -11,6 +11,26 @@ class RacAddonService
     public const PRICE_TYPES = ['free', 'fixed_daily', 'fixed_total', 'percent_of_rate'];
     public const APPLIES_PER = ['rental', 'day'];
 
+    /** @return array<string, string> */
+    public static function priceTypeLabels(): array
+    {
+        return [
+            'free' => 'Gratis',
+            'fixed_daily' => 'Por día',
+            'fixed_total' => 'Cargo fijo (una vez)',
+            'percent_of_rate' => '% de la tarifa',
+        ];
+    }
+
+    /** @return array<string, string> */
+    public static function appliesPerLabels(): array
+    {
+        return [
+            'day' => 'Por día',
+            'rental' => 'Por reserva (fijo)',
+        ];
+    }
+
     public function __construct()
     {
         RacDatabaseSchema::ensure();
@@ -156,6 +176,7 @@ class RacAddonService
     public function createExtra(array $data): int
     {
         $payload = $this->sanitizeExtraPayload($data);
+        $this->assertExtraCodeAvailable((string) $payload[':code']);
         $db = Database::getInstance();
         $db->execute(
             'INSERT INTO rac_extra_products (
@@ -179,6 +200,7 @@ class RacAddonService
     public function updateExtra(int $id, array $data): bool
     {
         $payload = $this->sanitizeExtraPayload($data);
+        $this->assertExtraCodeAvailable((string) $payload[':code'], $id);
         $payload[':id'] = $id;
         $db = Database::getInstance();
         $driver = $db->getDriverName();
@@ -195,6 +217,16 @@ class RacAddonService
             WHERE id = :id",
             $payload
         ) > 0;
+    }
+
+    private function assertExtraCodeAvailable(string $code, int $exceptId = 0): void
+    {
+        $existing = $this->findExtraByCodeAdmin($code);
+        if ($existing !== null && (int) ($existing['id'] ?? 0) !== $exceptId) {
+            throw new InvalidArgumentException(
+                'Ya existe un extra con el código «' . $code . '». Usa otro código o edita el existente.'
+            );
+        }
     }
 
     public function setProtectionEnabled(int $id, bool $enabled): bool
@@ -284,8 +316,8 @@ class RacAddonService
         }
 
         if ($protectionCode !== '') {
-            $protectionRow = $this->findProtectionByCode($protectionCode);
-            if ($protectionRow === null || !$this->productMatchesContext($protectionRow, $ctx)) {
+            $protectionRow = $this->findProtectionByCode($protectionCode, $ctx);
+            if ($protectionRow === null) {
                 return ['ok' => false, 'message' => 'Protección seleccionada no válida para este vehículo.'];
             }
             $protectionTotal = $this->calculateProtectionPrice($protectionRow, $ctx);
@@ -627,19 +659,67 @@ class RacAddonService
         return $value === '' || $rule === $value;
     }
 
-    private function findProtectionByCode(string $code): ?array
+    /**
+     * Busca protección por código. Si hay varias con el mismo código, elige la más específica
+     * que coincida con el contexto (vehículo SIPP, categoría, sucursal, etc.).
+     *
+     * @param array<string, mixed> $context
+     */
+    private function findProtectionByCode(string $code, array $context = []): ?array
     {
         $code = strtoupper(trim($code));
         if ($code === '') {
             return null;
         }
         $db = Database::getInstance();
-        $row = $db->selectOne(
-            'SELECT * FROM rac_protection_products WHERE UPPER(code) = :code AND enabled = 1 LIMIT 1',
+        $rows = $db->select(
+            'SELECT * FROM rac_protection_products WHERE UPPER(code) = :code AND enabled = 1 ORDER BY sort_order ASC, id ASC',
             [':code' => $code]
         );
+        if (!is_array($rows) || $rows === []) {
+            return null;
+        }
 
-        return $row ? $this->normalizeProtectionRow($row) : null;
+        $candidates = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $normalized = $this->normalizeProtectionRow($row);
+            if ($context === [] || $this->productMatchesContext($normalized, $context)) {
+                $candidates[] = $normalized;
+            }
+        }
+        if ($candidates === []) {
+            return null;
+        }
+
+        usort($candidates, function (array $a, array $b): int {
+            $score = $this->productSpecificityScore($b) <=> $this->productSpecificityScore($a);
+            if ($score !== 0) {
+                return $score;
+            }
+            return ((int) ($a['id'] ?? 0)) <=> ((int) ($b['id'] ?? 0));
+        });
+
+        return $candidates[0];
+    }
+
+    /** @param array<string, mixed> $product */
+    private function productSpecificityScore(array $product): int
+    {
+        $score = 0;
+        foreach (['vehicle_code', 'vehicle_name', 'pickup_location', 'return_location'] as $field) {
+            $val = strtoupper(trim((string) ($product[$field] ?? '')));
+            if ($val !== '' && !in_array($val, ['*', 'ALL', 'TODOS', 'TODAS', 'CUALQUIERA'], true)) {
+                $score += 10;
+            }
+        }
+        if (!empty($product['min_rental_days']) || !empty($product['max_rental_days'])) {
+            $score += 1;
+        }
+
+        return $score;
     }
 
     private function findExtraByCode(string $code): ?array
@@ -773,6 +853,12 @@ class RacAddonService
         }
         $applies = (string) ($data['applies_per'] ?? 'rental');
         if (!in_array($applies, self::APPLIES_PER, true)) {
+            $applies = 'rental';
+        }
+        // Alinear cobro diario/fijo: el tipo de precio manda.
+        if ($priceType === 'fixed_daily') {
+            $applies = 'day';
+        } elseif ($priceType === 'fixed_total' || $priceType === 'free') {
             $applies = 'rental';
         }
 

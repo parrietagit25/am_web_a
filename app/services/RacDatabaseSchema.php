@@ -120,8 +120,100 @@ class RacDatabaseSchema {
         }
 
         self::ensureAddonTables($db, $driver);
+        self::allowDuplicateProtectionCodes($db, $driver);
         self::syncEnabledAddonPublicVisibility($db);
         self::$ensured = true;
+    }
+
+    /**
+     * Permite varias protecciones con el mismo código (p. ej. mismo CDW filtrado por SIPP).
+     * Quita UNIQUE en instalaciones existentes; instalaciones nuevas ya se crean sin UNIQUE.
+     */
+    private static function allowDuplicateProtectionCodes(Database $db, string $driver): void
+    {
+        if ($driver === 'mysql') {
+            try {
+                $db->execute('ALTER TABLE rac_protection_products DROP INDEX uq_rac_protection_code');
+            } catch (Exception $e) {
+                // Índice ya eliminado o nunca existió
+            }
+            try {
+                $db->execute('ALTER TABLE rac_protection_products ADD INDEX idx_rac_protection_code (code)');
+            } catch (Exception $e) {
+                // Índice ya existe
+            }
+            return;
+        }
+
+        try {
+            $meta = $db->selectOne(
+                "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'rac_protection_products'"
+            );
+        } catch (Exception $e) {
+            return;
+        }
+        $createSql = (string) ($meta['sql'] ?? '');
+        if ($createSql === '') {
+            return;
+        }
+
+        $needsRebuild = (bool) preg_match('/\bcode\s+TEXT\s+NOT\s+NULL\s+UNIQUE\b/i', $createSql)
+            || (bool) preg_match('/UNIQUE\s*\(\s*code\s*\)/i', $createSql);
+
+        if (!$needsRebuild) {
+            try {
+                $db->execute('CREATE INDEX IF NOT EXISTS idx_rac_protection_code ON rac_protection_products (code)');
+            } catch (Exception $e) {
+                // ignore
+            }
+            return;
+        }
+
+        try {
+            $db->execute('BEGIN');
+            $db->execute("CREATE TABLE rac_protection_products__no_uq (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                code TEXT NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                price_type TEXT NOT NULL DEFAULT 'fixed_daily',
+                price_amount REAL NOT NULL DEFAULT 0,
+                currency TEXT NOT NULL DEFAULT 'USD',
+                applies_per TEXT NOT NULL DEFAULT 'day',
+                vehicle_code TEXT,
+                vehicle_name TEXT,
+                min_rental_days INTEGER,
+                max_rental_days INTEGER,
+                pickup_location TEXT,
+                return_location TEXT,
+                sort_order INTEGER NOT NULL DEFAULT 100,
+                visible_public INTEGER NOT NULL DEFAULT 1,
+                is_default INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at TEXT
+            )");
+            $db->execute('INSERT INTO rac_protection_products__no_uq (
+                id, code, name, description, enabled, price_type, price_amount, currency, applies_per,
+                vehicle_code, vehicle_name, min_rental_days, max_rental_days,
+                pickup_location, return_location, sort_order, visible_public, is_default, created_at, updated_at
+            ) SELECT
+                id, code, name, description, enabled, price_type, price_amount, currency, applies_per,
+                vehicle_code, vehicle_name, min_rental_days, max_rental_days,
+                pickup_location, return_location, sort_order, visible_public, is_default, created_at, updated_at
+            FROM rac_protection_products');
+            $db->execute('DROP TABLE rac_protection_products');
+            $db->execute('ALTER TABLE rac_protection_products__no_uq RENAME TO rac_protection_products');
+            $db->execute('CREATE INDEX IF NOT EXISTS idx_rac_protection_code ON rac_protection_products (code)');
+            $db->execute('CREATE INDEX IF NOT EXISTS idx_rac_protection_enabled ON rac_protection_products (enabled, visible_public, sort_order)');
+            $db->execute('COMMIT');
+        } catch (Exception $e) {
+            try {
+                $db->execute('ROLLBACK');
+            } catch (Exception $rollbackEx) {
+                // ignore
+            }
+        }
     }
 
     /** AM-RAC-BARS-RAC-3F2: activar vía toggle dejó visible_public=0 en datos legacy. */
@@ -163,7 +255,7 @@ class RacDatabaseSchema {
                 is_default TINYINT(1) NOT NULL DEFAULT 0,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME NULL,
-                UNIQUE KEY uq_rac_protection_code (code),
+                KEY idx_rac_protection_code (code),
                 KEY idx_rac_protection_enabled (enabled, visible_public, sort_order)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
@@ -209,7 +301,7 @@ class RacDatabaseSchema {
         } else {
             $db->execute("CREATE TABLE IF NOT EXISTS rac_protection_products (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                code TEXT NOT NULL UNIQUE,
+                code TEXT NOT NULL,
                 name TEXT NOT NULL,
                 description TEXT,
                 enabled INTEGER NOT NULL DEFAULT 1,
@@ -229,6 +321,8 @@ class RacDatabaseSchema {
                 created_at TEXT NOT NULL DEFAULT (datetime('now')),
                 updated_at TEXT
             )");
+            $db->execute('CREATE INDEX IF NOT EXISTS idx_rac_protection_code ON rac_protection_products (code)');
+            $db->execute('CREATE INDEX IF NOT EXISTS idx_rac_protection_enabled ON rac_protection_products (enabled, visible_public, sort_order)');
 
             $db->execute("CREATE TABLE IF NOT EXISTS rac_extra_products (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

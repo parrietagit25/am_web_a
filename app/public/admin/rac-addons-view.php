@@ -56,27 +56,28 @@ if (!isset($protections, $extras, $addonService)) {
                 <input type="hidden" name="action" value="save_protection">
                 <input type="hidden" name="tab" value="protections">
                 <input type="hidden" name="id" value="<?php echo esc((string) ($formProtection['id'] ?? 0)); ?>">
-                <div class="col-md-2"><label class="form-label">Código</label><input name="code" class="form-control" required maxlength="32" value="<?php echo esc((string) ($formProtection['code'] ?? '')); ?>"<?php echo !empty($formProtection['id']) ? ' readonly' : ''; ?>></div>
+                <div class="col-md-2"><label class="form-label">Código</label><input name="code" class="form-control" required maxlength="32" value="<?php echo esc((string) ($formProtection['code'] ?? '')); ?>"<?php echo !empty($formProtection['id']) ? ' readonly' : ''; ?>><div class="form-text">Puede repetirse si filtras por SIPP/categoría distinta.</div></div>
                 <div class="col-md-4"><label class="form-label">Nombre</label><input name="name" class="form-control" required value="<?php echo esc((string) ($formProtection['name'] ?? '')); ?>"></div>
                 <div class="col-md-6"><label class="form-label">Descripción</label><input name="description" class="form-control" value="<?php echo esc((string) ($formProtection['description'] ?? '')); ?>"></div>
                 <div class="col-md-2"><label class="form-label">Tipo precio</label>
                     <select name="price_type" class="form-select"><?php foreach (RacAddonService::PRICE_TYPES as $pt): ?>
-                        <option value="<?php echo esc($pt); ?>"<?php echo ($formProtection['price_type'] ?? '') === $pt ? ' selected' : ''; ?>><?php echo esc($pt); ?></option>
+                        <option value="<?php echo esc($pt); ?>"<?php echo ($formProtection['price_type'] ?? '') === $pt ? ' selected' : ''; ?>><?php echo esc(RacAddonService::priceTypeLabels()[$pt] ?? $pt); ?></option>
                     <?php endforeach; ?></select>
                 </div>
                 <div class="col-md-2"><label class="form-label">Monto</label><input type="number" step="0.01" min="0" name="price_amount" class="form-control" value="<?php echo esc((string) ($formProtection['price_amount'] ?? 0)); ?>"></div>
                 <div class="col-md-2"><label class="form-label">Aplica por</label>
                     <select name="applies_per" class="form-select"><?php foreach (RacAddonService::APPLIES_PER as $ap): ?>
-                        <option value="<?php echo esc($ap); ?>"<?php echo ($formProtection['applies_per'] ?? '') === $ap ? ' selected' : ''; ?>><?php echo esc($ap); ?></option>
+                        <option value="<?php echo esc($ap); ?>"<?php echo ($formProtection['applies_per'] ?? '') === $ap ? ' selected' : ''; ?>><?php echo esc(RacAddonService::appliesPerLabels()[$ap] ?? $ap); ?></option>
                     <?php endforeach; ?></select>
                 </div>
                 <div class="col-md-2"><label class="form-label">Orden</label><input type="number" name="sort_order" class="form-control" value="<?php echo esc((string) ($formProtection['sort_order'] ?? 100)); ?>"></div>
-                <div class="col-md-3"><label class="form-label">Código BARS</label>
-                    <select name="vehicle_code" class="form-select"><option value="">Todos</option>
+                <div class="col-md-3"><label class="form-label">Solo vehículo (SIPP)</label>
+                    <select name="vehicle_code" class="form-select"><option value="">Todos los vehículos</option>
                         <?php foreach ($barsVehicleCatalog as $v): ?><option value="<?php echo esc($v['vehicle_code']); ?>"<?php echo ($formProtection['vehicle_code'] ?? '') === $v['vehicle_code'] ? ' selected' : ''; ?>><?php echo esc($v['label']); ?></option><?php endforeach; ?>
                     </select>
+                    <div class="form-text">Si eliges un SIPP (ej. CXAR), esta protección <strong>no</strong> aparecerá en otros vehículos.</div>
                 </div>
-                <div class="col-md-3"><label class="form-label">Categoría</label>
+                <div class="col-md-3"><label class="form-label">Solo categoría</label>
                     <select name="vehicle_name" class="form-select"><option value="">Todas</option>
                         <?php foreach ($barsVehicleNames as $vn): ?><option value="<?php echo esc($vn); ?>"<?php echo ($formProtection['vehicle_name'] ?? '') === $vn ? ' selected' : ''; ?>><?php echo esc($vn); ?></option><?php endforeach; ?>
                     </select>
@@ -129,28 +130,33 @@ if (!isset($protections, $extras, $addonService)) {
         <?php else: ?>
         <div class="admin-card">
             <h2 class="h5 fw-bold mb-3"><?php echo ($formExtra['id'] ?? 0) ? 'Editar extra' : 'Nuevo extra'; ?></h2>
+            <p class="small text-muted mb-3">
+                Use el código <code>CONDADIC</code> para <strong>Conductor Adicional</strong> (aparece con selector de cantidad en <code>/extras.php</code>).
+                Elija <strong>Por día</strong> o <strong>Cargo fijo</strong> e indique el monto.
+            </p>
             <form method="post" class="row g-3">
                 <input type="hidden" name="action" value="save_extra">
                 <input type="hidden" name="tab" value="extras">
                 <input type="hidden" name="id" value="<?php echo esc((string) ($formExtra['id'] ?? 0)); ?>">
-                <div class="col-md-2"><label class="form-label">Código</label><input name="code" class="form-control" required maxlength="32" value="<?php echo esc((string) ($formExtra['code'] ?? '')); ?>"<?php echo !empty($formExtra['id']) ? ' readonly' : ''; ?>></div>
-                <div class="col-md-4"><label class="form-label">Nombre</label><input name="name" class="form-control" required value="<?php echo esc((string) ($formExtra['name'] ?? '')); ?>"></div>
+                <div class="col-md-2"><label class="form-label">Código</label><input name="code" class="form-control" required maxlength="32" value="<?php echo esc((string) ($formExtra['code'] ?? '')); ?>"<?php echo !empty($formExtra['id']) ? ' readonly' : ''; ?> placeholder="CONDADIC"></div>
+                <div class="col-md-4"><label class="form-label">Nombre</label><input name="name" class="form-control" required value="<?php echo esc((string) ($formExtra['name'] ?? '')); ?>" placeholder="Conductor Adicional"></div>
                 <div class="col-md-6"><label class="form-label">Descripción</label><input name="description" class="form-control" value="<?php echo esc((string) ($formExtra['description'] ?? '')); ?>"></div>
-                <div class="col-md-2"><label class="form-label">Tipo precio</label>
-                    <select name="price_type" class="form-select"><?php foreach (RacAddonService::PRICE_TYPES as $pt): ?>
-                        <option value="<?php echo esc($pt); ?>"<?php echo ($formExtra['price_type'] ?? '') === $pt ? ' selected' : ''; ?>><?php echo esc($pt); ?></option>
+                <div class="col-md-3"><label class="form-label">Tipo de cobro</label>
+                    <select name="price_type" class="form-select" id="extra_price_type"><?php foreach (RacAddonService::PRICE_TYPES as $pt): ?>
+                        <option value="<?php echo esc($pt); ?>"<?php echo ($formExtra['price_type'] ?? '') === $pt ? ' selected' : ''; ?>><?php echo esc(RacAddonService::priceTypeLabels()[$pt] ?? $pt); ?></option>
                     <?php endforeach; ?></select>
+                    <div class="form-text">Por día = monto × días × cantidad. Cargo fijo = monto × cantidad (una vez).</div>
                 </div>
-                <div class="col-md-2"><label class="form-label">Monto</label><input type="number" step="0.01" min="0" name="price_amount" class="form-control" value="<?php echo esc((string) ($formExtra['price_amount'] ?? 0)); ?>"></div>
+                <div class="col-md-2"><label class="form-label">Monto (USD)</label><input type="number" step="0.01" min="0" name="price_amount" class="form-control" value="<?php echo esc((string) ($formExtra['price_amount'] ?? 0)); ?>"></div>
                 <div class="col-md-2"><label class="form-label">Aplica por</label>
-                    <select name="applies_per" class="form-select"><?php foreach (RacAddonService::APPLIES_PER as $ap): ?>
-                        <option value="<?php echo esc($ap); ?>"<?php echo ($formExtra['applies_per'] ?? '') === $ap ? ' selected' : ''; ?>><?php echo esc($ap); ?></option>
+                    <select name="applies_per" class="form-select" id="extra_applies_per"><?php foreach (RacAddonService::APPLIES_PER as $ap): ?>
+                        <option value="<?php echo esc($ap); ?>"<?php echo ($formExtra['applies_per'] ?? '') === $ap ? ' selected' : ''; ?>><?php echo esc(RacAddonService::appliesPerLabels()[$ap] ?? $ap); ?></option>
                     <?php endforeach; ?></select>
                 </div>
                 <div class="col-md-2"><label class="form-label">Cant. máx.</label><input type="number" min="1" name="max_quantity" class="form-control" value="<?php echo esc((string) ($formExtra['max_quantity'] ?? 1)); ?>"></div>
                 <div class="col-md-2"><label class="form-label">Orden</label><input type="number" name="sort_order" class="form-control" value="<?php echo esc((string) ($formExtra['sort_order'] ?? 100)); ?>"></div>
                 <div class="col-md-3"><label class="form-label">Código BARS</label>
-                    <select name="vehicle_code" class="form-select"><option value="">Todos</option>
+                    <select name="vehicle_code" class="form-select"><option value="">Todos los vehículos</option>
                         <?php foreach ($barsVehicleCatalog as $v): ?><option value="<?php echo esc($v['vehicle_code']); ?>"<?php echo ($formExtra['vehicle_code'] ?? '') === $v['vehicle_code'] ? ' selected' : ''; ?>><?php echo esc($v['label']); ?></option><?php endforeach; ?>
                     </select>
                 </div>
@@ -177,7 +183,11 @@ if (!isset($protections, $extras, $addonService)) {
                         <tr>
                             <td><code><?php echo esc((string) $e['code']); ?></code></td>
                             <td><?php echo esc((string) $e['name']); ?></td>
-                            <td class="small"><?php echo esc((string) $e['price_type'] . ' ' . $e['price_amount']); ?></td>
+                            <td class="small"><?php
+                                $pt = (string) ($e['price_type'] ?? '');
+                                $ptLabel = RacAddonService::priceTypeLabels()[$pt] ?? $pt;
+                                echo esc($ptLabel . ' · ' . $e['price_amount']);
+                            ?></td>
                             <td><?php echo esc((string) $e['max_quantity']); ?></td>
                             <td class="small"><?php echo esc(trim(($e['vehicle_code'] ?? '') . ' ' . ($e['vehicle_name'] ?? '')) ?: 'Todos'); ?></td>
                             <td><?php
