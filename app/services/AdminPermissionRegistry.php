@@ -217,6 +217,12 @@ class AdminPermissionRegistry
 
             return UnitContentService::contentPermissionKey($navMenuUnit);
         }
+        if ($action === 'save_unit_topbar') {
+            require_once __DIR__ . '/UnitContentService.php';
+            $topbarUnit = trim((string) ($_POST['topbar_unit'] ?? ''));
+
+            return UnitContentService::contentPermissionKey($topbarUnit);
+        }
         if ($action === 'save_unit_footer') {
             require_once __DIR__ . '/UnitFooterService.php';
             $footerUnit = trim((string) ($_POST['uf_unit'] ?? ''));

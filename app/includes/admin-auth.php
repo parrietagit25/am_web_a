@@ -62,6 +62,7 @@ function admin_guard_post_action(string $action): bool
         'delete_generic_page',
         'save_unit_footer',
         'save_unit_menu',
+        'save_unit_topbar',
         'save_unit_terms_page',
         'save_terms',
         'add_semi_bank',

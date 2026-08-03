@@ -222,6 +222,42 @@ function unit_content_handle_post(
             }
             break;
 
+        case 'save_unit_topbar':
+            $unitKey = strtolower(trim((string) ($_POST['topbar_unit'] ?? '')));
+            if (!unit_content_validate_unit($siteData, $unitKey)) {
+                $errorMsg = 'Unidad no válida.';
+                break;
+            }
+
+            $payload = [
+                'promo_text' => trim((string) ($_POST['topbar_promo_text'] ?? '')),
+                'phone_display' => trim((string) ($_POST['topbar_phone_display'] ?? '')),
+                'whatsapp_number' => preg_replace('/\D/', '', (string) ($_POST['topbar_whatsapp_number'] ?? '')) ?: '',
+                'email' => trim((string) ($_POST['topbar_email'] ?? '')),
+                'toll_free' => trim((string) ($_POST['topbar_toll_free'] ?? '')),
+            ];
+
+            if (UnitContentService::isCustomUnit($unitKey)) {
+                if (!isset($siteData['global']['business_units'][$unitKey]) || !is_array($siteData['global']['business_units'][$unitKey])) {
+                    $errorMsg = 'Unidad personalizada no encontrada.';
+                    break;
+                }
+                $siteData['global']['business_units'][$unitKey]['topbar'] = $payload;
+            } else {
+                $dataKey = $unitKey === 'rentacar' ? 'homepage' : $unitKey;
+                if (!isset($siteData[$dataKey]) || !is_array($siteData[$dataKey])) {
+                    $siteData[$dataKey] = [];
+                }
+                $siteData[$dataKey]['topbar'] = $payload;
+            }
+
+            if ($contentService->saveAll($siteData)) {
+                $successMsg = 'Top bar de la unidad guardado correctamente.';
+            } else {
+                $errorMsg = 'Error al guardar el top bar de la unidad.';
+            }
+            break;
+
         case 'save_unit_about_page':
             $unitKey = trim((string) ($_POST['about_unit'] ?? ''));
             if (!unit_content_validate_unit($siteData, $unitKey)

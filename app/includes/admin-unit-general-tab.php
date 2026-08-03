@@ -32,11 +32,86 @@ $ucNavDomUnit = preg_replace('/[^a-z0-9_-]/i', '-', $ucUnitKey);
             <i class="bi bi-gear-fill me-2 text-danger"></i>Generales — <?php echo esc($unit['label'] ?? $ucUnitKey); ?>
         </h5>
         <p class="text-muted small mb-0">
-            Administra las opciones del menú público de esta unidad de negocio.
+            Administra el menú público y el top bar (barra superior) de esta unidad de negocio.
         </p>
     </div>
 
     <?php require __DIR__ . '/admin-business-units-menu-list.php'; ?>
+
+    <?php
+    require_once __DIR__ . '/unit-footer-prepare.php';
+    $ucTopbarDataKey = $ucUnitKey === 'rentacar' ? 'homepage' : $ucUnitKey;
+    $ucTopbarUnitData = [];
+    if (UnitContentService::isCustomUnit($ucUnitKey)) {
+        $ucTopbarUnitData = is_array($siteData['global']['business_units'][$ucUnitKey] ?? null)
+            ? $siteData['global']['business_units'][$ucUnitKey]
+            : [];
+    } else {
+        $ucTopbarUnitData = is_array($siteData[$ucTopbarDataKey] ?? null) ? $siteData[$ucTopbarDataKey] : [];
+    }
+    $ucTopbar = am_unit_topbar_array_from_unit_data($ucTopbarUnitData, $ucUnitKey, $siteData['global'] ?? []);
+    $ucGlobal = is_array($siteData['global'] ?? null) ? $siteData['global'] : [];
+    $ucTopbarDom = preg_replace('/[^a-z0-9_-]/i', '-', $ucUnitKey) ?: 'unit';
+    ?>
+    <div class="admin-card mt-4">
+        <form method="POST" action="?tab=<?php echo esc($ucGeneralTab); ?>">
+            <input type="hidden" name="action" value="save_unit_topbar">
+            <input type="hidden" name="topbar_unit" value="<?php echo esc($ucUnitKey); ?>">
+            <?php admin_csrf_field(); ?>
+
+            <h5 class="fw-bold mb-1 text-navy">
+                <i class="bi bi-layout-text-sidebar-reverse me-2 text-danger"></i>Top bar — <?php echo esc($unit['label'] ?? $ucUnitKey); ?>
+            </h5>
+            <p class="text-muted small mb-3">
+                Franja superior del sitio cuando el visitante está en esta unidad.
+                Si dejas un campo vacío, se usa el valor del pie de esta unidad o el de
+                <strong>Generales → Configuración Global</strong> / traducciones.
+            </p>
+
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label fw-semibold" for="topbar-promo-<?php echo esc($ucTopbarDom); ?>">Texto promocional (dorado)</label>
+                    <input type="text" class="form-control form-control-premium" maxlength="180"
+                           id="topbar-promo-<?php echo esc($ucTopbarDom); ?>" name="topbar_promo_text"
+                           value="<?php echo esc($ucTopbar['promo_text'] ?? ''); ?>"
+                           placeholder="Precios especiales todos los miércoles">
+                    <div class="form-text">Vacío = texto de Traducciones (<code>topbar.special_prices</code>).</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" for="topbar-phone-<?php echo esc($ucTopbarDom); ?>">Teléfono</label>
+                    <input type="text" class="form-control form-control-premium"
+                           id="topbar-phone-<?php echo esc($ucTopbarDom); ?>" name="topbar_phone_display"
+                           value="<?php echo esc($ucTopbar['phone_display'] ?? ''); ?>"
+                           placeholder="<?php echo esc($ucGlobal['phone_display'] ?? '(507) 279-2700'); ?>">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" for="topbar-wa-<?php echo esc($ucTopbarDom); ?>">WhatsApp (solo dígitos)</label>
+                    <input type="text" class="form-control form-control-premium"
+                           id="topbar-wa-<?php echo esc($ucTopbarDom); ?>" name="topbar_whatsapp_number"
+                           value="<?php echo esc($ucTopbar['whatsapp_number'] ?? ''); ?>"
+                           placeholder="<?php echo esc(preg_replace('/\D/', '', (string) ($ucGlobal['whatsapp_number'] ?? '5072792700'))); ?>">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" for="topbar-email-<?php echo esc($ucTopbarDom); ?>">Correo</label>
+                    <input type="email" class="form-control form-control-premium"
+                           id="topbar-email-<?php echo esc($ucTopbarDom); ?>" name="topbar_email"
+                           value="<?php echo esc($ucTopbar['email'] ?? ''); ?>"
+                           placeholder="<?php echo esc($ucGlobal['email'] ?? 'info@automarket.com.pa'); ?>">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" for="topbar-toll-<?php echo esc($ucTopbarDom); ?>">Toll Free</label>
+                    <input type="text" class="form-control form-control-premium"
+                           id="topbar-toll-<?php echo esc($ucTopbarDom); ?>" name="topbar_toll_free"
+                           value="<?php echo esc($ucTopbar['toll_free'] ?? ''); ?>"
+                           placeholder="<?php echo esc($ucGlobal['toll_free'] ?? '1-866-700-9904'); ?>">
+                </div>
+            </div>
+
+            <div class="text-end mt-3">
+                <button type="submit" class="btn btn-premium"><i class="bi bi-save2 me-1"></i>Guardar top bar</button>
+            </div>
+        </form>
+    </div>
 
     <div class="admin-card mt-4">
         <form method="POST" action="?tab=<?php echo esc($ucGeneralTab); ?>">
@@ -93,4 +168,4 @@ $ucNavDomUnit = preg_replace('/[^a-z0-9_-]/i', '-', $ucUnitKey);
     </div>
 </div>
 <?php
-unset($ucBusinessUnits, $key, $unit, $buMenuTab, $ucGeneralTab, $ucGeneralActive, $ucNavMenuSettings, $ucNavDomUnit, $ucNavItemLabels);
+unset($ucBusinessUnits, $key, $unit, $buMenuTab, $ucGeneralTab, $ucGeneralActive, $ucNavMenuSettings, $ucNavDomUnit, $ucNavItemLabels, $ucTopbar, $ucTopbarUnitData, $ucTopbarDataKey, $ucGlobal, $ucTopbarDom);
