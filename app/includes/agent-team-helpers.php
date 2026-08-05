@@ -15,7 +15,7 @@ function am_agent_instagram_handle(string $raw): string
         return '';
     }
 
-    if (preg_match('#instagram\.com/([^/?#]+)#i', $raw, $m)) {
+    if (preg_match('~instagram\.com/([^/?#]+)~i', $raw, $m)) {
         $raw = (string) $m[1];
     }
 

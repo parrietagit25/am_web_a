@@ -120,25 +120,4 @@ $GLOBALS['am_team_card_styles_loaded'] = true;
     color: rgba(255, 255, 255, 0.92);
     margin: 0;
 }
-.am-team-card-handle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    margin-top: 10px;
-    align-self: center;
-    color: #6b7280;
-    text-decoration: none;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.82rem;
-    font-weight: 500;
-    transition: color 0.2s ease;
-}
-.am-team-card-handle:hover,
-.am-team-card-handle:focus {
-    color: #e1001a;
-}
-.am-team-card-handle i {
-    font-size: 0.95rem;
-}
 </style>

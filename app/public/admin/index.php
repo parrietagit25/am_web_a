@@ -5564,7 +5564,7 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                         <div class="mb-3">
                                             <label for="semi_agent_instagram" class="form-label">Instagram <span class="text-muted fw-normal">(público)</span></label>
                                             <input type="text" id="semi_agent_instagram" name="agent_instagram" class="form-control form-control-premium" placeholder="@asesor.automarket o URL">
-                                            <div class="form-text">Aparece debajo de la tarjeta y en el hover de la foto.</div>
+                                            <div class="form-text">En la web: solo ícono de Instagram al pasar el mouse sobre la foto.</div>
                                         </div>
                                         
                                         <div class="mb-3">
@@ -6683,7 +6683,7 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                         <div class="mb-3">
                                             <label for="leasing_agent_instagram" class="form-label">Instagram <span class="text-muted fw-normal">(público)</span></label>
                                             <input type="text" id="leasing_agent_instagram" name="leasing_agent_instagram" class="form-control form-control-premium" placeholder="@asesor.automarket o URL">
-                                            <div class="form-text">Aparece debajo de la tarjeta y en el hover de la foto.</div>
+                                            <div class="form-text">En la web: solo ícono de Instagram al pasar el mouse sobre la foto.</div>
                                         </div>
                                         <div class="mb-3">
                                             <label for="leasing_agent_sort_order" class="form-label">Orden en la grilla</label>

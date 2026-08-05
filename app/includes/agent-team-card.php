@@ -53,16 +53,6 @@ if ($name !== '') {
             <p class="am-team-card-role"><?php echo esc($role); ?></p>
         <?php endif; ?>
     </div>
-
-    <?php if ($ig['display'] !== ''): ?>
-        <a class="am-team-card-handle"
-           href="<?php echo esc($ig['url']); ?>"
-           target="_blank"
-           rel="noopener noreferrer">
-            <i class="bi bi-instagram" aria-hidden="true"></i>
-            <span><?php echo esc($ig['display']); ?></span>
-        </a>
-    <?php endif; ?>
 </article>
 <?php
 unset($amTeamCardAccent, $ig, $initials, $imageUrl, $name, $role);
