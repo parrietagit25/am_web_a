@@ -336,7 +336,7 @@ class AdminPermissionRegistry
             'update_rac_reservation_status' => 'rac_reservations',
             // Venta de Autos
             'save_seminuevos_home' => 'semi_home',
-            'save_semi_detail_breadcrumb_color' => 'semi_home',
+            'save_semi_detail_breadcrumb_color' => 'semi_inventory',
             'add_semi_opinion' => 'semi_opinions',
             'edit_semi_opinion' => 'semi_opinions',
             'delete_semi_opinion' => 'semi_opinions',
