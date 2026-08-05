@@ -82,6 +82,7 @@ function admin_guard_post_action(string $action): bool
         'edit_unit_payment_method',
         'delete_unit_payment_method',
         'save_unit_show_payment_methods',
+        'save_semi_detail_breadcrumb_color',
     ];
     if (in_array($action, $csrfActions, true)
         && !admin_verify_csrf((string) ($_POST['admin_csrf_token'] ?? ''))) {

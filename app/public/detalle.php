@@ -104,6 +104,14 @@ if ($vehicle) {
 
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../services/InventoryHighlightService.php';
+require_once __DIR__ . '/../includes/hero-text-colors.php';
+
+$_semiCfg = $contentService->get('seminuevos', []);
+$semiDetailBreadcrumbColor = am_normalize_hex_color((string) ($_semiCfg['detail_breadcrumb_color'] ?? ''));
+if ($semiDetailBreadcrumbColor === '') {
+    $semiDetailBreadcrumbColor = '#F5B041';
+}
+unset($_semiCfg);
 
 // If vehicle still not found, redirect to inventory or show error
 if (!$vehicle) {
@@ -272,7 +280,7 @@ $vehicleHighlightBadge = InventoryHighlightService::resolveBadge(
     <div class="container d-flex justify-content-between align-items-center">
         <div>
             <h4 class="fw-bold font-montserrat mb-0 text-uppercase" style="font-size: 1.1rem; letter-spacing: 0.05em;">
-                INVENTARIO > <span style="color: var(--accent);"><?php echo esc($fullName); ?></span>
+                INVENTARIO > <span style="color: <?php echo esc($semiDetailBreadcrumbColor); ?>;"><?php echo esc($fullName); ?></span>
             </h4>
         </div>
         <a href="/inventario.php" class="btn btn-sm btn-outline-light rounded-pill px-3"><i class="bi bi-arrow-left me-1"></i> Volver al Inventario</a>

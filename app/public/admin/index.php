@@ -1025,6 +1025,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+
+    // Color del nombre del vehículo en breadcrumb de ficha (INVENTARIO > NOMBRE)
+    elseif ($action === 'save_semi_detail_breadcrumb_color') {
+        require_once __DIR__ . '/../../includes/hero-text-colors.php';
+        if (!isset($siteData['seminuevos']) || !is_array($siteData['seminuevos'])) {
+            $siteData['seminuevos'] = [];
+        }
+        $color = am_normalize_hex_color($_POST['semi_detail_breadcrumb_color'] ?? '');
+        if ($color === '') {
+            $color = '#F5B041';
+        }
+        $siteData['seminuevos']['detail_breadcrumb_color'] = $color;
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Color del nombre en el breadcrumb de ficha guardado correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar el color del breadcrumb.';
+        }
+    }
     
     // 18. ADD SEMINUEVOS OPINION
     elseif ($action === 'add_semi_opinion') {
@@ -4713,6 +4731,49 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                 <div class="text-end mt-4">
                                     <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
                                         <i class="bi bi-save"></i> Guardar Configuración
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <?php
+                        require_once __DIR__ . '/../../includes/hero-text-colors.php';
+                        $semiDetailBreadcrumbColor = am_normalize_hex_color($seminuevos['detail_breadcrumb_color'] ?? '') ?: '#F5B041';
+                        ?>
+                        <div class="admin-card mt-4">
+                            <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-palette-fill me-2 text-danger"></i>Color del nombre en ficha de vehículo
+                            </h5>
+                            <p class="text-muted small mb-3">
+                                Cambia el color del nombre del vehículo en la franja
+                                <code>INVENTARIO &gt; NOMBRE</code> de la ficha pública
+                                (ej. <strong>HYUNDAI GRAND I-10</strong>). «INVENTARIO &gt;» sigue en blanco.
+                            </p>
+                            <form method="POST" action="?tab=semi-home" class="row g-3 align-items-end">
+                                <input type="hidden" name="action" value="save_semi_detail_breadcrumb_color">
+                                <?php admin_csrf_field(); ?>
+                                <div class="col-md-4">
+                                    <label for="semi_detail_breadcrumb_color" class="form-label fw-semibold">Color del nombre</label>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <input type="color" id="semi_detail_breadcrumb_color" name="semi_detail_breadcrumb_color"
+                                               class="form-control form-control-color"
+                                               value="<?php echo esc($semiDetailBreadcrumbColor); ?>"
+                                               style="height: 43px; width: 60px;"
+                                               oninput="document.getElementById('semi_detail_breadcrumb_color_text').value = this.value.toUpperCase(); document.getElementById('semi_detail_breadcrumb_preview').style.color = this.value;">
+                                        <input type="text" id="semi_detail_breadcrumb_color_text" class="form-control form-control-premium bg-white"
+                                               value="<?php echo esc($semiDetailBreadcrumbColor); ?>" maxlength="7" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label fw-semibold">Vista previa</label>
+                                    <div class="rounded-3 px-3 py-2 text-uppercase fw-bold" style="background:#0b1f4d; font-size:0.95rem; letter-spacing:0.04em;">
+                                        <span class="text-white">INVENTARIO &gt; </span>
+                                        <span id="semi_detail_breadcrumb_preview" style="color: <?php echo esc($semiDetailBreadcrumbColor); ?>;">HYUNDAI GRAND I-10</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-md-end">
+                                    <button type="submit" class="btn btn-premium">
+                                        <i class="bi bi-save2 me-1"></i>Guardar color
                                     </button>
                                 </div>
                             </form>
