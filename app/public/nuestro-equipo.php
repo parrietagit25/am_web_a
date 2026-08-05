@@ -34,105 +34,6 @@ $activeAgents = array_filter($agents, function($agent) {
     background-position: center;
 }
 
-.agent-card {
-    position: relative;
-    background: #ffffff;
-    border-radius: 16px;
-    overflow: hidden;
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(8, 16, 38, 0.03);
-    width: 100%;
-    height: 360px;
-    border: none;
-}
-.agent-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 12px 25px rgba(8, 16, 38, 0.12);
-}
-.agent-img-wrapper {
-    width: 100%;
-    height: 100%;
-    background-color: #f1f5f9;
-    overflow: hidden;
-    position: relative;
-}
-.agent-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.5s ease;
-}
-.agent-card:hover .agent-img {
-    transform: scale(1.06);
-}
-
-/* Hover Overlay Styles */
-.agent-hover-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(34, 53, 116, 0.88); /* Automarket blue with transparency */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 24px;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    text-align: center;
-    z-index: 5;
-    border-radius: 16px;
-}
-.agent-card:hover .agent-hover-overlay {
-    opacity: 1;
-    visibility: visible;
-}
-.agent-hover-name {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 700;
-    font-size: 1.25rem;
-    color: #ffffff;
-    margin-bottom: 6px;
-    letter-spacing: 0.5px;
-}
-.agent-hover-role {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 500;
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.8);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 24px;
-}
-.agent-hover-details {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
-    align-items: center;
-}
-.agent-detail-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: #ffffff;
-    text-decoration: none;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.85rem;
-    transition: opacity 0.2s ease;
-}
-.agent-detail-link:hover {
-    color: #ffffff;
-    opacity: 0.85;
-}
-.agent-detail-link i {
-    font-size: 1rem;
-    color: #ffffff;
-}
-
 /* Bottom circular highlights styles */
 .highlight-circle {
     width: 100px;
@@ -179,20 +80,21 @@ $activeAgents = array_filter($agents, function($agent) {
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    padding: 10px 5px;
+    padding: 10px 5px 4px;
+    align-items: flex-start;
 }
 .branch-carousel-track::-webkit-scrollbar {
     display: none;
 }
 .carousel-btn {
     position: absolute;
-    top: 50%;
+    top: 40%;
     transform: translateY(-50%);
     width: 44px;
     height: 44px;
     border-radius: 50%;
     background: #ffffff;
-    border: 2px solid #e1001a; /* Automarket brand red */
+    border: 2px solid #e1001a;
     color: #e1001a;
     display: flex;
     align-items: center;
@@ -221,8 +123,8 @@ $activeAgents = array_filter($agents, function($agent) {
     font-weight: 800;
 }
 .carousel-card-item {
-    flex: 0 0 280px;
-    max-width: 280px;
+    flex: 0 0 240px;
+    max-width: 240px;
 }
 .branch-title {
     font-family: 'Montserrat', sans-serif;
@@ -262,11 +164,12 @@ $activeAgents = array_filter($agents, function($agent) {
         right: -5px;
     }
     .carousel-card-item {
-        flex: 0 0 240px;
-        max-width: 240px;
+        flex: 0 0 200px;
+        max-width: 200px;
     }
 }
 </style>
+<?php require __DIR__ . '/../includes/agent-team-card-styles.php'; ?>
 
 <!-- Header Banner -->
 <?php if (!empty($headerImg)): ?>
@@ -353,51 +256,7 @@ $activeAgents = array_filter($agents, function($agent) {
                             <div class="branch-carousel-track">
                                 <?php foreach ($branchAgents as $agent): ?>
                                     <div class="carousel-card-item">
-                                        <div class="agent-card">
-                                            <div class="agent-img-wrapper">
-                                                <?php if (!empty($agent['image_url'])): ?>
-                                                    <img src="<?php echo esc($agent['image_url']); ?>" alt="<?php echo esc($agent['name']); ?>" class="agent-img">
-                                                <?php else: ?>
-                                                    <div class="fs-1 fw-bold text-muted font-montserrat d-flex align-items-center justify-content-center h-100 w-100 bg-light">
-                                                        <?php 
-                                                        $initials = '';
-                                                        if (!empty($agent['name'])) {
-                                                            $words = explode(' ', $agent['name']);
-                                                            $initials .= strtoupper(substr($words[0] ?? '', 0, 1));
-                                                            if (isset($words[1])) {
-                                                                $initials .= strtoupper(substr($words[1], 0, 1));
-                                                            }
-                                                        }
-                                                        echo esc($initials ? $initials : 'AM');
-                                                        ?>
-                                                    </div>
-                                                <?php endif; ?>
-                                            </div>
-                                            
-                                            <!-- Hover Overlay -->
-                                            <div class="agent-hover-overlay">
-                                                <h5 class="agent-hover-name"><?php echo esc($agent['name']); ?></h5>
-                                                <div class="agent-hover-role"><?php echo esc($agent['role'] ?? 'Asesor de Ventas'); ?></div>
-                                                
-                                                <div class="agent-hover-details">
-                                                    <?php if (!empty($agent['email'])): ?>
-                                                        <a href="mailto:<?php echo esc($agent['email']); ?>" class="agent-detail-link" title="Correo: <?php echo esc($agent['email']); ?>">
-                                                            <i class="bi bi-envelope-fill"></i> <?php echo esc($agent['email']); ?>
-                                                        </a>
-                                                    <?php endif; ?>
-                                                    
-                                                    <?php if (!empty($agent['phone'])): ?>
-                                                        <a href="https://wa.me/507<?php echo preg_replace('/\D/', '', $agent['phone']); ?>" target="_blank" class="agent-detail-link" title="WhatsApp: <?php echo esc($agent['phone']); ?>">
-                                                            <i class="bi bi-whatsapp"></i> <?php echo esc($agent['phone']); ?>
-                                                        </a>
-                                                    <?php endif; ?>
-                                                    
-                                                    <div class="agent-detail-link">
-                                                        <i class="bi bi-geo-alt-fill"></i> <?php echo esc(strtoupper($branch)); ?>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <?php require __DIR__ . '/../includes/agent-team-card.php'; ?>
                                     </div>
                                 <?php endforeach; ?>
                             </div>

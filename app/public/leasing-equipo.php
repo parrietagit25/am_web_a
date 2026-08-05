@@ -44,87 +44,6 @@ usort($activeAgents, function ($a, $b) {
     color: #64748b;
     font-weight: 500;
 }
-.leasing-agent-card {
-    position: relative;
-    border-radius: 16px;
-    overflow: hidden;
-    height: 340px;
-    background: #f1f5f9;
-    box-shadow: 0 4px 15px rgba(8, 16, 38, 0.04);
-    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s ease;
-}
-.leasing-agent-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 14px 28px rgba(8, 16, 38, 0.12);
-}
-.leasing-agent-img-wrapper {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-}
-.leasing-agent-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: top center;
-    transition: transform 0.5s ease;
-}
-.leasing-agent-card:hover .leasing-agent-img {
-    transform: scale(1.05);
-}
-.leasing-agent-hover-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(34, 53, 116, 0.9);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    text-align: center;
-    z-index: 5;
-    border-radius: 16px;
-}
-.leasing-agent-card:hover .leasing-agent-hover-overlay {
-    opacity: 1;
-    visibility: visible;
-}
-.leasing-agent-hover-name {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 700;
-    font-size: 1.15rem;
-    color: #ffffff;
-    margin-bottom: 8px;
-    line-height: 1.3;
-}
-.leasing-agent-hover-role {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 500;
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.85);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 20px;
-    line-height: 1.4;
-}
-.leasing-agent-detail-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: #ffffff;
-    text-decoration: none;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.82rem;
-    max-width: 100%;
-    word-break: break-word;
-}
-.leasing-agent-detail-link:hover {
-    color: #ffffff;
-    opacity: 0.9;
-}
 .leasing-team-watermark {
     position: fixed;
     bottom: 24px;
@@ -135,12 +54,8 @@ usort($activeAgents, function ($a, $b) {
     pointer-events: none;
     z-index: 1;
 }
-@media (max-width: 576px) {
-    .leasing-agent-card {
-        height: 300px;
-    }
-}
 </style>
+<?php require __DIR__ . '/../includes/agent-team-card-styles.php'; ?>
 
 <section class="leasing-team-page pt-5">
     <div class="container position-relative">
@@ -164,46 +79,10 @@ usort($activeAgents, function ($a, $b) {
                 <p class="text-muted font-poppins">Estamos actualizando la información de nuestros asesores corporativos.</p>
             </div>
         <?php else: ?>
-            <div class="row row-cols-2 row-cols-md-4 g-3 g-lg-4">
+            <div class="row row-cols-2 row-cols-md-4 g-4 g-lg-4">
                 <?php foreach ($activeAgents as $agent): ?>
                     <div class="col">
-                        <div class="leasing-agent-card">
-                            <div class="leasing-agent-img-wrapper">
-                                <?php if (!empty($agent['image_url'])): ?>
-                                    <img src="<?php echo esc($agent['image_url']); ?>" alt="<?php echo esc($agent['name']); ?>" class="leasing-agent-img">
-                                <?php else: ?>
-                                    <div class="d-flex align-items-center justify-content-center h-100 w-100 bg-light">
-                                        <span class="display-4 fw-bold text-muted font-montserrat opacity-50">
-                                            <?php
-                                            $words = explode(' ', $agent['name'] ?? '');
-                                            $initials = strtoupper(substr($words[0] ?? '', 0, 1));
-                                            if (isset($words[1])) {
-                                                $initials .= strtoupper(substr($words[1], 0, 1));
-                                            }
-                                            echo esc($initials ?: 'AM');
-                                            ?>
-                                        </span>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-
-                            <div class="leasing-agent-hover-overlay">
-                                <h2 class="leasing-agent-hover-name h5 mb-0"><?php echo esc($agent['name']); ?></h2>
-                                <div class="leasing-agent-hover-role"><?php echo esc($agent['role'] ?? 'Asesor de Ventas Corporativas'); ?></div>
-                                <?php if (!empty($agent['email'])): ?>
-                                    <a href="mailto:<?php echo esc($agent['email']); ?>" class="leasing-agent-detail-link" title="<?php echo esc($agent['email']); ?>">
-                                        <i class="bi bi-envelope-fill flex-shrink-0"></i>
-                                        <span><?php echo esc($agent['email']); ?></span>
-                                    </a>
-                                <?php endif; ?>
-                                <?php if (!empty($agent['phone'])): ?>
-                                    <a href="https://wa.me/507<?php echo preg_replace('/\D/', '', $agent['phone']); ?>" target="_blank" rel="noopener" class="leasing-agent-detail-link mt-2" title="WhatsApp">
-                                        <i class="bi bi-whatsapp flex-shrink-0"></i>
-                                        <span><?php echo esc($agent['phone']); ?></span>
-                                    </a>
-                                <?php endif; ?>
-                            </div>
-                        </div>
+                        <?php require __DIR__ . '/../includes/agent-team-card.php'; ?>
                     </div>
                 <?php endforeach; ?>
             </div>

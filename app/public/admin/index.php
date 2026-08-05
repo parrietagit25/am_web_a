@@ -1676,6 +1676,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $role = trim($_POST['agent_role'] ?? 'Asesor de Ventas');
         $email = trim($_POST['agent_email'] ?? '');
         $phone = trim($_POST['agent_phone'] ?? '');
+        $instagram = trim($_POST['agent_instagram'] ?? '');
         $active = isset($_POST['agent_active']) && $_POST['agent_active'] == '1';
         $image_url = '';
 
@@ -1712,6 +1713,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'role' => $role,
                 'email' => $email,
                 'phone' => $phone,
+                'instagram' => $instagram,
                 'branch' => $branch ?? '',
                 'image_url' => $image_url,
                 'active' => $active
@@ -1738,6 +1740,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $role = trim($_POST['agent_role'] ?? 'Asesor de Ventas');
         $email = trim($_POST['agent_email'] ?? '');
         $phone = trim($_POST['agent_phone'] ?? '');
+        $instagram = trim($_POST['agent_instagram'] ?? '');
         $active = isset($_POST['agent_active']) && $_POST['agent_active'] == '1';
 
         if (!isset($siteData['seminuevos']['team']['agents'])) {
@@ -1785,6 +1788,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'role' => $role,
                     'email' => $email,
                     'phone' => $phone,
+                    'instagram' => $instagram,
                     'branch' => $branch ?? ($existing['branch'] ?? ''),
                     'image_url' => $image_url,
                     'active' => $active
@@ -2502,6 +2506,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $role = trim($_POST['leasing_agent_role'] ?? 'Asesor de Ventas Corporativas');
         $email = trim($_POST['leasing_agent_email'] ?? '');
         $phone = trim($_POST['leasing_agent_phone'] ?? '');
+        $instagram = trim($_POST['leasing_agent_instagram'] ?? '');
         $active = isset($_POST['leasing_agent_active']) && $_POST['leasing_agent_active'] == '1';
         $sort_order = intval($_POST['leasing_agent_sort_order'] ?? 0);
         $image_url = '';
@@ -2527,6 +2532,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'role' => $role,
                 'email' => $email,
                 'phone' => $phone,
+                'instagram' => $instagram,
                 'image_url' => $image_url,
                 'active' => $active,
                 'sort_order' => $sort_order
@@ -2549,6 +2555,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $role = trim($_POST['leasing_agent_role'] ?? 'Asesor de Ventas Corporativas');
         $email = trim($_POST['leasing_agent_email'] ?? '');
         $phone = trim($_POST['leasing_agent_phone'] ?? '');
+        $instagram = trim($_POST['leasing_agent_instagram'] ?? '');
         $active = isset($_POST['leasing_agent_active']) && $_POST['leasing_agent_active'] == '1';
         $sort_order = intval($_POST['leasing_agent_sort_order'] ?? 0);
 
@@ -2582,6 +2589,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'role' => $role,
                     'email' => $email,
                     'phone' => $phone,
+                    'instagram' => $instagram,
                     'image_url' => $image_url,
                     'active' => $active,
                     'sort_order' => $sort_order
@@ -5550,6 +5558,13 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                         <div class="mb-3">
                                             <label for="semi_agent_phone" class="form-label">Teléfono / WhatsApp</label>
                                             <input type="text" id="semi_agent_phone" name="agent_phone" class="form-control form-control-premium" placeholder="Ej: 6655-4433" required>
+                                            <div class="form-text">Se conserva en admin para uso futuro; en la web pública se muestra Instagram.</div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="semi_agent_instagram" class="form-label">Instagram <span class="text-muted fw-normal">(público)</span></label>
+                                            <input type="text" id="semi_agent_instagram" name="agent_instagram" class="form-control form-control-premium" placeholder="@asesor.automarket o URL">
+                                            <div class="form-text">Aparece debajo de la tarjeta y en el hover de la foto.</div>
                                         </div>
                                         
                                         <div class="mb-3">
@@ -6663,6 +6678,12 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                         <div class="mb-3">
                                             <label for="leasing_agent_phone" class="form-label">Teléfono / WhatsApp <span class="text-muted fw-normal">(opcional)</span></label>
                                             <input type="text" id="leasing_agent_phone" name="leasing_agent_phone" class="form-control form-control-premium" placeholder="Ej: 6655-4433">
+                                            <div class="form-text">Se conserva en admin para uso futuro; en la web pública se muestra Instagram.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="leasing_agent_instagram" class="form-label">Instagram <span class="text-muted fw-normal">(público)</span></label>
+                                            <input type="text" id="leasing_agent_instagram" name="leasing_agent_instagram" class="form-control form-control-premium" placeholder="@asesor.automarket o URL">
+                                            <div class="form-text">Aparece debajo de la tarjeta y en el hover de la foto.</div>
                                         </div>
                                         <div class="mb-3">
                                             <label for="leasing_agent_sort_order" class="form-label">Orden en la grilla</label>
@@ -7385,6 +7406,7 @@ function initEditLeasingAgent(agent) {
     document.getElementById('leasing_agent_role').value = agent.role || 'Asesor de Ventas Corporativas';
     document.getElementById('leasing_agent_email').value = agent.email || '';
     document.getElementById('leasing_agent_phone').value = agent.phone || '';
+    document.getElementById('leasing_agent_instagram').value = agent.instagram || '';
     document.getElementById('leasing_agent_sort_order').value = agent.sort_order ?? 0;
 
     if (agent.image_url) {
@@ -7820,6 +7842,7 @@ function initEditSemiAgent(agent) {
     document.getElementById('semi_agent_role').value = agent.role || 'Asesor de Ventas';
     document.getElementById('semi_agent_email').value = agent.email || '';
     document.getElementById('semi_agent_phone').value = agent.phone || '';
+    document.getElementById('semi_agent_instagram').value = agent.instagram || '';
     if (agent.location_id) {
         ensureSemiAgentBranchOption(agent.location_id);
     } else if (agent.branch) {
