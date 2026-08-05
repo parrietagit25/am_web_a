@@ -187,15 +187,23 @@ $themeRgb = "$r, $g, $b";
     <div class="top-bar py-2 text-white">
         <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div class="d-flex align-items-center gap-3 top-bar-info flex-wrap">
-                <span class="d-none d-md-inline text-accent-light"><i class="bi bi-tag-fill me-1"></i> <?php echo esc(($_tbContact['promo_text'] ?? '') !== '' ? $_tbContact['promo_text'] : t('topbar.special_prices')); ?></span>
-                <span><i class="bi bi-telephone-fill me-1"></i> <?php echo esc(t('topbar.call_us')); ?> <a href="tel:<?php echo esc($_tbContact['phone_tel']); ?>" class="text-white text-decoration-none"><?php echo esc($_tbContact['phone_display']); ?></a></span>
-                <?php if (($_tbContact['whatsapp_digits'] ?? '') !== ''): ?>
-                <span class="d-none d-md-inline"><i class="bi bi-whatsapp me-1"></i><a href="https://wa.me/<?php echo esc($_tbContact['whatsapp_digits']); ?>" class="text-white text-decoration-none" target="_blank" rel="noopener noreferrer">WhatsApp</a></span>
+                <?php if (!empty($_tbContact['enabled'])): ?>
+                    <?php if (($_tbContact['promo_text'] ?? '') !== ''): ?>
+                    <span class="d-none d-md-inline text-accent-light"><i class="bi bi-tag-fill me-1"></i> <?php echo esc($_tbContact['promo_text']); ?></span>
+                    <?php endif; ?>
+                    <?php if (($_tbContact['phone_display'] ?? '') !== ''): ?>
+                    <span><i class="bi bi-telephone-fill me-1"></i> <?php echo esc(t('topbar.call_us')); ?> <a href="tel:<?php echo esc($_tbContact['phone_tel']); ?>" class="text-white text-decoration-none"><?php echo esc($_tbContact['phone_display']); ?></a></span>
+                    <?php endif; ?>
+                    <?php if (($_tbContact['whatsapp_digits'] ?? '') !== ''): ?>
+                    <span class="d-none d-md-inline"><i class="bi bi-whatsapp me-1"></i><a href="https://wa.me/<?php echo esc($_tbContact['whatsapp_digits']); ?>" class="text-white text-decoration-none" target="_blank" rel="noopener noreferrer">WhatsApp</a></span>
+                    <?php endif; ?>
+                    <?php if (($_tbContact['email'] ?? '') !== ''): ?>
+                    <span class="d-none d-xl-inline"><i class="bi bi-envelope me-1"></i><a href="mailto:<?php echo esc($_tbContact['email']); ?>" class="text-white text-decoration-none"><?php echo esc($_tbContact['email']); ?></a></span>
+                    <?php endif; ?>
+                    <?php if (($_tbContact['toll_free'] ?? '') !== ''): ?>
+                    <span class="d-none d-lg-inline"><?php echo esc(t('topbar.toll_free')); ?> <a href="tel:<?php echo esc($_tbContact['toll_free_tel']); ?>" class="text-white text-decoration-none"><?php echo esc($_tbContact['toll_free']); ?></a></span>
+                    <?php endif; ?>
                 <?php endif; ?>
-                <?php if (($_tbContact['email'] ?? '') !== ''): ?>
-                <span class="d-none d-xl-inline"><i class="bi bi-envelope me-1"></i><a href="mailto:<?php echo esc($_tbContact['email']); ?>" class="text-white text-decoration-none"><?php echo esc($_tbContact['email']); ?></a></span>
-                <?php endif; ?>
-                <span class="d-none d-lg-inline"><?php echo esc(t('topbar.toll_free')); ?> <a href="tel:<?php echo esc($_tbContact['toll_free_tel']); ?>" class="text-white text-decoration-none"><?php echo esc($_tbContact['toll_free']); ?></a></span>
             </div>
             <div class="d-flex align-items-center gap-3">
                 <?php

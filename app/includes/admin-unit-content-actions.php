@@ -230,6 +230,7 @@ function unit_content_handle_post(
             }
 
             $payload = [
+                'enabled' => filter_var($_POST['topbar_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 'promo_text' => trim((string) ($_POST['topbar_promo_text'] ?? '')),
                 'phone_display' => trim((string) ($_POST['topbar_phone_display'] ?? '')),
                 'whatsapp_number' => preg_replace('/\D/', '', (string) ($_POST['topbar_whatsapp_number'] ?? '')) ?: '',
