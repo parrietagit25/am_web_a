@@ -1,0 +1,20 @@
+# Overlay post-cutover para Automarket con edge_proxy + /pruebas_reservas/:
+# - Une automarket_web a proxy-net
+# - NO publica puertos (edge_proxy es dueño del :80 del host)
+#
+# Uso en el servidor (24.199.95.190):
+#   docker compose -f docker-compose.yml -f docker-compose.edge.yml up -d --force-recreate app web
+#   cd /home/am_edge_proxy && docker compose up -d
+#
+# NO combinar con docker-compose.prod.yml (ese archivo publica 80:80 y rompe /pruebas_reservas/).
+
+services:
+  web:
+    networks:
+      - automarket-network
+      - proxy-net
+
+networks:
+  proxy-net:
+    external: true
+    name: proxy-net

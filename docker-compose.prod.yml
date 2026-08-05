@@ -1,5 +1,8 @@
-# Producción (DigitalOcean / test): solo puerto 80
+# Producción SIN edge_proxy (Automarket dueño único del puerto 80).
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# En test.automarket.com.pa (con /pruebas_reservas/) NO uses este archivo.
+# Usa docker-compose.edge.yml + /home/am_edge_proxy (dueño del :80).
 services:
   web:
     ports:
