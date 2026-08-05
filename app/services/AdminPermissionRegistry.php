@@ -237,7 +237,17 @@ class AdminPermissionRegistry
                 return null;
             }
 
-            return (string) ($cfg['permission'] ?? 'global');
+            return (string) ($cfg['permission'] ?? '');
+        }
+        if (in_array($action, ['add_unit_payment_method', 'edit_unit_payment_method', 'delete_unit_payment_method'], true)) {
+            require_once __DIR__ . '/UnitPaymentMethodsService.php';
+            $paymentUnit = strtolower(trim((string) ($_POST['payment_unit'] ?? '')));
+            $cfg = UnitPaymentMethodsService::unitConfig($paymentUnit);
+            if ($cfg === null) {
+                return null;
+            }
+
+            return (string) ($cfg['permission'] ?? '');
         }
         if ($action === 'save_unit_terms_page') {
             require_once __DIR__ . '/UnitTermsService.php';

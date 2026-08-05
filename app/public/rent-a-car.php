@@ -301,6 +301,7 @@ $_ufsItems = $_racFaqs;
 $_upsUnitSocialLinks = $_racHome['social_links'] ?? ($_legacyRac['social_links'] ?? []);
 $_upsShowPayments = ($_racHome['show_payment_methods'] ?? true) !== false;
 $_upsUnitContact = $_racHome['contact'] ?? [];
+$_upsUnitData = $_racHome;
 unset($_racHome, $_legacyRac, $_racFaqs);
 require __DIR__ . '/../includes/schema-faq.php';
 ?>

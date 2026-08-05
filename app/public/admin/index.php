@@ -2980,6 +2980,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../../includes/admin-rac-actions.php';
     require __DIR__ . '/../../includes/admin-unit-footer-actions.php';
     require __DIR__ . '/../../includes/admin-unit-footer-cms-actions.php';
+    require __DIR__ . '/../../includes/admin-unit-payment-methods-actions.php';
     require __DIR__ . '/../../includes/admin-unit-allies-actions.php';
     require __DIR__ . '/../../includes/admin-chatbot-actions.php';
     require __DIR__ . '/../../includes/admin-custom-unit-actions.php';

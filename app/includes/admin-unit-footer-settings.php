@@ -63,7 +63,7 @@ $ufFieldPrefix = preg_replace('/[^a-z0-9_]/', '_', $ufUnitKey);
                     <input class="form-check-input" type="checkbox" id="<?php echo esc($ufFieldPrefix); ?>_show_payments" name="unit_show_payment_methods" value="1"
                         <?php echo $ufShowPayments ? 'checked' : ''; ?>>
                     <label class="form-check-label" for="<?php echo esc($ufFieldPrefix); ?>_show_payments">
-                        Mostrar iconos Visa/Mastercard en el bloque inferior
+                        Mostrar bloque de medios de pago en el pie inferior
                     </label>
                 </div>
             </div>
@@ -75,3 +75,9 @@ $ufFieldPrefix = preg_replace('/[^a-z0-9_]/', '_', $ufUnitKey);
         </div>
     </form>
 </div>
+
+<?php
+$pmUnitKey = $ufUnitKey;
+$pmTabSlug = $ufTabSlug;
+require __DIR__ . '/admin-unit-payment-methods-panel.php';
+?>

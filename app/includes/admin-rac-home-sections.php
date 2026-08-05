@@ -126,7 +126,7 @@ $rac_show_payments = ($rac_home['show_payment_methods'] ?? true) !== false;
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="rac_show_payment_methods" name="rac_show_payment_methods" value="1"
                         <?php echo $rac_show_payments ? 'checked' : ''; ?>>
-                    <label class="form-check-label" for="rac_show_payment_methods">Mostrar iconos Visa/Mastercard en el bloque inferior de Rent A Car</label>
+                    <label class="form-check-label" for="rac_show_payment_methods">Mostrar bloque de medios de pago en el pie inferior de Rent A Car</label>
                 </div>
             </div>
         </div>
@@ -137,3 +137,9 @@ $rac_show_payments = ($rac_home['show_payment_methods'] ?? true) !== false;
         </div>
     </form>
 </div>
+
+<?php
+$pmUnitKey = 'rentacar';
+$pmTabSlug = 'hero';
+require __DIR__ . '/admin-unit-payment-methods-panel.php';
+?>

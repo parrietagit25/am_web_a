@@ -54,15 +54,22 @@ if (!empty($_upsFromUnit)) {
     unset($_upsSvc, $_upsFooter);
 }
 
-// Medios de pago: iconos de assets (siempre disponibles)
-$_upsPayments = [
-    ['src' => '/assets/img/visa.png',       'alt' => 'Visa'],
-    ['src' => '/assets/img/mastercard.png', 'alt' => 'Mastercard'],
-];
+// Medios de pago: CMS por unidad (fallback Visa/Mastercard si no hay lista guardada)
+if (!class_exists('UnitPaymentMethodsService')) {
+    require_once __DIR__ . '/../services/UnitPaymentMethodsService.php';
+}
+$_upsPayments = [];
+if (isset($_upsUnitData) && is_array($_upsUnitData)) {
+    $_upsPayments = UnitPaymentMethodsService::listForDisplay($_upsUnitData);
+} elseif (!empty($_upsPaymentMethods) && is_array($_upsPaymentMethods)) {
+    $_upsPayments = UnitPaymentMethodsService::normalizeList($_upsPaymentMethods);
+} else {
+    $_upsPayments = UnitPaymentMethodsService::defaults();
+}
 
 $_upsHasSocial   = !empty($_upsSocial);
 $_upsShowPayments = ($_upsShowPayments ?? true) !== false;
-$_upsHasPayments = $_upsShowPayments;
+$_upsHasPayments = $_upsShowPayments && !empty($_upsPayments);
 $_upsUnitContact = is_array($_upsUnitContact ?? null) ? $_upsUnitContact : [];
 $_upsContactPhone = trim((string) ($_upsUnitContact['phone_display'] ?? ''));
 $_upsContactWhatsapp = preg_replace('/\D/', '', (string) ($_upsUnitContact['whatsapp_number'] ?? ''));
@@ -70,7 +77,7 @@ $_upsContactEmail = trim((string) ($_upsUnitContact['email'] ?? ''));
 $_upsContactSchedule = trim((string) ($_upsUnitContact['schedule'] ?? ''));
 $_upsHasContact = $_upsContactPhone !== '' || $_upsContactWhatsapp !== '' || $_upsContactEmail !== '' || $_upsContactSchedule !== '';
 
-unset($_upsUnitSocialLinks, $_upsFromUnit, $_upsNetMeta, $_upsNet, $_upsUrl);
+unset($_upsUnitSocialLinks, $_upsFromUnit, $_upsNetMeta, $_upsNet, $_upsUrl, $_upsUnitData, $_upsPaymentMethods);
 
 if (!$_upsHasPayments && !$_upsHasSocial && !$_upsHasContact) {
     return;
@@ -86,8 +93,9 @@ if (!$_upsHasPayments && !$_upsHasSocial && !$_upsHasContact) {
                 <span class="text-muted small fw-semibold text-uppercase tracking-wider">Medios de pago</span>
                 <?php foreach ($_upsPayments as $_upsP): ?>
                 <img src="<?php echo esc($_upsP['src']); ?>"
-                     alt="<?php echo esc($_upsP['alt']); ?>"
-                     width="44" height="28"
+                     alt="<?php echo esc($_upsP['alt'] ?? ''); ?>"
+                     <?php if (trim((string) ($_upsP['title'] ?? '')) !== ''): ?>title="<?php echo esc($_upsP['title']); ?>"<?php endif; ?>
+                     width="43" height="28"
                      loading="lazy"
                      class="rounded-1 border"
                      style="object-fit: contain; background:#fff; padding:2px;">

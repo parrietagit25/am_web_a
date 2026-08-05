@@ -78,6 +78,9 @@ function admin_guard_post_action(string $action): bool
         'add_unit_ally',
         'edit_unit_ally',
         'delete_unit_ally',
+        'add_unit_payment_method',
+        'edit_unit_payment_method',
+        'delete_unit_payment_method',
     ];
     if (in_array($action, $csrfActions, true)
         && !admin_verify_csrf((string) ($_POST['admin_csrf_token'] ?? ''))) {

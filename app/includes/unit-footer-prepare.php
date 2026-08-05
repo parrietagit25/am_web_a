@@ -42,11 +42,12 @@ function am_unit_footer_contact_array(array $unitData): array
  */
 function am_unit_footer_prepare(array $unitData): void
 {
-    global $_upsUnitSocialLinks, $_upsShowPayments, $_upsUnitContact;
+    global $_upsUnitSocialLinks, $_upsShowPayments, $_upsUnitContact, $_upsUnitData;
 
     $_upsUnitSocialLinks = is_array($unitData['social_links'] ?? null) ? $unitData['social_links'] : [];
     $_upsShowPayments = ($unitData['show_payment_methods'] ?? true) !== false;
     $_upsUnitContact = am_unit_footer_contact_array($unitData);
+    $_upsUnitData = $unitData;
 }
 
 /**
