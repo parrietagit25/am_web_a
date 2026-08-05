@@ -54,9 +54,9 @@ if ($ufSocial === []) {
             <i class="bi bi-layout-text-window-reverse me-2 text-danger"></i>Pie de página — <?php echo esc($ufLabel); ?>
         </h5>
         <p class="text-muted small mb-0">
-            Edita la columna de marca, <strong>Recursos</strong>, <strong>Conoce también</strong>, <strong>Síguenos</strong>
-            y la franja inferior (copyright / privacidad / cookies / aviso reCAPTCHA) de esta unidad.
-            El logo y los medios de pago siguen tomando el pie global.
+            Edita la columna de marca, <strong>Recursos</strong>, <strong>Conoce también</strong>, <strong>Síguenos</strong>,
+            <strong>Medios de pago</strong> y la franja inferior (copyright / privacidad / cookies / aviso reCAPTCHA) de esta unidad.
+            El logo del pie sigue tomando el logo global si la unidad no define uno propio.
             <?php if (!$ufConfigured): ?>
                 <span class="d-block mt-1 text-warning-emphasis">
                     Aún no hay un pie guardado para esta unidad: se muestran valores sembrados desde el pie global / redes actuales. Al guardar, el sitio público usará este pie.
@@ -66,6 +66,13 @@ if ($ufSocial === []) {
             <?php endif; ?>
         </p>
     </div>
+
+    <?php
+    // Medios de pago (iconos 43×28) — visible en esta pestaña Pie de página
+    $pmUnitKey = $ufUnitKey;
+    $pmTabSlug = $ufTab;
+    require __DIR__ . '/admin-unit-payment-methods-panel.php';
+    ?>
 
     <form method="POST" action="?tab=<?php echo esc($ufTab); ?>" id="uf-form-<?php echo esc($ufDom); ?>">
         <input type="hidden" name="action" value="save_unit_footer">

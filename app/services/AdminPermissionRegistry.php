@@ -239,7 +239,7 @@ class AdminPermissionRegistry
 
             return (string) ($cfg['permission'] ?? '');
         }
-        if (in_array($action, ['add_unit_payment_method', 'edit_unit_payment_method', 'delete_unit_payment_method'], true)) {
+        if (in_array($action, ['add_unit_payment_method', 'edit_unit_payment_method', 'delete_unit_payment_method', 'save_unit_show_payment_methods'], true)) {
             require_once __DIR__ . '/UnitPaymentMethodsService.php';
             $paymentUnit = strtolower(trim((string) ($_POST['payment_unit'] ?? '')));
             $cfg = UnitPaymentMethodsService::unitConfig($paymentUnit);

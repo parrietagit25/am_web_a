@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../services/UnitPaymentMethodsService.php';
 
-$pmActions = ['add_unit_payment_method', 'edit_unit_payment_method', 'delete_unit_payment_method'];
+$pmActions = ['add_unit_payment_method', 'edit_unit_payment_method', 'delete_unit_payment_method', 'save_unit_show_payment_methods'];
 if (!in_array($action, $pmActions, true)) {
     return;
 }
@@ -21,6 +21,20 @@ $pmUnit = strtolower(trim((string) ($_POST['payment_unit'] ?? '')));
 $pmCfg = UnitPaymentMethodsService::unitConfig($pmUnit);
 if ($pmCfg === null) {
     $errorMsg = 'Unidad no válida para medios de pago.';
+    return;
+}
+
+if ($action === 'save_unit_show_payment_methods') {
+    $dataKey = (string) $pmCfg['data_key'];
+    if (!isset($siteData[$dataKey]) || !is_array($siteData[$dataKey])) {
+        $siteData[$dataKey] = [];
+    }
+    $siteData[$dataKey]['show_payment_methods'] = filter_var($_POST['payment_show'] ?? false, FILTER_VALIDATE_BOOLEAN);
+    if ($contentService->saveAll($siteData)) {
+        $successMsg = 'Visibilidad de medios de pago actualizada.';
+    } else {
+        $errorMsg = 'Error al guardar la visibilidad de medios de pago.';
+    }
     return;
 }
 

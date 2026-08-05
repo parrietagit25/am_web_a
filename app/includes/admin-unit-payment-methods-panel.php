@@ -31,11 +31,30 @@ $pmLabel = (string) $pmCfg['label'];
         <i class="bi bi-credit-card-2-front-fill me-2 text-danger"></i>Medios de pago — iconos (<?php echo esc($pmLabel); ?>)
     </h5>
     <p class="text-muted small mb-4">
-        Sube, actualiza o elimina iconos del bloque «Medios de pago».
+        Iconos del pie oscuro («Medios de pago») y del bloque inferior blanco de esta unidad.
         La imagen debe medir exactamente <strong><?php echo (int) $pmW; ?>×<?php echo (int) $pmH; ?> px</strong> (JPG/PNG/GIF/WEBP).
-        Completa <code>alt</code> y <code>title</code> para accesibilidad y tooltip.
-        Si aún no has guardado una lista propia, se muestran Visa/Mastercard por defecto.
+        Completa <code>alt</code> y <code>title</code>. Si aún no guardas una lista propia, se usan Visa/Mastercard por defecto.
     </p>
+
+    <?php
+    $pmShowPayments = ($pmUnitData['show_payment_methods'] ?? true) !== false;
+    ?>
+    <form method="POST" action="?tab=<?php echo esc($pmTab); ?>" class="mb-4">
+        <input type="hidden" name="action" value="save_unit_show_payment_methods">
+        <input type="hidden" name="payment_unit" value="<?php echo esc($pmUnitKey); ?>">
+        <?php admin_csrf_field(); ?>
+        <input type="hidden" name="payment_show" value="0">
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="payment_show" value="1"
+                   id="pm_show_<?php echo esc($pmDom); ?>"<?php echo $pmShowPayments ? ' checked' : ''; ?>>
+            <label class="form-check-label fw-semibold" for="pm_show_<?php echo esc($pmDom); ?>">
+                Mostrar medios de pago en el sitio (pie y bloque inferior)
+            </label>
+        </div>
+        <button type="submit" class="btn btn-sm btn-outline-secondary mt-2">
+            <i class="bi bi-save me-1"></i>Guardar visibilidad
+        </button>
+    </form>
 
     <form method="POST" action="?tab=<?php echo esc($pmTab); ?>" enctype="multipart/form-data" class="border rounded-3 p-3 bg-light mb-4" id="pmForm-<?php echo esc($pmDom); ?>">
         <input type="hidden" name="action" id="pmFormAction-<?php echo esc($pmDom); ?>" value="add_unit_payment_method">

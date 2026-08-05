@@ -18,31 +18,31 @@ class UnitPaymentMethodsService
             'rentacar' => [
                 'data_key' => 'homepage',
                 'permission' => 'hero',
-                'tab' => 'hero',
+                'tab' => 'rentacar-footer',
                 'label' => 'Rent A Car',
             ],
             'seminuevos' => [
                 'data_key' => 'seminuevos',
                 'permission' => 'semi_home',
-                'tab' => 'semi-home',
+                'tab' => 'seminuevos-footer',
                 'label' => 'Venta de Autos',
             ],
             'leasing' => [
                 'data_key' => 'leasing',
                 'permission' => 'leasing_home',
-                'tab' => 'leasing-home',
+                'tab' => 'leasing-footer',
                 'label' => 'Leasing',
             ],
             'renting' => [
                 'data_key' => 'renting',
                 'permission' => 'renting_home',
-                'tab' => 'renting-home',
+                'tab' => 'renting-footer',
                 'label' => 'Renting',
             ],
             'taller' => [
                 'data_key' => 'taller',
                 'permission' => 'taller_home',
-                'tab' => 'taller-home',
+                'tab' => 'taller-footer',
                 'label' => 'Taller',
             ],
         ];

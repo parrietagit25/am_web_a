@@ -65,6 +65,21 @@ $fg['also_know_title'] = $unitFooterResolved['also_know_title'];
 $fg['follow_title'] = $unitFooterResolved['follow_title'];
 $fg['resources_title'] = $unitFooterResolved['resources_title'];
 
+if (!class_exists('UnitPaymentMethodsService')) {
+    require_once __DIR__ . '/../services/UnitPaymentMethodsService.php';
+}
+$footerPayCfg = UnitPaymentMethodsService::unitConfig($footerActiveUnit);
+$footerPayUnitData = [];
+if ($footerPayCfg !== null) {
+    $footerPayDataKey = (string) $footerPayCfg['data_key'];
+    $footerPayUnitData = is_array($footerSiteData[$footerPayDataKey] ?? null)
+        ? $footerSiteData[$footerPayDataKey]
+        : [];
+}
+$footerPaymentIcons = UnitPaymentMethodsService::listForDisplay($footerPayUnitData);
+$footerShowPayments = ($footerPayUnitData['show_payment_methods'] ?? true) !== false
+    && $footerPaymentIcons !== [];
+
 // Columna de marca + franja legal (por unidad si está configurada; si no, global).
 $fg['tagline'] = (string) ($unitFooterResolved['brand_tagline'] ?? ($fg['tagline'] ?? ''));
 $fg['address'] = (string) ($unitFooterResolved['brand_address'] ?? ($fg['address'] ?? ''));
@@ -171,11 +186,19 @@ if ($isPublicSite) {
                         <?php endforeach; ?>
                     </div>
                     
+                    <?php if ($footerShowPayments): ?>
                     <h5 class="fw-bold mb-3 text-white"><?php echo esc($fg['payment_title'] ?? t('footer.payment_methods')); ?></h5>
                     <div class="payment-badges d-flex flex-wrap gap-2 align-items-center">
-                        <img src="/assets/img/visa.png" alt="Visa" class="footer-payment-icon" width="44" height="28" loading="lazy">
-                        <img src="/assets/img/mastercard.png" alt="Mastercard" class="footer-payment-icon" width="44" height="28" loading="lazy">
+                        <?php foreach ($footerPaymentIcons as $payIcon): ?>
+                        <img src="<?php echo esc($payIcon['src']); ?>"
+                             alt="<?php echo esc($payIcon['alt'] ?? ''); ?>"
+                             <?php if (trim((string) ($payIcon['title'] ?? '')) !== ''): ?>title="<?php echo esc($payIcon['title']); ?>"<?php endif; ?>
+                             class="footer-payment-icon"
+                             width="43" height="28"
+                             loading="lazy">
+                        <?php endforeach; ?>
                     </div>
+                    <?php endif; ?>
                 </div>
 
             </div>
