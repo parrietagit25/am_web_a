@@ -291,16 +291,27 @@ $gpExpOpen = $gpSection === 'experimental';
                                         </td>
                                         <td class="text-end">
                                             <button type="button" class="btn btn-sm btn-outline-primary"
-                                                    onclick='initEditExpPage(<?php echo json_encode($expPage, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP); ?>)'>
+                                                    onclick='initEditExpPage(<?php echo json_encode($expPage, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP); ?>)'
+                                                    title="Editar">
                                                 <i class="bi bi-pencil"></i>
                                             </button>
+                                            <form method="POST" action="?tab=generic-pages&amp;gp_section=experimental" class="d-inline"
+                                                  onsubmit="return confirm('¿Clonar «<?php echo esc((string) ($expPage['title'] ?? '')); ?>» como borrador?');">
+                                                <input type="hidden" name="action" value="clone_experimental_page">
+                                                <input type="hidden" name="gp_section" value="experimental">
+                                                <input type="hidden" name="exp_page_id" value="<?php echo esc((string) ($expPage['id'] ?? '')); ?>">
+                                                <?php admin_csrf_field(); ?>
+                                                <button type="submit" class="btn btn-sm btn-outline-warning" title="Clonar como borrador">
+                                                    <i class="bi bi-copy"></i>
+                                                </button>
+                                            </form>
                                             <form method="POST" action="?tab=generic-pages&amp;gp_section=experimental" class="d-inline"
                                                   onsubmit="return confirm('¿Eliminar la página experimental «<?php echo esc((string) ($expPage['title'] ?? '')); ?>»?');">
                                                 <input type="hidden" name="action" value="delete_experimental_page">
                                                 <input type="hidden" name="gp_section" value="experimental">
                                                 <input type="hidden" name="exp_page_id" value="<?php echo esc((string) ($expPage['id'] ?? '')); ?>">
                                                 <?php admin_csrf_field(); ?>
-                                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="bi bi-trash"></i></button>
                                             </form>
                                         </td>
                                     </tr>

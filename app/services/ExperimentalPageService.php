@@ -183,4 +183,86 @@ class ExperimentalPageService
 
         return count($siteData[self::STORAGE_KEY]) < $before;
     }
+
+    /**
+     * Clona una página experimental tal cual, con slug único y active=false (borrador).
+     *
+     * @param array<string, mixed> $siteData
+     * @return string|null mensaje de error o null si OK
+     */
+    public static function clonePage(array &$siteData, string $sourceId): ?string
+    {
+        $source = self::findById($siteData, $sourceId);
+        if ($source === null) {
+            return 'Página experimental no encontrada.';
+        }
+
+        $baseTitle = trim((string) ($source['title'] ?? 'Página'));
+        $copyTitle = $baseTitle . ' (copia)';
+        if (mb_strlen($copyTitle, 'UTF-8') > self::MAX_TITLE_LENGTH) {
+            $copyTitle = mb_substr($baseTitle, 0, max(1, self::MAX_TITLE_LENGTH - 8), 'UTF-8') . ' (copia)';
+        }
+
+        $baseSlug = strtolower(trim((string) ($source['slug'] ?? '')));
+        if ($baseSlug === '') {
+            $baseSlug = GenericPageService::slugFromTitle($baseTitle);
+        }
+        $copySlug = self::uniqueCopySlug($siteData, $baseSlug);
+        $slugError = self::validateSlug($siteData, $copySlug);
+        if ($slugError !== null) {
+            return $slugError;
+        }
+
+        $now = date('c');
+        $blocks = ExperimentalPageBuilderService::normalize($source['blocks'] ?? []);
+
+        if (!isset($siteData[self::STORAGE_KEY]) || !is_array($siteData[self::STORAGE_KEY])) {
+            $siteData[self::STORAGE_KEY] = [];
+        }
+
+        $siteData[self::STORAGE_KEY][] = [
+            'id' => 'exp_' . bin2hex(random_bytes(6)),
+            'title' => $copyTitle,
+            'subtitle' => (string) ($source['subtitle'] ?? ''),
+            'slug' => $copySlug,
+            'content_html' => GenericPageService::sanitizeContentHtml((string) ($source['content_html'] ?? '')),
+            'blocks' => $blocks,
+            'active' => false,
+            'created_at' => $now,
+            'updated_at' => $now,
+            'cloned_from' => (string) ($source['id'] ?? ''),
+        ];
+
+        return null;
+    }
+
+    /** @param array<string, mixed> $siteData */
+    private static function uniqueCopySlug(array $siteData, string $baseSlug): string
+    {
+        $baseSlug = preg_replace('/-copia(-\d+)?$/', '', $baseSlug) ?? $baseSlug;
+        $baseSlug = trim($baseSlug, '-');
+        if ($baseSlug === '') {
+            $baseSlug = 'pagina';
+        }
+        // Reservar espacio para sufijo -copia-99
+        $baseSlug = substr($baseSlug, 0, max(3, self::MAX_SLUG_LENGTH - 10));
+
+        $candidate = $baseSlug . '-copia';
+        if (strlen($candidate) > self::MAX_SLUG_LENGTH) {
+            $candidate = substr($candidate, 0, self::MAX_SLUG_LENGTH);
+        }
+        if (self::findBySlug($siteData, $candidate) === null) {
+            return $candidate;
+        }
+
+        for ($n = 2; $n <= 99; $n++) {
+            $suffix = '-copia-' . $n;
+            $candidate = substr($baseSlug, 0, self::MAX_SLUG_LENGTH - strlen($suffix)) . $suffix;
+            if (self::findBySlug($siteData, $candidate) === null) {
+                return $candidate;
+            }
+        }
+
+        return $baseSlug . '-copia-' . bin2hex(random_bytes(2));
+    }
 }

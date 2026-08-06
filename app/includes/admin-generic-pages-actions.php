@@ -65,4 +65,14 @@ if ($action === 'save_generic_page') {
     } else {
         $errorMsg = 'Error al eliminar la página experimental.';
     }
+} elseif ($action === 'clone_experimental_page') {
+    $expCloneId = trim((string) ($_POST['exp_page_id'] ?? ''));
+    $expCloneError = ExperimentalPageService::clonePage($siteData, $expCloneId);
+    if ($expCloneError !== null) {
+        $errorMsg = $expCloneError;
+    } elseif ($contentService->saveAll($siteData)) {
+        $successMsg = 'Página clonada como borrador (no publicada). Puedes editarla y publicarla cuando esté lista.';
+    } else {
+        $errorMsg = 'Error al clonar la página experimental.';
+    }
 }

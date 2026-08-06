@@ -291,6 +291,7 @@ class AdminPermissionRegistry
             'delete_generic_page' => 'generic_pages',
             'save_experimental_page' => 'generic_pages',
             'delete_experimental_page' => 'generic_pages',
+            'clone_experimental_page' => 'generic_pages',
             'save_footer_general' => 'footer',
             'save_sostenibilidad_page' => 'footer',
             'save_footer_page' => 'footer',
