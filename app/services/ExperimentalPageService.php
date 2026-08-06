@@ -9,6 +9,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/GenericPageService.php';
+require_once __DIR__ . '/ExperimentalPageBuilderService.php';
 
 class ExperimentalPageService
 {
@@ -124,6 +125,7 @@ class ExperimentalPageService
         }
 
         $contentHtml = GenericPageService::sanitizeContentHtml((string) ($input['content_html'] ?? ''));
+        $blocks = ExperimentalPageBuilderService::normalize($input['blocks'] ?? []);
         $active = filter_var($input['active'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $now = date('c');
 
@@ -138,6 +140,7 @@ class ExperimentalPageService
                 'subtitle' => $subtitle,
                 'slug' => $slug,
                 'content_html' => $contentHtml,
+                'blocks' => $blocks,
                 'active' => $active,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -154,6 +157,7 @@ class ExperimentalPageService
             $page['subtitle'] = $subtitle;
             $page['slug'] = $slug;
             $page['content_html'] = $contentHtml;
+            $page['blocks'] = $blocks;
             $page['active'] = $active;
             $page['updated_at'] = $now;
             unset($page);

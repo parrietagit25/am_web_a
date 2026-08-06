@@ -6,6 +6,7 @@
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/ContentService.php';
 require_once __DIR__ . '/../services/ExperimentalPageService.php';
+require_once __DIR__ . '/../services/ExperimentalPageBuilderService.php';
 require_once __DIR__ . '/../services/GenericPageService.php';
 require_once __DIR__ . '/../services/UnitContentService.php';
 require_once __DIR__ . '/../services/SeoService.php';
@@ -53,11 +54,22 @@ if ($page === null) {
 $pageTitle = trim((string) ($page['title'] ?? '')) ?: 'Automarket';
 $pageSubtitle = trim((string) ($page['subtitle'] ?? ''));
 $pageHtml = GenericPageService::sanitizeContentHtml((string) ($page['content_html'] ?? ''));
+$expBlocks = ExperimentalPageBuilderService::blocksFromPage($page);
 $unitLabel = UnitContentService::unitLabel($siteData, $activeUnit);
 
+$seoFromBlocks = '';
+foreach ($expBlocks as $_sec) {
+    foreach (($_sec['cols'] ?? []) as $_col) {
+        foreach (($_col['widgets'] ?? []) as $_w) {
+            if (($_w['type'] ?? '') === 'text') {
+                $seoFromBlocks .= ' ' . trim((string) ($_w['heading'] ?? '')) . ' ' . strip_tags((string) ($_w['body_html'] ?? ''));
+            }
+        }
+    }
+}
 $seoDescription = $pageSubtitle !== ''
     ? $pageSubtitle
-    : trim(preg_replace('/\s+/', ' ', strip_tags($pageHtml)) ?? '');
+    : trim(preg_replace('/\s+/', ' ', $seoFromBlocks . ' ' . strip_tags($pageHtml)) ?? '');
 if (mb_strlen($seoDescription, 'UTF-8') > 155) {
     $seoDescription = mb_substr($seoDescription, 0, 152, 'UTF-8') . '...';
 }
@@ -86,11 +98,21 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </section>
 
+<?php if ($expBlocks !== []): ?>
+    <?php require __DIR__ . '/../includes/experimental-page-builder-render.php'; ?>
+<?php endif; ?>
+
+<?php if (trim(strip_tags($pageHtml)) !== '' || str_contains($pageHtml, '<img')): ?>
 <section class="container pt-4 pb-5 mb-5">
     <article class="generic-page-content font-poppins text-navy fs-6 lh-lg" data-experimental-page="1">
         <?php echo $pageHtml; ?>
     </article>
 </section>
+<?php elseif ($expBlocks === []): ?>
+<section class="container pt-4 pb-5 mb-5">
+    <p class="text-muted font-poppins">Esta página aún no tiene contenido.</p>
+</section>
+<?php endif; ?>
 
 <style>
     .generic-page-content { overflow-wrap: anywhere; }

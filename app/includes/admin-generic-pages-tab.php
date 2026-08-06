@@ -5,6 +5,7 @@
  */
 require_once __DIR__ . '/../services/GenericPageService.php';
 require_once __DIR__ . '/../services/ExperimentalPageService.php';
+require_once __DIR__ . '/../services/ExperimentalPageBuilderService.php';
 
 $gpPages = GenericPageService::all($siteData);
 $expPages = ExperimentalPageService::all($siteData);
@@ -176,9 +177,8 @@ $gpExpOpen = $gpSection === 'experimental';
                  aria-labelledby="gpExpHeading" data-bs-parent="#maestroPaginasAccordion">
                 <div class="accordion-body bg-light-gray p-4">
                     <div class="alert alert-warning small mb-3">
-                        <strong>Espacio de prueba.</strong> Las páginas de aquí son independientes del Editor de Páginas
-                        (otro almacenamiento y URL <code>/px/…</code>). Aquí se construirá el page builder tipo Elementor.
-                        Por ahora el formulario es el mismo flujo base; no se importan páginas existentes.
+                        <strong>Page builder (Sprint 1).</strong> Crea secciones con 1–3 columnas y widgets
+                        (texto, imagen, botón). Independiente del Editor de Páginas. URL pública: <code>/px/…</code>
                     </div>
 
                     <div class="admin-card mb-4">
@@ -189,6 +189,7 @@ $gpExpOpen = $gpSection === 'experimental';
                             <input type="hidden" name="action" value="save_experimental_page">
                             <input type="hidden" name="gp_section" value="experimental">
                             <input type="hidden" id="exp_page_id" name="exp_page_id" value="">
+                            <input type="hidden" id="exp_page_blocks_json" name="exp_page_blocks_json" value="[]">
                             <?php admin_csrf_field(); ?>
                             <div class="row g-3">
                                 <div class="col-md-7">
@@ -208,12 +209,32 @@ $gpExpOpen = $gpSection === 'experimental';
                                     <label class="form-label">Subtítulo</label>
                                     <input type="text" id="exp_page_subtitle" name="exp_page_subtitle" class="form-control form-control-premium" maxlength="250" placeholder="Texto opcional debajo del título">
                                 </div>
+
                                 <div class="col-12">
-                                    <label class="form-label">Contenido</label>
-                                    <textarea id="exp_page_content" name="exp_page_content" rows="14"
-                                              class="form-control form-control-premium js-admin-html-editor"
-                                              data-admin-html-height="400"></textarea>
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                        <label class="form-label mb-0 fw-semibold text-navy">
+                                            <i class="bi bi-layout-three-columns me-1 text-warning"></i>Constructor de bloques
+                                        </label>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-warning" onclick="expBuilderAddSection(1)">+ 1 col</button>
+                                            <button type="button" class="btn btn-outline-warning" onclick="expBuilderAddSection(2)">+ 2 cols</button>
+                                            <button type="button" class="btn btn-outline-warning" onclick="expBuilderAddSection(3)">+ 3 cols</button>
+                                        </div>
+                                    </div>
+                                    <div id="expBuilderSections" class="d-flex flex-column gap-3"></div>
+                                    <p id="expBuilderEmpty" class="text-muted small mb-0 mt-2">Sin secciones. Agrega una con los botones de arriba.</p>
                                 </div>
+
+                                <div class="col-12">
+                                    <details class="border rounded-3 p-3 bg-white">
+                                        <summary class="fw-semibold text-navy small" style="cursor:pointer">HTML adicional (opcional, legado)</summary>
+                                        <p class="form-text mt-2">Si hay bloques, el HTML se muestra debajo. Útil como respaldo.</p>
+                                        <textarea id="exp_page_content" name="exp_page_content" rows="8"
+                                                  class="form-control form-control-premium js-admin-html-editor"
+                                                  data-admin-html-height="220"></textarea>
+                                    </details>
+                                </div>
+
                                 <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="exp_page_active" name="exp_page_active" value="1" checked>
@@ -261,6 +282,12 @@ $gpExpOpen = $gpSection === 'experimental';
                                             <span class="badge <?php echo $expActive ? 'bg-success' : 'bg-secondary'; ?>">
                                                 <?php echo $expActive ? 'Publicada' : 'Borrador'; ?>
                                             </span>
+                                            <?php
+                                            $expBlockCount = count(ExperimentalPageBuilderService::blocksFromPage($expPage));
+                                            if ($expBlockCount > 0):
+                                            ?>
+                                            <span class="badge bg-warning text-dark"><?php echo (int) $expBlockCount; ?> sec.</span>
+                                            <?php endif; ?>
                                         </td>
                                         <td class="text-end">
                                             <button type="button" class="btn btn-sm btn-outline-primary"
@@ -330,6 +357,7 @@ function initEditExpPage(page) {
     } else {
         document.getElementById('exp_page_content').value = page.content_html || '';
     }
+    expBuilderLoad(Array.isArray(page.blocks) ? page.blocks : []);
     document.getElementById('expPageFormTitle').innerHTML = '<i class="bi bi-pencil-square me-2 text-warning"></i>Editar página experimental';
     document.getElementById('expPageSubmitText').innerText = 'Guardar cambios';
     document.getElementById('expPageCancelBtn').classList.remove('d-none');
@@ -343,8 +371,244 @@ function resetExpPageForm() {
     if (window.adminHtmlEditorSetValue) {
         adminHtmlEditorSetValue('exp_page_content', '');
     }
+    expBuilderLoad([]);
     document.getElementById('expPageFormTitle').innerHTML = '<i class="bi bi-plus-circle me-2 text-warning"></i>Crear página experimental';
     document.getElementById('expPageSubmitText').innerText = 'Crear página experimental';
     document.getElementById('expPageCancelBtn').classList.add('d-none');
 }
+
+/* ===== Experimental page builder (Sprint 1) ===== */
+var expBuilderState = [];
+
+function expUid(prefix) {
+    return prefix + '_' + Math.random().toString(16).slice(2, 10);
+}
+
+function expEsc(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function expBuilderLoad(blocks) {
+    expBuilderState = Array.isArray(blocks) ? JSON.parse(JSON.stringify(blocks)) : [];
+    expBuilderRender();
+}
+
+function expBuilderSyncHidden() {
+    var input = document.getElementById('exp_page_blocks_json');
+    if (input) {
+        input.value = JSON.stringify(expBuilderState);
+    }
+}
+
+function expBuilderAddSection(cols) {
+    cols = parseInt(cols, 10) || 1;
+    if (cols < 1) cols = 1;
+    if (cols > 3) cols = 3;
+    if (expBuilderState.length >= 20) {
+        alert('Máximo 20 secciones.');
+        return;
+    }
+    var colArr = [];
+    for (var i = 0; i < cols; i++) {
+        colArr.push({ id: expUid('col'), widgets: [] });
+    }
+    expBuilderState.push({
+        id: expUid('sec'),
+        type: 'section',
+        bg: '#ffffff',
+        padding: 'md',
+        columns: cols,
+        cols: colArr
+    });
+    expBuilderRender();
+}
+
+function expBuilderRemoveSection(idx) {
+    if (!confirm('¿Eliminar esta sección?')) return;
+    expBuilderState.splice(idx, 1);
+    expBuilderRender();
+}
+
+function expBuilderMoveSection(idx, dir) {
+    var to = idx + dir;
+    if (to < 0 || to >= expBuilderState.length) return;
+    var tmp = expBuilderState[idx];
+    expBuilderState[idx] = expBuilderState[to];
+    expBuilderState[to] = tmp;
+    expBuilderRender();
+}
+
+function expBuilderSetColumns(idx, cols) {
+    cols = parseInt(cols, 10) || 1;
+    if (cols < 1) cols = 1;
+    if (cols > 3) cols = 3;
+    var sec = expBuilderState[idx];
+    if (!sec) return;
+    sec.columns = cols;
+    if (!Array.isArray(sec.cols)) sec.cols = [];
+    while (sec.cols.length < cols) {
+        sec.cols.push({ id: expUid('col'), widgets: [] });
+    }
+    if (sec.cols.length > cols) {
+        sec.cols = sec.cols.slice(0, cols);
+    }
+    expBuilderRender();
+}
+
+function expBuilderAddWidget(secIdx, colIdx, type) {
+    var sec = expBuilderState[secIdx];
+    if (!sec || !sec.cols[colIdx]) return;
+    if (!Array.isArray(sec.cols[colIdx].widgets)) sec.cols[colIdx].widgets = [];
+    if (sec.cols[colIdx].widgets.length >= 10) {
+        alert('Máximo 10 widgets por columna.');
+        return;
+    }
+    var w = { id: expUid('wgt'), type: type };
+    if (type === 'text') {
+        w.heading = '';
+        w.body_html = '';
+    } else if (type === 'image') {
+        w.src = '';
+        w.alt = '';
+    } else {
+        w.label = 'Ver más';
+        w.url = '/';
+        w.style = 'primary';
+    }
+    sec.cols[colIdx].widgets.push(w);
+    expBuilderRender();
+}
+
+function expBuilderRemoveWidget(secIdx, colIdx, wIdx) {
+    var sec = expBuilderState[secIdx];
+    if (!sec || !sec.cols[colIdx]) return;
+    sec.cols[colIdx].widgets.splice(wIdx, 1);
+    expBuilderRender();
+}
+
+function expBuilderCollectFromDom() {
+    var root = document.getElementById('expBuilderSections');
+    if (!root) return;
+    root.querySelectorAll('[data-sec-idx]').forEach(function (secEl) {
+        var si = parseInt(secEl.getAttribute('data-sec-idx'), 10);
+        if (!expBuilderState[si]) return;
+        var bg = secEl.querySelector('[data-field="bg"]');
+        var pad = secEl.querySelector('[data-field="padding"]');
+        if (bg) expBuilderState[si].bg = bg.value || '#ffffff';
+        if (pad) expBuilderState[si].padding = pad.value || 'md';
+        secEl.querySelectorAll('[data-col-idx]').forEach(function (colEl) {
+            var ci = parseInt(colEl.getAttribute('data-col-idx'), 10);
+            if (!expBuilderState[si].cols[ci]) return;
+            colEl.querySelectorAll('[data-w-idx]').forEach(function (wEl) {
+                var wi = parseInt(wEl.getAttribute('data-w-idx'), 10);
+                var w = expBuilderState[si].cols[ci].widgets[wi];
+                if (!w) return;
+                if (w.type === 'text') {
+                    var h = wEl.querySelector('[data-field="heading"]');
+                    var b = wEl.querySelector('[data-field="body_html"]');
+                    if (h) w.heading = h.value;
+                    if (b) w.body_html = b.value;
+                } else if (w.type === 'image') {
+                    var s = wEl.querySelector('[data-field="src"]');
+                    var a = wEl.querySelector('[data-field="alt"]');
+                    if (s) w.src = s.value;
+                    if (a) w.alt = a.value;
+                } else if (w.type === 'button') {
+                    var l = wEl.querySelector('[data-field="label"]');
+                    var u = wEl.querySelector('[data-field="url"]');
+                    var st = wEl.querySelector('[data-field="style"]');
+                    if (l) w.label = l.value;
+                    if (u) w.url = u.value;
+                    if (st) w.style = st.value;
+                }
+            });
+        });
+    });
+    expBuilderSyncHidden();
+}
+
+function expBuilderRender() {
+    var root = document.getElementById('expBuilderSections');
+    var empty = document.getElementById('expBuilderEmpty');
+    if (!root) return;
+    root.innerHTML = '';
+    if (empty) empty.style.display = expBuilderState.length ? 'none' : 'block';
+
+    expBuilderState.forEach(function (sec, si) {
+        var cols = parseInt(sec.columns, 10) || 1;
+        var html = '<div class="border rounded-3 bg-white p-3" data-sec-idx="' + si + '">';
+        html += '<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">';
+        html += '<strong class="text-navy">Sección ' + (si + 1) + ' <span class="text-muted fw-normal">(' + cols + ' col.)</span></strong>';
+        html += '<div class="d-flex flex-wrap gap-1">';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="expBuilderCollectFromDom();expBuilderMoveSection(' + si + ',-1)" title="Subir">↑</button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="expBuilderCollectFromDom();expBuilderMoveSection(' + si + ',1)" title="Bajar">↓</button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-danger" onclick="expBuilderCollectFromDom();expBuilderRemoveSection(' + si + ')">Eliminar</button>';
+        html += '</div></div>';
+        html += '<div class="row g-2 mb-3">';
+        html += '<div class="col-md-3"><label class="form-label small mb-1">Columnas</label>';
+        html += '<select class="form-select form-select-sm" onchange="expBuilderCollectFromDom();expBuilderSetColumns(' + si + ', this.value)">';
+        [1,2,3].forEach(function (n) {
+            html += '<option value="' + n + '"' + (cols === n ? ' selected' : '') + '>' + n + '</option>';
+        });
+        html += '</select></div>';
+        html += '<div class="col-md-3"><label class="form-label small mb-1">Fondo</label>';
+        html += '<input type="color" class="form-control form-control-sm form-control-color w-100" data-field="bg" value="' + expEsc(sec.bg || '#ffffff') + '"></div>';
+        html += '<div class="col-md-3"><label class="form-label small mb-1">Padding</label>';
+        html += '<select class="form-select form-select-sm" data-field="padding">';
+        [['sm','Compacto'],['md','Normal'],['lg','Amplio']].forEach(function (p) {
+            html += '<option value="' + p[0] + '"' + ((sec.padding || 'md') === p[0] ? ' selected' : '') + '>' + p[1] + '</option>';
+        });
+        html += '</select></div></div>';
+
+        html += '<div class="row g-2">';
+        (sec.cols || []).forEach(function (col, ci) {
+            html += '<div class="col-md-' + (cols === 1 ? '12' : (cols === 2 ? '6' : '4')) + '" data-col-idx="' + ci + '">';
+            html += '<div class="border rounded-2 p-2 bg-light h-100">';
+            html += '<div class="d-flex justify-content-between align-items-center mb-2"><span class="small fw-semibold text-navy">Columna ' + (ci + 1) + '</span>';
+            html += '<div class="btn-group btn-group-sm">';
+            html += '<button type="button" class="btn btn-outline-primary" onclick="expBuilderCollectFromDom();expBuilderAddWidget(' + si + ',' + ci + ',\'text\')" title="Texto">T</button>';
+            html += '<button type="button" class="btn btn-outline-primary" onclick="expBuilderCollectFromDom();expBuilderAddWidget(' + si + ',' + ci + ',\'image\')" title="Imagen">Img</button>';
+            html += '<button type="button" class="btn btn-outline-primary" onclick="expBuilderCollectFromDom();expBuilderAddWidget(' + si + ',' + ci + ',\'button\')" title="Botón">Btn</button>';
+            html += '</div></div>';
+            (col.widgets || []).forEach(function (w, wi) {
+                html += '<div class="border rounded bg-white p-2 mb-2" data-w-idx="' + wi + '">';
+                html += '<div class="d-flex justify-content-between mb-1"><span class="badge bg-secondary">' + expEsc(w.type) + '</span>';
+                html += '<button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="expBuilderCollectFromDom();expBuilderRemoveWidget(' + si + ',' + ci + ',' + wi + ')">Quitar</button></div>';
+                if (w.type === 'text') {
+                    html += '<input type="text" class="form-control form-control-sm mb-1" data-field="heading" placeholder="Título" value="' + expEsc(w.heading || '') + '">';
+                    html += '<textarea class="form-control form-control-sm" rows="3" data-field="body_html" placeholder="Texto / HTML simple">' + expEsc(w.body_html || '') + '</textarea>';
+                } else if (w.type === 'image') {
+                    html += '<input type="text" class="form-control form-control-sm mb-1" data-field="src" placeholder="URL imagen (/assets/... o https://)" value="' + expEsc(w.src || '') + '">';
+                    html += '<input type="text" class="form-control form-control-sm" data-field="alt" placeholder="Texto alternativo" value="' + expEsc(w.alt || '') + '">';
+                } else {
+                    html += '<input type="text" class="form-control form-control-sm mb-1" data-field="label" placeholder="Texto del botón" value="' + expEsc(w.label || '') + '">';
+                    html += '<input type="text" class="form-control form-control-sm mb-1" data-field="url" placeholder="URL /ruta o https://" value="' + expEsc(w.url || '') + '">';
+                    html += '<select class="form-select form-select-sm" data-field="style">';
+                    html += '<option value="primary"' + ((w.style || 'primary') === 'primary' ? ' selected' : '') + '>Primario</option>';
+                    html += '<option value="outline"' + ((w.style || '') === 'outline' ? ' selected' : '') + '>Contorno</option>';
+                    html += '</select>';
+                }
+                html += '</div>';
+            });
+            html += '</div></div>';
+        });
+        html += '</div></div>';
+        root.insertAdjacentHTML('beforeend', html);
+    });
+    expBuilderSyncHidden();
+}
+
+(function () {
+    var form = document.getElementById('expPageForm');
+    if (form) {
+        form.addEventListener('submit', function () {
+            expBuilderCollectFromDom();
+        });
+    }
+    expBuilderLoad([]);
+})();
 </script>

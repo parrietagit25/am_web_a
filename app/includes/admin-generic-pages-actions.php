@@ -37,11 +37,13 @@ if ($action === 'save_generic_page') {
     }
 } elseif ($action === 'save_experimental_page') {
     $expEditId = trim((string) ($_POST['exp_page_id'] ?? ''));
+    $expBlocksRaw = $_POST['exp_page_blocks_json'] ?? '[]';
     $expError = ExperimentalPageService::apply($siteData, [
         'title' => $_POST['exp_page_title'] ?? '',
         'subtitle' => $_POST['exp_page_subtitle'] ?? '',
         'slug' => $_POST['exp_page_slug'] ?? '',
         'content_html' => $_POST['exp_page_content'] ?? '',
+        'blocks' => $expBlocksRaw,
         'active' => isset($_POST['exp_page_active']) && $_POST['exp_page_active'] === '1',
     ], $expEditId);
 
