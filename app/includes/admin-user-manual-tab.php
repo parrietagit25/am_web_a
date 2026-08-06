@@ -21,7 +21,7 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
     <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4 border-bottom pb-3">
         <div>
             <h5 class="fw-bold mb-1 font-montserrat text-navy"><i class="bi bi-book me-2 text-danger"></i>Manual de uso del panel administrativo</h5>
-            <p class="text-muted mb-0 small">Guía institucional para administradores, Mercadeo, Gerencia y operación. Actualizado 23 de julio de 2026 (AM-ADMIN-MANUAL-1C).</p>
+            <p class="text-muted mb-0 small">Guía institucional para administradores, Mercadeo, Gerencia y operación. Actualizado 6 de agosto de 2026 (AM-ADMIN-MANUAL-1D).</p>
         </div>
         <span class="badge bg-light text-navy border">Usuario final</span>
     </div>
@@ -33,6 +33,7 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                 <a href="#manual-intro">1. Introducción y navegación</a>
                 <a href="#manual-generales">2. Generales</a>
                 <a href="#manual-sucursales-maestro" class="ps-3 small">2.3 Sucursales maestro</a>
+                <a href="#manual-maestro-paginas" class="ps-3 small">2.6b Maestro de Páginas</a>
                 <a href="#manual-sostenibilidad" class="ps-3 small">2.13 Sostenibilidad</a>
                 <a href="#manual-dashboard">3. Dashboard de avances</a>
                 <a href="#manual-rentacar">4. Rent A Car</a>
@@ -50,6 +51,7 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                 <a href="#manual-contenido">9. CMS / contenido editorial</a>
                 <a href="#manual-summernote" class="ps-3 small">9.6 Editor Summernote</a>
                 <a href="#manual-sucursales-publicas" class="ps-3 small">9.7 Sucursales y páginas públicas</a>
+                <a href="#manual-page-builder" class="ps-3 small">9.8 Page builder experimental</a>
                 <a href="#manual-unidades">10. Unidades personalizadas</a>
                 <a href="#manual-seo">11. SEO técnico</a>
                 <a href="#manual-telemetria">12. Telemetría y seguimiento</a>
@@ -185,6 +187,39 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                                 <li>Use «Vista previa» para abrir la página en una pestaña nueva.</li>
                                 <li>Active o desactive sin borrar para campañas temporales.</li>
                             </ol>
+
+                            <h6 id="manual-maestro-paginas">2.6b Maestro de Páginas</h6>
+                            <p><span class="badge badge-menu">Generales → Maestro de Páginas</span> <em>(permiso <code>generic_pages</code>)</em></p>
+                            <p>Crea páginas de contenido con la <strong>cabecera y pie del sitio</strong>. La pantalla está organizada en un <strong>acordeón</strong> con dos secciones:</p>
+                            <ul>
+                                <li><strong>Editor de Páginas</strong> — flujo de producción. URL pública: <code>/p/su-slug</code>. Estas páginas se pueden vincular al menú o pie de cada unidad desde <strong>[Unidad] → Generales</strong>.</li>
+                                <li><strong>Experimental</strong> — espacio de prueba para el <strong>page builder</strong> (bloques y columnas). URL pública: <code>/px/su-slug</code>. No copia ni altera las páginas del Editor. Las páginas experimentales llevan <code>noindex</code> mientras permanecen en fase de prueba.</li>
+                            </ul>
+                            <div class="manual-step">
+                                <strong>Editor de Páginas (producción):</strong>
+                                <ol class="mb-0">
+                                    <li>Abra el acordeón <strong>Editor de Páginas</strong>.</li>
+                                    <li>Complete título, slug (o déjelo vacío para generarlo), subtítulo y contenido (editor visual Summernote).</li>
+                                    <li>Active «Página publicada» y guarde.</li>
+                                    <li>Asigne la URL <code>/p/…</code> a un ítem de menú o enlace del pie de la unidad correspondiente.</li>
+                                </ol>
+                            </div>
+                            <div class="manual-step">
+                                <strong>Experimental (page builder):</strong>
+                                <ol class="mb-0">
+                                    <li>Abra el acordeón <strong>Experimental</strong>.</li>
+                                    <li>Cree la página (título / slug / subtítulo).</li>
+                                    <li>Use el <strong>Constructor de bloques</strong>: botones <kbd>+ 1 col</kbd>, <kbd>+ 2 cols</kbd>, <kbd>+ 3 cols</kbd> para agregar secciones.</li>
+                                    <li>En cada columna agregue widgets: <strong>T</strong> texto, <strong>Img</strong> imagen (URL), <strong>Btn</strong> botón.</li>
+                                    <li>Ajuste fondo y padding de la sección; reordene con ↑ ↓.</li>
+                                    <li>Guarde. Si «Publicada» está activo, revise <code>/px/su-slug</code> en el sitio.</li>
+                                </ol>
+                            </div>
+                            <p><strong>Clonar página experimental:</strong> en la lista inferior, el botón amarillo <i class="bi bi-copy"></i> crea una copia idéntica (bloques y contenido) como <strong>borrador no publicado</strong>, con título «(copia)» y slug <code>…-copia</code>. Sirve para reutilizar plantillas similares cambiando solo lo necesario.</p>
+                            <div class="manual-warn">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                <strong>No confundir:</strong> <code>/p/</code> = Editor (producción, menús). <code>/px/</code> = Experimental (builder). <code>/l/</code> = Landing pages (campañas sin menú completo). Detalle del builder en la <a href="#manual-page-builder">sección 9.8</a>.
+                            </div>
 
                             <h6>2.7 Pie de página</h6>
                             <p><span class="badge badge-menu">Generales → Pie de página</span></p>
@@ -640,9 +675,10 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                             </ul>
                             <p>Dónde se ve: footer de todas las páginas públicas que usan el pie estándar. El footer <strong>no debe listar todas las sucursales</strong>; use la página general o las páginas por unidad.</p>
 
-                            <h6>9.4 Páginas institucionales</h6>
+                            <h6>9.4 Páginas institucionales y Maestro de Páginas</h6>
                             <p>FAQ institucional, Sobre Nosotros y páginas similares se administran vía CMS institucional o HTML configurado.</p>
                             <ul>
+                                <li><strong>Maestro de Páginas:</strong> <span class="badge badge-menu">Generales → Maestro de Páginas</span> — ver <a href="#manual-maestro-paginas">sección 2.6b</a> (Editor <code>/p/</code> y Experimental <code>/px/</code>).</li>
                                 <li><strong>Sostenibilidad:</strong> <span class="badge badge-menu">Generales → Sostenibilidad</span> → <code>/sostenibilidad.php</code> (ver sección 2.13).</li>
                                 <li><strong>FAQ:</strong> <code>/pagina-institucional.php?p=faq</code> — contenido pendiente de Mercadeo.</li>
                                 <li><strong>Trabaja con nosotros:</strong> <code>/trabaja-con-nosotros.php</code>.</li>
@@ -711,6 +747,24 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                                 <i class="bi bi-info-circle me-1"></i> Las páginas principales de cada unidad (home, landing) <strong>no deben listar todas las sucursales</strong>. Use las páginas dedicadas o la general agrupada. Mantenga el footer limpio.
                             </div>
                             <p><strong>Mapas en acordeones:</strong> las páginas de sucursales muestran cada ubicación en un acordeón con mapa embebido. El primer acordeón puede abrirse por defecto. Si una sucursal no tiene coordenadas configuradas, se muestra un placeholder controlado en lugar de un mapa roto.</p>
+
+                            <h6 id="manual-page-builder">9.8 Page builder experimental (bloques y columnas)</h6>
+                            <p><span class="badge badge-menu">Generales → Maestro de Páginas → Experimental</span></p>
+                            <p>Permite armar páginas con <strong>secciones de 1, 2 o 3 columnas</strong> y widgets, sin escribir HTML de layout. Es la base tipo Elementor / columnas CMS solicitada por Mercadeo; vive solo en Experimental mientras se valida.</p>
+                            <p><strong>Widgets disponibles (Sprint 1):</strong></p>
+                            <ul>
+                                <li><strong>Texto</strong> — título + cuerpo (HTML simple permitido; se sanitiza al guardar).</li>
+                                <li><strong>Imagen</strong> — URL <code>/assets/…</code>, <code>/uploads/…</code> o <code>https://…</code>, más texto alternativo.</li>
+                                <li><strong>Botón</strong> — etiqueta, URL (ruta interna o https) y estilo primario / contorno.</li>
+                            </ul>
+                            <p><strong>Por sección también puede:</strong> cambiar color de fondo, padding (compacto / normal / amplio), número de columnas, orden (↑ ↓) y eliminar.</p>
+                            <p><strong>Clonar:</strong> en la tabla «Páginas experimentales», use el botón <i class="bi bi-copy"></i> para duplicar una página completa como <strong>borrador</strong>. Ideal cuando varias páginas son similares y solo cambian textos o imágenes.</p>
+                            <div class="manual-tip">
+                                El HTML adicional (legado) bajo el constructor es opcional: si hay bloques, el HTML se muestra debajo en la página pública. Prefiera el constructor para columnas.
+                            </div>
+                            <div class="manual-warn">
+                                Experimental no sustituye aún al Editor de Páginas ni a las landings. No vincule <code>/px/…</code> a menús de producción hasta que Gerencia/IT indiquen el go-live del builder.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -807,6 +861,8 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
                                 <li>Confirme que métodos de pago visibles coinciden con operación.</li>
                                 <li>Pruebe en entorno test antes de solicitar validación en producción cuando el cambio sea sensible.</li>
                                 <li>Para estado de módulos técnicos (RAC, pagos, SEO), consulte el Dashboard de avances.</li>
+                                <li>Para páginas con columnas (tipo WordPress/Elementor): use <span class="badge badge-menu">Maestro de Páginas → Experimental</span> y el constructor de bloques; clone plantillas con el botón copiar. No pida HTML de layout a IT para ese caso.</li>
+                                <li>Páginas que deban ir al menú de una unidad: créelas en <strong>Editor de Páginas</strong> (<code>/p/…</code>), no en Experimental.</li>
                             </ol>
                         </div>
                     </div>
@@ -912,6 +968,12 @@ $manualActive = ($defaultAdminTab ?? '') === 'user-manual';
 
                             <h6>¿Puedo cobrar con Powertranz desde el admin?</h6>
                             <p><strong>No.</strong> El módulo Powertranz Test es solo diagnóstico, está pendiente de FAC y no debe usarse para cobros reales.</p>
+
+                            <h6>¿Cómo creo una página con columnas sin HTML?</h6>
+                            <p>Vaya a <span class="badge badge-menu">Generales → Maestro de Páginas → Experimental</span>, cree la página y use el constructor (+ 1/2/3 cols + widgets). URL: <code>/px/su-slug</code>. Para menús de producción use el <strong>Editor de Páginas</strong> (<code>/p/…</code>). Ver secciones <a href="#manual-maestro-paginas">2.6b</a> y <a href="#manual-page-builder">9.8</a>.</p>
+
+                            <h6>¿Para qué sirve clonar una página experimental?</h6>
+                            <p>Duplica bloques y contenido como borrador no publicado, con slug nuevo. Úselo cuando varias páginas son casi iguales y solo cambiará textos o imágenes.</p>
 
                             <h6>Necesito ayuda técnica adicional</h6>
                             <p>Documente el módulo, la acción que intentaba y capture pantalla del mensaje de error. Envíelo al equipo de soporte o desarrollo con la URL y hora aproximada. Consulte también el Dashboard de avances para contexto del módulo.</p>
