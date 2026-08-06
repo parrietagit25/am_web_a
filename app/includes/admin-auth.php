@@ -60,6 +60,8 @@ function admin_guard_post_action(string $action): bool
     $csrfActions = [
         'save_generic_page',
         'delete_generic_page',
+        'save_experimental_page',
+        'delete_experimental_page',
         'save_unit_footer',
         'save_unit_menu',
         'save_unit_topbar',
@@ -229,7 +231,7 @@ function admin_redirect_after_post(string $action, string $successMsg, string $e
     $_SESSION['admin_last_tab'] = $tab;
 
     $query = ['tab' => $tab];
-    foreach (['q', 'p', 'location_id'] as $key) {
+    foreach (['q', 'p', 'location_id', 'gp_section'] as $key) {
         $fromPost = trim((string) ($_POST[$key] ?? ''));
         $fromGet = trim((string) ($_GET[$key] ?? ''));
         $val = $fromPost !== '' ? $fromPost : $fromGet;

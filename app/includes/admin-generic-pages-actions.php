@@ -1,11 +1,11 @@
 <?php
 /**
- * Acciones POST — Maestro de Páginas (Generales → Maestro de Páginas).
- * Guarda en site_data.json -> generic_pages[].
+ * Acciones POST — Maestro de Páginas (Editor + Experimental).
  */
 declare(strict_types=1);
 
 require_once __DIR__ . '/../services/GenericPageService.php';
+require_once __DIR__ . '/../services/ExperimentalPageService.php';
 
 if ($action === 'save_generic_page') {
     $gpEditId = trim((string) ($_POST['generic_page_id'] ?? ''));
@@ -34,5 +34,33 @@ if ($action === 'save_generic_page') {
         $successMsg = 'Página eliminada correctamente.';
     } else {
         $errorMsg = 'Error al eliminar la página.';
+    }
+} elseif ($action === 'save_experimental_page') {
+    $expEditId = trim((string) ($_POST['exp_page_id'] ?? ''));
+    $expError = ExperimentalPageService::apply($siteData, [
+        'title' => $_POST['exp_page_title'] ?? '',
+        'subtitle' => $_POST['exp_page_subtitle'] ?? '',
+        'slug' => $_POST['exp_page_slug'] ?? '',
+        'content_html' => $_POST['exp_page_content'] ?? '',
+        'active' => isset($_POST['exp_page_active']) && $_POST['exp_page_active'] === '1',
+    ], $expEditId);
+
+    if ($expError !== null) {
+        $errorMsg = $expError;
+    } elseif ($contentService->saveAll($siteData)) {
+        $successMsg = $expEditId === ''
+            ? 'Página experimental creada correctamente.'
+            : 'Página experimental actualizada correctamente.';
+    } else {
+        $errorMsg = 'Error al guardar la página experimental.';
+    }
+} elseif ($action === 'delete_experimental_page') {
+    $expDeleteId = trim((string) ($_POST['exp_page_id'] ?? ''));
+    if ($expDeleteId === '' || !ExperimentalPageService::delete($siteData, $expDeleteId)) {
+        $errorMsg = 'Página experimental no encontrada.';
+    } elseif ($contentService->saveAll($siteData)) {
+        $successMsg = 'Página experimental eliminada correctamente.';
+    } else {
+        $errorMsg = 'Error al eliminar la página experimental.';
     }
 }

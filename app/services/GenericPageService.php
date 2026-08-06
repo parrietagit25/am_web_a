@@ -18,7 +18,7 @@ class GenericPageService
      * @var list<string>
      */
     public const RESERVED_SLUGS = [
-        'admin', 'api', 'assets', 'index', 'p', 'l', 'pagina', 'landing',
+        'admin', 'api', 'assets', 'index', 'p', 'px', 'l', 'pagina', 'landing',
         'rent-a-car', 'venta-autos', 'leasing', 'renting', 'taller', 'unidad',
         'flota', 'sucursal', 'sucursales', 'inventario', 'detalle', 'autos',
         'reservar', 'resultados', 'extras', 'confirmacion', 'mi-reserva',
