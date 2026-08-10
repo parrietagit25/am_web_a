@@ -181,6 +181,40 @@ $ucNavDomUnit = preg_replace('/[^a-z0-9_-]/i', '-', $ucUnitKey);
             </div>
         </form>
     </div>
+
+    <?php if ($ucUnitKey === 'rentacar'): ?>
+        <?php
+        $pagoSeguroPage = is_array($siteData['homepage']['pago_seguro_page'] ?? null)
+            ? $siteData['homepage']['pago_seguro_page']
+            : [];
+        ?>
+        <div class="admin-card mt-4">
+            <h5 class="fw-bold mb-3 font-montserrat border-bottom pb-2 text-navy">
+                <i class="bi bi-credit-card me-2 text-danger"></i>Página Paga tu Reserva (`/pago-seguro.php`)
+            </h5>
+            <p class="text-muted small mb-3">Título y subtítulo del encabezado público. Vacío = textos por defecto actuales.</p>
+            <form method="POST" action="?tab=<?php echo esc($ucGeneralTab); ?>">
+                <input type="hidden" name="action" value="save_pago_seguro_page">
+                <?php admin_csrf_field(); ?>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="pago_seguro_title" class="form-label fw-semibold">Título (H1)</label>
+                        <input type="text" id="pago_seguro_title" name="pago_seguro_title" class="form-control form-control-premium" value="<?php echo esc($pagoSeguroPage['title'] ?? ''); ?>" placeholder="Paga tu Reserva">
+                    </div>
+                    <div class="col-12">
+                        <label for="pago_seguro_subtitle" class="form-label fw-semibold">Subtítulo</label>
+                        <textarea id="pago_seguro_subtitle" name="pago_seguro_subtitle" class="form-control form-control-premium" rows="2" placeholder="Consulte y verifique el monto de su reserva. El cobro en línea todavía no está habilitado."><?php echo esc($pagoSeguroPage['subtitle'] ?? ''); ?></textarea>
+                    </div>
+                </div>
+                <div class="text-end mt-4">
+                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                        <i class="bi bi-save"></i> Guardar textos Paga tu Reserva
+                    </button>
+                </div>
+            </form>
+        </div>
+        <?php unset($pagoSeguroPage); ?>
+    <?php endif; ?>
 </div>
 <?php
 unset($ucBusinessUnits, $key, $unit, $buMenuTab, $ucGeneralTab, $ucGeneralActive, $ucNavMenuSettings, $ucNavDomUnit, $ucNavItemLabels, $ucTopbar, $ucTopbarUnitData, $ucTopbarDataKey, $ucTopbarEnabled, $ucTopbarDom);

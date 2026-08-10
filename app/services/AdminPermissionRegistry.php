@@ -327,7 +327,7 @@ class AdminPermissionRegistry
             'delete_sucursal' => 'sucursales',
             'save_terms' => 'terms',
             'save_requirements' => 'requirements',
-            'save_pago_seguro_page' => 'terms',
+            'save_pago_seguro_page' => 'news',
             'save_contact_settings' => 'contact',
             'save_rac_contact_page' => 'contact',
             'save_rac_sucursales_page' => 'sucursales',
