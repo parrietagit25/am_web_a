@@ -84,6 +84,13 @@ $banks = AllyService::normalizeList($bankRows, AllyService::TYPE_SEMI_BANK);
     align-items: center;
     justify-content: center;
     font-size: 1.4rem;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1;
+}
+.feature-icon-wrapper .bi {
+    display: block;
+    line-height: 1;
 }
 
 /* Custom Tabs Container - Capsule Style */
