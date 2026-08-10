@@ -9,13 +9,29 @@ require_once __DIR__ . '/../services/ContentService.php';
 $contentService = new ContentService();
 $seminuevosData = $contentService->get('seminuevos', []);
 
+require_once __DIR__ . '/../includes/agent-team-helpers.php';
+
 $team = $seminuevosData['team'] ?? [];
 $headerImg = $team['header_image_url'] ?? '';
+$heroTitle = trim((string) ($team['hero_title'] ?? ''));
+$heroSubtitle = trim((string) ($team['hero_subtitle'] ?? ''));
+$sectionTitle = trim((string) ($team['section_title'] ?? ''));
+$sectionSubtitle = trim((string) ($team['section_subtitle'] ?? ''));
+if ($heroTitle === '') {
+    $heroTitle = 'Nuestro Equipo';
+}
+if ($heroSubtitle === '') {
+    $heroSubtitle = 'Conoce a los profesionales especializados de Automarket';
+}
+if ($sectionTitle === '') {
+    $sectionTitle = 'Asesores de Venta Especializados';
+}
+if ($sectionSubtitle === '') {
+    $sectionSubtitle = 'Nuestro equipo está listo para brindarte la mejor asesoría personalizada en tu compra';
+}
 $descTitle = !empty($team['description_title']) ? $team['description_title'] : 'Automarket Panamá';
 $descText = !empty($team['description_text']) ? $team['description_text'] : "Automarket Panamá es la empresa líder en la venta de autos Seminuevos y Garantizados en Panamá. Con más de 21 años en el mercado y más de 17,500 autos vendidos.\n\nVive la experiencia de tener tu Auto Seminuevo de Verdad con Automarket Panama.";
-$highlightsStr = !empty($team['highlights']) ? $team['highlights'] : "4 Sucursales a nivel Nacional.\nEquipo de Ventas especializado.\nAsesoría en Financiamiento y Seguros.\nRespaldo y Garantía.";
-
-$highlights = array_filter(array_map('trim', explode("\n", $highlightsStr)));
+$highlights = am_team_highlight_lines($team['highlights'] ?? null);
 $agents = $team['agents'] ?? [];
 
 // Filter active agents
@@ -176,13 +192,13 @@ $activeAgents = array_filter($agents, function($agent) {
     <div class="team-header-banner text-white mb-5 border-bottom border-secondary position-relative" style="background: url('<?php echo esc($headerImg); ?>') no-repeat center center; background-size: cover;">
         <div class="container d-flex justify-content-between align-items-center position-relative" style="z-index: 2;">
             <div>
-                <h1 class="h2 fw-bold font-montserrat mb-1 text-uppercase text-white">Nuestro Equipo</h1>
-                <p class="text-white opacity-85 text-sm mb-0">Conoce a los profesionales especializados de Automarket</p>
+                <h1 class="h2 fw-bold font-montserrat mb-1 text-uppercase text-white"><?php echo esc($heroTitle); ?></h1>
+                <p class="text-white opacity-85 text-sm mb-0"><?php echo esc($heroSubtitle); ?></p>
             </div>
             <nav aria-label="breadcrumb" class="d-none d-md-block">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="/venta-autos.php" class="text-white-50 text-decoration-none">Seminuevos</a></li>
-                    <li class="breadcrumb-item active text-white" aria-current="page">Nuestro Equipo</li>
+                    <li class="breadcrumb-item active text-white" aria-current="page"><?php echo esc($heroTitle); ?></li>
                 </ol>
             </nav>
         </div>
@@ -191,13 +207,13 @@ $activeAgents = array_filter($agents, function($agent) {
     <div class="py-4 bg-navy text-white mb-5 border-bottom border-secondary">
         <div class="container d-flex justify-content-between align-items-center">
             <div>
-                <h1 class="h3 fw-bold font-montserrat mb-1 text-uppercase text-white">Nuestro Equipo</h1>
-                <p class="text-white-50 text-sm mb-0">Conoce a los profesionales especializados de Automarket</p>
+                <h1 class="h3 fw-bold font-montserrat mb-1 text-uppercase text-white"><?php echo esc($heroTitle); ?></h1>
+                <p class="text-white-50 text-sm mb-0"><?php echo esc($heroSubtitle); ?></p>
             </div>
             <nav aria-label="breadcrumb" class="d-none d-md-block">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="/venta-autos.php" class="text-white-50 text-decoration-none">Seminuevos</a></li>
-                    <li class="breadcrumb-item active text-white" aria-current="page">Nuestro Equipo</li>
+                    <li class="breadcrumb-item active text-white" aria-current="page"><?php echo esc($heroTitle); ?></li>
                 </ol>
             </nav>
         </div>
@@ -209,8 +225,8 @@ $activeAgents = array_filter($agents, function($agent) {
     <!-- Team Members Grid Section -->
     <div class="py-4 border-top">
         <div class="text-center mb-5">
-            <h3 class="fw-bold text-navy font-montserrat text-uppercase mb-2">Asesores de Venta Especializados</h3>
-            <p class="text-muted font-poppins">Nuestro equipo está listo para brindarte la mejor asesoría personalizada en tu compra</p>
+            <h3 class="fw-bold text-navy font-montserrat text-uppercase mb-2"><?php echo esc($sectionTitle); ?></h3>
+            <p class="text-muted font-poppins"><?php echo esc($sectionSubtitle); ?></p>
         </div>
         
         <?php 
@@ -290,62 +306,25 @@ $activeAgents = array_filter($agents, function($agent) {
         
         <!-- Highlights Row with Circles -->
         <div class="row g-4 justify-content-center mt-4">
-            <!-- Highlight 1 -->
+            <?php
+            $highlightIcons = [
+                '<svg width="42" height="42" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/><text x="12" y="11.5" font-family="\'Montserrat\', sans-serif" font-size="6.5" font-weight="900" fill="#e1001a" text-anchor="middle">A</text></svg>',
+                '<svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="6" r="3" /><path d="M12 4.5v3M11 5.2h2c.5 0 .5.7 0 .7h-2c-.5 0-.5.7 0 .7h2" stroke-width="1.2" /><path d="M3 15h3.5l2 3h4.5l-2.5-4 4.5-1 3.5 3.5H21" /><path d="M6.5 15l2-2.5h4l1.5 2" /></svg>',
+                '<svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M12 4s3.5 1.2 3.5 3.5v3.5c0 2.8-1.8 5-3.5 6-1.7-1-3.5-3.2-3.5-6V7.5C8.5 5.2 12 4 12 4z" /><path d="M10.5 9.5l1 1 2-2" stroke-width="1.8" /><path d="M4 16.5c2 0 3-1.5 4.5-1.5s2.5 1 4.5 1c2 0 3-1 4.5-1s2.5 1.5 4.5 1.5" /><path d="M12 17v3" /></svg>',
+                '<svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l2.6 5.3 5.9.9-4.3 4.2 1 5.9-5.2-2.7-5.2 2.7 1-5.9-4.3-4.2 5.9-.9z" /><circle cx="18" cy="18" r="4" fill="#081026" stroke="white" stroke-width="1.3" /><path d="M16.8 18l.8.8 1.6-1.6" stroke="white" stroke-width="1.5" /></svg>',
+            ];
+            foreach ($highlights as $hi => $highlightLine):
+                $iconHtml = $highlightIcons[$hi % count($highlightIcons)];
+            ?>
             <div class="col-lg-3 col-md-6 col-sm-12 d-flex flex-column align-items-center">
                 <div class="highlight-circle mb-3">
-                    <svg width="42" height="42" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
-                        <text x="12" y="11.5" font-family="'Montserrat', sans-serif" font-size="6.5" font-weight="900" fill="#e1001a" text-anchor="middle">A</text>
-                    </svg>
+                    <?php echo $iconHtml; ?>
                 </div>
                 <p class="highlight-circle-text font-poppins">
-                    <span class="text-danger fw-bold">4 Sucursales</span> a nivel<br>Nacional.
+                    <?php echo am_team_highlight_html($highlightLine); ?>
                 </p>
             </div>
-            
-            <!-- Highlight 2 -->
-            <div class="col-lg-3 col-md-6 col-sm-12 d-flex flex-column align-items-center">
-                <div class="highlight-circle mb-3">
-                    <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="6" r="3" />
-                        <path d="M12 4.5v3M11 5.2h2c.5 0 .5.7 0 .7h-2c-.5 0-.5.7 0 .7h2" stroke-width="1.2" />
-                        <path d="M3 15h3.5l2 3h4.5l-2.5-4 4.5-1 3.5 3.5H21" />
-                        <path d="M6.5 15l2-2.5h4l1.5 2" />
-                    </svg>
-                </div>
-                <p class="highlight-circle-text font-poppins">
-                    <span class="text-danger fw-bold">Equipo de Ventas</span><br>especializado.
-                </p>
-            </div>
-            
-            <!-- Highlight 3 -->
-            <div class="col-lg-3 col-md-6 col-sm-12 d-flex flex-column align-items-center">
-                <div class="highlight-circle mb-3">
-                    <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 4s3.5 1.2 3.5 3.5v3.5c0 2.8-1.8 5-3.5 6-1.7-1-3.5-3.2-3.5-6V7.5C8.5 5.2 12 4 12 4z" />
-                        <path d="M10.5 9.5l1 1 2-2" stroke-width="1.8" />
-                        <path d="M4 16.5c2 0 3-1.5 4.5-1.5s2.5 1 4.5 1c2 0 3-1 4.5-1s2.5 1.5 4.5 1.5" />
-                        <path d="M12 17v3" />
-                    </svg>
-                </div>
-                <p class="highlight-circle-text font-poppins">
-                    Asesoría en<br><span class="text-danger fw-bold">Financiamiento y Seguros.</span>
-                </p>
-            </div>
-            
-            <!-- Highlight 4 -->
-            <div class="col-lg-3 col-md-6 col-sm-12 d-flex flex-column align-items-center">
-                <div class="highlight-circle mb-3">
-                    <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2l2.6 5.3 5.9.9-4.3 4.2 1 5.9-5.2-2.7-5.2 2.7 1-5.9-4.3-4.2 5.9-.9z" />
-                        <circle cx="18" cy="18" r="4" fill="#081026" stroke="white" stroke-width="1.3" />
-                        <path d="M16.8 18l.8.8 1.6-1.6" stroke="white" stroke-width="1.5" />
-                    </svg>
-                </div>
-                <p class="highlight-circle-text font-poppins">
-                    <span class="text-danger fw-bold">Respaldo y Garantía.</span>
-                </p>
-            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 

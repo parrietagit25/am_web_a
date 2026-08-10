@@ -1,6 +1,6 @@
 <?php
 /**
- * Estilos compartidos — tarjeta Nuestro Equipo (foto + nombre/cargo + Instagram).
+ * Estilos compartidos — tarjeta Nuestro Equipo (foto + nombre/cargo + contacto).
  * Incluir una sola vez por página.
  */
 if (!empty($GLOBALS['am_team_card_styles_loaded'])) {
@@ -45,22 +45,78 @@ $GLOBALS['am_team_card_styles_loaded'] = true;
     font-weight: 800;
     font-size: 2.25rem;
 }
+.am-team-card-contact-overlay,
 .am-team-card-ig-overlay {
     position: absolute;
     inset: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(10, 18, 40, 0.55);
+    gap: 10px;
+    padding: 12px;
+    background: rgba(10, 18, 40, 0.58);
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.28s ease, visibility 0.28s ease;
     text-decoration: none;
     z-index: 2;
 }
-.am-team-card:hover .am-team-card-ig-overlay {
+.am-team-card:hover .am-team-card-contact-overlay,
+.am-team-card:hover .am-team-card-ig-overlay,
+.am-team-card:focus-within .am-team-card-contact-overlay {
     opacity: 1;
     visibility: visible;
+}
+.am-team-card-email-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    max-width: 94%;
+    background: #ffffff;
+    color: #111827;
+    border-radius: 999px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    padding: 10px 14px;
+    transition: transform 0.2s ease;
+    text-decoration: none;
+}
+.am-team-card-contact-overlay:hover .am-team-card-email-chip,
+.am-team-card-email-chip:focus {
+    transform: scale(1.03);
+}
+.am-team-card-email-chip .bi-envelope-fill {
+    flex-shrink: 0;
+    font-size: 1rem;
+    color: #c51f17;
+}
+.am-team-card-email-text {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    line-height: 1.2;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    text-align: left;
+}
+.am-team-card-email-chip--short .am-team-card-email-text { font-size: 0.82rem; }
+.am-team-card-email-chip--medium .am-team-card-email-text { font-size: 0.7rem; }
+.am-team-card-email-chip--long {
+    border-radius: 16px;
+    padding: 10px 12px;
+}
+.am-team-card-email-chip--long .am-team-card-email-text { font-size: 0.6rem; }
+.am-team-card-ig-mini {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    color: #111827;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    text-decoration: none;
 }
 .am-team-card-ig-btn {
     width: 52px;
@@ -74,9 +130,10 @@ $GLOBALS['am_team_card_styles_loaded'] = true;
     font-size: 1.35rem;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
     transition: transform 0.2s ease;
+    text-decoration: none;
 }
-.am-team-card-ig-overlay:hover .am-team-card-ig-btn,
-.am-team-card-ig-overlay:focus .am-team-card-ig-btn {
+.am-team-card-ig-btn:hover,
+.am-team-card-ig-mini:hover {
     transform: scale(1.06);
     color: #111827;
 }

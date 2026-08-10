@@ -1699,6 +1699,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $siteData['seminuevos']['team'] = [];
         }
 
+        $siteData['seminuevos']['team']['hero_title'] = trim($_POST['hero_title'] ?? '');
+        $siteData['seminuevos']['team']['hero_subtitle'] = trim($_POST['hero_subtitle'] ?? '');
+        $siteData['seminuevos']['team']['section_title'] = trim($_POST['section_title'] ?? '');
+        $siteData['seminuevos']['team']['section_subtitle'] = trim($_POST['section_subtitle'] ?? '');
         $siteData['seminuevos']['team']['description_title'] = trim($_POST['description_title'] ?? '');
         $siteData['seminuevos']['team']['description_text'] = trim($_POST['description_text'] ?? '');
         $siteData['seminuevos']['team']['highlights'] = trim($_POST['highlights'] ?? '');
@@ -5613,9 +5617,26 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                 <input type="hidden" name="action" value="save_semi_team_content">
                                 
                                 <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label for="team_hero_title" class="form-label fw-semibold">Título del banner (H1)</label>
+                                        <input type="text" id="team_hero_title" name="hero_title" class="form-control form-control-premium" value="<?php echo esc($semi_team['hero_title'] ?? ''); ?>" placeholder="Nuestro Equipo">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="team_hero_subtitle" class="form-label fw-semibold">Subtítulo del banner</label>
+                                        <input type="text" id="team_hero_subtitle" name="hero_subtitle" class="form-control form-control-premium" value="<?php echo esc($semi_team['hero_subtitle'] ?? ''); ?>" placeholder="Conoce a los profesionales especializados de Automarket">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="team_section_title" class="form-label fw-semibold">Título sección asesores</label>
+                                        <input type="text" id="team_section_title" name="section_title" class="form-control form-control-premium" value="<?php echo esc($semi_team['section_title'] ?? ''); ?>" placeholder="Asesores de Venta Especializados">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="team_section_subtitle" class="form-label fw-semibold">Subtítulo sección asesores</label>
+                                        <input type="text" id="team_section_subtitle" name="section_subtitle" class="form-control form-control-premium" value="<?php echo esc($semi_team['section_subtitle'] ?? ''); ?>" placeholder="Nuestro equipo está listo para brindarte la mejor asesoría personalizada en tu compra">
+                                    </div>
+
                                     <!-- Title -->
                                     <div class="col-md-6">
-                                        <label for="team_desc_title" class="form-label fw-semibold">Título Principal</label>
+                                        <label for="team_desc_title" class="form-label fw-semibold">Título bloque inferior</label>
                                         <input type="text" id="team_desc_title" name="description_title" class="form-control form-control-premium" value="<?php echo esc($semi_team['description_title'] ?? 'Automarket Panamá'); ?>" required>
                                     </div>
                                     
@@ -5634,14 +5655,28 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                     
                                     <!-- Description text -->
                                     <div class="col-12">
-                                        <label for="team_desc_text" class="form-label fw-semibold">Descripción / Presentación</label>
+                                        <label for="team_desc_text" class="form-label fw-semibold">Descripción / Presentación (bloque inferior)</label>
                                         <textarea id="team_desc_text" name="description_text" class="form-control form-control-premium" rows="4" required><?php echo esc($semi_team['description_text'] ?? ''); ?></textarea>
                                     </div>
                                     
                                     <!-- Highlights list -->
                                     <div class="col-12">
-                                        <label for="team_highlights" class="form-label fw-semibold">Puntos Clave / Destacados (Uno por línea)</label>
-                                        <textarea id="team_highlights" name="highlights" class="form-control form-control-premium font-monospace" rows="4" placeholder="Ej: 4 Sucursales a nivel Nacional.&#10;Equipo de Ventas especializado..." required><?php echo esc($semi_team['highlights'] ?? ''); ?></textarea>
+                                        <label for="team_highlights" class="form-label fw-semibold">Widgets / puntos clave (uno por línea)</label>
+                                        <?php
+                                        $teamHighlightsDefault = "**4 Sucursales** a nivel|Nacional.\n**Equipo de Ventas**|especializado.\nAsesoría en|**Financiamiento y Seguros.**\n**Respaldo y Garantía.**";
+                                        $teamHighlightsValue = trim((string) ($semi_team['highlights'] ?? ''));
+                                        // Si aún es el párrafo legacy largo, mostrar defaults en el form para que puedan guardar widgets limpios
+                                        require_once __DIR__ . '/../../includes/agent-team-helpers.php';
+                                        $teamHighlightPreview = am_team_highlight_lines($teamHighlightsValue);
+                                        $showLegacyHint = $teamHighlightsValue !== '' && $teamHighlightPreview === am_team_highlight_lines(null);
+                                        ?>
+                                        <textarea id="team_highlights" name="highlights" class="form-control form-control-premium font-monospace" rows="5" placeholder="<?php echo esc($teamHighlightsDefault); ?>"><?php echo esc($showLegacyHint ? $teamHighlightsDefault : ($teamHighlightsValue !== '' ? $teamHighlightsValue : $teamHighlightsDefault)); ?></textarea>
+                                        <div class="form-text">
+                                            Cada línea = un círculo. Usa <code>**texto**</code> para resaltar en rojo y <code>|</code> para salto de línea.
+                                            <?php if ($showLegacyHint): ?>
+                                                <span class="text-warning d-block mt-1">El texto guardado actual era un párrafo largo; se muestran los 4 widgets por defecto. Al guardar se reemplazan por estas líneas.</span>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                     
                                     <!-- Branch sorting order -->
@@ -5685,18 +5720,18 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                         <div class="mb-3">
                                             <label for="semi_agent_email" class="form-label">Correo Electrónico</label>
                                             <input type="email" id="semi_agent_email" name="agent_email" class="form-control form-control-premium" placeholder="nombre@automarket.com.pa" required>
+                                            <div class="form-text">Se muestra al pasar el mouse sobre la foto (el tamaño se ajusta según la longitud del correo).</div>
                                         </div>
                                         
                                         <div class="mb-3">
                                             <label for="semi_agent_phone" class="form-label">Teléfono / WhatsApp</label>
                                             <input type="text" id="semi_agent_phone" name="agent_phone" class="form-control form-control-premium" placeholder="Ej: 6655-4433" required>
-                                            <div class="form-text">Se conserva en admin para uso futuro; en la web pública se muestra Instagram.</div>
                                         </div>
 
                                         <div class="mb-3">
-                                            <label for="semi_agent_instagram" class="form-label">Instagram <span class="text-muted fw-normal">(público)</span></label>
+                                            <label for="semi_agent_instagram" class="form-label">Instagram <span class="text-muted fw-normal">(opcional)</span></label>
                                             <input type="text" id="semi_agent_instagram" name="agent_instagram" class="form-control form-control-premium" placeholder="@asesor.automarket o URL">
-                                            <div class="form-text">En la web: solo ícono de Instagram al pasar el mouse sobre la foto.</div>
+                                            <div class="form-text">Si hay correo, Instagram aparece como ícono secundario en el overlay.</div>
                                         </div>
                                         
                                         <div class="mb-3">
@@ -6806,16 +6841,16 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                         <div class="mb-3">
                                             <label for="leasing_agent_email" class="form-label">Correo Electrónico</label>
                                             <input type="email" id="leasing_agent_email" name="leasing_agent_email" class="form-control form-control-premium" placeholder="nombre@grupopcr.com" required>
+                                            <div class="form-text">Se muestra al pasar el mouse sobre la foto (el tamaño se ajusta según la longitud del correo).</div>
                                         </div>
                                         <div class="mb-3">
                                             <label for="leasing_agent_phone" class="form-label">Teléfono / WhatsApp <span class="text-muted fw-normal">(opcional)</span></label>
                                             <input type="text" id="leasing_agent_phone" name="leasing_agent_phone" class="form-control form-control-premium" placeholder="Ej: 6655-4433">
-                                            <div class="form-text">Se conserva en admin para uso futuro; en la web pública se muestra Instagram.</div>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="leasing_agent_instagram" class="form-label">Instagram <span class="text-muted fw-normal">(público)</span></label>
+                                            <label for="leasing_agent_instagram" class="form-label">Instagram <span class="text-muted fw-normal">(opcional)</span></label>
                                             <input type="text" id="leasing_agent_instagram" name="leasing_agent_instagram" class="form-control form-control-premium" placeholder="@asesor.automarket o URL">
-                                            <div class="form-text">En la web: solo ícono de Instagram al pasar el mouse sobre la foto.</div>
+                                            <div class="form-text">Si hay correo, Instagram aparece como ícono secundario en el overlay.</div>
                                         </div>
                                         <div class="mb-3">
                                             <label for="leasing_agent_sort_order" class="form-label">Orden en la grilla</label>
