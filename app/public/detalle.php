@@ -111,7 +111,20 @@ $semiDetailBreadcrumbColor = am_normalize_hex_color((string) ($_semiCfg['detail_
 if ($semiDetailBreadcrumbColor === '') {
     $semiDetailBreadcrumbColor = '#F5B041';
 }
-unset($_semiCfg);
+$_semiFinancing = is_array($_semiCfg['financing'] ?? null) ? $_semiCfg['financing'] : [];
+$detailCtaTitle = trim((string) ($_semiFinancing['detail_cta_title'] ?? ''));
+$detailCtaText = trim((string) ($_semiFinancing['detail_cta_text'] ?? ''));
+$detailCtaButton = trim((string) ($_semiFinancing['detail_cta_button'] ?? ''));
+if ($detailCtaTitle === '') {
+    $detailCtaTitle = '¡Puedes financiar este auto!';
+}
+if ($detailCtaText === '') {
+    $detailCtaText = 'Te ayudamos a realizar todo el trámite de financiamiento de forma rápida y sencilla con los bancos principales de Panamá.';
+}
+if ($detailCtaButton === '') {
+    $detailCtaButton = 'VER REQUISITOS / COTIZAR';
+}
+unset($_semiCfg, $_semiFinancing);
 
 // If vehicle still not found, redirect to inventory or show error
 if (!$vehicle) {
@@ -406,12 +419,12 @@ $vehicleHighlightBadge = InventoryHighlightService::resolveBadge(
     <div class="container">
         <div class="row align-items-center justify-content-between g-4">
             <div class="col-lg-8 text-center text-lg-start">
-                <h2 class="display-6 fw-bold text-navy font-montserrat mb-2">¡Puedes financiar este auto!</h2>
-                <p class="text-muted mb-0 font-poppins">Te ayudamos a realizar todo el trámite de financiamiento de forma rápida y sencilla con los bancos principales de Panamá.</p>
+                <h2 class="display-6 fw-bold text-navy font-montserrat mb-2"><?php echo esc($detailCtaTitle); ?></h2>
+                <p class="text-muted mb-0 font-poppins"><?php echo esc($detailCtaText); ?></p>
             </div>
             <div class="col-lg-4 text-center text-lg-end">
                 <button class="btn btn-theme rounded-pill px-4 py-3 fw-bold text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#quoteVehicleModal">
-                    VER REQUISITOS / COTIZAR
+                    <?php echo esc($detailCtaButton); ?>
                 </button>
             </div>
         </div>

@@ -68,6 +68,7 @@ function admin_guard_post_action(string $action): bool
         'save_unit_topbar',
         'save_unit_terms_page',
         'save_terms',
+        'save_pago_seguro_page',
         'add_semi_bank',
         'edit_semi_bank',
         'delete_semi_bank',

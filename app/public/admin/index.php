@@ -945,6 +945,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errorMsg = 'Error al guardar los Requisitos de Alquiler.';
         }
     }
+
+    // 16b. SAVE PAGO SEGURO PAGE TEXTS
+    elseif ($action === 'save_pago_seguro_page') {
+        if (!isset($siteData['homepage']) || !is_array($siteData['homepage'])) {
+            $siteData['homepage'] = [];
+        }
+        if (!isset($siteData['homepage']['pago_seguro_page']) || !is_array($siteData['homepage']['pago_seguro_page'])) {
+            $siteData['homepage']['pago_seguro_page'] = [];
+        }
+        $siteData['homepage']['pago_seguro_page']['title'] = trim((string) ($_POST['pago_seguro_title'] ?? ''));
+        $siteData['homepage']['pago_seguro_page']['subtitle'] = trim((string) ($_POST['pago_seguro_subtitle'] ?? ''));
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Textos de Paga tu Reserva actualizados correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar los textos de Paga tu Reserva.';
+        }
+    }
     
     // 17. SAVE SEMINUEVOS HOME (BANNER, ANATOMY, AND TOOLTIPS)
     elseif ($action === 'save_seminuevos_home') {
@@ -1487,6 +1504,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $siteData['seminuevos']['financing']['banner_tagline'] = trim($_POST['banner_tagline'] ?? '');
         $siteData['seminuevos']['financing']['banks_title'] = trim($_POST['banks_title'] ?? '');
         $siteData['seminuevos']['financing']['banks_subtitle'] = trim($_POST['banks_subtitle'] ?? '');
+        $siteData['seminuevos']['financing']['detail_cta_title'] = trim($_POST['detail_cta_title'] ?? '');
+        $siteData['seminuevos']['financing']['detail_cta_text'] = trim($_POST['detail_cta_text'] ?? '');
+        $siteData['seminuevos']['financing']['detail_cta_button'] = trim($_POST['detail_cta_button'] ?? '');
 
         // Features
         if (isset($_POST['features']) && is_array($_POST['features'])) {
@@ -4553,6 +4573,33 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                         require __DIR__ . '/../../includes/admin-unit-terms-section.php';
                         unset($ucUnitKey, $ucUnitLabel, $ucConfigTab);
                         ?>
+
+                        <?php $pagoSeguroPage = is_array($homepage['pago_seguro_page'] ?? null) ? $homepage['pago_seguro_page'] : []; ?>
+                        <div class="admin-card mt-4">
+                            <h5 class="fw-bold mb-3 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-credit-card me-2 text-danger"></i>Página Paga tu Reserva (`/pago-seguro.php`)
+                            </h5>
+                            <p class="text-muted small mb-3">Título y subtítulo del encabezado público. Vacío = textos por defecto actuales.</p>
+                            <form method="POST" action="?tab=terms">
+                                <input type="hidden" name="action" value="save_pago_seguro_page">
+                                <?php admin_csrf_field(); ?>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="pago_seguro_title" class="form-label fw-semibold">Título (H1)</label>
+                                        <input type="text" id="pago_seguro_title" name="pago_seguro_title" class="form-control form-control-premium" value="<?php echo esc($pagoSeguroPage['title'] ?? ''); ?>" placeholder="Paga tu Reserva">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="pago_seguro_subtitle" class="form-label fw-semibold">Subtítulo</label>
+                                        <textarea id="pago_seguro_subtitle" name="pago_seguro_subtitle" class="form-control form-control-premium" rows="2" placeholder="Consulte y verifique el monto de su reserva. El cobro en línea todavía no está habilitado."><?php echo esc($pagoSeguroPage['subtitle'] ?? ''); ?></textarea>
+                                    </div>
+                                </div>
+                                <div class="text-end mt-4">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar textos Paga tu Reserva
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
 
                     <!-- TAB 9: RENTAL REQUIREMENTS -->
@@ -5320,6 +5367,26 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                     <div class="col-12">
                                         <label for="semi_fin_banks_subtitle" class="form-label fw-semibold">Subtítulo sección bancos</label>
                                         <input type="text" id="semi_fin_banks_subtitle" name="banks_subtitle" class="form-control form-control-premium" value="<?php echo esc($semi_financing['banks_subtitle'] ?? 'Trabajamos de la mano con las principales entidades bancarias para ofrecerte las mejores condiciones.'); ?>">
+                                    </div>
+                                </div>
+
+                                <hr class="my-4">
+                                <h5 class="fw-bold mb-3 font-montserrat text-navy-light">
+                                    <i class="bi bi-car-front me-2"></i>Banner en ficha del vehículo (detalle)
+                                </h5>
+                                <p class="text-muted small mb-3">Textos de la franja inferior «¡Puedes financiar este auto!» en la ficha del auto.</p>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label for="detail_cta_title" class="form-label fw-semibold">Título del banner</label>
+                                        <input type="text" id="detail_cta_title" name="detail_cta_title" class="form-control form-control-premium" value="<?php echo esc($semi_financing['detail_cta_title'] ?? '¡Puedes financiar este auto!'); ?>" placeholder="¡Puedes financiar este auto!">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="detail_cta_button" class="form-label fw-semibold">Texto del botón</label>
+                                        <input type="text" id="detail_cta_button" name="detail_cta_button" class="form-control form-control-premium" value="<?php echo esc($semi_financing['detail_cta_button'] ?? 'VER REQUISITOS / COTIZAR'); ?>" placeholder="VER REQUISITOS / COTIZAR">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="detail_cta_text" class="form-label fw-semibold">Texto descriptivo</label>
+                                        <textarea id="detail_cta_text" name="detail_cta_text" class="form-control form-control-premium" rows="2" placeholder="Te ayudamos a realizar todo el trámite…"><?php echo esc($semi_financing['detail_cta_text'] ?? 'Te ayudamos a realizar todo el trámite de financiamiento de forma rápida y sencilla con los bancos principales de Panamá.'); ?></textarea>
                                     </div>
                                 </div>
                                 

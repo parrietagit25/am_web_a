@@ -10,6 +10,18 @@ $prefillCode = strtoupper(trim((string) ($_GET['ref'] ?? $_GET['id'] ?? $_GET['c
 if (strlen($prefillCode) > 64) {
     $prefillCode = '';
 }
+
+$homepageData = $contentService->get('homepage', []);
+$pagoSeguroPage = is_array($homepageData['pago_seguro_page'] ?? null) ? $homepageData['pago_seguro_page'] : [];
+$pagoSeguroTitle = trim((string) ($pagoSeguroPage['title'] ?? ''));
+$pagoSeguroSubtitle = trim((string) ($pagoSeguroPage['subtitle'] ?? ''));
+if ($pagoSeguroTitle === '') {
+    $pagoSeguroTitle = 'Paga tu Reserva';
+}
+if ($pagoSeguroSubtitle === '') {
+    $pagoSeguroSubtitle = 'Consulte y verifique el monto de su reserva. El cobro en línea todavía no está habilitado.';
+}
+unset($homepageData, $pagoSeguroPage);
 ?>
 
 <section class="py-5" style="background-color: #f8f9fc;">
@@ -17,11 +29,11 @@ if (strlen($prefillCode) > 64) {
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-2 font-poppins">
                 <li class="breadcrumb-item"><a href="/rent-a-car.php" class="text-danger text-decoration-none fw-semibold">Rent A Car</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Paga tu Reserva</li>
+                <li class="breadcrumb-item active" aria-current="page"><?php echo esc($pagoSeguroTitle); ?></li>
             </ol>
         </nav>
-        <h1 class="display-5 fw-bold text-navy font-montserrat mb-0" style="font-size: 2.30rem; letter-spacing: -0.5px;">Paga tu Reserva</h1>
-        <p class="text-muted font-poppins mt-2 mb-0">Consulte y verifique el monto de su reserva. El cobro en línea todavía no está habilitado.</p>
+        <h1 class="display-5 fw-bold text-navy font-montserrat mb-0" style="font-size: 2.30rem; letter-spacing: -0.5px;"><?php echo esc($pagoSeguroTitle); ?></h1>
+        <p class="text-muted font-poppins mt-2 mb-0"><?php echo esc($pagoSeguroSubtitle); ?></p>
     </div>
 </section>
 

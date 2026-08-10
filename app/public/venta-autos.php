@@ -7,11 +7,14 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../services/Database.php';
 require_once __DIR__ . '/../services/HeaderBannerService.php';
 require_once __DIR__ . '/../services/VehicleSlugHelper.php';
+require_once __DIR__ . '/../services/InventoryHighlightService.php';
 
 require_once __DIR__ . '/../includes/seminuevos-public-copy.php';
 
 // Fetch Seminuevos data from content service
 $seminuevosData = $contentService->get('seminuevos', []);
+$inventoryHighlightAssignments = InventoryHighlightService::getAssignments($seminuevosData);
+$inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevosData);
 $semiCopyDefaults = seminuevos_public_copy_defaults();
 $semiHeroTitle = seminuevos_public_copy($seminuevosData, 'hero_title', $semiCopyDefaults['hero_title']);
 $semiHeroSubtitle = seminuevos_public_copy($seminuevosData, 'hero_subtitle', $semiCopyDefaults['hero_subtitle']);
@@ -265,54 +268,16 @@ $vehicles = $db->select("SELECT * FROM Automarket_Invs_web WHERE Status = 'DISPO
     }
 }
 
-/* Vehicle card custom style */
-.vehicle-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    background: #ffffff;
-    border: 1px solid #f1f5f9;
-}
-.vehicle-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(8, 16, 38, 0.08) !important;
-}
-.vehicle-card:hover .vehicle-img-container img {
-    transform: scale(1.05);
-}
-.badge-grey-pill {
-    background-color: #f1f5f9;
-    color: #64748b;
-    font-size: 0.72rem;
-    padding: 5px 12px;
-    border-radius: 50px;
-    font-weight: 600;
-    display: inline-block;
-}
-.card-price-blue {
-    color: #2563eb; /* Royal blue */
-    font-size: 1.65rem;
-    font-weight: 800;
-    line-height: 1;
-}
-.price-subtext {
-    font-size: 0.72rem;
-    color: #94a3b8;
-    margin-top: 3px;
-    font-weight: 500;
-}
 .hero-banner-slider { min-height: 360px; }
 </style>
+<?php require __DIR__ . '/../includes/inventory-vehicle-card-styles.php'; ?>
+<?php require __DIR__ . '/../includes/inventory-highlight-styles.php'; ?>
 
 <?php
 $hbSectionId = 'cta-hero';
 $hbSkipContainer = true;
 $hbInnerHtml = '';
-$semiHeaderBannerRaw = $seminuevosData['header_banner'] ?? null;
-if (!is_array($semiHeaderBannerRaw) || !array_key_exists('link_url', $semiHeaderBannerRaw)) {
-    $hbDefaultLinkUrl = '/inventario.php';
-    $hbDefaultLinkText = 'Ver inventario';
-}
 require __DIR__ . '/../includes/render-header-banner.php';
-unset($semiHeaderBannerRaw);
 ?>
 
 <!-- Content Sections -->
@@ -344,52 +309,11 @@ unset($semiHeaderBannerRaw);
                     </div>
                 <?php else: ?>
                     <?php foreach ($vehicles as $vehicle): ?>
-                        <?php 
-                        $photoUrl = !empty($vehicle['Photo']) ? $vehicle['Photo'] : 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=600&auto=format&fit=crop';
-                        if (!empty($vehicle['foto_impel'])) {
-                            $photoUrl = $vehicle['foto_impel'];
-                        }
-                        $fullName = trim($vehicle['Make'] . ' ' . $vehicle['Model']);
-                        $priceVal = (float)$vehicle['Price'];
-                        $carType = !empty($vehicle['CarType']) ? $vehicle['CarType'] : 'Seminuevo';
-                        $_vaUrl = VehicleSlugHelper::toDetalleUrl($vehicle) ?? ('/detalle.php?placa=' . urlencode($vehicle['LicensePlate'] ?? ''));
+                        <?php
+                        $inventoryCardWrapper = 'carousel';
+                        require __DIR__ . '/../includes/inventory-vehicle-card.php';
                         ?>
-                        <div class="inventory-carousel-item">
-                            <div class="card vehicle-card border-0 shadow-sm rounded-4 w-100 h-100 d-flex flex-column justify-content-between overflow-hidden position-relative">
-                                <span class="category-badge position-absolute bg-white px-3 py-1 text-navy rounded-pill fw-bold shadow-sm top-3 start-3 text-uppercase z-index-2" style="font-size: 0.72rem; color: #081026; z-index: 10;">
-                                    <?php echo esc($carType); ?>
-                                </span>
-                                
-                                <a href="<?php echo esc($_vaUrl); ?>" class="vehicle-img-container bg-light-gray text-center overflow-hidden d-block" style="height: 190px; display: flex; align-items: center; justify-content: center; position: relative;">
-                                    <img src="<?php echo esc($photoUrl); ?>" alt="<?php echo esc($fullName); ?>" class="w-100 h-100" style="object-fit: cover; transition: transform 0.3s ease;">
-                                </a>
-                                
-                                <div class="card-body p-4 d-flex flex-column justify-content-between flex-grow-1">
-                                    <div>
-                                        <a href="<?php echo esc($_vaUrl); ?>" class="text-decoration-none">
-                                            <h5 class="fw-bold text-navy card-title mb-2 text-uppercase font-montserrat" style="font-size: 1.05rem; min-height: 2.7rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.3;">
-                                                <?php echo esc($fullName); ?>
-                                            </h5>
-                                        </a>
-                                        
-                                        <div class="d-flex flex-wrap gap-2 mb-3">
-                                            <span class="badge-grey-pill"><?php echo number_format($vehicle['Km']); ?> Km</span>
-                                            <span class="badge-grey-pill"><?php echo esc($vehicle['Year']); ?></span>
-                                            <span class="badge-grey-pill text-uppercase"><?php echo esc($vehicle['Transmission']); ?></span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="d-flex align-items-end justify-content-between mt-auto pt-2">
-                                        <div class="price-container">
-                                            <div class="card-price-blue font-poppins">$<?php echo number_format($priceVal, 0); ?></div>
-                                            <div class="price-subtext">Precio sin impuesto</div>
-                                        </div>
-                                        <a href="<?php echo esc($_vaUrl); ?>" class="btn btn-theme rounded-pill px-3 py-2 text-white text-sm fw-semibold text-decoration-none" style="font-size: 0.82rem; font-family: 'Poppins', sans-serif;">Ver detalles</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    <?php unset($_vaUrl); endforeach; ?>
+                    <?php endforeach; ?>
                 <?php endif; ?>
             </div>
         </div>
