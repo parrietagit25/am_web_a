@@ -1060,6 +1060,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errorMsg = 'Error al guardar el color del breadcrumb.';
         }
     }
+
+    // Banner CTA de financiamiento en ficha de vehículo (detalle)
+    elseif ($action === 'save_semi_detail_financing_cta') {
+        if (!isset($siteData['seminuevos']) || !is_array($siteData['seminuevos'])) {
+            $siteData['seminuevos'] = [];
+        }
+        if (!isset($siteData['seminuevos']['financing']) || !is_array($siteData['seminuevos']['financing'])) {
+            $siteData['seminuevos']['financing'] = [];
+        }
+        $siteData['seminuevos']['financing']['detail_cta_title'] = trim((string) ($_POST['detail_cta_title'] ?? ''));
+        $siteData['seminuevos']['financing']['detail_cta_text'] = trim((string) ($_POST['detail_cta_text'] ?? ''));
+        $siteData['seminuevos']['financing']['detail_cta_button'] = trim((string) ($_POST['detail_cta_button'] ?? ''));
+        if ($contentService->saveAll($siteData)) {
+            $successMsg = 'Banner de financiamiento en ficha guardado correctamente.';
+        } else {
+            $errorMsg = 'Error al guardar el banner de financiamiento en ficha.';
+        }
+    }
     
     // 18. ADD SEMINUEVOS OPINION
     elseif ($action === 'add_semi_opinion') {
@@ -1504,9 +1522,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $siteData['seminuevos']['financing']['banner_tagline'] = trim($_POST['banner_tagline'] ?? '');
         $siteData['seminuevos']['financing']['banks_title'] = trim($_POST['banks_title'] ?? '');
         $siteData['seminuevos']['financing']['banks_subtitle'] = trim($_POST['banks_subtitle'] ?? '');
-        $siteData['seminuevos']['financing']['detail_cta_title'] = trim($_POST['detail_cta_title'] ?? '');
-        $siteData['seminuevos']['financing']['detail_cta_text'] = trim($_POST['detail_cta_text'] ?? '');
-        $siteData['seminuevos']['financing']['detail_cta_button'] = trim($_POST['detail_cta_button'] ?? '');
 
         // Features
         if (isset($_POST['features']) && is_array($_POST['features'])) {
@@ -5021,6 +5036,42 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                             </form>
                         </div>
 
+                        <?php
+                        $semiFinancingCta = is_array($seminuevos['financing'] ?? null) ? $seminuevos['financing'] : [];
+                        ?>
+                        <div class="admin-card mb-4">
+                            <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
+                                <i class="bi bi-car-front me-2 text-danger"></i>Banner en ficha del vehículo (detalle)
+                            </h5>
+                            <p class="text-muted small mb-3">
+                                Textos de la franja inferior «¡Puedes financiar este auto!» en la ficha del auto.
+                                Vacío = textos por defecto actuales.
+                            </p>
+                            <form method="POST" action="?tab=semi-inventory">
+                                <input type="hidden" name="action" value="save_semi_detail_financing_cta">
+                                <?php admin_csrf_field(); ?>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="detail_cta_title" class="form-label fw-semibold">Título del banner</label>
+                                        <input type="text" id="detail_cta_title" name="detail_cta_title" class="form-control form-control-premium" value="<?php echo esc($semiFinancingCta['detail_cta_title'] ?? ''); ?>" placeholder="¡Puedes financiar este auto!">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="detail_cta_button" class="form-label fw-semibold">Texto del botón</label>
+                                        <input type="text" id="detail_cta_button" name="detail_cta_button" class="form-control form-control-premium" value="<?php echo esc($semiFinancingCta['detail_cta_button'] ?? ''); ?>" placeholder="VER REQUISITOS / COTIZAR">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="detail_cta_text" class="form-label fw-semibold">Texto descriptivo</label>
+                                        <textarea id="detail_cta_text" name="detail_cta_text" class="form-control form-control-premium" rows="2" placeholder="Te ayudamos a realizar todo el trámite de financiamiento de forma rápida y sencilla con los bancos principales de Panamá."><?php echo esc($semiFinancingCta['detail_cta_text'] ?? ''); ?></textarea>
+                                    </div>
+                                </div>
+                                <div class="text-end mt-4">
+                                    <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
+                                        <i class="bi bi-save"></i> Guardar banner de ficha
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
                         <!-- Highlight tags reference -->
                         <div class="admin-card">
                             <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
@@ -5367,26 +5418,6 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                     <div class="col-12">
                                         <label for="semi_fin_banks_subtitle" class="form-label fw-semibold">Subtítulo sección bancos</label>
                                         <input type="text" id="semi_fin_banks_subtitle" name="banks_subtitle" class="form-control form-control-premium" value="<?php echo esc($semi_financing['banks_subtitle'] ?? 'Trabajamos de la mano con las principales entidades bancarias para ofrecerte las mejores condiciones.'); ?>">
-                                    </div>
-                                </div>
-
-                                <hr class="my-4">
-                                <h5 class="fw-bold mb-3 font-montserrat text-navy-light">
-                                    <i class="bi bi-car-front me-2"></i>Banner en ficha del vehículo (detalle)
-                                </h5>
-                                <p class="text-muted small mb-3">Textos de la franja inferior «¡Puedes financiar este auto!» en la ficha del auto.</p>
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-6">
-                                        <label for="detail_cta_title" class="form-label fw-semibold">Título del banner</label>
-                                        <input type="text" id="detail_cta_title" name="detail_cta_title" class="form-control form-control-premium" value="<?php echo esc($semi_financing['detail_cta_title'] ?? '¡Puedes financiar este auto!'); ?>" placeholder="¡Puedes financiar este auto!">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="detail_cta_button" class="form-label fw-semibold">Texto del botón</label>
-                                        <input type="text" id="detail_cta_button" name="detail_cta_button" class="form-control form-control-premium" value="<?php echo esc($semi_financing['detail_cta_button'] ?? 'VER REQUISITOS / COTIZAR'); ?>" placeholder="VER REQUISITOS / COTIZAR">
-                                    </div>
-                                    <div class="col-12">
-                                        <label for="detail_cta_text" class="form-label fw-semibold">Texto descriptivo</label>
-                                        <textarea id="detail_cta_text" name="detail_cta_text" class="form-control form-control-premium" rows="2" placeholder="Te ayudamos a realizar todo el trámite…"><?php echo esc($semi_financing['detail_cta_text'] ?? 'Te ayudamos a realizar todo el trámite de financiamiento de forma rápida y sencilla con los bancos principales de Panamá.'); ?></textarea>
                                     </div>
                                 </div>
                                 
