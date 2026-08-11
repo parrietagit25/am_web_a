@@ -9,16 +9,10 @@ require_once __DIR__ . '/../includes/unit-footer-prepare.php';
 $leasingData = $contentService->get('leasing', []);
 $leasingContactRaw = $contentService->get('leasing.contact', []);
 $leasingContact = am_unit_contact_with_footer_fallback($leasingContactRaw, $leasingData);
+$siteDataAll = $contentService->getAll();
+$leasingContactResolved = am_unit_contact_resolved_for_display($leasingContact, $siteDataAll['global'] ?? []);
 $pageTitle = trim((string) ($leasingContactRaw['page_title'] ?? '')) ?: 'Contactos';
 $introText = trim((string) ($leasingContactRaw['intro_text'] ?? '')) ?: 'Gracias por escribirnos. Tus comentarios son muy importantes para nosotros; completa el formulario y pronto te responderemos.';
-$lcPhone = trim((string) ($leasingContact['phone_display'] ?? '')) ?: trim((string) ($contentService->get('global.phone_display', '(507) 279-2700')));
-$lcWhatsappDigits = preg_replace('/\D/', '', (string) ($leasingContact['whatsapp_number'] ?? ''));
-if ($lcWhatsappDigits === '') {
-    $lcWhatsappDigits = preg_replace('/\D/', '', (string) ($contentService->get('global.whatsapp_number', '50767470070')));
-}
-$lcWhatsappLabel = trim((string) ($leasingContact['whatsapp_number'] ?? '')) !== ''
-    ? $leasingContact['whatsapp_number']
-    : '(507) 6747-0070';
 $contactImageUrl = $leasingContactRaw['contact_image_url'] ?? '';
 $defaultImage = '/assets/img/sucursales-rac.webp';
 if (empty($contactImageUrl)) {
@@ -168,22 +162,13 @@ if (empty($contactImageUrl)) {
 
         <div class="col-lg-5 col-12">
             <div class="leasing-contact-sidebar">
-                <div class="mb-4">
-                    <h5 class="fw-bold font-montserrat text-navy text-uppercase mb-3" style="font-size: 1.05rem; letter-spacing: 0.5px;">Teléfono:</h5>
-                    <div class="d-flex flex-column gap-2">
-                        <a href="tel:<?php echo esc(preg_replace('/\D/', '', $lcPhone)); ?>" class="leasing-contact-phone-link text-navy font-poppins fs-5 text-decoration-none fw-semibold d-flex align-items-center gap-2">
-                            <i class="bi bi-telephone-fill text-muted"></i> <?php echo esc($lcPhone); ?>
-                        </a>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <h5 class="fw-bold font-montserrat text-navy text-uppercase mb-3" style="font-size: 1.05rem; letter-spacing: 0.5px;">WhatsApp:</h5>
-                    <a href="https://api.whatsapp.com/send?phone=<?php echo esc($lcWhatsappDigits); ?>" target="_blank" rel="noopener" class="btn text-white fw-bold d-inline-flex align-items-center gap-2 px-4 py-2 rounded-3 shadow-sm" style="background-color: #25d366; font-family: 'Poppins', sans-serif;">
-                        <i class="bi bi-whatsapp fs-5"></i> <?php echo esc($lcWhatsappLabel); ?>
-                    </a>
-                </div>
+                <?php
+                $_uccResolved = $leasingContactResolved;
+                $_uccLinkClass = 'leasing-contact-phone-link text-navy font-poppins fs-5 text-decoration-none fw-semibold d-flex align-items-center gap-2';
+                require __DIR__ . '/../includes/unit-contact-cards.php';
+                ?>
                 <?php if (!empty($contactImageUrl)): ?>
-                    <div class="leasing-contact-sidebar-img">
+                    <div class="leasing-contact-sidebar-img mt-2">
                         <img src="<?php echo esc($contactImageUrl); ?>" alt="Leasing Operativo - Contacto" loading="lazy">
                     </div>
                 <?php endif; ?>

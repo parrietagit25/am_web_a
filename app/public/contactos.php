@@ -37,10 +37,32 @@ $tallerContact = $contentService->get('taller.contact', []);
 $siteData = $contentService->getAll();
 $semiUnitData = $siteData['seminuevos'] ?? [];
 $racUnitData = $siteData['homepage'] ?? [];
+$tallerUnitData = $siteData['taller'] ?? [];
 $semiFooterContact = am_unit_footer_contact_array($semiUnitData);
 $semiContactMerged = am_unit_contact_with_footer_fallback([], $semiUnitData);
 $semiContactResolved = am_unit_contact_resolved_for_display($semiContactMerged, $siteData['global'] ?? []);
 $racFooterContact = am_unit_footer_contact_array($racUnitData);
+$racContactMerged = am_unit_contact_with_footer_fallback([], $racUnitData);
+$racContactResolved = am_unit_contact_resolved_for_display($racContactMerged, $siteData['global'] ?? []);
+
+// Taller: prioriza footer_contact (Datos de contacto públicos); fallback a phone_1/2/whatsapp legacy
+$tallerPageContact = [
+    'phone_display' => trim((string) ($tallerContact['phone_1'] ?? '')),
+    'phone_2' => trim((string) ($tallerContact['phone_2'] ?? '')),
+    'whatsapp_number' => trim((string) ($tallerContact['whatsapp'] ?? '')),
+    'email' => trim((string) ($tallerContact['email'] ?? '')),
+    'schedule' => trim((string) ($tallerContact['schedule'] ?? '')),
+];
+$tallerFooter = am_unit_footer_contact_array($tallerUnitData);
+$tallerContactMerged = $tallerPageContact;
+foreach (['phone_display', 'whatsapp_number', 'email', 'schedule'] as $_tk) {
+    $_fv = trim((string) ($tallerFooter[$_tk] ?? ''));
+    if ($_fv !== '') {
+        $tallerContactMerged[$_tk] = $tallerFooter[$_tk];
+    }
+}
+unset($_tk, $_fv);
+$tallerContactResolved = am_unit_contact_resolved_for_display($tallerContactMerged, $siteData['global'] ?? []);
 $globalPhone = trim((string) ($siteData['global']['phone_display'] ?? '(507) 279-2700'));
 $globalWhatsapp = trim((string) ($siteData['global']['whatsapp_number'] ?? '50767470070'));
 
@@ -463,54 +485,20 @@ $genericContactHeader = contact_page_header_copy($activeUnit, $siteData, t('cont
         <div class="col-lg-5 col-12">
             <div class="ps-lg-4 sticky-widget">
                 <div class="contact-info-panel py-4 px-1">
-                    <div class="mb-5">
-                        <h5 class="fw-bold font-montserrat text-navy text-uppercase mb-3" style="font-size: 1.1rem; letter-spacing: 0.5px;"><?php echo esc(t('contact.phone_label')); ?></h5>
-                        <div class="d-flex flex-column gap-2">
-                            <?php
-                            if ($activeUnit === 'taller') {
-                                $phone1 = $tallerContact['phone_1'] ?? '(507) 279-2700';
-                                $phone2 = $tallerContact['phone_2'] ?? '(507) 6747-0070';
-                                $waText = $tallerContact['whatsapp'] ?? '(507) 6747-0070';
-                            } elseif ($activeUnit === 'seminuevos') {
-                                $phone1 = trim((string) ($semiFooterContact['phone_display'] ?? '')) ?: $globalPhone;
-                                $phone2 = '';
-                                $waDigits = preg_replace('/\D/', '', (string) ($semiFooterContact['whatsapp_number'] ?? ''));
-                                $waText = $waDigits !== '' ? ($semiFooterContact['whatsapp_number'] ?? $waDigits) : $globalWhatsapp;
-                            } elseif ($activeUnit === 'rentacar') {
-                                $phone1 = trim((string) ($racFooterContact['phone_display'] ?? '')) ?: $globalPhone;
-                                $phone2 = '';
-                                $waDigits = preg_replace('/\D/', '', (string) ($racFooterContact['whatsapp_number'] ?? ''));
-                                $waText = $waDigits !== '' ? ($racFooterContact['whatsapp_number'] ?? $waDigits) : $globalWhatsapp;
-                            } else {
-                                $phone1 = $globalPhone;
-                                $phone2 = '(507) 6747-0070';
-                                $waText = '(507) 6747-0070';
-                            }
-                            if (!isset($waDigits)) {
-                                $waDigits = preg_replace('/\D/', '', (string) $waText);
-                            }
-                            ?>
-                            <?php if (!empty(trim($phone1))): ?>
-                                <a href="tel:<?php echo preg_replace('/\D/', '', $phone1); ?>" class="text-navy font-poppins fs-5 text-decoration-none fw-semibold hover-red d-flex align-items-center gap-2">
-                                    <i class="bi bi-telephone-fill text-muted"></i> <?php echo esc($phone1); ?>
-                                </a>
-                            <?php endif; ?>
-                            <?php if (!empty(trim($phone2))): ?>
-                                <a href="tel:<?php echo preg_replace('/\D/', '', $phone2); ?>" class="text-navy font-poppins fs-5 text-decoration-none fw-semibold hover-red d-flex align-items-center gap-2">
-                                    <i class="bi bi-telephone-fill text-muted"></i> <?php echo esc($phone2); ?>
-                                </a>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                    <div class="mb-5">
-                        <h5 class="fw-bold font-montserrat text-navy text-uppercase mb-3" style="font-size: 1.1rem; letter-spacing: 0.5px;"><?php echo esc(t('contact.whatsapp')); ?></h5>
-                        <?php
-                        $waDigits = preg_replace('/\D/', '', (string) $waText);
-                        ?>
-                        <a href="https://api.whatsapp.com/send?phone=<?php echo esc($waDigits); ?>" target="_blank" class="btn text-white fw-bold d-inline-flex align-items-center gap-2 px-4 py-2 rounded-3 shadow-sm hover-grow" style="background-color: #25d366; font-family: 'Poppins', sans-serif;">
-                            <i class="bi bi-whatsapp fs-5"></i> <?php echo esc($waText); ?>
-                        </a>
-                    </div>
+                    <?php
+                    if ($activeUnit === 'taller') {
+                        $_uccResolved = $tallerContactResolved;
+                    } elseif ($activeUnit === 'rentacar') {
+                        $_uccResolved = $racContactResolved;
+                    } else {
+                        $_uccResolved = am_unit_contact_resolved_for_display(
+                            am_unit_contact_with_footer_fallback([], $siteData[$activeUnit] ?? []),
+                            $siteData['global'] ?? []
+                        );
+                    }
+                    $_uccLinkClass = 'text-navy font-poppins fs-5 text-decoration-none fw-semibold hover-red d-flex align-items-center gap-2';
+                    require __DIR__ . '/../includes/unit-contact-cards.php';
+                    ?>
                     <?php
                     $sideImage = $contactImageUrl;
                     if ($activeUnit === 'taller' && !empty($tallerContact['image_url'] ?? '')) {
