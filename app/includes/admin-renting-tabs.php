@@ -798,6 +798,16 @@ $renting_contact_messages = $renting_contact['messages'] ?? [];
                                 </table>
                             </div>
                         </div>
+
+                        <?php
+                        $ufUnitKey = 'renting';
+                        $ufUnitLabel = 'Renting';
+                        $ufTabSlug = 'renting-contacto';
+                        $ufSaveAction = 'save_renting_unit_footer';
+                        $ufUnitData = $renting;
+                        $ufContactOnly = true;
+                        require __DIR__ . '/admin-unit-footer-settings.php';
+                        ?>
                     </div>
 
                     <!-- TAB: RENTING COTIZACIONES -->

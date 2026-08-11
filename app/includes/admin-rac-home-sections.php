@@ -76,70 +76,8 @@ $rac_show_payments = ($rac_home['show_payment_methods'] ?? true) !== false;
     </form>
 </div>
 
-<div class="admin-card mt-4">
-    <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
-        <i class="bi bi-telephone-fill me-2 text-danger"></i>Contacto y medios de pago (Rent A Car)
-    </h5>
-    <p class="text-muted small mb-4">
-        Teléfono/WhatsApp de esta unidad para páginas Rent A Car. El botón flotante no hereda el WhatsApp global:
-        si el número unitario está vacío o inválido, permanece oculto.
-    </p>
-    <form method="POST" action="?tab=hero">
-        <input type="hidden" name="action" value="save_rac_unit_contact">
-        <div class="row g-3">
-            <div class="col-md-4">
-                <label for="rac_contact_phone" class="form-label fw-semibold">Teléfono (texto)</label>
-                <input type="text" id="rac_contact_phone" name="rac_contact_phone" class="form-control form-control-premium"
-                       value="<?php echo esc($rac_contact['phone_display'] ?? ''); ?>" placeholder="(507) 279-2700">
-            </div>
-            <div class="col-md-4">
-                <label for="rac_contact_whatsapp" class="form-label fw-semibold">WhatsApp (solo dígitos)</label>
-                <input type="text" id="rac_contact_whatsapp" name="rac_contact_whatsapp" class="form-control form-control-premium"
-                       value="<?php echo esc($rac_contact['whatsapp_number'] ?? ''); ?>" placeholder="5072792700">
-            </div>
-            <div class="col-md-4">
-                <label for="rac_contact_email" class="form-label fw-semibold">Correo</label>
-                <input type="email" id="rac_contact_email" name="rac_contact_email" class="form-control form-control-premium"
-                       value="<?php echo esc($rac_contact['email'] ?? ''); ?>" placeholder="info@automarket.com.pa">
-            </div>
-            <div class="col-md-4">
-                <label for="rac_contact_schedule" class="form-label fw-semibold">Horario</label>
-                <input type="text" id="rac_contact_schedule" name="rac_contact_schedule" class="form-control form-control-premium"
-                       value="<?php echo esc($rac_contact['schedule'] ?? ''); ?>" placeholder="Lun–Vie 8:00am–5:00pm">
-            </div>
-            <div class="col-md-8">
-                <label for="rac_contact_whatsapp_message" class="form-label fw-semibold">Mensaje inicial de WhatsApp</label>
-                <input type="text" id="rac_contact_whatsapp_message" name="rac_contact_whatsapp_message"
-                       class="form-control form-control-premium" maxlength="200"
-                       value="<?php echo esc($rac_contact['whatsapp_message'] ?? ''); ?>"
-                       placeholder="Vacío = saludo neutral de Rent A Car">
-            </div>
-            <div class="col-md-4 d-flex align-items-center">
-                <div class="form-check form-switch mt-3">
-                    <input class="form-check-input" type="checkbox" id="rac_contact_whatsapp_enabled"
-                           name="rac_contact_whatsapp_enabled" value="1"
-                           <?php echo (!array_key_exists('whatsapp_enabled', $rac_contact) || !empty($rac_contact['whatsapp_enabled'])) ? 'checked' : ''; ?>>
-                    <label class="form-check-label" for="rac_contact_whatsapp_enabled">Mostrar WhatsApp en Rent A Car</label>
-                </div>
-            </div>
-            <div class="col-12">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="rac_show_payment_methods" name="rac_show_payment_methods" value="1"
-                        <?php echo $rac_show_payments ? 'checked' : ''; ?>>
-                    <label class="form-check-label" for="rac_show_payment_methods">Mostrar bloque de medios de pago en el pie inferior de Rent A Car</label>
-                </div>
-            </div>
-        </div>
-        <div class="d-flex justify-content-end mt-4">
-            <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
-                <i class="bi bi-save"></i> Guardar contacto y pagos
-            </button>
-        </div>
-    </form>
-</div>
-
 <?php
-$pmUnitKey = 'rentacar';
-$pmTabSlug = 'hero';
-require __DIR__ . '/admin-unit-payment-methods-panel.php';
+$racContactTabSlug = 'hero';
+$racContactOnly = false;
+require __DIR__ . '/admin-rac-unit-contact-settings.php';
 ?>

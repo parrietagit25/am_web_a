@@ -161,6 +161,10 @@ class AdminUserService
         if (self::isSuperAdmin()) {
             return true;
         }
+        $multi = AdminPermissionRegistry::permissionsForAction($action);
+        if ($multi !== null) {
+            return self::canAny($multi);
+        }
         $permission = AdminPermissionRegistry::permissionForAction($action);
         if ($permission === null) {
             return false;

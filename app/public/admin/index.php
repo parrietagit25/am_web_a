@@ -4523,6 +4523,14 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                         </div>
                     </div>
 
+                    <?php
+                    $rac_contact = is_array($homepage['contact'] ?? null) ? $homepage['contact'] : [];
+                    $rac_show_payments = ($homepage['show_payment_methods'] ?? true) !== false;
+                    $racContactTabSlug = 'contact';
+                    $racContactOnly = true;
+                    require __DIR__ . '/../../includes/admin-rac-unit-contact-settings.php';
+                    ?>
+
                     <!-- TAB 7.1: SECURE PAYMENTS LOG -->
                     <div class="tab-pane fade" id="tab-payments" role="tabpanel" aria-labelledby="tab-payments-nav">
                         <div class="admin-card">
@@ -5928,7 +5936,7 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                             <h5 class="fw-bold mb-4 font-montserrat border-bottom pb-2 text-navy">
                                 <i class="bi bi-image-fill me-2 text-danger"></i>Imagen de Contacto — Seminuevos
                             </h5>
-                            <p class="text-muted small mb-3">Imagen lateral en <code>/contactos.php?unit=seminuevos</code>. Teléfono/WhatsApp del lateral provienen de <strong>Contacto y medios de pago</strong> (home Seminuevos).</p>
+                            <p class="text-muted small mb-3">Imagen lateral en <code>/contactos.php?unit=seminuevos</code>. Teléfono/WhatsApp/correo/horario del lateral se editan abajo en <strong>Datos de contacto públicos</strong>.</p>
                             <form method="POST" action="?tab=semi-contact" enctype="multipart/form-data">
                                 <input type="hidden" name="action" value="save_semi_contact_image">
                                 <div class="row g-3 align-items-start">
@@ -6028,6 +6036,16 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                 </table>
                             </div>
                         </div>
+
+                        <?php
+                        $ufUnitKey = 'seminuevos';
+                        $ufUnitLabel = 'Venta de Autos';
+                        $ufTabSlug = 'semi-contact';
+                        $ufSaveAction = 'save_seminuevos_unit_footer';
+                        $ufUnitData = $seminuevos;
+                        $ufContactOnly = true;
+                        require __DIR__ . '/../../includes/admin-unit-footer-settings.php';
+                        ?>
 
                     </div>
 
@@ -6981,7 +6999,7 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                             </h5>
                             <p class="text-muted small mb-4">
                                 Bandeja y ajustes independientes de Rent A Car y Venta de Autos. La imagen lateral se muestra a la derecha del formulario en <code>/leasing-contactos.php</code>.
-                                Teléfono/WhatsApp del lateral usan <strong>Contacto y medios de pago</strong> (home Leasing) como respaldo si no hay datos específicos aquí.
+                                Teléfono/WhatsApp/correo/horario del lateral se editan abajo en <strong>Datos de contacto públicos</strong>.
                             </p>
 
                             <form method="POST" action="?tab=leasing-contacto" enctype="multipart/form-data">
@@ -7093,6 +7111,16 @@ $inventoryHighlightMetadata = InventoryHighlightService::getMetadata($seminuevos
                                 </table>
                             </div>
                         </div>
+
+                        <?php
+                        $ufUnitKey = 'leasing';
+                        $ufUnitLabel = 'Leasing Operativo';
+                        $ufTabSlug = 'leasing-contacto';
+                        $ufSaveAction = 'save_leasing_unit_footer';
+                        $ufUnitData = $leasing;
+                        $ufContactOnly = true;
+                        require __DIR__ . '/../../includes/admin-unit-footer-settings.php';
+                        ?>
                     </div>
 
                     <?php require __DIR__ . '/../../includes/admin-renting-tabs.php'; ?>

@@ -1,26 +1,33 @@
 <?php
 /**
- * Admin — contacto inferior y medios de pago por unidad.
+ * Admin — contacto público por unidad (tel / WA / correo / horario).
+ * Se usa en Home y también en el tab Contacto (mismos datos JSON).
  *
- * @var string $ufUnitKey       seminuevos|leasing|renting|taller
- * @var string $ufUnitLabel     Etiqueta legible
- * @var string $ufTabSlug       Slug de pestaña (?tab=)
- * @var string $ufSaveAction    Acción POST
+ * @var string $ufUnitKey
+ * @var string $ufUnitLabel
+ * @var string $ufTabSlug
+ * @var string $ufSaveAction
  * @var array<string, mixed> $ufUnitData
+ * @var bool   $ufContactOnly  si true: sin medios de pago ni panel de iconos
  */
-$ufContact = $ufUnitData['footer_contact'] ?? [];
+$ufContact = is_array($ufUnitData['footer_contact'] ?? null) ? $ufUnitData['footer_contact'] : [];
 $ufShowPayments = ($ufUnitData['show_payment_methods'] ?? true) !== false;
 $ufWhatsappEnabled = !array_key_exists('whatsapp_enabled', $ufContact) || !empty($ufContact['whatsapp_enabled']);
-$ufFieldPrefix = preg_replace('/[^a-z0-9_]/', '_', $ufUnitKey);
+$ufContactOnly = !empty($ufContactOnly);
+$ufFieldPrefix = preg_replace('/[^a-z0-9_]/', '_', $ufUnitKey . '_' . $ufTabSlug) ?: 'unit';
+$ufCardTitle = $ufContactOnly
+    ? ('Datos de contacto públicos — ' . $ufUnitLabel)
+    : ('Contacto y medios de pago (' . $ufUnitLabel . ')');
+$ufHelpText = $ufContactOnly
+    ? 'Teléfono, WhatsApp, correo y horario visibles en la página de contacto y en el pie. Los mismos datos se pueden editar también desde Principal / Pie de página.'
+    : 'Teléfono, WhatsApp, correo y horario para esta unidad. El botón flotante solo aparece cuando existe un número unitario válido; no hereda el WhatsApp global.';
+$ufBtnLabel = $ufContactOnly ? 'Guardar datos de contacto' : 'Guardar contacto y pagos';
 ?>
-<div class="admin-card">
+<div class="admin-card<?php echo $ufContactOnly ? ' mt-4' : ''; ?>">
     <h5 class="fw-bold mb-2 font-montserrat border-bottom pb-2 text-navy">
-        <i class="bi bi-telephone-fill me-2 text-danger"></i>Contacto y medios de pago (<?php echo esc($ufUnitLabel); ?>)
+        <i class="bi bi-telephone-fill me-2 text-danger"></i><?php echo esc($ufCardTitle); ?>
     </h5>
-    <p class="text-muted small mb-4">
-        Teléfono, WhatsApp, correo y horario para esta unidad. El botón flotante solo aparece cuando existe un número unitario válido;
-        no hereda el WhatsApp global.
-    </p>
+    <p class="text-muted small mb-4"><?php echo esc($ufHelpText); ?></p>
     <form method="POST" action="?tab=<?php echo esc($ufTabSlug); ?>">
         <input type="hidden" name="action" value="<?php echo esc($ufSaveAction); ?>">
         <div class="row g-3">
@@ -58,6 +65,7 @@ $ufFieldPrefix = preg_replace('/[^a-z0-9_]/', '_', $ufUnitKey);
                     <label class="form-check-label" for="<?php echo esc($ufFieldPrefix); ?>_whatsapp_enabled">Mostrar WhatsApp en esta unidad</label>
                 </div>
             </div>
+            <?php if (!$ufContactOnly): ?>
             <div class="col-12">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="<?php echo esc($ufFieldPrefix); ?>_show_payments" name="unit_show_payment_methods" value="1"
@@ -67,17 +75,23 @@ $ufFieldPrefix = preg_replace('/[^a-z0-9_]/', '_', $ufUnitKey);
                     </label>
                 </div>
             </div>
+            <?php else: ?>
+                <input type="hidden" name="unit_show_payment_methods" value="<?php echo $ufShowPayments ? '1' : '0'; ?>">
+            <?php endif; ?>
         </div>
         <div class="d-flex justify-content-end mt-4">
             <button type="submit" class="btn btn-premium d-inline-flex align-items-center gap-2">
-                <i class="bi bi-save"></i> Guardar contacto y pagos
+                <i class="bi bi-save"></i> <?php echo esc($ufBtnLabel); ?>
             </button>
         </div>
     </form>
 </div>
 
 <?php
-$pmUnitKey = $ufUnitKey;
-$pmTabSlug = $ufTabSlug;
-require __DIR__ . '/admin-unit-payment-methods-panel.php';
+if (!$ufContactOnly) {
+    $pmUnitKey = $ufUnitKey;
+    $pmTabSlug = $ufTabSlug;
+    require __DIR__ . '/admin-unit-payment-methods-panel.php';
+}
+unset($ufContactOnly, $ufCardTitle, $ufHelpText, $ufBtnLabel);
 ?>

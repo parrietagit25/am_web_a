@@ -187,11 +187,39 @@ class AdminPermissionRegistry
         return in_array($perm, self::allPermissionKeys(), true) ? $perm : null;
     }
 
+    /**
+     * Acciones que aceptan más de un permiso (p. ej. Home o Contacto).
+     *
+     * @return list<string>|null
+     */
+    public static function permissionsForAction(string $action): ?array
+    {
+        $action = trim($action);
+        if ($action === '') {
+            return null;
+        }
+
+        static $multi = [
+            'save_rac_unit_contact' => ['hero', 'contact'],
+            'save_seminuevos_unit_footer' => ['semi_home', 'semi_contact'],
+            'save_leasing_unit_footer' => ['leasing_home', 'leasing_contacto'],
+            'save_renting_unit_footer' => ['renting_home', 'renting_contacto'],
+            'save_taller_unit_footer' => ['taller_home', 'taller_contacto'],
+        ];
+
+        return $multi[$action] ?? null;
+    }
+
     public static function permissionForAction(string $action): ?string
     {
         $action = trim($action);
         if ($action === '') {
             return null;
+        }
+
+        $multi = self::permissionsForAction($action);
+        if ($multi !== null && $multi !== []) {
+            return $multi[0];
         }
 
         if ($action === 'save_unit_location_refs') {

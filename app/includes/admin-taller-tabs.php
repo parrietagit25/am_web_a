@@ -489,6 +489,16 @@ $taller_contact_messages = $taller_contact['messages'] ?? [];
             </table>
         </div>
     </div>
+
+    <?php
+    $ufUnitKey = 'taller';
+    $ufUnitLabel = 'Taller';
+    $ufTabSlug = 'taller-contacto';
+    $ufSaveAction = 'save_taller_unit_footer';
+    $ufUnitData = $taller;
+    $ufContactOnly = true;
+    require __DIR__ . '/admin-unit-footer-settings.php';
+    ?>
 </div>
 
 <!-- TAB: TALLER SOBRE NOSOTROS -->
