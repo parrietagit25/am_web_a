@@ -12,6 +12,7 @@ $landingBase = $scheme . '://' . $host . '/l/';
         <p class="text-muted small mb-4">
             Cada landing es una <strong>página independiente</strong> (sin menú ni pie del sitio). URL pública:
             <code><?php echo esc($landingBase); ?>mi-campana</code>
+            El HTML se envía codificado para evitar bloqueos del firewall (Cloudflare) al guardar.
         </p>
         <form id="landingForm" method="POST" action="?tab=landings" enctype="multipart/form-data">
             <input type="hidden" id="landingFormAction" name="action" value="add_landing_page">

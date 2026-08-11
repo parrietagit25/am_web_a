@@ -2881,6 +2881,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     elseif ($action === 'add_landing_page') {
+        require_once __DIR__ . '/../../includes/admin-posted-html.php';
         if (!isset($siteData['landings']) || !is_array($siteData['landings'])) {
             $siteData['landings'] = [];
         }
@@ -2920,7 +2921,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'title' => $title,
                 'slug' => $slug,
                 'excerpt' => trim($_POST['landing_excerpt'] ?? ''),
-                'content_html' => trim($_POST['landing_content_html'] ?? ''),
+                'content_html' => am_admin_decode_posted_html((string) ($_POST['landing_content_html'] ?? '')),
                 'image_url' => $imageUrl,
                 'cta_text' => trim($_POST['landing_cta_text'] ?? ''),
                 'cta_url' => trim($_POST['landing_cta_url'] ?? ''),
@@ -2945,6 +2946,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     elseif ($action === 'edit_landing_page') {
+        require_once __DIR__ . '/../../includes/admin-posted-html.php';
         if (!isset($siteData['landings']) || !is_array($siteData['landings'])) {
             $siteData['landings'] = [];
         }
@@ -2996,7 +2998,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'title' => $title,
                     'slug' => $slug,
                     'excerpt' => trim($_POST['landing_excerpt'] ?? ''),
-                    'content_html' => trim($_POST['landing_content_html'] ?? ''),
+                    'content_html' => am_admin_decode_posted_html((string) ($_POST['landing_content_html'] ?? '')),
                     'image_url' => $imageUrl,
                     'cta_text' => trim($_POST['landing_cta_text'] ?? ''),
                     'cta_url' => trim($_POST['landing_cta_url'] ?? ''),
@@ -8430,6 +8432,30 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             field.value = landingHtmlTemplate;
             field.focus();
+        });
+    }
+
+    const landingForm = document.getElementById('landingForm');
+    if (landingForm) {
+        landingForm.addEventListener('submit', function () {
+            const field = document.getElementById('landing_content_html');
+            if (!field) return;
+            let html = field.value || '';
+            if (window.jQuery && jQuery(field).next('.note-editor').length) {
+                html = jQuery(field).summernote('code') || html;
+                // Destruir Summernote para que no reescriba el textarea con HTML crudo tras el encode
+                jQuery(field).summernote('destroy');
+            }
+            if (html === '' || html.indexOf('b64:') === 0) {
+                field.value = html;
+                return;
+            }
+            // Unicode-safe base64 para eludir WAF de Cloudflare al POST de HTML
+            try {
+                field.value = 'b64:' + btoa(unescape(encodeURIComponent(html)));
+            } catch (e) {
+                field.value = html;
+            }
         });
     }
 
