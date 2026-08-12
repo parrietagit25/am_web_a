@@ -73,10 +73,29 @@
     document.addEventListener('DOMContentLoaded', function () {
         initAdminHtmlEditors();
 
+        window.amAdminEncodePostedValue = function (raw) {
+            var html = raw == null ? '' : String(raw);
+            if (html === '' || html.indexOf('b64:') === 0) {
+                return html;
+            }
+            try {
+                return 'b64:' + btoa(unescape(encodeURIComponent(html)));
+            } catch (e) {
+                return html;
+            }
+        };
+
         document.querySelectorAll('form').forEach(function (form) {
             if (!form.querySelector('.js-admin-html-editor')) return;
             form.addEventListener('submit', function () {
-                form.querySelectorAll('.js-admin-html-editor').forEach(adminHtmlEditorSync);
+                form.querySelectorAll('.js-admin-html-editor').forEach(function (el) {
+                    adminHtmlEditorSync(el);
+                    // Evitar que Summernote reescriba HTML crudo tras el encode (WAF/Cloudflare)
+                    if (adminHtmlEditorIsActive(el)) {
+                        jQuery(el).summernote('destroy');
+                    }
+                    el.value = window.amAdminEncodePostedValue(el.value || '');
+                });
             });
         });
 

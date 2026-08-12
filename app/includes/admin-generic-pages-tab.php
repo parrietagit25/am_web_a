@@ -49,6 +49,7 @@ $gpExpOpen = $gpSection === 'experimental';
                     <p class="text-muted small mb-3">
                         URL pública: <code><?php echo esc($gpBase); ?>mi-pagina</code>.
                         Luego puedes asignarlas al menú de cada unidad desde <strong>Generales</strong>.
+                        El HTML se envía codificado para evitar bloqueos del firewall (Cloudflare) al guardar.
                     </p>
 
                     <div class="admin-card mb-4">
@@ -618,6 +619,10 @@ function expBuilderRender() {
     if (form) {
         form.addEventListener('submit', function () {
             expBuilderCollectFromDom();
+            var blocksInput = document.getElementById('exp_page_blocks_json');
+            if (blocksInput && typeof window.amAdminEncodePostedValue === 'function') {
+                blocksInput.value = window.amAdminEncodePostedValue(blocksInput.value || '[]');
+            }
         });
     }
     expBuilderLoad([]);

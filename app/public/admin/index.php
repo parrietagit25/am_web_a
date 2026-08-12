@@ -66,6 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // Handle CRUD operations
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Bypass WAF (Cloudflare): campos HTML/JSON pueden llegar como b64:...
+    require_once __DIR__ . '/../../includes/admin-posted-html.php';
+    am_admin_decode_posted_fields($_POST);
+
     $action = trim($_POST['action'] ?? '');
 
     if ($action !== '' && !admin_guard_post_action($action)) {
