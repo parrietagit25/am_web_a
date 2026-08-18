@@ -10,6 +10,7 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../services/BranchDataService.php';
 require_once __DIR__ . '/../services/AutomarketApiService.php';
 require_once __DIR__ . '/../services/RacPublicRateService.php';
+require_once __DIR__ . '/../services/PromoPricing.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -139,6 +140,19 @@ if (empty($result['rateCodes']) || !is_array($result['rateCodes'])) {
 }
 if (empty($result['rate_qualifier'])) {
     $result['rate_qualifier'] = RacPublicRateService::BARS_RATE_QUALIFIER;
+}
+
+if ($promoCode !== '' && is_array($result) && !empty($result['success'])) {
+    $result = PromoPricing::applyToAvailabilityResult($result, [
+        'locationCode' => $pickupLocation,
+        'returnLocationCode' => $returnLocation,
+        'pickupDate' => $pickupDate,
+        'pickupTime' => $pickupTime,
+        'returnDate' => $returnDate,
+        'returnTime' => $returnTime,
+        'age' => $age,
+        'promoCode' => $promoCode,
+    ]);
 }
 
 http_response_code($result['success'] ? 200 : 502);

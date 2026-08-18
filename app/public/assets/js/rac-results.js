@@ -120,7 +120,25 @@
         const webPerDay = billedDays > 0 ? webTotal / billedDays : parseFloat(vehicle.priceWeb || 0);
         const counterPerDay = billedDays > 0 ? counterTotal / billedDays : parseFloat(vehicle.priceCounter || 0);
 
-        return { webTotal, counterTotal, billedDays, webPerDay, counterPerDay };
+        const promo = vehicle._promo && typeof vehicle._promo === 'object' ? vehicle._promo : {};
+        const promoOn = promo.applied === true;
+        const webOriginal = promoOn ? parseFloat(promo.priceTotalOriginal) : NaN;
+        let counterOriginal = promoOn ? parseFloat(promo.priceCounterTotalOriginal) : NaN;
+        if (promoOn && isNaN(counterOriginal) && promo.priceCounterOriginal != null) {
+            counterOriginal = parseFloat(promo.priceCounterOriginal) * billedDays;
+        }
+
+        return {
+            webTotal,
+            counterTotal,
+            billedDays,
+            webPerDay,
+            counterPerDay,
+            promoOn,
+            promoCode: promo.code || '',
+            webOriginal,
+            counterOriginal
+        };
     }
 
     function renderCard(vehicle, calendarDays, vehicleIndex) {
@@ -145,9 +163,11 @@
             : 'promo';
         const badge = isFallback
             ? `<span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">Precio aproximado</span>`
-            : (promotionText
-                ? `<span class="badge ${PROMOTION_BADGE_CLASSES[promotionType]} position-absolute top-0 end-0 m-2">${escapeHtml(promotionText)}</span>`
-                : '');
+            : (rates.promoOn && rates.promoCode
+                ? `<span class="badge bg-danger position-absolute top-0 end-0 m-2">Promo ${escapeHtml(rates.promoCode)}</span>`
+                : (promotionText
+                    ? `<span class="badge ${PROMOTION_BADGE_CLASSES[promotionType]} position-absolute top-0 end-0 m-2">${escapeHtml(promotionText)}</span>`
+                    : ''));
 
         return `
         <div class="col-lg-4 col-md-6 col-12 d-flex rac-vehicle-col" data-category="${(vehicle.category || '').toLowerCase()}">
@@ -165,12 +185,18 @@
                     <div class="row g-2 mt-auto" role="group" aria-label="Opciones de tarifa">
                         <div class="col-6 border-end">
                             <small class="text-muted d-block" id="rate-label-web-${vehicleIndex}">WebExclusivo</small>
+                            ${rates.promoOn && rates.webOriginal > webTotal + 0.009
+                                ? `<small class="d-block text-muted text-decoration-line-through">$${fmt(rates.webOriginal)}</small>`
+                                : ''}
                             <span class="fs-4 fw-bold text-navy">$${fmt(webTotal)}</span>
                             <small class="text-muted d-block">$${fmt(rates.webPerDay)}/día · ${billedDays} día${billedDays !== 1 ? 's' : ''}</small>
                             <button type="button" class="btn btn-theme btn-sm w-100 mt-2 rounded-pill rac-select-btn" data-rate="web" data-rate-type="web" data-prepayment-available="false" data-vehicle-index="${vehicleIndex}" aria-describedby="rate-label-web-${vehicleIndex}">Reservar Web</button>
                         </div>
                         <div class="col-6">
                             <small class="text-muted d-block" id="rate-label-counter-${vehicleIndex}">En mostrador</small>
+                            ${rates.promoOn && rates.counterOriginal > counterTotal + 0.009
+                                ? `<small class="d-block text-muted text-decoration-line-through">$${fmt(rates.counterOriginal)}</small>`
+                                : ''}
                             <span class="fs-4 fw-bold text-navy">$${fmt(counterTotal)}</span>
                             <small class="text-muted d-block">$${fmt(rates.counterPerDay)}/día · ${billedDays} día${billedDays !== 1 ? 's' : ''}</small>
                             <button type="button" class="btn btn-outline-dark btn-sm w-100 mt-2 rounded-pill rac-select-btn" data-rate="counter" data-rate-type="counter" data-prepayment-available="false" data-vehicle-index="${vehicleIndex}" aria-describedby="rate-label-counter-${vehicleIndex}">Reservar</button>
