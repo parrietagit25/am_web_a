@@ -1,9 +1,9 @@
 <?php
 /**
- * Automarket - RAC Confirmation (step 5)
+ * Automarket - RAC Confirmation (step 6, solo después de pago aprobado)
  */
 $activeUnit = 'rentacar';
-$racStep = 5;
+$racStep = 6;
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/rac-stepper.php';
 
@@ -39,9 +39,7 @@ $code = strtoupper(trim($_GET['code'] ?? ''));
                         <i class="bi bi-printer me-1"></i> Imprimir comprobante
                     </button>
                     <a href="/mi-reserva.php" class="btn btn-outline-danger rounded-pill px-4 py-2 fw-semibold">Mi reserva</a>
-                    <a href="#" id="btnPaymentStub" class="btn btn-outline-navy rounded-pill px-4 py-2 fw-semibold d-none">Pago con tarjeta (demo)</a>
                 </div>
-                <p class="text-muted small mt-3 mb-0" id="paymentStubNote"></p>
             </div>
         </div>
     </div>
@@ -72,15 +70,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const lastName = last?.last_name || '';
-    const payBtn = document.getElementById('btnPaymentStub');
-    const payNote = document.getElementById('paymentStubNote');
-    if (payBtn && code) {
-        payBtn.href = '/pago-seguro.php?ref=' + encodeURIComponent(code);
-        payBtn.classList.remove('d-none');
-        if (payNote) {
-            payNote.textContent = 'El pago en línea es opcional (demo): valida la tarjeta pero no realiza un cobro real.';
-        }
-    }
 
     if (code && lastName) {
         const qs = new URLSearchParams({ code: code, lastName: lastName });

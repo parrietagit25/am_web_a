@@ -15,6 +15,8 @@ require_once __DIR__ . '/../services/CaptchaService.php';
 require_once __DIR__ . '/../services/RacPublicRateService.php';
 require_once __DIR__ . '/../services/RacAddonService.php';
 require_once __DIR__ . '/../services/RacBirthDateService.php';
+require_once __DIR__ . '/../services/PowertranzClient.php';
+require_once __DIR__ . '/../services/RacCheckoutStore.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -29,7 +31,20 @@ if (!is_array($input)) {
     exit;
 }
 
-CaptchaService::enforceRacReservation($input);
+$isCheckoutFulfill = RacCheckoutStore::isValidFulfillInput($input);
+if (PowertranzClient::isEnabled() && !$isCheckoutFulfill) {
+    http_response_code(409);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Debe completar el pago con tarjeta antes de confirmar la reserva.',
+        'redirect' => '/pago.php',
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if (!$isCheckoutFulfill) {
+    CaptchaService::enforceRacReservation($input);
+}
 
 $firstName = trim($input['first_name'] ?? '');
 $lastName = trim($input['last_name'] ?? '');

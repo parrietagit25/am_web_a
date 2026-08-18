@@ -427,7 +427,7 @@ function submitCheckoutBooking(e) {
     loader.innerHTML = '<div class="spinner-border text-danger" style="width:3.5rem;height:3.5rem"></div><h3 class="mt-4 fw-bold">Procesando su reserva…</h3>';
     document.body.appendChild(loader);
 
-    fetch('/api/rac-reservation.php', {
+    fetch('/api/rac-checkout.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -436,17 +436,13 @@ function submitCheckoutBooking(e) {
     .then(({ ok, data }) => {
         loader.remove();
         if (!ok || !data.success) {
-            alert(data.message || 'No se pudo completar la reserva.');
+            alert(data.message || 'No se pudo iniciar el pago.');
             return;
         }
-        sessionStorage.setItem('lastConfirmation', JSON.stringify(data));
-        sessionStorage.removeItem('selectedVehicle');
-        sessionStorage.removeItem('selectedRateType');
-        sessionStorage.removeItem('extrasSelection');
-        sessionStorage.removeItem('searchResults');
-        sessionStorage.removeItem(RAC_DRIVER_DRAFT_KEY);
-        const code = data.confirmation_code || data.reservation_code;
-        window.location.href = data.redirect || ('/confirmacion.php?code=' + encodeURIComponent(code));
+        if (data.checkout_token) {
+            sessionStorage.setItem('racCheckoutToken', data.checkout_token);
+        }
+        window.location.href = data.redirect || ('/pago.php?token=' + encodeURIComponent(data.checkout_token || ''));
     })
     .catch(() => {
         loader.remove();

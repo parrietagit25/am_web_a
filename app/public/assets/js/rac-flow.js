@@ -104,6 +104,11 @@
         }
         if (step === 4) {
             window.location.href = '/reservar.php';
+            return;
+        }
+        if (step === 5) {
+            const tok = sessionStorage.getItem('racCheckoutToken') || '';
+            window.location.href = tok ? ('/pago.php?token=' + encodeURIComponent(tok)) : '/reservar.php';
         }
     }
 

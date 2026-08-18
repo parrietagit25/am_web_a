@@ -1,19 +1,20 @@
 <?php
 /**
- * RAC booking stepper (5 steps — paso 5 = confirmación, sin pasarela de pago).
+ * RAC booking stepper (6 steps — 5 pago, 6 confirmación).
  *
- * @var int $racStep Current step 1–5
+ * @var int $racStep Current step 1–6
  */
 $racStep = isset($racStep) ? (int) $racStep : 1;
-$racStep = max(1, min(5, $racStep));
-$progress = (($racStep - 1) / 4) * 100;
+$racStep = max(1, min(6, $racStep));
+$progress = (($racStep - 1) / 5) * 100;
 
 $steps = [
     1 => ['label' => 'Sucursal y Fechas', 'href' => '/rent-a-car.php'],
     2 => ['label' => 'Escoger Auto', 'href' => '/resultados.php'],
     3 => ['label' => 'Escoger Extras', 'href' => '/extras.php'],
     4 => ['label' => 'Realizar Reserva', 'href' => '/reservar.php'],
-    5 => ['label' => 'Confirmación', 'href' => '#'],
+    5 => ['label' => 'Pago', 'href' => '/pago.php'],
+    6 => ['label' => 'Confirmación', 'href' => '#'],
 ];
 ?>
 <section class="container mt-4 pt-2">

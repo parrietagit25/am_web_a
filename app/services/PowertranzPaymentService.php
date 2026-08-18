@@ -119,6 +119,76 @@ class PowertranzPaymentService
     }
 
     /**
+     * Inicia un sale HPP ligado a un checkout RAC (chk_*). Siempre completa 3DS (no diagnóstico).
+     *
+     * @param array{first_name?:string,last_name?:string,email?:string,phone?:string} $customer
+     * @return array{ok: bool, message?: string, payment?: array<string, mixed>, api?: array<string, mixed>}
+     */
+    public function initCheckoutSale(float $amount, string $checkoutToken, array $customer = []): array
+    {
+        if (!$this->client->isConfigured()) {
+            return ['ok' => false, 'message' => 'PowerTranz no está configurado.'];
+        }
+
+        $checkoutToken = trim($checkoutToken);
+        if (!preg_match('/^chk_[a-f0-9]{8,64}$/', $checkoutToken)) {
+            return ['ok' => false, 'message' => 'Checkout inválido.'];
+        }
+
+        $amount = round(max(0.50, $amount), 2);
+        $currency = PowertranzClient::currencyCode();
+        $transactionId = $this->generateUuid();
+        $orderId = PowertranzSanitizer::orderIdentifier(
+            'AM-RAC-' . date('Ymd') . '-' . strtoupper(substr($checkoutToken, -8))
+        );
+
+        $payload = $this->buildHppPayload($transactionId, $orderId, $amount, $currency);
+        if (isset($payload['error'])) {
+            return ['ok' => false, 'message' => (string) $payload['error']];
+        }
+
+        $first = PowertranzSanitizer::name((string) ($customer['first_name'] ?? 'Cliente'));
+        $last = PowertranzSanitizer::name((string) ($customer['last_name'] ?? 'Automarket'));
+        $email = trim((string) ($customer['email'] ?? ''));
+        $phone = PowertranzSanitizer::phone((string) ($customer['phone'] ?? ''));
+        $payload['BillingAddress']['FirstName'] = $first !== '' ? $first : 'Cliente';
+        $payload['BillingAddress']['LastName'] = $last !== '' ? $last : 'Automarket';
+        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $payload['BillingAddress']['EmailAddress'] = $email;
+        }
+        if ($phone !== '') {
+            $payload['BillingAddress']['PhoneNumber'] = $phone;
+        }
+
+        $requestJson = json_encode($this->client->sanitizePayload($payload), JSON_UNESCAPED_UNICODE);
+        $paymentId = $this->insertPayment([
+            'reservation_id' => null,
+            'test_reference' => $checkoutToken,
+            'payment_reference' => $checkoutToken,
+            'transaction_identifier' => $transactionId,
+            'order_identifier' => $orderId,
+            'amount' => $amount,
+            'tax_amount' => 0,
+            'currency' => $currency,
+            'currency_code' => $currency,
+            'mode' => 'sale',
+            'environment' => $this->client->getEnvironment(),
+            'status' => 'created',
+            'request_payload_json' => $requestJson,
+            'request_json_sanitized' => $requestJson,
+        ]);
+
+        $api = $this->client->saleHpp($payload);
+        $applied = $this->applyAuthResponse($paymentId, $api);
+        $frame = $this->getPaymentForFrame($paymentId);
+        if (is_array($applied['payment'] ?? null) && is_array($frame)) {
+            $applied['payment']['redirect_html'] = $frame['redirect_html'] ?? '';
+        }
+
+        return $applied;
+    }
+
+    /**
      * @param array<string, mixed> $requestMeta
      * @return array{ok: bool, message?: string, payment?: array<string, mixed>}
      */
@@ -218,7 +288,9 @@ class PowertranzPaymentService
             ];
         }
 
-        if (self::isDiagnosticMode()) {
+        $checkoutRef = (string) ($payment['payment_reference'] ?? $payment['test_reference'] ?? '');
+        $isCheckoutSale = str_starts_with($checkoutRef, 'chk_');
+        if (self::isDiagnosticMode() && !$isCheckoutSale) {
             return [
                 'ok' => false,
                 'message' => 'Modo diagnóstico: completePayment bloqueado. Revise callback guardado.',
@@ -697,6 +769,18 @@ class PowertranzPaymentService
             'completed_at' => date('Y-m-d H:i:s'),
             'spi_token_vault' => null,
         ]);
+
+        if ($approved) {
+            $ref = (string) ($existing['payment_reference'] ?? $existing['test_reference'] ?? '');
+            if (str_starts_with($ref, 'chk_')) {
+                require_once __DIR__ . '/RacCheckoutFulfillment.php';
+                try {
+                    RacCheckoutFulfillment::onPaymentApproved($ref, $paymentId);
+                } catch (Throwable $e) {
+                    am_log('Checkout fulfill after payment: ' . $e->getMessage(), 'ERROR');
+                }
+            }
+        }
 
         return [
             'ok' => $approved,
