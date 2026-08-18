@@ -82,6 +82,12 @@ $token = preg_replace('/[^a-z0-9_]/i', '', (string) ($_GET['token'] ?? ''));
             if (data.amount != null) {
                 amountEl.textContent = '$' + Number(data.amount).toFixed(2);
             }
+            if (data.frame_url) {
+                loader.classList.add('d-none');
+                frame.classList.remove('d-none');
+                frame.src = data.frame_url;
+                return;
+            }
             if (data.redirect_html) {
                 loader.classList.add('d-none');
                 frame.classList.remove('d-none');

@@ -73,6 +73,7 @@ RacCheckoutStore::update($token, [
 echo json_encode([
     'success' => true,
     'payment_id' => $payment['payment_id'] ?? 0,
+    'frame_url' => '/api/powertranz-hpp-frame.php?token=' . rawurlencode($token),
     'redirect_html' => $payment['redirect_html'] ?? null,
     'amount' => $row['amount'] ?? 0,
 ], JSON_UNESCAPED_UNICODE);

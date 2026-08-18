@@ -106,6 +106,40 @@ class PowertranzClient
     }
 
     /**
+     * Si true, no se envía HostedPage y PowerTranz usa la página default del merchant.
+     */
+    public static function shouldOmitHostedPage(): bool
+    {
+        return defined('POWERTRANZ_HPP_OMIT') && POWERTRANZ_HPP_OMIT === true;
+    }
+
+    /**
+     * @return list<array{0:?string,1:?string}>
+     */
+    public static function hppCandidates(): array
+    {
+        $pairs = [
+            [self::hppPageSet(), self::hppPageName()],
+            ['PTZ/Payment', 'Payment'],
+            ['PTZ/Default', 'Payment'],
+            ['PTZ/Default', 'Default'],
+            [null, null],
+        ];
+        $out = [];
+        $seen = [];
+        foreach ($pairs as $pair) {
+            $key = ($pair[0] ?? '') . '|' . ($pair[1] ?? '');
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $out[] = $pair;
+        }
+
+        return $out;
+    }
+
+    /**
      * @return array{ok: bool, http_code: int, data: array<string, mixed>|null, raw: string, error?: string}
      */
     public function alive(): array

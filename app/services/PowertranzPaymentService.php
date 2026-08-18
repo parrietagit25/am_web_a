@@ -142,22 +142,9 @@ class PowertranzPaymentService
             'AM-RAC-' . date('Ymd') . '-' . strtoupper(substr($checkoutToken, -8))
         );
 
-        $payload = $this->buildHppPayload($transactionId, $orderId, $amount, $currency);
+        $payload = $this->buildHppPayload($transactionId, $orderId, $amount, $currency, $customer);
         if (isset($payload['error'])) {
             return ['ok' => false, 'message' => (string) $payload['error']];
-        }
-
-        $first = PowertranzSanitizer::name((string) ($customer['first_name'] ?? 'Cliente'));
-        $last = PowertranzSanitizer::name((string) ($customer['last_name'] ?? 'Automarket'));
-        $email = trim((string) ($customer['email'] ?? ''));
-        $phone = PowertranzSanitizer::phone((string) ($customer['phone'] ?? ''));
-        $payload['BillingAddress']['FirstName'] = $first !== '' ? $first : 'Cliente';
-        $payload['BillingAddress']['LastName'] = $last !== '' ? $last : 'Automarket';
-        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $payload['BillingAddress']['EmailAddress'] = $email;
-        }
-        if ($phone !== '') {
-            $payload['BillingAddress']['PhoneNumber'] = $phone;
         }
 
         $requestJson = json_encode($this->client->sanitizePayload($payload), JSON_UNESCAPED_UNICODE);
@@ -828,24 +815,43 @@ class PowertranzPaymentService
     }
 
     /**
+     * @param array<string, mixed> $customer
      * @return array<string, mixed>|array{error: string}
      */
-    private function buildHppPayload(string $transactionId, string $orderId, float $amount, string $currency): array
+    private function buildHppPayload(string $transactionId, string $orderId, float $amount, string $currency, array $customer = []): array
     {
         $merchantUrl = self::merchantResponseUrl();
+        $first = PowertranzSanitizer::name((string) ($customer['first_name'] ?? 'Cliente'));
+        $last = PowertranzSanitizer::name((string) ($customer['last_name'] ?? 'Automarket'));
+        if ($first === '') {
+            $first = 'Cliente';
+        }
+        if ($last === '') {
+            $last = 'Automarket';
+        }
+        $cardholder = trim($first . ' ' . $last);
         $extended = [
             'ThreeDSecure' => [
-                'ChallengeWindowSize' => 4,
+                'ChallengeWindowSize' => 5,
                 'ChallengeIndicator' => '01',
             ],
             'MerchantResponseUrl' => $merchantUrl,
         ];
 
-        if ($this->client->hasHppConfig()) {
-            $extended['HostedPage'] = [
-                'PageSet' => PowertranzClient::hppPageSet(),
-                'PageName' => PowertranzClient::hppPageName(),
-            ];
+        if (!PowertranzClient::shouldOmitHostedPage() && $this->client->hasHppConfig()) {
+            $pageSet = $customer['hpp_page_set'] ?? PowertranzClient::hppPageSet();
+            $pageName = $customer['hpp_page_name'] ?? PowertranzClient::hppPageName();
+            if (is_string($pageSet) && $pageSet !== '' && is_string($pageName) && $pageName !== '') {
+                $extended['HostedPage'] = [
+                    'PageSet' => $pageSet,
+                    'PageName' => $pageName,
+                ];
+            }
+        }
+
+        $email = trim((string) ($customer['email'] ?? 'reservas@automarket.com.pa'));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $email = 'reservas@automarket.com.pa';
         }
 
         return [
@@ -854,20 +860,20 @@ class PowertranzPaymentService
             'TaxAmount' => 0.0,
             'CurrencyCode' => (string) $currency,
             'ThreeDSecure' => true,
-            'Source' => (object) [],
+            'Source' => [
+                'CardholderName' => $cardholder,
+            ],
             'OrderIdentifier' => $orderId,
-            'AddressMatch' => false,
+            'AddressMatch' => true,
             'BillingAddress' => [
-                'FirstName' => PowertranzSanitizer::name('John'),
-                'LastName' => PowertranzSanitizer::name('Smith'),
-                'Line1' => PowertranzSanitizer::addressLine('1200 Whitewall Blvd.'),
-                'Line2' => PowertranzSanitizer::addressLine('Unit 15'),
-                'City' => PowertranzSanitizer::text('Boston'),
-                'State' => 'MA',
-                'PostalCode' => PowertranzSanitizer::postalCode('02116'),
-                'CountryCode' => '840',
-                'EmailAddress' => 'john.smith@gmail.com',
-                'PhoneNumber' => PowertranzSanitizer::phone('617-345-6790'),
+                'FirstName' => $first,
+                'LastName' => $last,
+                'Line1' => PowertranzSanitizer::addressLine((string) ($customer['address'] ?? 'Ciudad de Panama')),
+                'City' => PowertranzSanitizer::text((string) ($customer['city'] ?? 'Panama')),
+                'PostalCode' => PowertranzSanitizer::postalCode((string) ($customer['postal_code'] ?? '0801')),
+                'CountryCode' => '591',
+                'EmailAddress' => substr($email, 0, 50),
+                'PhoneNumber' => PowertranzSanitizer::phone((string) ($customer['phone'] ?? '50760000000')),
             ],
             'ExtendedData' => $extended,
         ];
