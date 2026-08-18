@@ -843,8 +843,8 @@ class PowertranzPaymentService
 
         if ($this->client->hasHppConfig()) {
             $extended['HostedPage'] = [
-                'PageSet' => (string) POWERTRANZ_HPP_PAGE_SET,
-                'PageName' => (string) POWERTRANZ_HPP_PAGE_NAME,
+                'PageSet' => PowertranzClient::hppPageSet(),
+                'PageName' => PowertranzClient::hppPageName(),
             ];
         }
 

@@ -106,6 +106,7 @@ header('Content-Type: text/html; charset=UTF-8');
                 type: 'powertranz-result',
                 payment_id: <?php echo (int) $paymentId; ?>,
                 status: <?php echo json_encode($status, JSON_UNESCAPED_UNICODE); ?>,
+                message: <?php echo json_encode($message, JSON_UNESCAPED_UNICODE); ?>,
                 approved: <?php echo $approved ? 'true' : 'false'; ?>
             }, '*');
         }

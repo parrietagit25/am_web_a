@@ -99,6 +99,12 @@ $token = preg_replace('/[^a-z0-9_]/i', '', (string) ($_GET['token'] ?? ''));
             pollConfirmation();
             return;
         }
+        const st = String(msg.status || '');
+        const detail = String(msg.message || '');
+        if (st === 'hpp_error' || detail.indexOf('757') !== -1) {
+            showError('La página de pago de PowerTranz no está publicada para esta cuenta (HPP 757). Se reintentará con PageSet PTZ/Payment.');
+            return;
+        }
         showError('El pago no fue aprobado. La reserva no se confirmó.');
     });
 

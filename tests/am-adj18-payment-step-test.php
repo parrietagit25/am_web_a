@@ -38,6 +38,11 @@ adj18_assert(str_contains($flow, '/pago.php'), 'Flujo conoce paso pago');
 $captchaJs = (string) file_get_contents(__DIR__ . '/../app/public/assets/js/captcha.js');
 adj18_assert(str_contains($captchaJs, '/api/rac-checkout.php'), 'Captcha inyecta token en checkout');
 
+require_once __DIR__ . '/../app/config/config.php';
+require_once __DIR__ . '/../app/services/PowertranzClient.php';
+adj18_assert(PowertranzClient::hppPageSet() === 'PTZ/Payment', 'HPP PageSet PTZ/Payment (no GFRHPP)');
+adj18_assert(PowertranzClient::hppPageName() === 'Payment', 'HPP PageName Payment');
+
 require_once __DIR__ . '/../app/services/RacCheckoutStore.php';
 $token = 'chk_' . bin2hex(random_bytes(8));
 $saved = RacCheckoutStore::save([

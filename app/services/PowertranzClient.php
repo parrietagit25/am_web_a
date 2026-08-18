@@ -67,10 +67,42 @@ class PowertranzClient
 
     public function hasHppConfig(): bool
     {
-        $pageSet = defined('POWERTRANZ_HPP_PAGE_SET') ? trim((string) POWERTRANZ_HPP_PAGE_SET) : '';
-        $pageName = defined('POWERTRANZ_HPP_PAGE_NAME') ? trim((string) POWERTRANZ_HPP_PAGE_NAME) : '';
+        return self::hppPageSet() !== '' && self::hppPageName() !== '';
+    }
 
-        return $pageSet !== '' && $pageName !== '';
+    /**
+     * PageSet publicado en HPP. GFRHPP/HPPBilling1 del PDF FAC no existen en este merchant (error 757).
+     */
+    public static function hppPageSet(): string
+    {
+        $set = '';
+        if (defined('POWERTRANZ_HPP_PAGE_SET')) {
+            $set = trim((string) POWERTRANZ_HPP_PAGE_SET);
+        } elseif (defined('POWERTRANZ_HPP_PAGESET')) {
+            $set = trim((string) constant('POWERTRANZ_HPP_PAGESET'));
+        }
+        $normalized = strtoupper(str_replace([' ', '\\'], ['', '/'], $set));
+        if ($set === '' || $normalized === 'GFRHPP') {
+            return 'PTZ/Payment';
+        }
+
+        return $set;
+    }
+
+    public static function hppPageName(): string
+    {
+        $name = '';
+        if (defined('POWERTRANZ_HPP_PAGE_NAME')) {
+            $name = trim((string) POWERTRANZ_HPP_PAGE_NAME);
+        } elseif (defined('POWERTRANZ_HPP_PAGENAME')) {
+            $name = trim((string) constant('POWERTRANZ_HPP_PAGENAME'));
+        }
+        $normalized = strtoupper(str_replace(' ', '', $name));
+        if ($name === '' || $normalized === 'HPPBILLING1') {
+            return 'Payment';
+        }
+
+        return $name;
     }
 
     /**
