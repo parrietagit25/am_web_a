@@ -35,6 +35,9 @@ adj18_assert(str_contains($resApi, 'checkout_fulfill') || str_contains($resApi, 
 $flow = (string) file_get_contents(__DIR__ . '/../app/public/assets/js/rac-flow.js');
 adj18_assert(str_contains($flow, '/pago.php'), 'Flujo conoce paso pago');
 
+$captchaJs = (string) file_get_contents(__DIR__ . '/../app/public/assets/js/captcha.js');
+adj18_assert(str_contains($captchaJs, '/api/rac-checkout.php'), 'Captcha inyecta token en checkout');
+
 require_once __DIR__ . '/../app/services/RacCheckoutStore.php';
 $token = 'chk_' . bin2hex(random_bytes(8));
 $saved = RacCheckoutStore::save([

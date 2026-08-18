@@ -427,31 +427,41 @@ function submitCheckoutBooking(e) {
     loader.innerHTML = '<div class="spinner-border text-danger" style="width:3.5rem;height:3.5rem"></div><h3 class="mt-4 fw-bold">Procesando su reserva…</h3>';
     document.body.appendChild(loader);
 
-    fetch('/api/rac-checkout.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    })
-    .then(r => r.json().then(d => ({ ok: r.ok, data: d })))
-    .then(({ ok, data }) => {
-        loader.remove();
-        if (!ok || !data.success) {
-            alert(data.message || 'No se pudo iniciar el pago.');
-            return;
-        }
-        if (data.checkout_token) {
-            sessionStorage.setItem('racCheckoutToken', data.checkout_token);
-        }
-        window.location.href = data.redirect || ('/pago.php?token=' + encodeURIComponent(data.checkout_token || ''));
-    })
-    .catch(() => {
-        loader.remove();
-        alert('Error de conexión. Intente nuevamente.');
-    })
-    .finally(function () {
-        const existing = document.querySelector('[style*="z-index:99999"]');
-        if (existing) existing.remove();
-    });
+    const postCheckout = function (body) {
+        return fetch('/api/rac-checkout.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        })
+        .then(r => r.json().then(d => ({ ok: r.ok, data: d })))
+        .then(({ ok, data }) => {
+            loader.remove();
+            if (!ok || !data.success) {
+                alert(data.message || 'No se pudo iniciar el pago.');
+                return;
+            }
+            if (data.checkout_token) {
+                sessionStorage.setItem('racCheckoutToken', data.checkout_token);
+            }
+            window.location.href = data.redirect || ('/pago.php?token=' + encodeURIComponent(data.checkout_token || ''));
+        })
+        .catch(() => {
+            loader.remove();
+            alert('Error de conexión. Intente nuevamente.');
+        })
+        .finally(function () {
+            const existing = document.querySelector('[style*="z-index:99999"]');
+            if (existing) existing.remove();
+        });
+    };
+
+    if (window.AmCaptcha && typeof window.AmCaptcha.withPayload === 'function') {
+        window.AmCaptcha.withPayload(payload).then(postCheckout).catch(function () {
+            loader.remove();
+        });
+        return;
+    }
+    postCheckout(payload);
 }
 </script>
 

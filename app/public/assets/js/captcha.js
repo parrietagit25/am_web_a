@@ -9,6 +9,7 @@
     var ENABLED = SITE_KEY.length > 0;
     var RAC_BYPASS = cfg.racBypassLocal === true;
     var RAC_RESERVATION_PATH = '/api/rac-reservation.php';
+    var RAC_CHECKOUT_PATH = '/api/rac-checkout.php';
 
     var PROTECTED_PATHS = [
         '/api/contacto.php',
@@ -19,6 +20,7 @@
         '/api/renting-lead.php',
         '/api/renting-cotizacion.php',
         '/api/rac-reservation.php',
+        '/api/rac-checkout.php',
         '/api/pago.php',
     ];
 
@@ -45,7 +47,11 @@
     }
 
     function isRacReservationBypass(path) {
-        return RAC_BYPASS && (path === RAC_RESERVATION_PATH || path.endsWith(RAC_RESERVATION_PATH));
+        if (!RAC_BYPASS) {
+            return false;
+        }
+        return path === RAC_RESERVATION_PATH || path.endsWith(RAC_RESERVATION_PATH)
+            || path === RAC_CHECKOUT_PATH || path.endsWith(RAC_CHECKOUT_PATH);
     }
 
     function getTokenForPath(path) {

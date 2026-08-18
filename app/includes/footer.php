@@ -266,7 +266,7 @@ if ($isPublicSite) {
     <?php if ($captchaSiteKey !== ''): ?>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <?php endif; ?>
-    <script src="/assets/js/captcha.js?v=3"></script>
+    <script src="/assets/js/captcha.js?v=4"></script>
     <?php endif; ?>
     
     <!-- Custom Web Controller JavaScript -->
