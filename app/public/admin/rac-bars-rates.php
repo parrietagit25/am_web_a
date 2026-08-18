@@ -652,7 +652,7 @@ $defaultAdminTab = 'rac-bars-rates';
             <div class="admin-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
                     <h4 class="fw-bold mb-0 text-navy-light">Tarifas diarias Rent A Car</h4>
-                    <p class="small text-muted mb-0">Consulta interna de tarifas disponibles desde BARS/RW Web. No modifica el sitio público ni reservas.</p>
+                    <p class="small text-muted mb-0">Consulta de disponibilidad BARS/RentWorks. El cobro de la reserva lo confirma RentWorks; esta pantalla no sustituye el Charge Summary.</p>
                 </div>
                 <a href="/admin/?tab=rac-reservations" class="btn btn-sm btn-outline-dark rounded-pill px-3"><i class="bi bi-arrow-left me-1"></i> Volver al panel</a>
             </div>

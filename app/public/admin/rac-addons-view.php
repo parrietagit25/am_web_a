@@ -38,7 +38,7 @@ if (!isset($protections, $extras, $addonService)) {
 <div class="col-lg-9 col-md-8 p-0">
     <div class="admin-header">
         <h4 class="fw-bold mb-0">Protecciones y Extras Rent A Car</h4>
-        <p class="small text-muted mb-0">Catálogo local en BD — no depende de API externa.</p>
+        <p class="small text-muted mb-0">Catálogo local de respaldo. El cobro real en RentWorks usa ChargeID (VendorChargeID), no estos precios como fuente de verdad.</p>
     </div>
     <div class="p-4">
         <?php if ($successMsg !== ''): ?><div class="alert alert-success"><?php echo esc($successMsg); ?></div><?php endif; ?>

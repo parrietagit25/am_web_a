@@ -104,7 +104,13 @@ $statusLabels = [
 
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4 p-4">
-                <h4 class="fw-bold text-navy mb-3"><i class="bi bi-calendar-check-fill text-danger me-2"></i>Reservas registradas</h4>
+                <h4 class="fw-bold text-navy mb-2"><i class="bi bi-journal-text text-danger me-2"></i>Registro de reservas (RentWorks)</h4>
+                <div class="alert alert-light border small mb-4" role="note">
+                    <i class="bi bi-info-circle me-1 text-danger"></i>
+                    Tarifas, protecciones, extras e ITBMS los cobra <strong>RentWorks</strong>.
+                    Esta pantalla es una bitácora local: cliente, fechas, vehículo y el código que devolvió RentWorks.
+                    El estado operativo (confirmada / cancelada) se consulta en RentWorks, no se edita aquí.
+                </div>
                 <?php if (empty($racReservations)): ?>
                     <p class="text-muted mb-0">Aún no hay reservas en la base de datos.</p>
                 <?php else: ?>
@@ -112,14 +118,14 @@ $statusLabels = [
                         <table class="table table-hover align-middle text-sm">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Código</th>
+                                    <th>Código RentWorks</th>
                                     <th>Fecha</th>
                                     <th>Cliente</th>
                                     <th>Vehículo</th>
                                     <th>Retiro / Devolución</th>
                                     <th>Total est.</th>
-                                    <th>Estado</th>
-                                    <th class="text-end">Acciones</th>
+                                    <th>Estado (copia)</th>
+                                    <th class="text-end">Detalle</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -129,7 +135,16 @@ $statusLabels = [
                                     $resJson = htmlspecialchars(json_encode($res, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8');
                                 ?>
                                 <tr>
-                                    <td><span class="badge bg-danger-subtle text-danger fw-bold"><?php echo esc($res['reservation_code']); ?></span></td>
+                                    <td>
+                                        <?php
+                                        $rwCode = RacReservationService::displayConfirmationCode($res);
+                                        $localCode = (string) ($res['reservation_code'] ?? '');
+                                        ?>
+                                        <span class="badge bg-danger-subtle text-danger fw-bold"><?php echo esc($rwCode !== '' ? $rwCode : '—'); ?></span>
+                                        <?php if ($localCode !== '' && strtoupper($localCode) !== strtoupper($rwCode)): ?>
+                                            <small class="d-block text-muted">Local <?php echo esc($localCode); ?></small>
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="text-nowrap"><?php echo esc(substr($res['created_at'] ?? '', 0, 16)); ?></td>
                                     <td>
                                         <div class="fw-semibold"><?php echo esc($res['customer_name']); ?></div>
@@ -151,21 +166,12 @@ $statusLabels = [
                                     <td><span class="badge <?php echo esc($st['class']); ?>"><?php echo esc($st['label']); ?></span></td>
                                     <td class="text-end text-nowrap">
                                         <button type="button"
-                                            class="btn btn-sm btn-outline-primary rounded-pill me-1 rac-detail-btn"
+                                            class="btn btn-sm btn-outline-primary rounded-pill rac-detail-btn"
                                             data-bs-toggle="modal"
                                             data-bs-target="#racReservationDetailModal"
                                             data-reservation="<?php echo $resJson; ?>">
-                                            <i class="bi bi-eye me-1"></i> Ver detalle
+                                            <i class="bi bi-eye me-1"></i> Ver registro
                                         </button>
-                                        <form method="post" class="d-inline-flex gap-1 align-items-center">
-                                            <input type="hidden" name="action" value="update_rac_reservation_status">
-                                            <input type="hidden" name="reservation_id" value="<?php echo (int) $res['id']; ?>">
-                                            <select name="status" class="form-select form-select-sm" style="min-width: 110px;" onchange="this.form.submit()">
-                                                <option value="pending" <?php echo ($res['status'] ?? '') === 'pending' ? 'selected' : ''; ?>>Pendiente</option>
-                                                <option value="confirmed" <?php echo ($res['status'] ?? '') === 'confirmed' ? 'selected' : ''; ?>>Confirmada</option>
-                                                <option value="cancelled" <?php echo ($res['status'] ?? '') === 'cancelled' ? 'selected' : ''; ?>>Cancelada</option>
-                                            </select>
-                                        </form>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -249,11 +255,12 @@ $statusLabels = [
         const equip = parseJsonField(res.equipment_json);
 
         document.getElementById('racReservationDetailModalLabel').textContent =
-            'Reserva ' + (res.reservation_code || '');
+            'Registro ' + (res.bars_confirmation_code || res.reservation_code || '');
 
         let html = '<div class="row">';
-        html += row('Código', esc(res.reservation_code));
-        html += row('Estado', esc(res.status));
+        html += row('Código RentWorks', esc(res.bars_confirmation_code || res.reservation_code));
+        html += row('Código local', esc(res.reservation_code));
+        html += row('Estado (copia local)', esc(res.status));
         html += row('Registrada', esc(res.created_at));
         html += row('Tarifa', esc(res.rate_type === 'counter' ? 'Mostrador' : 'Web exclusivo'));
         html += '</div><hr><h6 class="fw-bold text-navy">Cliente</h6><div class="row">';

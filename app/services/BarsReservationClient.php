@@ -5,6 +5,8 @@
  */
 declare(strict_types=1);
 
+require_once __DIR__ . '/BarsChargeIds.php';
+
 class BarsReservationClient
 {
     private const OTA_NS = 'http://www.opentravel.org/OTA/2003/05';
@@ -86,26 +88,41 @@ class BarsReservationClient
             $docXml = '<Document DocID="' . $this->xmlAttr($docNumber) . '" DocType="' . $this->xmlAttr($docType) . '"/>';
         }
 
+        $charges = is_array($payload['vehicle_charges'] ?? null) ? $payload['vehicle_charges'] : [];
+        if ($charges === []) {
+            $charges = BarsChargeIds::fromCheckoutExtras($extras, [
+                'age' => $payload['age'] ?? 0,
+            ]);
+        }
+        $chargesXml = $this->vehicleChargesXml($charges);
+
         $infoParts = [];
-        if ($coverage !== '' && $coverage !== 'NONE') {
-            $infoParts[] = '<CoveragePrefs><CoveragePref CoverageType="' . $this->xmlAttr($coverage) . '"/></CoveragePrefs>';
+        $promo = strtoupper(trim((string) ($payload['promoCode'] ?? $payload['promo_code'] ?? '')));
+        if ($promo !== '') {
+            $infoParts[] = '<PromoDesc>' . $this->xmlText($promo) . '</PromoDesc>';
         }
 
-        $equipParts = [];
-        $items = is_array($extras['items'] ?? null) ? $extras['items'] : [];
-        foreach ($items as $item) {
-            if (!is_array($item)) {
-                continue;
+        // Opción B: ChargeID. CoveragePref / SpecialEquipPref solo si no hay IDs.
+        if ($chargesXml === '') {
+            if ($coverage !== '' && $coverage !== 'NONE') {
+                $infoParts[] = '<CoveragePrefs><CoveragePref CoverageType="' . $this->xmlAttr($coverage) . '"/></CoveragePrefs>';
             }
-            $equipCode = strtoupper(trim((string) ($item['code'] ?? $item['item_code'] ?? '')));
-            if ($equipCode === '') {
-                continue;
+            $equipParts = [];
+            $items = is_array($extras['items'] ?? null) ? $extras['items'] : [];
+            foreach ($items as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $equipCode = strtoupper(trim((string) ($item['code'] ?? $item['item_code'] ?? '')));
+                if ($equipCode === '') {
+                    continue;
+                }
+                $qty = max(1, (int) ($item['quantity'] ?? 1));
+                $equipParts[] = '<SpecialEquipPref EquipType="' . $this->xmlAttr($equipCode) . '" Quantity="' . $qty . '"/>';
             }
-            $qty = max(1, (int) ($item['quantity'] ?? 1));
-            $equipParts[] = '<SpecialEquipPref EquipType="' . $this->xmlAttr($equipCode) . '" Quantity="' . $qty . '"/>';
-        }
-        if ($equipParts !== []) {
-            $infoParts[] = '<SpecialEquipPrefs>' . implode('', $equipParts) . '</SpecialEquipPrefs>';
+            if ($equipParts !== []) {
+                $infoParts[] = '<SpecialEquipPrefs>' . implode('', $equipParts) . '</SpecialEquipPrefs>';
+            }
         }
 
         if ($remarks !== '') {
@@ -136,6 +153,7 @@ class BarsReservationClient
             . '<VehClass Size="' . $this->xmlAttr($sipp) . '"/>'
             . '</VehPref>'
             . '<RateQualifier ' . $rateQualifierAttrs . '/>'
+            . $chargesXml
             . '</VehResRQCore>'
             . $infoXml
             . '</OTA_VehResRQ>';
@@ -622,6 +640,38 @@ class BarsReservationClient
         }
 
         return $default;
+    }
+
+    /**
+     * @param list<array{chargeId?:string,code?:string,quantity?:int,description?:string}> $charges
+     */
+    private function vehicleChargesXml(array $charges): string
+    {
+        $parts = [];
+        foreach ($charges as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $id = trim((string) ($row['chargeId'] ?? $row['charge_id'] ?? ''));
+            if ($id === '' || !ctype_digit($id)) {
+                continue;
+            }
+            $qty = max(1, (int) ($row['quantity'] ?? 1));
+            $desc = trim((string) ($row['description'] ?? $row['code'] ?? ''));
+            $attrs = 'ChargeID="' . $this->xmlAttr($id) . '"';
+            if ($qty > 1) {
+                $attrs .= ' Quantity="' . $qty . '"';
+            }
+            if ($desc !== '') {
+                $attrs .= ' Description="' . $this->xmlAttr($desc) . '"';
+            }
+            $parts[] = '<VehicleCharge ' . $attrs . '/>';
+        }
+        if ($parts === []) {
+            return '';
+        }
+
+        return '<VehicleCharges>' . implode('', $parts) . '</VehicleCharges>';
     }
 
     private function xmlAttr(string $value): string

@@ -40,7 +40,7 @@ if (!isset($rules, $formDefaults, $ruleService)) {
     <div class="admin-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
             <h4 class="fw-bold mb-0">Reglas de Tarifas Rent A Car</h4>
-            <p class="small text-muted mb-0">Reglas comerciales sobre tarifas base BARS. No modifica tarifas BARS originales.</p>
+            <p class="small text-muted mb-0">Ajuste local de vitrina. El cobro y la confirmación salen de RentWorks (tarifa WEB + ChargeID). Estas reglas no sustituyen a RentWorks.</p>
         </div>
         <a href="/admin/rac-bars-rates.php" class="btn btn-sm btn-outline-dark">Ver tarifas BARS</a>
     </div>

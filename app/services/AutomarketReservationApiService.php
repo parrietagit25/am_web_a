@@ -7,6 +7,7 @@
 require_once __DIR__ . '/BranchDataService.php';
 require_once __DIR__ . '/RacBirthDateService.php';
 require_once __DIR__ . '/RacPublicRateService.php';
+require_once __DIR__ . '/BarsChargeIds.php';
 require_once __DIR__ . '/BarsReservationClient.php';
 
 class AutomarketReservationApiService {
@@ -182,6 +183,10 @@ class AutomarketReservationApiService {
             }
         }
 
+        $promoCode = strtoupper(trim((string) ($search['promoCode'] ?? $input['promo_code'] ?? $input['promoCode'] ?? '')));
+        $age = (int) ($search['age'] ?? $input['age'] ?? $input['driver_age'] ?? 0);
+        $vehicleCharges = BarsChargeIds::fromCheckoutExtras(is_array($extras) ? $extras : [], $search);
+
         return array_filter([
             'locationCode' => strtoupper(trim($search['locationCode'] ?? '')),
             'returnLocationCode' => strtoupper(trim($search['returnLocationCode'] ?? $search['locationCode'] ?? '')),
@@ -205,6 +210,10 @@ class AutomarketReservationApiService {
             'remarks' => trim($input['remarks'] ?? $input['customer_comments'] ?? '') ?: null,
             'birthDate' => RacBirthDateService::normalize($input['birth_date'] ?? null),
             'extras' => is_array($extras) ? $extras : null,
+            'vehicle_charges' => $vehicleCharges !== [] ? $vehicleCharges : null,
+            'bars_passthrough' => true,
+            'promoCode' => $promoCode !== '' ? $promoCode : null,
+            'age' => $age > 0 ? $age : null,
         ], static function ($v) {
             return $v !== null && $v !== '';
         });
