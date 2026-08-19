@@ -40,7 +40,7 @@ adj18_assert(str_contains($captchaJs, '/api/rac-checkout.php'), 'Captcha inyecta
 
 require_once __DIR__ . '/../app/config/config.php';
 require_once __DIR__ . '/../app/services/PowertranzClient.php';
-adj18_assert(PowertranzClient::hppPageSet() === 'Payment', 'HPP PageSet Payment (portal, sin PTZ/)');
+adj18_assert(PowertranzClient::hppPageSet() === 'PTZ/Payment', 'API PageSet PTZ/Payment (portal Payment)');
 adj18_assert(PowertranzClient::hppPageName() === 'Payment', 'HPP PageName Payment');
 
 require_once __DIR__ . '/../app/services/RacCheckoutStore.php';

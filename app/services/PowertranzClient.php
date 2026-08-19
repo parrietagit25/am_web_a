@@ -81,12 +81,15 @@ class PowertranzClient
         } elseif (defined('POWERTRANZ_HPP_PAGESET')) {
             $set = trim((string) constant('POWERTRANZ_HPP_PAGESET'));
         }
-        $normalized = strtoupper(str_replace([' ', '\\'], ['', '/'], $set));
+        $set = str_replace('\\', '/', $set);
+        $normalized = strtoupper(str_replace(' ', '', $set));
         if ($set === '' || $normalized === 'GFRHPP') {
-            return 'Payment';
+            $set = 'Payment';
+            $normalized = 'PAYMENT';
         }
-        if ($normalized === 'PTZ/PAYMENT') {
-            return 'Payment';
+        // El portal guarda "Payment"; la API SPI exige el prefijo PTZ/.
+        if (!str_starts_with($normalized, 'PTZ/')) {
+            return 'PTZ/' . $set;
         }
 
         return $set;
