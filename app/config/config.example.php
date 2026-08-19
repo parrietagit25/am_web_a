@@ -118,7 +118,7 @@ define('N8N_RENTING_JWT_SECRET', 'TU_JWT_SECRET_N8N');
 // define('POWERTRANZ_CURRENCY', '840');
 // define('POWERTRANZ_CURRENCY_CODE', '840');
 // define('POWERTRANZ_MODE', 'sale');
-// define('POWERTRANZ_HPP_PAGE_SET', 'PTZ/Payment');
+// define('POWERTRANZ_HPP_PAGE_SET', 'Payment');
 // define('POWERTRANZ_HPP_PAGE_NAME', 'Payment');
 // define('POWERTRANZ_TIMEOUT_SECONDS', 45);
 // define('POWERTRANZ_MERCHANT_RESPONSE_URL', 'https://test.automarket.com.pa/api/powertranz-return.php');

@@ -83,7 +83,10 @@ class PowertranzClient
         }
         $normalized = strtoupper(str_replace([' ', '\\'], ['', '/'], $set));
         if ($set === '' || $normalized === 'GFRHPP') {
-            return 'PTZ/Payment';
+            return 'Payment';
+        }
+        if ($normalized === 'PTZ/PAYMENT') {
+            return 'Payment';
         }
 
         return $set;
@@ -120,6 +123,7 @@ class PowertranzClient
     {
         $pairs = [
             [self::hppPageSet(), self::hppPageName()],
+            ['Payment', 'Payment'],
             ['PTZ/Payment', 'Payment'],
             ['PTZ/Default', 'Payment'],
             ['PTZ/Default', 'Default'],
