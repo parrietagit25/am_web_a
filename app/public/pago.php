@@ -107,11 +107,16 @@ $token = preg_replace('/[^a-z0-9_]/i', '', (string) ($_GET['token'] ?? ''));
         }
         const st = String(msg.status || '');
         const detail = String(msg.message || '');
-        if (st === 'hpp_error' || detail.indexOf('757') !== -1) {
-            showError('PowerTranz no encontró la Hosted Page. Debe coincidir Page Set/Page Name publicados (Payment / Payment) y el mismo merchant ID.');
+        const low = detail.toLowerCase();
+        if (low.indexOf('3ds') !== -1) {
+            showError('La Hosted Page no admite 3-D Secure. En PowerTranz: Unpublish/Delete Payment-Payment, créela otra vez con plantilla Billing (no Basic without 3DS) y Publíquela.');
             return;
         }
-        showError('El pago no fue aprobado. La reserva no se confirmó.');
+        if (detail.indexOf('757') !== -1) {
+            showError('PowerTranz no encontró la Hosted Page. Page Set/Page Name deben ser Payment / Payment en el mismo merchant.');
+            return;
+        }
+        showError(detail !== '' ? detail : 'El pago no fue aprobado. La reserva no se confirmó.');
     });
 
     function pollConfirmation() {
