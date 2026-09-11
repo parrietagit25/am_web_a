@@ -288,6 +288,21 @@ require __DIR__ . '/../includes/render-header-banner.php';
             <?php echo esc($semiHeroTitle); ?>
         </h1>
         <p class="<?php echo esc($semiHeroSubtitleClass); ?>"<?php echo $semiHeroSubtitleColorAttr; ?>><?php echo esc($semiHeroSubtitle); ?></p>
+        <?php
+        $semiCtaText = function_exists('unit_nav_cta_text')
+            ? unit_nav_cta_text($currentUnit)
+            : trim((string) ($currentUnit['ctaText'] ?? ''));
+        if ($semiCtaText !== ''):
+            $semiCtaLink = trim((string) ($currentUnit['ctaLink'] ?? ''));
+            if ($semiCtaLink === '') {
+                $semiCtaLink = '/' . ltrim((string) ($currentUnit['slug'] ?? ''), '/') . '#cta-hero';
+            }
+            $semiCtaLink = am_remap_public_href($semiCtaLink);
+        ?>
+        <a href="<?php echo esc($semiCtaLink); ?>" class="btn btn-theme px-4 py-2 rounded-pill fw-bold text-white shadow-sm transition-all text-uppercase mt-2">
+            <?php echo esc($semiCtaText); ?>
+        </a>
+        <?php endif; ?>
     </div>
 
     <!-- Inventory list dynamic autoplaying carousel -->
