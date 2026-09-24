@@ -9,56 +9,59 @@ class AdminPermissionRegistry
     {
         return [
             'main' => [
-                'label' => 'Menú principal',
+                'label' => 'Generales',
                 'permissions' => [
                     'global' => 'Configuración global',
-                    'global_sucursales' => 'Sucursales (global)',
-                    'locations_master' => 'Sucursales maestro (locations[])',
-                    'translations' => 'Traducciones (ES / EN)',
-                    'seo' => 'SEO',
+                    'global_sucursales' => 'Sucursales',
+                    'locations_master' => 'Sucursales maestro',
+                    'seo' => 'SEO (Global / Página)',
                     'landings' => 'Landing pages',
                     'generic_pages' => 'Maestro de páginas',
+                    'sostenibilidad' => 'Sostenibilidad',
+                    'careers' => 'Trabaja con nosotros',
+                    'institutional' => 'Páginas institucionales',
                     'footer' => 'Pie de página',
                     'users' => 'Gestión de usuarios',
-                    'audit_log' => 'Registro de actividad (auditoría)',
+                    'audit_log' => 'Registro de actividad',
                     'telemetry' => 'Telemetría de visitantes',
                 ],
             ],
             'rentacar' => [
                 'label' => 'Rent A Car',
                 'permissions' => [
-                    'hero' => 'Principal (Hero y eventos)',
-                    'news' => 'Contenido (reciente, blog, noticias)',
+                    'news' => 'Generales y Contenido (novedades, noticias, blog)',
+                    'hero' => 'Principal (Hero y eventos) y Pie de página',
+                    'rac_reservation_ui' => 'Flujo de reserva',
+                    'rac_promo_codes' => 'Promo-Code',
+                    'rac_bars_rates' => 'Tarifas BARS / Cache',
                     'opinions' => 'Opiniones de clientes',
                     'vehicles' => 'Vehículos / Flota',
                     'rac_aliados' => 'Aliados y marcas',
                     'sucursales' => 'Sucursales',
+                    'pago_seguro' => 'Paga tu reserva',
                     'terms' => 'Términos y condiciones',
                     'requirements' => 'Requisitos de alquiler',
                     'contact' => 'Contacto / Mensajes',
-                    'payments' => 'Pagos recibidos',
-                    'rac_reservations' => 'Reservas RAC',
-                    'rac_bars_rates' => 'Tarifas BARS',
-                    'rac_rate_rules' => 'Reglas de Tarifas',
-                    'rac_addons' => 'Protecciones y Extras',
-                    'rac_bars_lab' => 'Lab BARS / Partner (diagnóstico)',
+                    'rac_reservations' => 'Registro de reservas',
+                    'rac_reservas_man' => 'Mostrador / Reservas (móvil)',
                 ],
             ],
             'seminuevos' => [
                 'label' => 'Venta de Autos',
                 'permissions' => [
-                    'semi_home' => 'Principal (banner y anatomía)',
+                    'semi_home' => 'Principal, Generales, Contenido, Sobre nosotros y Pie de página',
                     'semi_inventory' => 'Inventario de autos',
                     'semi_opinions' => 'Opiniones de clientes',
-                    'semi_financing' => 'Financiamiento y bancos',
+                    'semi_financing' => 'Requisitos y aliados bancarios',
                     'semi_team' => 'Equipo de ventas',
-                    'semi_contact' => 'Contacto',
+                    'semi_contact' => 'Sucursales y Contacto',
                 ],
             ],
             'leasing' => [
                 'label' => 'Leasing Operativo',
                 'permissions' => [
-                    'leasing_home' => 'Principal',
+                    'leasing_home' => 'Principal, Generales, Contenido, Sobre nosotros y Pie de página',
+                    'leasing_opiniones' => 'Opiniones',
                     'leasing_sucursales' => 'Sucursales',
                     'leasing_flota' => 'Nuestra flota',
                     'leasing_aliados' => 'Aliados y marcas',
@@ -69,10 +72,10 @@ class AdminPermissionRegistry
             'renting' => [
                 'label' => 'Renting',
                 'permissions' => [
-                    'renting_home' => 'Principal',
+                    'renting_home' => 'Principal y Pie de página',
+                    'renting_publicaciones' => 'Generales, Contenido y Publicaciones',
                     'renting_servicios' => 'Nuestros servicios',
                     'renting_sobre' => 'Sobre nosotros',
-                    'renting_publicaciones' => 'Publicaciones',
                     'renting_contacto' => 'Contactos',
                     'renting_cotizaciones' => 'Cotizaciones',
                     'renting_marcas' => 'Marcas aliadas',
@@ -83,7 +86,8 @@ class AdminPermissionRegistry
             'taller' => [
                 'label' => 'Taller',
                 'permissions' => [
-                    'taller_home' => 'Principal',
+                    'taller_home' => 'Principal, Generales, Contenido y Pie de página',
+                    'taller_opiniones' => 'Opiniones',
                     'taller_contacto' => 'Contacto',
                     'taller_sobre' => 'Sobre nosotros',
                     'taller_sucursales' => 'Sucursales',
@@ -108,7 +112,28 @@ class AdminPermissionRegistry
                 $keys[] = $key;
             }
         }
-        return $keys;
+        foreach (self::legacyPermissionKeys() as $key) {
+            $keys[] = $key;
+        }
+
+        return array_values(array_unique($keys));
+    }
+
+    /**
+     * Claves de módulos ya no visibles en el menú. Se conservan para no romper
+     * usuarios existentes ni accesos por URL hasta que se reasigne el perfil.
+     *
+     * @return string[]
+     */
+    public static function legacyPermissionKeys(): array
+    {
+        return [
+            'translations',
+            'payments',
+            'rac_rate_rules',
+            'rac_addons',
+            'rac_bars_lab',
+        ];
     }
 
     /** @return string[] */
@@ -172,7 +197,23 @@ class AdminPermissionRegistry
         }
 
         if ($tabSlug === 'sostenibilidad') {
-            return 'footer';
+            return 'sostenibilidad';
+        }
+
+        if ($tabSlug === 'careers') {
+            return 'careers';
+        }
+
+        if ($tabSlug === 'institutional') {
+            return 'institutional';
+        }
+
+        if ($tabSlug === 'rac-promo-codes') {
+            return 'rac_promo_codes';
+        }
+
+        if ($tabSlug === 'rac-reservation-ui') {
+            return 'rac_reservation_ui';
         }
 
         if ($tabSlug === 'rac-aliados') {
@@ -181,6 +222,14 @@ class AdminPermissionRegistry
 
         if ($tabSlug === 'leasing-aliados') {
             return 'leasing_aliados';
+        }
+
+        if ($tabSlug === 'semi-sobre') {
+            return 'semi_home';
+        }
+
+        if ($tabSlug === 'leasing-sobre') {
+            return 'leasing_home';
         }
 
         $perm = self::tabSlugToPermission($tabSlug);
@@ -200,7 +249,10 @@ class AdminPermissionRegistry
         }
 
         static $multi = [
-            'save_rac_unit_contact' => ['hero', 'contact'],
+            'save_rac_alert_messages' => ['news', 'rac_reservation_ui', 'hero'],
+            'save_rac_promo_code' => ['rac_promo_codes', 'rac_reservation_ui', 'hero'],
+            'delete_rac_promo_code' => ['rac_promo_codes', 'rac_reservation_ui', 'hero'],
+            'toggle_rac_promo_code' => ['rac_promo_codes', 'rac_reservation_ui', 'hero'],
             'save_seminuevos_unit_footer' => ['semi_home', 'semi_contact'],
             'save_leasing_unit_footer' => ['leasing_home', 'leasing_contacto'],
             'save_renting_unit_footer' => ['renting_home', 'renting_contacto'],
@@ -238,6 +290,12 @@ class AdminPermissionRegistry
             $menuUnit = trim((string) ($_POST['menu_unit'] ?? ''));
 
             return UnitContentService::contentPermissionKey($menuUnit);
+        }
+        if ($action === 'save_unit_nav_cta') {
+            require_once __DIR__ . '/UnitContentService.php';
+            $ctaUnit = trim((string) ($_POST['nav_cta_unit'] ?? ''));
+
+            return UnitContentService::contentPermissionKey($ctaUnit);
         }
         if ($action === 'save_unit_nav_content_menu') {
             require_once __DIR__ . '/UnitContentService.php';
@@ -321,8 +379,9 @@ class AdminPermissionRegistry
             'delete_experimental_page' => 'generic_pages',
             'clone_experimental_page' => 'generic_pages',
             'save_footer_general' => 'footer',
-            'save_sostenibilidad_page' => 'footer',
-            'save_footer_page' => 'footer',
+            'save_sostenibilidad_page' => 'sostenibilidad',
+            'save_careers_page' => 'careers',
+            'save_footer_page' => 'institutional',
             'save_footer_also_know' => 'footer',
             'save_footer_social' => 'footer',
             'save_footer_sucursal' => 'footer',
@@ -336,6 +395,11 @@ class AdminPermissionRegistry
             // Rent A Car
             'save_homepage' => 'hero',
             'save_rac_faqs' => 'hero',
+            'save_rac_reservation_ui' => 'rac_reservation_ui',
+            'save_rac_alert_messages' => 'news',
+            'save_rac_promo_code' => 'rac_promo_codes',
+            'delete_rac_promo_code' => 'rac_promo_codes',
+            'toggle_rac_promo_code' => 'rac_promo_codes',
             'save_rac_social_links' => 'hero',
             'save_rac_unit_contact' => 'hero',
             'save_news_home_settings' => 'news',
@@ -344,18 +408,21 @@ class AdminPermissionRegistry
             'delete_news' => 'news',
             'toggle_news_home' => 'news',
             'add_opinion' => 'opinions',
+            'save_rac_opiniones_carousel' => 'opinions',
+            'save_rac_opiniones_section' => 'opinions',
             'edit_opinion' => 'opinions',
             'delete_opinion' => 'opinions',
             'add_vehicle' => 'vehicles',
             'edit_vehicle' => 'vehicles',
             'delete_vehicle' => 'vehicles',
             'save_fleet_categories' => 'vehicles',
+            'save_rac_vehicle_visibility' => 'vehicles',
             'add_sucursal' => 'sucursales',
             'edit_sucursal' => 'sucursales',
             'delete_sucursal' => 'sucursales',
             'save_terms' => 'terms',
             'save_requirements' => 'requirements',
-            'save_pago_seguro_page' => 'news',
+            'save_pago_seguro_page' => 'pago_seguro',
             'save_contact_settings' => 'contact',
             'save_rac_contact_page' => 'contact',
             'save_rac_sucursales_page' => 'sucursales',
@@ -366,13 +433,17 @@ class AdminPermissionRegistry
             'delete_rac_alert_email' => 'rac_reservations',
             'toggle_rac_alert_email' => 'rac_reservations',
             'update_rac_reservation_status' => 'rac_reservations',
+            'send_rac_reservation_email' => 'rac_reservations',
+            'mark_rac_reservation_picked_up' => 'rac_reservas_man',
             // Venta de Autos
             'save_seminuevos_home' => 'semi_home',
             'save_semi_detail_breadcrumb_color' => 'semi_inventory',
             'save_semi_detail_financing_cta' => 'semi_inventory',
+            'save_semi_detail_whatsapp' => 'semi_inventory',
             'add_semi_opinion' => 'semi_opinions',
             'edit_semi_opinion' => 'semi_opinions',
             'delete_semi_opinion' => 'semi_opinions',
+            'save_semi_opiniones_section' => 'semi_opinions',
             'add_semi_inventory' => 'semi_inventory',
             'edit_semi_inventory' => 'semi_inventory',
             'delete_semi_inventory' => 'semi_inventory',
@@ -395,9 +466,10 @@ class AdminPermissionRegistry
             'add_leasing_post' => 'leasing_home',
             'edit_leasing_post' => 'leasing_home',
             'delete_leasing_post' => 'leasing_home',
-            'add_leasing_opinion' => 'leasing_home',
-            'edit_leasing_opinion' => 'leasing_home',
-            'delete_leasing_opinion' => 'leasing_home',
+            'add_leasing_opinion' => 'leasing_opiniones',
+            'edit_leasing_opinion' => 'leasing_opiniones',
+            'delete_leasing_opinion' => 'leasing_opiniones',
+            'save_leasing_opiniones_section' => 'leasing_opiniones',
             'add_leasing_sucursal' => 'leasing_sucursales',
             'edit_leasing_sucursal' => 'leasing_sucursales',
             'delete_leasing_sucursal' => 'leasing_sucursales',
@@ -437,6 +509,7 @@ class AdminPermissionRegistry
             'add_renting_opinion' => 'renting_opiniones',
             'edit_renting_opinion' => 'renting_opiniones',
             'delete_renting_opinion' => 'renting_opiniones',
+            'save_renting_opiniones_section' => 'renting_opiniones',
             // Taller
             'save_taller_home' => 'taller_home',
             'save_taller_sucursales_settings' => 'taller_sucursales',
@@ -452,9 +525,10 @@ class AdminPermissionRegistry
             'add_taller_brand' => 'taller_sobre',
             'edit_taller_brand' => 'taller_sobre',
             'delete_taller_brand' => 'taller_sobre',
-            'add_taller_opinion' => 'taller_sobre',
-            'edit_taller_opinion' => 'taller_sobre',
-            'delete_taller_opinion' => 'taller_sobre',
+            'add_taller_opinion' => 'taller_opiniones',
+            'edit_taller_opinion' => 'taller_opiniones',
+            'delete_taller_opinion' => 'taller_opiniones',
+            'save_taller_opiniones_section' => 'taller_opiniones',
             'save_taller_faqs' => 'taller_home',
             // Renting FAQs
             'save_renting_faqs' => 'renting_home',
@@ -474,6 +548,8 @@ class AdminPermissionRegistry
             'save_seminuevos_unit_footer'  => 'semi_home',
             'save_seminuevos_sucursales_page' => 'semi_contact',
             'save_semi_contact_page' => 'semi_contact',
+            'save_semi_contact_emails' => 'semi_contact',
+            'save_semi_contact_image' => 'semi_contact',
             // Branches por unidad (SU1)
             'save_taller_branches'         => 'taller_sucursales',
             'save_renting_branches'        => 'renting_home',
@@ -523,7 +599,10 @@ class AdminPermissionRegistry
             if (str_contains($action, 'contact') || str_contains($action, 'message')) {
                 return 'leasing_contacto';
             }
-            if (str_contains($action, 'post') || str_contains($action, 'opinion')) {
+            if (str_contains($action, 'opinion')) {
+                return 'leasing_opiniones';
+            }
+            if (str_contains($action, 'post')) {
                 return 'leasing_home';
             }
             return 'leasing_home';
@@ -558,7 +637,10 @@ class AdminPermissionRegistry
             if (str_contains($action, 'contact') || str_contains($action, 'message')) {
                 return 'taller_contacto';
             }
-            if (str_contains($action, 'sobre') || str_contains($action, 'service') || str_contains($action, 'brand') || str_contains($action, 'opinion')) {
+            if (str_contains($action, 'opinion')) {
+                return 'taller_opiniones';
+            }
+            if (str_contains($action, 'sobre') || str_contains($action, 'service') || str_contains($action, 'brand')) {
                 return 'taller_sobre';
             }
             if (str_contains($action, 'sucursal')) {
