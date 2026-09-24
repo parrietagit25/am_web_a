@@ -73,6 +73,13 @@ function am_log($message, $level = 'INFO') {
 }
 
 define('RESEND_API_KEY', 'TU_RESEND_API_KEY');
+define('RESEND_FROM_EMAIL', 'info@automarket.com.pa');
+define('RESEND_FROM_NAME', 'Automarket Contacto');
+
+// Resend — solo correos de reserva Rent A Car
+define('RESEND_API_KEY_RESERVAS', 'TU_RESEND_API_KEY_RESERVAS');
+define('RESEND_FROM_EMAIL_RESERVAS', 'reservas@automarket.com.pa');
+define('RESEND_FROM_NAME_RESERVAS', 'Automarket Rent A Car');
 
 // OpenAI — Chatbot IA en el sitio público (sk-...)
 define('OPENAI_API_KEY', '');
@@ -101,12 +108,30 @@ define('N8N_RENTING_JWT_SECRET', 'TU_JWT_SECRET_N8N');
 // define('BARS_RW_MESSAGE_PASSWORD', 'TU_MESSAGE_PASSWORD_BARS');
 // define('BARS_RW_REQUESTOR_ID', 'website');
 // define('BARS_RW_RATE_QUALIFIER', 'WEB');
+// Source / Referral / Agent en OTA_VehResRQ (TPA_Extension). Default operativo web.
+// define('BARS_RW_SOURCE_CODE', '650');
+// define('BARS_RW_REFERRAL', '650-13');
+// define('BARS_RW_AGENT_ID', 'AUTOMWEB');
+// Tras pago PowerTranz: postear charge + últimos 4 a RentWorks (VehModify). Default: true.
+// define('BARS_RW_POST_ONLINE_PAYMENT', true);
+// Exp MMYY si PowerTranz no envía CardExpiration (sin Exp RW avisa invalid).
+// define('BARS_RW_PAYMENT_EXPIRE_FALLBACK', '1230');
 
 // Lab RAC sandbox (/lab/rac-ciclo.php) — fuera de web/admin. Obligatorio fuera de localhost.
 // define('LAB_RAC_SECRET', 'cambia-esta-clave-lab');
 
 // Reserva pública: si SOAP BARS falla, intentar Partner DO (true recomendado en migración).
 // define('RAC_RESERVATION_PARTNER_FALLBACK', true);
+
+// Reglas comerciales locales sobre tarifa BARS (admin → Reglas de Tarifas, ej. "promo 1").
+// Por defecto false: precios web = tarifa BARS/RentWorks sin descuentos propios de Automarket.
+// define('RAC_COMMERCIAL_RULES_ENABLED', true);
+
+// Tarifas RAC solo vía BARS/RentWorks live (sin caché rac_calculated_rates). Default: true.
+// define('RAC_BARS_LIVE_ONLY', false);
+
+// Resultados RAC: mostrar descuento de Marketing (sondeo create+cancel, 1 reserva dummy). Default: on.
+// define('RAC_PROMO_DISPLAY_PROBE', true);
 
 // Powertranz / First Atlantic Commerce — pagos HPP/3DS (AM-RAC-PAY-POWERTRANZ-0A/0B)
 // define('POWERTRANZ_ENABLED', true);

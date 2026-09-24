@@ -120,6 +120,8 @@ class PowertranzDatabaseSchema
             'response_payload_json' => $driver === 'mysql' ? 'LONGTEXT NULL' : 'TEXT NULL',
             'complete_payload_json' => $driver === 'mysql' ? 'LONGTEXT NULL' : 'TEXT NULL',
             'complete_response_json' => $driver === 'mysql' ? 'LONGTEXT NULL' : 'TEXT NULL',
+            'card_suffix' => $driver === 'mysql' ? 'VARCHAR(4) NULL' : 'TEXT NULL',
+            'card_expiry' => $driver === 'mysql' ? 'VARCHAR(8) NULL' : 'TEXT NULL',
         ];
 
         foreach ($columns as $name => $definition) {

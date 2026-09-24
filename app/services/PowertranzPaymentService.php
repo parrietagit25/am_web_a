@@ -228,11 +228,16 @@ class PowertranzPaymentService
 
         if ($this->callbackIndicatesHppFailure($callback)) {
             $failureMsg = $this->hppFailureMessage($callback);
-            $this->updatePayment($paymentId, [
+            $failIso = $this->client->extractIsoCode($callback);
+            $failUpdate = [
                 'status' => 'hpp_error',
                 'merchant_response_json_sanitized' => $returnJson,
                 'error_message' => $failureMsg,
-            ]);
+            ];
+            if ($failIso !== '') {
+                $failUpdate['iso_response_code'] = $failIso;
+            }
+            $this->updatePayment($paymentId, $failUpdate);
 
             return [
                 'ok' => false,
@@ -242,10 +247,15 @@ class PowertranzPaymentService
             ];
         }
 
-        $this->updatePayment($paymentId, [
+        $returnUpdate = [
             'status' => self::isDiagnosticMode() ? 'return_received_diagnostic' : 'return_received',
             'merchant_response_json_sanitized' => $returnJson,
-        ]);
+        ];
+        $returnIso = $this->client->extractIsoCode($callback);
+        if ($returnIso !== '') {
+            $returnUpdate['iso_response_code'] = $returnIso;
+        }
+        $this->updatePayment($paymentId, $returnUpdate);
 
         if (!$this->callbackHasValidReturn($callback)) {
             $this->updatePayment($paymentId, [
@@ -372,7 +382,7 @@ class PowertranzPaymentService
         }
         $db = Database::getInstance();
         $row = $db->selectOne(
-            'SELECT * FROM rac_powertranz_payments WHERE test_reference = :r OR payment_reference = :r OR order_identifier = :r LIMIT 1',
+            'SELECT * FROM rac_powertranz_payments WHERE test_reference = :r OR payment_reference = :r OR order_identifier = :r ORDER BY id DESC LIMIT 1',
             [':r' => $reference]
         );
 
@@ -457,6 +467,8 @@ class PowertranzPaymentService
             'authorization_code' => (string) ($row['authorization_code'] ?? ''),
             'rrn' => (string) ($row['rrn'] ?? ''),
             'card_brand' => (string) ($row['card_brand'] ?? ''),
+            'card_suffix' => (string) ($row['card_suffix'] ?? ''),
+            'card_expiry' => (string) ($row['card_expiry'] ?? ''),
             'amount' => (float) ($row['amount'] ?? 0),
             'currency' => (string) ($row['currency'] ?? $row['currency_code'] ?? ''),
             'currency_code' => (string) ($row['currency_code'] ?? $row['currency'] ?? ''),
@@ -742,6 +754,19 @@ class PowertranzPaymentService
         $completeResponseJson = json_encode($this->client->sanitizeResponse(is_array($data) ? $data : null), JSON_UNESCAPED_UNICODE);
         $finalMessage = $message !== '' ? $message : ((string) ($api['error'] ?? ''));
 
+        $cardSuffix = '';
+        $cardExpiry = '';
+        if (is_array($data)) {
+            $cardSuffix = preg_replace('/\D+/', '', (string) ($data['CardSuffix'] ?? $data['cardSuffix'] ?? '')) ?? '';
+            $cardSuffix = strlen($cardSuffix) >= 4 ? substr($cardSuffix, -4) : '';
+            $expRaw = preg_replace('/\D+/', '', (string) ($data['CardExpiration'] ?? $data['cardExpiration'] ?? $data['ExpiryDate'] ?? '')) ?? '';
+            if (strlen($expRaw) === 4) {
+                $cardExpiry = $expRaw;
+            } elseif (strlen($expRaw) === 6) {
+                $cardExpiry = substr($expRaw, 0, 2) . substr($expRaw, -2);
+            }
+        }
+
         $this->updatePayment($paymentId, [
             'status' => $status,
             'approved' => $approved ? 1 : 0,
@@ -751,6 +776,8 @@ class PowertranzPaymentService
             'authorization_code' => is_array($data) ? trim((string) ($data['AuthorizationCode'] ?? $data['authorizationCode'] ?? '')) : '',
             'rrn' => is_array($data) ? trim((string) ($data['RRN'] ?? $data['Rrn'] ?? $data['rrn'] ?? '')) : '',
             'card_brand' => is_array($data) ? trim((string) ($data['CardBrand'] ?? $data['cardBrand'] ?? '')) : '',
+            'card_suffix' => $cardSuffix !== '' ? $cardSuffix : null,
+            'card_expiry' => $cardExpiry !== '' ? $cardExpiry : null,
             'complete_response_json' => $completeResponseJson,
             'payment_response_json_sanitized' => $completeResponseJson,
             'completed_at' => date('Y-m-d H:i:s'),
@@ -849,10 +876,27 @@ class PowertranzPaymentService
             }
         }
 
-        $email = trim((string) ($customer['email'] ?? 'reservas@automarket.com.pa'));
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $email = 'reservas@automarket.com.pa';
+        $email = PowertranzSanitizer::email((string) ($customer['email'] ?? 'reservas@automarket.com.pa'));
+        $addressLines = PowertranzSanitizer::addressLines((string) ($customer['address'] ?? 'Ciudad de Panama'));
+        $phone = PowertranzSanitizer::phone((string) ($customer['phone'] ?? '50760000000'));
+        if ($phone === '') {
+            $phone = '50760000000';
         }
+
+        $billing = [
+            'FirstName' => $first,
+            'LastName' => $last,
+            'Line1' => $addressLines['Line1'],
+            'City' => PowertranzSanitizer::text((string) ($customer['city'] ?? 'Panama'), 50),
+            'CountryCode' => '591',
+            'EmailAddress' => $email,
+            'PhoneNumber' => $phone,
+        ];
+        // Line2 solo si hay resto de dirección (máx. 50).
+        if ($addressLines['Line2'] !== '') {
+            $billing['Line2'] = $addressLines['Line2'];
+        }
+        // PowerTranz: no enviar State ni PostalCode (suelen romper 3DS en esta región).
 
         return [
             'TransactionIdentifier' => $transactionId,
@@ -861,20 +905,11 @@ class PowertranzPaymentService
             'CurrencyCode' => (string) $currency,
             'ThreeDSecure' => true,
             'Source' => [
-                'CardholderName' => $cardholder,
+                'CardholderName' => PowertranzSanitizer::name($cardholder),
             ],
             'OrderIdentifier' => $orderId,
             'AddressMatch' => true,
-            'BillingAddress' => [
-                'FirstName' => $first,
-                'LastName' => $last,
-                'Line1' => PowertranzSanitizer::addressLine((string) ($customer['address'] ?? 'Ciudad de Panama')),
-                'City' => PowertranzSanitizer::text((string) ($customer['city'] ?? 'Panama')),
-                'PostalCode' => PowertranzSanitizer::postalCode((string) ($customer['postal_code'] ?? '0801')),
-                'CountryCode' => '591',
-                'EmailAddress' => substr($email, 0, 50),
-                'PhoneNumber' => PowertranzSanitizer::phone((string) ($customer['phone'] ?? '50760000000')),
-            ],
+            'BillingAddress' => $billing,
             'ExtendedData' => $extended,
         ];
     }
@@ -987,18 +1022,25 @@ class PowertranzPaymentService
 
         foreach ([
             'AuthenticationStatus', 'authenticationStatus',
-            'RiskManagement', 'riskManagement',
-            'RiskManagementResponse', 'riskManagementResponse',
             'PaRes', 'paRes', 'CRes', 'cRes',
         ] as $key) {
-            if (trim((string) ($callback[$key] ?? '')) !== '') {
+            $value = $callback[$key] ?? '';
+            if (is_scalar($value) && trim((string) $value) !== '') {
                 return true;
             }
         }
 
         $iso = strtoupper(trim((string) ($callback['IsoResponseCode'] ?? $callback['isoResponseCode'] ?? '')));
+        if (in_array($iso, ['00', '3D0', '3D1'], true)) {
+            return true;
+        }
 
-        return in_array($iso, ['00', '3D0'], true);
+        $risk = $callback['RiskManagement'] ?? $callback['riskManagement'] ?? null;
+        if (is_array($risk) && $risk !== []) {
+            return true;
+        }
+
+        return $this->client->extractSpiToken($callback) !== '' && PowertranzClient::canCompleteAfterHpp($callback);
     }
 
     /**
@@ -1008,8 +1050,13 @@ class PowertranzPaymentService
     {
         $callback = $this->expandCallbackResponse($callback);
         $iso = strtoupper(trim((string) ($callback['IsoResponseCode'] ?? $callback['isoResponseCode'] ?? '')));
+        $auth = PowertranzClient::threeDsAuthenticationStatus($callback);
 
-        if (in_array($iso, ['12', '57', '05', '14', '51', '54', '55', '61', '62', '65', '75', '91', '96'], true)) {
+        if ($auth === 'N' || $auth === 'R') {
+            return true;
+        }
+
+        if (PowertranzClient::isHardDeclineIso($iso)) {
             return true;
         }
 
@@ -1029,7 +1076,10 @@ class PowertranzPaymentService
             return true;
         }
 
-        if (($callback['Approved'] ?? $callback['approved'] ?? null) === false && $iso !== '' && !in_array($iso, ['SP4', 'SP1', '97'], true)) {
+        if (($callback['Approved'] ?? $callback['approved'] ?? null) === false
+            && $iso !== ''
+            && !PowertranzClient::isSpiContinuationIso($iso)
+        ) {
             return true;
         }
 
