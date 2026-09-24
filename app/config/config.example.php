@@ -128,7 +128,12 @@ define('N8N_RENTING_JWT_SECRET', 'TU_JWT_SECRET_N8N');
 // define('RAC_COMMERCIAL_RULES_ENABLED', true);
 
 // Tarifas RAC solo vía BARS/RentWorks live (sin caché rac_calculated_rates). Default: true.
-// define('RAC_BARS_LIVE_ONLY', false);
+// false = disponibilidad desde tablas cache (job rac-bars-rates-refresh).
+// true  = cada búsqueda pega a RentWorks SOAP en vivo (más lento).
+define('RAC_BARS_LIVE_ONLY', false);
+// Antigüedad máxima del cache por búsqueda antes de refrescar ese cache_key (minutos).
+// define('RAC_PUBLIC_RATE_MAX_AGE_MINUTES', 180);
+
 
 // Resultados RAC: mostrar descuento de Marketing (sondeo create+cancel, 1 reserva dummy). Default: on.
 // define('RAC_PROMO_DISPLAY_PROBE', true);
