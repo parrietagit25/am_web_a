@@ -4,7 +4,9 @@
  */
 $activeUnit = 'rentacar';
 $racStep = 5;
+$omitPublicCaptcha = true;
 require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/rentacar-reservation-ui.php';
 require_once __DIR__ . '/../includes/rac-stepper.php';
 
 $token = preg_replace('/[^a-z0-9_]/i', '', (string) ($_GET['token'] ?? ''));
@@ -12,36 +14,41 @@ $token = preg_replace('/[^a-z0-9_]/i', '', (string) ($_GET['token'] ?? ''));
 
 <section class="container mb-5" id="payNoToken" <?php echo $token !== '' ? 'hidden' : ''; ?>>
     <div class="card border-0 shadow-sm p-5 text-center rounded-4">
-        <h4 class="fw-bold text-navy">No hay un pago pendiente</h4>
-        <p class="text-muted">Complete los datos del conductor para continuar al cobro.</p>
-        <a href="/reservar.php" class="btn btn-theme rounded-pill px-4 text-white">Ir a datos de reserva</a>
+        <h4 class="fw-bold text-navy"><?php echo esc(rac_ui('payment_empty_title')); ?></h4>
+        <p class="text-muted"><?php echo esc(rac_ui('payment_empty_text')); ?></p>
+        <a href="/reservar.php" class="btn btn-theme rounded-pill px-4 text-white"><?php echo esc(rac_ui('payment_empty_cta')); ?></a>
     </div>
 </section>
 
 <section class="container mb-5 <?php echo $token === '' ? 'd-none' : ''; ?>" id="payMain">
     <div class="mb-3">
         <a href="/reservar.php" class="text-muted text-decoration-none small fw-semibold">
-            <i class="bi bi-arrow-left"></i> Volver a datos del conductor
+            <i class="bi bi-arrow-left"></i> <?php echo esc(rac_ui('payment_back')); ?>
         </a>
     </div>
-    <div class="row g-4">
-        <div class="col-lg-7">
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                <h3 class="fw-bold text-navy mb-2">Pago seguro</h3>
-                <p class="text-muted small mb-3">El cargo se procesa en PowerTranz (3-D Secure). Automarket no almacena el número de tarjeta.</p>
-                <div id="payLoader" class="text-center py-5">
-                    <div class="spinner-border text-danger"></div>
-                    <p class="mt-3 mb-0 text-muted">Preparando formulario de pago…</p>
-                </div>
-                <div id="payError" class="alert alert-danger d-none" role="alert"></div>
-                <iframe id="payFrame" title="Pago con tarjeta" class="w-100 border rounded-3 d-none" style="min-height:520px;background:#fff"></iframe>
+    <div class="row g-5 align-items-start">
+        <div class="col-lg-5 col-12">
+            <div class="p-4 p-md-5 rounded-4 shadow-sm bg-white border sticky-lg-top" style="top: 100px;">
+                <h2 class="fw-bold font-montserrat text-navy mb-3" style="font-size: 1.35rem;">
+                    <i class="bi bi-receipt text-danger me-2"></i><?php echo esc(rac_ui('payment_total')); ?>
+                </h2>
+                <p class="display-6 fw-bold text-danger mb-3" id="payAmount" aria-live="polite">—</p>
+                <hr class="my-3">
+                <div class="text-muted small mb-0 rac-pay-restrictions"><?php echo nl2br(esc(rac_ui('payment_cancel_note')), false); ?></div>
             </div>
         </div>
-        <div class="col-lg-5">
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                <h5 class="fw-bold text-navy mb-3">Total a pagar</h5>
-                <p class="fs-3 fw-bold text-danger mb-1" id="payAmount">—</p>
-                <p class="small text-muted mb-0">Si cancela o el banco rechaza el cobro, la reserva no se confirma en RentWorks.</p>
+        <div class="col-lg-7 col-12">
+            <div class="p-4 p-md-5 rounded-4 shadow-sm bg-white border">
+                <h3 class="fw-bold font-montserrat text-navy mb-2" style="font-size: 1.25rem;">
+                    <?php echo esc(rac_ui('payment_heading')); ?>
+                </h3>
+                <p class="text-muted small mb-4"><?php echo esc(rac_ui('payment_intro')); ?></p>
+                <div id="payLoader" class="text-center py-5">
+                    <div class="spinner-border text-danger"></div>
+                    <p class="mt-3 mb-0 text-muted"><?php echo esc(rac_ui('payment_preparing')); ?></p>
+                </div>
+                <div id="payError" class="alert alert-danger rounded-3 d-none" role="alert"></div>
+                <iframe id="payFrame" title="Pago con tarjeta" class="w-100 border rounded-3 d-none" style="min-height:520px;background:#fff"></iframe>
             </div>
         </div>
     </div>
@@ -60,6 +67,7 @@ $token = preg_replace('/[^a-z0-9_]/i', '', (string) ($_GET['token'] ?? ''));
 
     function showError(msg) {
         loader.classList.add('d-none');
+        frame.classList.add('d-none');
         errBox.textContent = msg || 'No se pudo iniciar el pago.';
         errBox.classList.remove('d-none');
     }
@@ -71,8 +79,12 @@ $token = preg_replace('/[^a-z0-9_]/i', '', (string) ($_GET['token'] ?? ''));
     })
         .then(r => r.json().then(d => ({ ok: r.ok, data: d })))
         .then(({ data }) => {
-            if (data.already_paid && data.redirect) {
+            if ((data.already_paid || data.already_paid) && data.redirect) {
                 window.location.href = data.redirect;
+                return;
+            }
+            if (data.already_paid || data.already_paid) {
+                pollConfirmation();
                 return;
             }
             if (!data.success) {
@@ -105,13 +117,7 @@ $token = preg_replace('/[^a-z0-9_]/i', '', (string) ($_GET['token'] ?? ''));
             pollConfirmation();
             return;
         }
-        const st = String(msg.status || '');
         const detail = String(msg.message || '');
-        const low = detail.toLowerCase();
-        if (low.indexOf('3ds') !== -1) {
-            showError('La Hosted Page no admite 3-D Secure. En PowerTranz: Unpublish/Delete Payment-Payment, créela otra vez con plantilla Billing (no Basic without 3DS) y Publíquela.');
-            return;
-        }
         if (detail.indexOf('757') !== -1) {
             showError('PowerTranz no encontró la Hosted Page. Page Set/Page Name deben ser Payment / Payment en el mismo merchant.');
             return;
@@ -126,11 +132,7 @@ $token = preg_replace('/[^a-z0-9_]/i', '', (string) ($_GET['token'] ?? ''));
         let tries = 0;
         const timer = setInterval(function () {
             tries += 1;
-            fetch('/api/rac-checkout.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'status', token: token })
-            })
+            fetch('/api/rac-checkout.php?action=status&token=' + encodeURIComponent(token))
                 .then(r => r.json())
                 .then(function (d) {
                     if (d.redirect) {
