@@ -63,9 +63,13 @@ final class RacRentworksPaymentSync
         }
 
         $brand = trim((string) ($row['card_brand'] ?? ''));
-        $auth = trim((string) ($row['authorization_code'] ?? ''));
-        if ($auth === '') {
-            $auth = 'VENTA DIR';
+        $bankAuth = trim((string) ($row['authorization_code'] ?? ''));
+        // Misma combinación que la reserva lab 655762: cargo, VENTA DIR y Paid=true.
+        // El número del banco queda en la nota para no perderlo.
+        $auth = 'VENTA DIR';
+        $remark = 'Automarket online payment';
+        if ($bankAuth !== '' && strcasecmp($bankAuth, 'VENTA DIR') !== 0) {
+            $remark .= ' auth ' . $bankAuth;
         }
         $expire = self::extractExpireMmyy($row);
         if ($expire === '') {
@@ -86,8 +90,9 @@ final class RacRentworksPaymentSync
             'authorization_code' => $auth,
             'expire_date' => $expire,
             'mask_style' => 'x12',
+            'mark_paid' => 1,
             'payment_id' => $paymentId,
-            'remark' => 'Automarket online payment',
+            'remark' => $remark,
         ]);
 
         $result['bars_confirmation'] = $barsConfirmation;

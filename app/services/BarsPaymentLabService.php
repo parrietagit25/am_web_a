@@ -78,6 +78,100 @@ class BarsPaymentLabService
     }
 
     /**
+     * Laboratorio: postea un pago de tarjeta (RentalPaymentAmount PaymentType 5),
+     * no un depósito/autorización (RentalPaymentPref). No lo usa el checkout.
+     *
+     * @param array<string, mixed> $input
+     * @return array<string, mixed>
+     */
+    public static function sendCreditCardPaymentLine(array $input): array
+    {
+        $res = strtoupper(trim((string) ($input['reservation_code'] ?? '')));
+        $amount = round((float) ($input['amount'] ?? 0), 2);
+        $suffix = substr(preg_replace('/\D+/', '', (string) ($input['card_suffix'] ?? '')) ?? '', -4);
+        $expire = preg_replace('/\D+/', '', (string) ($input['expire_date'] ?? '')) ?? '';
+        $auth = trim((string) ($input['authorization_code'] ?? ''));
+        $cardCode = strtoupper(trim((string) ($input['card_code'] ?? 'VI'))) ?: 'VI';
+        if ($res === '' || $amount <= 0 || strlen($suffix) !== 4 || strlen($expire) !== 4) {
+            return ['ok' => false, 'error' => 'Faltan reservation_code, amount, card_suffix o expire MMYY.'];
+        }
+        if (strtoupper(trim((string) ($input['confirm'] ?? ''))) !== 'EJECUTAR') {
+            return ['ok' => false, 'error' => 'confirm=EJECUTAR requerido.'];
+        }
+
+        $masked = htmlspecialchars(self::buildMaskedCardNumber($suffix, 'x12'), ENT_QUOTES | ENT_XML1, 'UTF-8');
+        $cardCodeXml = htmlspecialchars($cardCode, ENT_QUOTES | ENT_XML1, 'UTF-8');
+        $expireXml = htmlspecialchars($expire, ENT_QUOTES | ENT_XML1, 'UTF-8');
+        $amountXml = number_format($amount, 2, '.', '');
+        $authXml = $auth !== ''
+            ? ' ApprovalCode="' . htmlspecialchars($auth, ENT_QUOTES | ENT_XML1, 'UTF-8') . '"'
+            : '';
+        $echo = 'am-payline-' . date('YmdHis');
+        $otaXml = '<OTA_VehModifyRQ xmlns="http://www.opentravel.org/OTA/2003/05" Version="3.000" EchoToken="'
+            . htmlspecialchars($echo, ENT_QUOTES | ENT_XML1, 'UTF-8')
+            . '" Target="Production">'
+            . self::otaPosFragment()
+            . '<UniqueID Type="14" ID="' . htmlspecialchars($res, ENT_QUOTES | ENT_XML1, 'UTF-8') . '"/>'
+            . '<VehModifyRQCore ModifyType="Commit" Status="Available"/>'
+            . '<VehModifyRQInfo>'
+            . '<RentalPaymentAmount PaymentType="5">'
+            . '<PaymentCard CardType="1" CardCode="' . $cardCodeXml . '" CardNumber="' . $masked . '" ExpireDate="' . $expireXml . '"/>'
+            . '<PaymentAmount Amount="' . $amountXml . '" CurrencyCode="USD"' . $authXml . '/>'
+            . '</RentalPaymentAmount>'
+            . '</VehModifyRQInfo>'
+            . '</OTA_VehModifyRQ>';
+
+        $result = BarsApiLabService::run('bars_otavehmodify', 'soap', [
+            'ota_xml' => $otaXml,
+            'dry_run' => 0,
+            'confirm' => 'EJECUTAR',
+        ]);
+        $result['lab'] = 'pago-test-payment-line';
+        $result['ota_xml_preview'] = self::redactSecrets($otaXml);
+        $result['posted_amount'] = $amount;
+        $result['card_suffix'] = $suffix;
+        $result['authorization_code'] = $auth;
+
+        return $result;
+    }
+
+    /**
+     * Laboratorio: envía el contenido de VehModifyRQInfo tal cual.
+     * No lo usa el checkout.
+     *
+     * @return array<string, mixed>
+     */
+    public static function sendModifyInfo(string $reservationCode, string $infoInnerXml, string $echoPrefix = 'am-lab'): array
+    {
+        $res = strtoupper(trim($reservationCode));
+        if ($res === '' || trim($infoInnerXml) === '') {
+            return ['ok' => false, 'error' => 'Faltan reservation_code o XML interno.'];
+        }
+        $echo = $echoPrefix . '-' . date('YmdHis');
+        $otaXml = '<OTA_VehModifyRQ xmlns="http://www.opentravel.org/OTA/2003/05" Version="3.000" EchoToken="'
+            . htmlspecialchars($echo, ENT_QUOTES | ENT_XML1, 'UTF-8')
+            . '" Target="Production">'
+            . self::otaPosFragment()
+            . '<UniqueID Type="14" ID="' . htmlspecialchars($res, ENT_QUOTES | ENT_XML1, 'UTF-8') . '"/>'
+            . '<VehModifyRQCore ModifyType="Commit" Status="Available"/>'
+            . '<VehModifyRQInfo>' . $infoInnerXml . '</VehModifyRQInfo>'
+            . '</OTA_VehModifyRQ>';
+
+        $result = BarsApiLabService::run('bars_otavehmodify', 'soap', [
+            'ota_xml' => $otaXml,
+            'dry_run' => 0,
+            'confirm' => 'EJECUTAR',
+        ]);
+        $result['ota_xml_preview'] = self::redactSecrets($otaXml);
+        $preview = (string) ($result['response_preview'] ?? '');
+        $result['rw_success'] = stripos($preview, 'Success') !== false
+            && stripos($preview, '&lt;Error') === false
+            && stripos($preview, '<Error') === false;
+
+        return $result;
+    }
+
+    /**
      * @param array<string, mixed> $input
      * @return array<string, mixed>
      */
@@ -228,6 +322,7 @@ class BarsPaymentLabService
                 'authorization_code' => $auth,
                 'expire_date' => $expire,
                 'guarantee_type_code' => $guaranteeType,
+                'mark_paid' => $txn === self::TXN_CHARGE && !empty($input['mark_paid']),
                 'payment_id' => isset($input['payment_id']) ? (int) $input['payment_id'] : null,
                 'remark' => trim((string) ($input['remark'] ?? 'Automarket pago-test lab')),
             ],
@@ -252,8 +347,12 @@ class BarsPaymentLabService
         $expire = trim((string) ($p['expire_date'] ?? ''));
         $guarantee = trim((string) ($p['guarantee_type_code'] ?? ''));
         $remark = trim((string) ($p['remark'] ?? ''));
+        $markPaid = !empty($p['mark_paid']) && strtolower((string) ($p['txn_type'] ?? '')) === self::TXN_CHARGE;
 
         $prefAttrs = 'PaymentTransactionTypeCode="' . $txn . '"';
+        if ($markPaid) {
+            $prefAttrs .= ' Paid="true"';
+        }
         if ($guarantee !== '') {
             $prefAttrs .= ' GuaranteeTypeCode="' . htmlspecialchars($guarantee, ENT_QUOTES | ENT_XML1, 'UTF-8') . '"';
         }
@@ -269,6 +368,9 @@ class BarsPaymentLabService
         $paymentAmountAttrs = 'Amount="' . $amount . '" CurrencyCode="' . $currency . '"';
         if ($auth !== '') {
             $paymentAmountAttrs .= ' ApprovalCode="' . htmlspecialchars($auth, ENT_QUOTES | ENT_XML1, 'UTF-8') . '"';
+        }
+        if ($markPaid) {
+            $paymentAmountAttrs .= ' Paid="true"';
         }
 
         // OTA_VehModify: UniqueID + VehModifyRQInfo/RentalPaymentPref (PaymentCard + PaymentAmount).
