@@ -25,7 +25,17 @@ if (!in_array($days, $allowedDays, true)) {
     $days = 30;
 }
 
-$stats = (new RacReservationDashboardService())->build($days);
+$fromInput = isset($_GET['from']) ? trim((string) $_GET['from']) : '';
+$toInput = isset($_GET['to']) ? trim((string) $_GET['to']) : '';
+$useRange = preg_match('/^\d{4}-\d{2}-\d{2}$/', $fromInput) === 1
+    && preg_match('/^\d{4}-\d{2}-\d{2}$/', $toInput) === 1;
+
+$stats = (new RacReservationDashboardService())->build(
+    $days,
+    $useRange ? $fromInput : null,
+    $useRange ? $toInput : null
+);
+$rangeCustom = !empty($stats['range_custom']);
 $defaultAdminTab = 'rac-dashboard';
 
 $money = static function (float $n): string {
@@ -86,10 +96,23 @@ $chart = [
             <h4 class="fw-bold mb-0">Dashboard de reservas</h4>
             <p class="small text-muted mb-0">Rent A Car — cifras locales de la web. No modifica RentWorks.</p>
         </div>
-        <div class="btn-group btn-group-sm" role="group" aria-label="Periodo">
-            <?php foreach ([7 => '7 días', 30 => '30 días', 90 => '90 días', 365 => '12 meses', 0 => 'Todo'] as $d => $label): ?>
-                <a class="btn <?php echo $days === $d ? 'btn-danger' : 'btn-outline-secondary'; ?>" href="?days=<?php echo (int) $d; ?>"><?php echo esc($label); ?></a>
-            <?php endforeach; ?>
+        <div class="d-flex flex-column align-items-stretch align-items-md-end gap-2">
+            <div class="btn-group btn-group-sm" role="group" aria-label="Periodo">
+                <?php foreach ([7 => '7 días', 30 => '30 días', 90 => '90 días', 365 => '12 meses', 0 => 'Todo'] as $d => $label): ?>
+                    <a class="btn <?php echo !$rangeCustom && $days === $d ? 'btn-danger' : 'btn-outline-secondary'; ?>" href="?days=<?php echo (int) $d; ?>"><?php echo esc($label); ?></a>
+                <?php endforeach; ?>
+            </div>
+            <form class="d-flex align-items-end gap-2 flex-wrap" method="get">
+                <div>
+                    <label class="form-label small mb-0" for="dash-from">Desde</label>
+                    <input class="form-control form-control-sm" type="date" id="dash-from" name="from" value="<?php echo esc((string) ($stats['range_from'] ?? '')); ?>" required>
+                </div>
+                <div>
+                    <label class="form-label small mb-0" for="dash-to">Hasta</label>
+                    <input class="form-control form-control-sm" type="date" id="dash-to" name="to" value="<?php echo esc((string) ($stats['range_to'] ?? '')); ?>" required>
+                </div>
+                <button class="btn btn-sm btn-danger" type="submit">Aplicar</button>
+            </form>
         </div>
     </div>
     <div class="p-4">

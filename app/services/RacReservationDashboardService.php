@@ -14,12 +14,13 @@ class RacReservationDashboardService
     /**
      * @return array<string, mixed>
      */
-    public function build(int $days): array
+    public function build(int $days, ?string $from = null, ?string $to = null): array
     {
         RacDatabaseSchema::ensure();
-        $rows = $this->loadRows($days);
         $tz = new DateTimeZone('America/Panama');
         $now = new DateTimeImmutable('now', $tz);
+        $range = $this->resolveRange($days, $from, $to, $tz, $now);
+        $rows = $this->loadRows($range['start'], $range['end'], $range['bounded']);
 
         $paid = 0;
         $unpaid = 0;
@@ -38,7 +39,7 @@ class RacReservationDashboardService
         $byPromo = [];
         $byStatus = [];
 
-        $periodStart = $days > 0 ? $now->modify('-' . ($days - 1) . ' days')->setTime(0, 0) : null;
+        $periodStart = $range['start'];
         $firstCreated = null;
         $lastCreated = null;
 
@@ -122,8 +123,9 @@ class RacReservationDashboardService
 
         $total = count($rows);
         $spanStart = $periodStart ?? $firstCreated ?? $now;
-        $spanDays = max(1, (int) $spanStart->setTime(0, 0)->diff($now->setTime(0, 0))->days + 1);
-        if ($days > 0) {
+        $spanEnd = $range['bounded'] ? $range['end'] : $now;
+        $spanDays = max(1, (int) $spanStart->setTime(0, 0)->diff($spanEnd->setTime(0, 0))->days + 1);
+        if (!$range['custom'] && $days > 0) {
             $spanDays = $days;
         }
         $spanWeeks = max(1, (int) ceil($spanDays / 7));
@@ -134,10 +136,16 @@ class RacReservationDashboardService
         arsort($byVehicle);
         arsort($byPromo);
 
-        $timeline = $this->fillDays($byDay, $spanStart, $now, $days > 0 ? $days : min(90, $spanDays));
+        $maxPoints = $range['custom']
+            ? min(400, $spanDays)
+            : ($days > 0 ? $days : min(90, $spanDays));
+        $timeline = $this->fillDays($byDay, $spanStart, $spanEnd, $maxPoints);
 
         return [
             'days' => $days,
+            'range_custom' => $range['custom'],
+            'range_from' => $range['from'],
+            'range_to' => $range['to'],
             'total' => $total,
             'paid' => $paid,
             'unpaid' => $unpaid,
@@ -164,9 +172,56 @@ class RacReservationDashboardService
     }
 
     /**
+     * @return array{custom:bool,bounded:bool,start:?DateTimeImmutable,end:DateTimeImmutable,from:string,to:string}
+     */
+    private function resolveRange(int $days, ?string $from, ?string $to, DateTimeZone $tz, DateTimeImmutable $now): array
+    {
+        $fromDay = $this->parseDay($from, $tz);
+        $toDay = $this->parseDay($to, $tz);
+        if ($fromDay instanceof DateTimeImmutable && $toDay instanceof DateTimeImmutable) {
+            if ($fromDay > $toDay) {
+                [$fromDay, $toDay] = [$toDay, $fromDay];
+            }
+
+            return [
+                'custom' => true,
+                'bounded' => true,
+                'start' => $fromDay->setTime(0, 0, 0),
+                'end' => $toDay->setTime(23, 59, 59),
+                'from' => $fromDay->format('Y-m-d'),
+                'to' => $toDay->format('Y-m-d'),
+            ];
+        }
+
+        $start = $days > 0
+            ? $now->modify('-' . ($days - 1) . ' days')->setTime(0, 0, 0)
+            : null;
+
+        return [
+            'custom' => false,
+            'bounded' => false,
+            'start' => $start,
+            'end' => $now,
+            'from' => $start instanceof DateTimeImmutable ? $start->format('Y-m-d') : '',
+            'to' => $now->format('Y-m-d'),
+        ];
+    }
+
+    private function parseDay(?string $value, DateTimeZone $tz): ?DateTimeImmutable
+    {
+        $value = trim((string) $value);
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            return null;
+        }
+        $dt = DateTimeImmutable::createFromFormat('!Y-m-d', $value, $tz);
+
+        return $dt instanceof DateTimeImmutable ? $dt : null;
+    }
+
+    /**
      * @return list<array<string, mixed>>
      */
-    private function loadRows(int $days): array
+    private function loadRows(?DateTimeImmutable $start, DateTimeImmutable $end, bool $bounded): array
     {
         $db = Database::getInstance();
         $sql = 'SELECT id, status, location_code, sipp_code, vehicle_name, promo_code, rate_type,
@@ -174,13 +229,13 @@ class RacReservationDashboardService
                        pickup_status, created_at
                 FROM rac_reservations';
         $params = [];
-        if ($days > 0) {
-            $since = (new DateTimeImmutable('now', new DateTimeZone('America/Panama')))
-                ->modify('-' . ($days - 1) . ' days')
-                ->setTime(0, 0)
-                ->format('Y-m-d H:i:s');
+        if ($start instanceof DateTimeImmutable) {
             $sql .= ' WHERE created_at >= :since';
-            $params[':since'] = $since;
+            $params[':since'] = $start->format('Y-m-d H:i:s');
+            if ($bounded) {
+                $sql .= ' AND created_at <= :until';
+                $params[':until'] = $end->format('Y-m-d H:i:s');
+            }
         }
         $sql .= ' ORDER BY created_at ASC';
 
