@@ -270,6 +270,7 @@ new Chart(document.getElementById('chartVeh'), {
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: grid } }, y: { grid: { display: false } } } }
 });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <?php require __DIR__ . '/../../includes/admin-standalone-sidebar.php'; ?>
 </body>
 </html>
