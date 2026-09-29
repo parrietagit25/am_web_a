@@ -50,7 +50,7 @@ $generalesTabs = ['user-manual', 'project-progress-dashboard', 'global', 'resend
 $rentacarContentTabs = UnitContentService::contentTabSlugs('rentacar');
 // Ocultos del menú Rent A Car (siguen accesibles por URL directa si hace falta):
 // payments, rac-bars-lab, rac-rate-rules, rac-addons
-$rentacarTabs = array_merge([UnitContentService::generalTabSlug('rentacar'), 'hero', 'rac-reservation-ui', 'rac-promo-codes', 'rac-bars-rates'], $rentacarContentTabs, ['opinions', 'vehicles', 'rac-aliados', 'sucursales', 'pago-seguro', 'terms', 'requirements', 'contact', 'rac-reservations', 'rentacar-footer']);
+$rentacarTabs = array_merge(['rac-dashboard', UnitContentService::generalTabSlug('rentacar'), 'hero', 'rac-reservation-ui', 'rac-promo-codes', 'rac-bars-rates'], $rentacarContentTabs, ['opinions', 'vehicles', 'rac-aliados', 'sucursales', 'pago-seguro', 'terms', 'requirements', 'contact', 'rac-reservations', 'rentacar-footer']);
 $seminuevosContentTabs = UnitContentService::contentTabSlugs('seminuevos');
 $seminuevosTabs = array_merge([UnitContentService::generalTabSlug('seminuevos'), 'semi-home'], $seminuevosContentTabs, ['semi-inventory', 'semi-opinions', 'semi-financing', 'semi-team', 'semi-sobre', 'semi-sucursales', 'semi-contact', 'seminuevos-footer']);
 $leasingContentTabs = UnitContentService::contentTabSlugs('leasing');
@@ -167,6 +167,11 @@ $chatbotTabs = ['chatbot', 'chatbot-sessions'];
             <i class="bi bi-chevron-down" id="rentacar-chevron"></i>
         </div>
         <div class="<?php echo admin_submenu_collapse_class($rentacarTabs, $defaultAdminTab); ?>" id="rentacar-submenu" data-bs-parent="#admin-sidebar-accordion">
+            <?php if (admin_can('rac_reservations')): ?>
+            <a class="nav-link text-start w-100 border-0 bg-transparent text-decoration-none admin-sidebar-page-link<?php echo admin_nav_active('rac-dashboard', $defaultAdminTab); ?>" href="/admin/rac-dashboard.php" data-admin-perm="rac_reservations">
+                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+            </a>
+            <?php endif; ?>
             <?php if (admin_can(UnitContentService::contentPermissionKey('rentacar'))): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('rentacar-general', $defaultAdminTab); ?>" id="tab-rentacar-general-nav" data-bs-toggle="pill" data-bs-target="#tab-rentacar-general" type="button" role="tab" data-admin-perm="<?php echo esc(UnitContentService::contentPermissionKey('rentacar')); ?>"><i class="bi bi-gear-fill me-2"></i> Generales</button><?php endif; ?>
             <?php if (admin_can('hero')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('hero', $defaultAdminTab); ?>" id="tab-hero-nav" data-bs-toggle="pill" data-bs-target="#tab-hero" type="button" role="tab" data-admin-perm="hero"><i class="bi bi-house-door-fill me-2"></i> Principal (Hero y Eventos)</button><?php endif; ?>
             <?php if (admin_can('rac_reservation_ui')): ?><button class="nav-link text-start w-100 border-0 bg-transparent<?php echo admin_nav_active('rac-reservation-ui', $defaultAdminTab); ?>" id="tab-rac-reservation-ui-nav" data-bs-toggle="pill" data-bs-target="#tab-rac-reservation-ui" type="button" role="tab" data-admin-perm="rac_reservation_ui"><i class="bi bi-ui-checks-grid me-2"></i> Flujo de reserva</button><?php endif; ?>
