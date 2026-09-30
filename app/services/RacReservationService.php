@@ -341,6 +341,7 @@ class RacReservationService {
         $row['pickup_status_label'] = $picked ? 'Cliente retiró' : 'Pendiente de retiro';
         $row['picked_up_at_label'] = self::formatDateTime($row['picked_up_at'] ?? null);
         $row['pickup_logs'] = is_array($row['pickup_logs'] ?? null) ? $row['pickup_logs'] : [];
+        $row['card_suffix'] = self::extractCardSuffix($row);
 
         return $row;
     }
@@ -354,7 +355,7 @@ class RacReservationService {
         foreach ($rows as $i => $row) {
             $rows[$i] = self::decorateForUi($row);
         }
-        return $this->attachPickupLogs($rows);
+        return $this->attachCardSuffixes($this->attachPickupLogs($rows));
     }
 
     /**
@@ -580,6 +581,245 @@ class RacReservationService {
 
     private function generateCode(): string {
         return 'AM-' . date('ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
+    }
+
+    /**
+     * Últimos 4 dígitos guardados en la reserva. Vacío si no hay un sufijo válido.
+     *
+     * @param array<string, mixed> $row
+     */
+    public static function extractCardSuffix(array $row): string
+    {
+        $direct = preg_replace('/\D+/', '', (string) ($row['card_suffix'] ?? '')) ?? '';
+        if (strlen($direct) >= 4 && preg_match('/^\d{4}$/', substr($direct, -4))) {
+            return substr($direct, -4);
+        }
+
+        $rawExtras = $row['extras_snapshot_json'] ?? $row['extras_snapshot'] ?? [];
+        $extras = is_array($rawExtras) ? $rawExtras : json_decode((string) $rawExtras, true);
+        if (!is_array($extras)) {
+            return '';
+        }
+        $candidates = [
+            $extras['card_suffix'] ?? '',
+            is_array($extras['rentworks_payment'] ?? null) ? ($extras['rentworks_payment']['card_suffix'] ?? '') : '',
+        ];
+        foreach ($candidates as $candidate) {
+            $digits = preg_replace('/\D+/', '', (string) $candidate) ?? '';
+            if (preg_match('/^\d{4}$/', $digits)) {
+                return $digits;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Copia los últimos 4 a la reserva y enlaza el pago. No toca RentWorks.
+     */
+    public function rememberCardSuffix(int $reservationId, int $paymentId, string $suffix): void
+    {
+        $suffix = preg_replace('/\D+/', '', $suffix) ?? '';
+        $suffix = strlen($suffix) >= 4 ? substr($suffix, -4) : '';
+        if ($reservationId > 0 && preg_match('/^\d{4}$/', $suffix)) {
+            $this->markPaidOnline($reservationId, [
+                'payment_id' => $paymentId,
+                'card_suffix' => $suffix,
+            ]);
+        }
+        if ($reservationId <= 0 || $paymentId <= 0) {
+            return;
+        }
+        if ($suffix === '') {
+            require_once __DIR__ . '/PowertranzDatabaseSchema.php';
+            PowertranzDatabaseSchema::ensure();
+            $pay = Database::getInstance()->selectOne(
+                'SELECT card_suffix FROM rac_powertranz_payments WHERE id = :id',
+                [':id' => $paymentId]
+            );
+            $suffix = preg_replace('/\D+/', '', (string) ($pay['card_suffix'] ?? '')) ?? '';
+            $suffix = strlen($suffix) >= 4 ? substr($suffix, -4) : '';
+            if (preg_match('/^\d{4}$/', $suffix)) {
+                $this->markPaidOnline($reservationId, [
+                    'payment_id' => $paymentId,
+                    'card_suffix' => $suffix,
+                ]);
+            }
+        }
+        Database::getInstance()->execute(
+            'UPDATE rac_powertranz_payments SET reservation_id = :rid WHERE id = :id AND (reservation_id IS NULL OR reservation_id = 0)',
+            [':rid' => $reservationId, ':id' => $paymentId]
+        );
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     * @return list<array<string, mixed>>
+     */
+    private function attachCardSuffixes(array $rows): array
+    {
+        $pending = [];
+        foreach ($rows as $index => $row) {
+            $suffix = self::extractCardSuffix($row);
+            $rows[$index]['card_suffix'] = $suffix;
+            if ($suffix === '' && ($row['payment_channel'] ?? '') === 'card') {
+                $id = (int) ($row['id'] ?? 0);
+                if ($id > 0) {
+                    $pending[$id] = $index;
+                }
+            }
+        }
+        if ($pending === []) {
+            return $rows;
+        }
+
+        $fromPayments = $this->cardSuffixesByReservationId(array_keys($pending));
+        foreach ($fromPayments as $reservationId => $suffix) {
+            if (!isset($pending[$reservationId])) {
+                continue;
+            }
+            $rows[$pending[$reservationId]]['card_suffix'] = $suffix;
+            unset($pending[$reservationId]);
+        }
+        if ($pending === []) {
+            return $rows;
+        }
+
+        $fromCheckouts = $this->cardSuffixesFromCheckoutFiles(array_keys($pending));
+        foreach ($fromCheckouts as $reservationId => $suffix) {
+            if (!isset($pending[$reservationId])) {
+                continue;
+            }
+            $rows[$pending[$reservationId]]['card_suffix'] = $suffix;
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param list<int> $reservationIds
+     * @return array<int, string>
+     */
+    private function cardSuffixesByReservationId(array $reservationIds): array
+    {
+        $reservationIds = array_values(array_unique(array_filter(array_map('intval', $reservationIds))));
+        if ($reservationIds === []) {
+            return [];
+        }
+        $params = [];
+        $placeholders = [];
+        foreach ($reservationIds as $index => $id) {
+            $placeholder = ':cs_' . $index;
+            $placeholders[] = $placeholder;
+            $params[$placeholder] = $id;
+        }
+        try {
+            require_once __DIR__ . '/PowertranzDatabaseSchema.php';
+            PowertranzDatabaseSchema::ensure();
+            $payRows = Database::getInstance()->select(
+                'SELECT reservation_id, card_suffix FROM rac_powertranz_payments WHERE reservation_id IN ('
+                . implode(', ', $placeholders)
+                . ") AND card_suffix IS NOT NULL AND card_suffix != '' ORDER BY id DESC",
+                $params
+            );
+        } catch (Throwable $e) {
+            return [];
+        }
+        $out = [];
+        foreach ($payRows as $payRow) {
+            $reservationId = (int) ($payRow['reservation_id'] ?? 0);
+            if ($reservationId <= 0 || isset($out[$reservationId])) {
+                continue;
+            }
+            $suffix = self::extractCardSuffix(['card_suffix' => $payRow['card_suffix'] ?? '']);
+            if ($suffix !== '') {
+                $out[$reservationId] = $suffix;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param list<int> $reservationIds
+     * @return array<int, string>
+     */
+    private function cardSuffixesFromCheckoutFiles(array $reservationIds): array
+    {
+        $wanted = array_fill_keys(array_map('intval', $reservationIds), true);
+        $dir = dirname(__DIR__) . '/storage/rac_checkouts';
+        if (!is_dir($dir)) {
+            return [];
+        }
+        $files = glob($dir . '/*.json');
+        if (!is_array($files) || $files === []) {
+            return [];
+        }
+
+        $out = [];
+        $paymentIds = [];
+        foreach ($files as $file) {
+            $raw = @file_get_contents($file);
+            if (!is_string($raw) || $raw === '') {
+                continue;
+            }
+            $data = json_decode($raw, true);
+            if (!is_array($data)) {
+                continue;
+            }
+            $reservationId = (int) ($data['reservation_id'] ?? 0);
+            if ($reservationId <= 0 || !isset($wanted[$reservationId]) || isset($out[$reservationId])) {
+                continue;
+            }
+            $rw = is_array($data['rentworks_payment'] ?? null) ? $data['rentworks_payment'] : [];
+            $suffix = self::extractCardSuffix(['card_suffix' => $rw['card_suffix'] ?? '']);
+            if ($suffix !== '') {
+                $out[$reservationId] = $suffix;
+                continue;
+            }
+            $paymentId = (int) ($data['payment_id'] ?? 0);
+            if ($paymentId > 0) {
+                $paymentIds[$paymentId] = $reservationId;
+            }
+        }
+        if ($paymentIds === []) {
+            return $out;
+        }
+
+        $params = [];
+        $placeholders = [];
+        $index = 0;
+        foreach (array_keys($paymentIds) as $paymentId) {
+            $placeholder = ':pay_' . $index;
+            $placeholders[] = $placeholder;
+            $params[$placeholder] = $paymentId;
+            $index++;
+        }
+        try {
+            require_once __DIR__ . '/PowertranzDatabaseSchema.php';
+            PowertranzDatabaseSchema::ensure();
+            $payRows = Database::getInstance()->select(
+                'SELECT id, card_suffix FROM rac_powertranz_payments WHERE id IN ('
+                . implode(', ', $placeholders)
+                . ')',
+                $params
+            );
+        } catch (Throwable $e) {
+            return $out;
+        }
+        foreach ($payRows as $payRow) {
+            $paymentId = (int) ($payRow['id'] ?? 0);
+            $reservationId = (int) ($paymentIds[$paymentId] ?? 0);
+            if ($reservationId <= 0 || isset($out[$reservationId])) {
+                continue;
+            }
+            $suffix = self::extractCardSuffix(['card_suffix' => $payRow['card_suffix'] ?? '']);
+            if ($suffix !== '') {
+                $out[$reservationId] = $suffix;
+            }
+        }
+
+        return $out;
     }
 
     /**

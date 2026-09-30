@@ -79,6 +79,15 @@ final class RacCheckoutFulfillment
                 RacCheckoutStore::update($checkoutToken, ['rentworks_payment' => $rwPay]);
                 $fresh = RacCheckoutStore::get($checkoutToken);
             }
+            $resId = (int) ($result['reservation_id'] ?? 0);
+            if ($resId > 0) {
+                require_once __DIR__ . '/RacReservationService.php';
+                (new RacReservationService())->rememberCardSuffix(
+                    $resId,
+                    $paymentId,
+                    (string) ($rwPay['card_suffix'] ?? '')
+                );
+            }
 
             return ['ok' => true, 'record' => $fresh, 'reservation' => $result, 'rentworks_payment' => $rwPay];
         }

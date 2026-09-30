@@ -104,12 +104,23 @@ $statusLabels = [
 
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4 p-4">
-                <h4 class="fw-bold text-navy mb-2"><i class="bi bi-journal-text text-danger me-2"></i>Registro de reservas (RentWorks)</h4>
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                    <h4 class="fw-bold text-navy mb-0"><i class="bi bi-journal-text text-danger me-2"></i>Registro de reservas (RentWorks)</h4>
+                    <?php if (admin_can('rac_reservations')): ?>
+                        <a href="/admin/export-rac-reservations.php"
+                           class="btn btn-sm btn-outline-success rounded-pill px-3">
+                            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Exportar Excel
+                        </a>
+                    <?php endif; ?>
+                </div>
                 <div class="alert alert-light border small mb-4" role="note">
                     <i class="bi bi-info-circle me-1 text-danger"></i>
                     Tarifas, protecciones, extras e ITBMS los cobra <strong>RentWorks</strong>.
                     Esta pantalla es una bitácora local: cliente, fechas, vehículo y el código que devolvió RentWorks.
                     El estado operativo (confirmada / cancelada) se consulta en RentWorks, no se edita aquí.
+                    <?php if (admin_can('rac_reservas_man')): ?>
+                        Vista mostrador (teléfono): <a href="/reservas_man/">/reservas_man/</a>.
+                    <?php endif; ?>
                 </div>
                 <?php if (empty($racReservations)): ?>
                     <p class="text-muted mb-0">Aún no hay reservas en la base de datos.</p>
@@ -124,8 +135,12 @@ $statusLabels = [
                                     <th>Vehículo</th>
                                     <th>Retiro / Devolución</th>
                                     <th>Total est.</th>
+                                    <th>Promo code</th>
+                                    <th>Tipo de pago</th>
+                                    <th>Estado del pago</th>
+                                    <th>Retiro</th>
                                     <th>Estado (copia)</th>
-                                    <th class="text-end">Detalle</th>
+                                    <th class="text-end">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -133,6 +148,7 @@ $statusLabels = [
                                 <?php
                                     $st = $statusLabels[$res['status'] ?? 'pending'] ?? $statusLabels['pending'];
                                     $resJson = htmlspecialchars(json_encode($res, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8');
+                                    $promoCode = RacReservationService::promoCodeOf($res);
                                 ?>
                                 <tr>
                                     <td>
@@ -163,8 +179,53 @@ $statusLabels = [
                                         <span class="text-muted">→ <?php echo esc(rac_branch_name($res['return_location_code'])); ?> <?php echo esc($res['return_date']); ?></span>
                                     </td>
                                     <td class="fw-semibold">$<?php echo number_format((float) ($res['price_total_estimated'] ?? 0), 2); ?></td>
+                                    <td>
+                                        <?php if ($promoCode !== ''): ?>
+                                            <span class="badge bg-info-subtle text-info fw-semibold"><?php echo esc($promoCode); ?></span>
+                                        <?php else: ?>
+                                            <span class="text-muted">—</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (($res['payment_channel'] ?? '') === 'card'): ?>
+                                            <span class="badge bg-primary-subtle text-primary">Pago con tarjeta</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-warning-subtle text-dark">Solo reserva</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (($res['payment_status'] ?? '') === 'paid'): ?>
+                                            <span class="badge bg-success">Pagado</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-warning text-dark">Pendiente por pagar</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (($res['pickup_status'] ?? '') === 'picked_up'): ?>
+                                            <span class="badge bg-success-subtle text-success">Cliente retiró</span>
+                                            <?php if (!empty($res['picked_up_by']) || !empty($res['picked_up_at_label'])): ?>
+                                                <small class="d-block text-muted mt-1">
+                                                    <?php echo esc($res['picked_up_by'] ?? ''); ?>
+                                                    <?php if (!empty($res['picked_up_at_label'])): ?>
+                                                        · <?php echo esc($res['picked_up_at_label']); ?>
+                                                    <?php endif; ?>
+                                                </small>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <span class="badge bg-light text-muted border">Pendiente de retiro</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td><span class="badge <?php echo esc($st['class']); ?>"><?php echo esc($st['label']); ?></span></td>
                                     <td class="text-end text-nowrap">
+                                        <button type="button"
+                                            class="btn btn-sm btn-outline-danger rounded-pill rac-email-btn"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#racReservationEmailModal"
+                                            data-reservation-id="<?php echo (int) ($res['id'] ?? 0); ?>"
+                                            data-reservation-code="<?php echo esc($rwCode !== '' ? $rwCode : ($res['reservation_code'] ?? '')); ?>"
+                                            data-customer-email="<?php echo esc($res['customer_email'] ?? ''); ?>">
+                                            <i class="bi bi-send me-1"></i> Enviar
+                                        </button>
                                         <button type="button"
                                             class="btn btn-sm btn-outline-primary rounded-pill rac-detail-btn"
                                             data-bs-toggle="modal"
@@ -263,7 +324,31 @@ $statusLabels = [
         html += row('Estado (copia local)', esc(res.status));
         html += row('Registrada', esc(res.created_at));
         html += row('Tarifa', esc(res.rate_type === 'counter' ? 'Mostrador' : 'Web exclusivo'));
-        html += '</div><hr><h6 class="fw-bold text-navy">Cliente</h6><div class="row">';
+        html += row('Tipo de pago', esc(res.payment_channel_label || (res.payment_channel === 'card' ? 'Pago con tarjeta' : 'Solo reserva')));
+        html += row('Estado del pago', esc(res.payment_status_label || (res.payment_status === 'paid' ? 'Pagado' : 'Pendiente por pagar')));
+        if (res.payment_channel === 'card') {
+            const last4 = String(res.card_suffix || '').replace(/\D/g, '').slice(-4);
+            html += row('Tarjeta', last4.length === 4 ? ('•••• ' + esc(last4)) : '—');
+        }
+        html += row('Retiro en sucursal', esc(res.pickup_status_label || 'Pendiente de retiro'));
+        if (res.picked_up_by || res.picked_up_at_label || res.picked_up_at) {
+            html += row('Marcado por', esc((res.picked_up_by || '—') + (res.picked_up_at_label ? ' · ' + res.picked_up_at_label : (res.picked_up_at ? ' · ' + res.picked_up_at : ''))));
+        }
+        html += '</div>';
+        const pickupLogs = Array.isArray(res.pickup_logs) ? res.pickup_logs : [];
+        if (pickupLogs.length) {
+            html += '<div class="mb-3"><span class="text-muted d-block small text-uppercase">Historial de retiro</span><ul class="small mb-0 ps-3">';
+            pickupLogs.forEach(function (log) {
+                html += '<li class="mb-1"><strong>' + esc(log.event_label || log.event) + '</strong> — '
+                    + esc(log.actor_label || log.display_name || log.username || 'Mostrador')
+                    + (log.username && log.display_name && log.username !== log.display_name ? ' (' + esc(log.username) + ')' : '')
+                    + (log.created_at_label ? ' · ' + esc(log.created_at_label) : '')
+                    + (log.ip_address ? ' · IP ' + esc(log.ip_address) : '')
+                    + '</li>';
+            });
+            html += '</ul></div>';
+        }
+        html += '<hr><h6 class="fw-bold text-navy">Cliente</h6><div class="row">';
         html += row('Nombre', esc(res.customer_name));
         html += row('Correo', esc(res.customer_email));
         html += row('Teléfono', esc(res.customer_phone));
@@ -364,6 +449,107 @@ $statusLabels = [
         }
 
         body.innerHTML = html;
+    });
+})();
+</script>
+
+<!-- Modal enviar confirmación RAC -->
+<div class="modal fade" id="racReservationEmailModal" tabindex="-1" aria-labelledby="racReservationEmailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-navy" id="racReservationEmailModalLabel">Enviar confirmación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body font-poppins">
+                <p class="text-muted small mb-3">Se enviará el nuevo formato de confirmación (con extras y montos de la reserva) al correo indicado.</p>
+                <input type="hidden" id="racEmailReservationId" value="">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="racEmailReservationCode">Reserva</label>
+                    <input type="text" id="racEmailReservationCode" class="form-control form-control-premium" readonly>
+                </div>
+                <div class="mb-0">
+                    <label class="form-label fw-semibold" for="racEmailTo">Correo destino</label>
+                    <input type="email" id="racEmailTo" class="form-control form-control-premium" placeholder="correo@dominio.com" autocomplete="email">
+                </div>
+                <div id="racEmailResult" class="alert mt-3 d-none" role="alert"></div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-dark rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4" id="racEmailSendBtn">
+                    <i class="bi bi-send me-1"></i> Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const modal = document.getElementById('racReservationEmailModal');
+    const idInput = document.getElementById('racEmailReservationId');
+    const codeInput = document.getElementById('racEmailReservationCode');
+    const emailInput = document.getElementById('racEmailTo');
+    const resultBox = document.getElementById('racEmailResult');
+    const sendBtn = document.getElementById('racEmailSendBtn');
+    const csrf = <?php echo json_encode(admin_csrf_token(), JSON_UNESCAPED_UNICODE); ?>;
+    if (!modal || !idInput || !emailInput || !sendBtn) return;
+
+    modal.addEventListener('show.bs.modal', function (event) {
+        const btn = event.relatedTarget;
+        if (!btn) return;
+        idInput.value = btn.getAttribute('data-reservation-id') || '';
+        if (codeInput) {
+            codeInput.value = btn.getAttribute('data-reservation-code') || '';
+        }
+        emailInput.value = btn.getAttribute('data-customer-email') || '';
+        if (resultBox) {
+            resultBox.classList.add('d-none');
+            resultBox.textContent = '';
+            resultBox.classList.remove('alert-success', 'alert-danger', 'alert-secondary');
+        }
+        sendBtn.disabled = false;
+    });
+
+    sendBtn.addEventListener('click', function () {
+        const reservationId = parseInt(idInput.value, 10) || 0;
+        const email = (emailInput.value || '').trim();
+        if (!resultBox) return;
+        resultBox.classList.remove('d-none', 'alert-success', 'alert-danger');
+        resultBox.classList.add('alert-secondary');
+        resultBox.textContent = 'Enviando…';
+        sendBtn.disabled = true;
+        fetch('/api/admin-rac-reservation-email.php', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+                reservation_id: reservationId,
+                email: email,
+                admin_csrf_token: csrf
+            })
+        })
+            .then(function (r) {
+                return r.text().then(function (t) {
+                    var d = {};
+                    try { d = JSON.parse(t); } catch (e) { d = { message: t ? t.slice(0, 280) : '' }; }
+                    return { http: r.status, data: d };
+                });
+            })
+            .then(function (res) {
+                const ok = !!(res.data && res.data.ok);
+                resultBox.classList.remove('alert-secondary');
+                resultBox.classList.add(ok ? 'alert-success' : 'alert-danger');
+                resultBox.textContent = (res.data && res.data.message) ? res.data.message : ('Error HTTP ' + res.http);
+            })
+            .catch(function () {
+                resultBox.classList.remove('alert-secondary');
+                resultBox.classList.add('alert-danger');
+                resultBox.textContent = 'No se pudo conectar con el servidor.';
+            })
+            .finally(function () {
+                sendBtn.disabled = false;
+            });
     });
 })();
 </script>
